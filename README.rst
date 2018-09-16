@@ -12,7 +12,7 @@ It uses `Celery workers to process all tasks <http://www.celeryproject.org/>`__ 
      - `Docs <//stock-analysis-engine.readthedocs.io/en/latest/>`__
    * - .. image:: https://travis-ci.org/AlgoTraders/stock-analysis-engine?branch=master
            :alt: Travis Tests
-           :target: https://travis-ci.org/AlgoTraders/stock-analysis-engine.svg
+           :target: https://api.travis-ci.org/AlgoTraders/stock-analysis-engine.svg
      - .. image:: https://readthedocs.org/projects/stock-analysis-engine/badge/?version=latest
            :alt: Read the Docs Stock Analysis Engine
            :target: https://readthedocs.org/projects/stock-analysis-engine/badge/?version=latest

@@ -28,6 +28,7 @@ os.chdir(os.path.abspath(cur_path))
 install_requires = [
     'antinex-client',
     'celery-connectors',
+    'celery-loaders',
     'colorlog',
     'coverage',
     'flake8<=3.4.1',
