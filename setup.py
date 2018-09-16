@@ -36,7 +36,7 @@ install_requires = [
     'pep8>=1.7.1',
     'pinance',
     'pypandoc',
-    'pycodestyle<=3.4.1',
+    'pycodestyle<=2.3.1',
     'pylint',
     'recommonmark',
     'redis',
