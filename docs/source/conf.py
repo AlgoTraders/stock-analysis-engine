@@ -53,7 +53,7 @@ if os.getenv("READTHEDOCS", "") != "":
 
 # -- Project information -----------------------------------------------------
 
-project = 'AntiNex Core Worker'
+project = 'Stock Analysis Engine'
 copyright = '2018, Jay Johnson'
 author = 'Jay Johnson'
 
