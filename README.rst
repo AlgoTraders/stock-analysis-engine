@@ -5,6 +5,18 @@ Use this to get pricing data for tickers (news, quotes and options right now) an
 
 It uses `Celery workers to process all tasks <http://www.celeryproject.org/>`__ and is a horizontally scalable worker pool that works with many `transports and backends <https://github.com/celery/celery#transports-and-backends>`__
 
+.. list-table::
+   :header-rows: 1
+
+   * - `Build <https://travis-ci.org/AlgoTraders/stock-analysis-engine>`__
+     - `Docs <//stock-analysis-engine.readthedocs.io/en/latest/>`__
+   * - .. image:: https://travis-ci.org/AlgoTraders/stock-analysis-engine?branch=master
+           :alt: Travis Tests
+           :target: https://travis-ci.org/AlgoTraders/stock-analysis-engine.svg
+     - .. image:: https://readthedocs.org/projects/stock-analysis-engine/badge/?version=latest
+           :alt: Read the Docs Stock Analysis Engine
+           :target: https://readthedocs.org/projects/stock-analysis-engine/badge/?version=latest
+
 Getting Started
 ===============
 

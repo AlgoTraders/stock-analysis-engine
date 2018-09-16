@@ -26,6 +26,7 @@ cur_path, cur_script = os.path.split(sys.argv[0])
 os.chdir(os.path.abspath(cur_path))
 
 install_requires = [
+    'antinex-client',
     'celery-connectors',
     'colorlog',
     'coverage',
