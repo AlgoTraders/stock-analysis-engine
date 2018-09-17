@@ -9,13 +9,13 @@ It uses `Celery workers to process all tasks <http://www.celeryproject.org/>`__ 
    :header-rows: 1
 
    * - `Build <https://travis-ci.org/AlgoTraders/stock-analysis-engine>`__
-     - `Docs <//stock-analysis-engine.readthedocs.io/en/latest/>`__
-   * - .. image:: https://travis-ci.org/AlgoTraders/stock-analysis-engine?branch=master
+     - `Docs <https://stock-analysis-engine.readthedocs.io/en/latest/>`__
+   * - .. image:: https://api.travis-ci.org/AlgoTraders/stock-analysis-engine.svg
            :alt: Travis Tests
-           :target: https://api.travis-ci.org/AlgoTraders/stock-analysis-engine.svg
+           :target: https://travis-ci.org/AlgoTraders/stock-analysis-engine
      - .. image:: https://readthedocs.org/projects/stock-analysis-engine/badge/?version=latest
            :alt: Read the Docs Stock Analysis Engine
-           :target: https://readthedocs.org/projects/stock-analysis-engine/badge/?version=latest
+           :target: https://stock-analysis-engine.readthedocs.io/en/latest/README.html
 
 Getting Started
 ===============

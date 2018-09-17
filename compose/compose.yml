@@ -1,0 +1,34 @@
+version: '2'
+
+services:
+
+  # Stock Analysis Engine
+  sa:
+    container_name: "sa"
+    hostname: sa
+    image: jayjohnson/stock-analysis-engine:latest
+    network_mode: "host"
+    environment:
+      - SHARED_DIR=/opt/data
+      - BROKER_URL=redis://0.0.0.0:6379/4
+    volumes:
+      - /tmp:/tmp
+    entrypoint: "/bin/sh -c 'cd /opt/sa && 
+                 /opt/sa/start-workers.sh'"
+
+  # Jupyter notebooks, converted noteooks as presentation html slides, and tensorboard
+  sa-jupyter:
+    container_name: "sa-jupyter"
+    hostname: sa-jupyter
+    image: jayjohnson/jay-johnson/stock-analysis-engine:latest
+    network_mode: "host"
+    environment:
+      - JUPYTER_PASS=admin
+      - SHARED_DIR=/opt/data
+      - BROKER_URL=redis://0.0.0.0:6379/6
+    ports:
+      - "8888:8888"
+      - "8889:8889"
+      - "8890:8890"
+      - "6006:6006"
+    entrypoint: "/opt/antinex/core/docker/jupyter/start-container.sh"

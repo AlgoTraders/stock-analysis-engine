@@ -5,8 +5,27 @@ Use this to get pricing data for tickers (news, quotes and options right now) an
 
 It uses `Celery workers to process all tasks <http://www.celeryproject.org/>`__ and is a horizontally scalable worker pool that works with many `transports and backends <https://github.com/celery/celery#transports-and-backends>`__
 
+.. list-table::
+   :header-rows: 1
+
+   * - `Build <https://travis-ci.org/AlgoTraders/stock-analysis-engine>`__
+     - `Docs <https://stock-analysis-engine.readthedocs.io/en/latest/>`__
+   * - .. image:: https://api.travis-ci.org/AlgoTraders/stock-analysis-engine.svg
+           :alt: Travis Tests
+           :target: https://travis-ci.org/AlgoTraders/stock-analysis-engine
+     - .. image:: https://readthedocs.org/projects/stock-analysis-engine/badge/?version=latest
+           :alt: Read the Docs Stock Analysis Engine
+           :target: https://stock-analysis-engine.readthedocs.io/en/latest/README.html
+
 Getting Started
 ===============
+
+#.  Clone
+
+    ::
+
+        git clone https://github.com/AlgoTraders/stock-analysis-engine.git /opt/sa
+        cd /opt/sa
 
 #.  Start Redis and Minio
 
@@ -35,7 +54,7 @@ Get and Publish Pricing data
 
 Please refer to the lastest API docs in the repo:
 
-https://github.com/AlgoTraders/stock-pricing-engine/blob/master/analysis_engine/api_requests.py
+https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/api_requests.py
 
 Run Ticker Analysis
 ===================
@@ -233,7 +252,7 @@ flake8 .
 pycodestyle .
 
 License
--------
+=======
 
 Apache 2.0 - Please refer to the LICENSE_ for more details
 
