@@ -72,14 +72,17 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.0.0',
+    version='1.0.1',
     description=(
         'Stock Analysis Engine - '
-        'analyze ticker pricing information in near-realtime'),
+        'Use this to get pricing data for tickers '
+        '(news, quotes and options right now) and '
+        'archive it in s3 (using minio) and cache '
+        'it in redis. Analysis tasks coming soon!'),
     long_description=long_description,
     author='Jay Johnson',
     author_email='jay.p.h.johnson@gmail.com',
-    url='https://github.com/jay-johnson/celery-loaders',
+    url='https://github.com/AlgoTraders/stock-analysis-engine',
     packages=[
         'analysis_engine',
         'analysis_engine.log',
