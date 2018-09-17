@@ -1,0 +1,17 @@
+*.log
+*.tff
+*.tiff
+*.js
+*.json
+*.png
+*.jpg
+*.jpeg
+*.bmp
+*.gif
+*.gifv
+*.ipynb
+*.pdf
+*.css
+*.less
+*.woff
+*.eot

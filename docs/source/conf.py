@@ -22,6 +22,9 @@
 import os
 import sys
 from unittest.mock import MagicMock
+from recommonmark.parser import CommonMarkParser
+
+sys.path.insert(0, os.path.abspath(".."))
 
 project = 'Stock Analysis Engine'
 copyright = '2018, Jay Johnson'
@@ -63,7 +66,6 @@ version = ''
 # The full version, including alpha/beta/rc tags
 release = '1.0.0'
 
-
 # -- General configuration ---------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -94,6 +96,10 @@ templates_path = ['_templates']
 #
 # source_suffix = ['.rst', '.md']
 source_suffix = '.rst'
+
+source_parsers = {
+    '.md': CommonMarkParser,
+}
 
 # The master toctree document.
 master_doc = 'index'
