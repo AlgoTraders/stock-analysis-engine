@@ -1,7 +1,7 @@
 FROM jayjohnson/ai-core:latest
 
 RUN echo "creating project directories" \
-  && git clone https://github.com/AlgoTraders/stock-analysis-engine.git /opt/sa
+  && git clone https://github.com/AlgoTraders/stock-analysis-engine.git /opt/sa \
   && mkdir -p -m 777 /var/log/sa \
   && chmod 777 /var/log/sa \
   && touch /var/log/sa/worker.log \
