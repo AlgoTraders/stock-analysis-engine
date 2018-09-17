@@ -23,13 +23,7 @@ if [[ "${WORKER_NAME}" != "" ]]; then
 fi
 
 echo ""
-if [[ "${num_workers}" == "1" ]]; then
-    echo "starting worker=${worker_module}"
-    echo "celery worker -A ${worker_module} -c ${num_workers} -l ${log_level} -n ${worker_name}"
-    celery worker -A ${worker_module} -c ${num_workers} -l ${log_level} -n ${worker_name}
-else
-    echo "starting workers=${worker_module}"
-    echo "celery worker -A ${worker_module} -c ${num_workers} -l ${log_level} -n ${worker_name}"
-    celery worker -A ${worker_module} -c ${num_workers} -l ${log_level} -n ${worker_name}
-fi
+echo "starting workers=${worker_module}"
+echo "celery worker -A ${worker_module} -c ${num_workers} -l ${log_level} -n ${worker_name}"
+celery worker -A ${worker_module} -c ${num_workers} -l ${log_level} -n ${worker_name}
 echo ""
