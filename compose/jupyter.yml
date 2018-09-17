@@ -6,7 +6,7 @@ services:
   sa-jupyter:
     container_name: "sa-jupyter"
     hostname: sa-jupyter
-    image: jayjohnson/jay-johnson/stock-analysis-engine:latest
+    image: jayjohnson/stock-analysis-engine:latest
     network_mode: "host"
     environment:
       - JUPYTER_PASS=admin
