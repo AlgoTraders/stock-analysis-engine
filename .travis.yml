@@ -13,7 +13,7 @@ before_install:
   - export REPO=jayjohnson/stock-analysis-engine
   - echo "is TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST}"
   - >
-    if [[ "${TRAVIS_PULL_REQUEST}" == "false" ]]; then;
+    if [[ "${TRAVIS_PULL_REQUEST}" == "false" ]]; then
       echo "Building Docker with tag=${USE_VERSION}";
       echo "";
       echo "Testing Docker Hub credentials username=${DOCKER_USERNAME}";
