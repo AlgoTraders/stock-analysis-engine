@@ -23,6 +23,28 @@ else
     }
 fi
 
+# probably not ideal but needed for working on MacOS
+# will also need to manually add:
+# /data to Docker -> Preferences -> File Sharing
+if [[ ! -d "/data" ]]; then
+    sudo mkdir -p -m 777 /data
+fi
+
+os_type=`uname -s`
+case "$os_type" in
+    Linux*)
+        inf "Setting up environment for Linux"
+        sudo apt-get install python3-distutils
+        ;;
+    Darwin*)
+        inf "Setting up environment for MacOS"
+        ;;
+    *)
+        warn "Unsupported OS, exiting."
+        exit 0
+        ;;
+esac
+
 down_dir="0"
 debug="0"
 compose="dev.yml"
