@@ -11,11 +11,17 @@ before_install:
   - export PIP_USE_MIRRORS=true
   - export USE_VERSION=$(cat setup.py | grep " version=" | sed -e 's/"/ /g' | sed -e "s/'/ /g" | awk '{print $2}')
   - export REPO=jayjohnson/stock-analysis-engine
-  - echo "Building Docker with tag=${USE_VERSION}"
-  - echo ""
-  - echo "Testing Docker Hub credentials username=${DOCKER_USERNAME}"
-  - docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
-  - echo "Docker Hub credentials are working"
+  - echo "is TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST}"
+  - >
+    if [[ "${TRAVIS_PULL_REQUEST}" == "false" ]]; then
+      echo "Building Docker with tag=${USE_VERSION}";
+      echo "";
+      echo "Testing Docker Hub credentials username=${DOCKER_USERNAME}";
+      docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD;
+      echo "Docker Hub credentials are working";
+    else
+      echo "Done before_install";
+    fi
 
 install:
   - pip install -e .
@@ -30,16 +36,20 @@ script:
 after_success:
   - export USE_VERSION=$(cat setup.py | grep " version=" | sed -e 's/"/ /g' | sed -e "s/'/ /g" | awk '{print $2}')
   - echo "Test Success - Branch=${TRAVIS_BRANCH} Version=${USE_VERSION} Pull Request=${TRAVIS_PULL_REQUEST} Tag=${TRAVIS_TAG}"
-  - if [[ "${TRAVIS_BRANCH}" == "master" ]]; then echo -e "Push Container to Docker Hub"; fi
-  - echo "Logging into Docker Hub"
-  - docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
-  - export TAG=`if [ "${TRAVIS_BRANCH}" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
-  - echo "starting: cd docker && docker build -f Dockerfile -t ${REPO} ."
-  - cd docker && docker build -f Dockerfile -t $REPO .
-  - echo "docker tag ${REPO} ${REPO}:${USE_VERSION}"
-  - docker tag $REPO $REPO:$USE_VERSION
-  - echo "docker push ${REPO}"
-  - docker push $REPO
-  - echo "docker push ${REPO}:${USE_VERSION}"
-  - docker push $REPO:$USE_VERSION
-  - echo ""
+  - >
+    if [[ "${TRAVIS_PULL_REQUEST}" == "false" ]]; then
+      echo "Logging into Docker Hub";
+      docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD;
+      export TAG=`if [ "${TRAVIS_BRANCH}" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`;
+      echo "starting: cd docker && docker build -f Dockerfile -t ${REPO} .";
+      cd docker && docker build -f Dockerfile -t $REPO .;
+      echo "docker tag ${REPO} ${REPO}:${USE_VERSION}";
+      docker tag $REPO $REPO:$USE_VERSION;
+      echo "docker push ${REPO}";
+      docker push $REPO;
+      echo "docker push ${REPO}:${USE_VERSION}";
+      docker push $REPO:$USE_VERSION;
+      echo "";
+    else
+      echo "Done testing";
+    fi
