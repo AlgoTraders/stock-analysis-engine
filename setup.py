@@ -72,7 +72,7 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.0.1',
+    version='1.0.2',
     description=(
         'Stock Analysis Engine - '
         'Use this to get pricing data for tickers '

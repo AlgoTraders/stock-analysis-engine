@@ -40,9 +40,9 @@ done
 
 anmt "-------------"
 if [[ "${compose}" == "dev.yml" ]]; then
-    inf "starting redis and minio"
+    inf "stopping redis and minio"
 elif [[ "${compose}" == "integration.yml" ]]; then
-    inf "starting end-to-end integration stack: redis, minio, workers and jupyter"
+    inf "stopping integration stack: redis, minio, workers and jupyter"
 else
     err "unsupported compose file: ${compose}"
     exit 1
@@ -52,16 +52,16 @@ if [[ ! -e ./${compose} ]]; then
     pushd compose >> /dev/null
     down_dir="1"
 fi
-docker-compose -f ./${compose} up -d
+docker-compose -f ./${compose} down
 
 if [[ "${down_dir}" == "1" ]]; then
     popd >> /dev/null
 fi
 
 if [[ "${compose}" == "dev.yml" ]]; then
-    good "started redis and minio"
+    good "stopped redis and minio"
 elif [[ "${compose}" == "integration.yml" ]]; then
-    good "started end-to-end integration stack: redis, minio, workers and jupyter"
+    good "stopped end-to-end integration stack: redis, minio, workers and jupyter"
 fi
 
 exit 0

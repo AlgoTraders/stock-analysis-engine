@@ -9,7 +9,7 @@ It uses `Celery workers to process all tasks <http://www.celeryproject.org/>`__ 
    :header-rows: 1
 
    * - `Build <https://travis-ci.org/AlgoTraders/stock-analysis-engine>`__
-     - `Docs <https://stock-analysis-engine.readthedocs.io/en/latest/>`__
+     - `Docs <https://stock-analysis-engine.readthedocs.io/en/latest/README.html>`__
    * - .. image:: https://api.travis-ci.org/AlgoTraders/stock-analysis-engine.svg
            :alt: Travis Tests
            :target: https://travis-ci.org/AlgoTraders/stock-analysis-engine
@@ -211,8 +211,54 @@ Redis Cache Set
 
     python -m unittest tests.test_publish_pricing_update.TestPublishPricingData.test_success_redis_set
 
-Integration Tests
-=================
+End-to-End Integration Testing
+==============================
+
+Start all the containers for full end-to-end integration testing with real docker containers with the script:
+
+::
+
+    ./compose/start.sh -a
+    -------------
+    starting end-to-end integration stack: redis, minio, workers and jupyter
+    Creating network "compose_default" with the default driver
+    Creating redis ... done
+    Creating minio ... done
+    Creating sa-jupyter ... done
+    Creating sa-workers ... done
+    started end-to-end integration stack: redis, minio, workers and jupyter
+
+Verify Containers are running:
+
+::
+
+    docker ps
+    CONTAINER ID        IMAGE                                     COMMAND                  CREATED             STATUS                    PORTS                    NAMES
+    f1b81a91c215        jayjohnson/stock-analysis-engine:latest   "/opt/antinex/core/d…"   35 seconds ago      Up 34 seconds                                      sa-jupyter
+    183b01928d1f        jayjohnson/stock-analysis-engine:latest   "/bin/sh -c 'cd /opt…"   35 seconds ago      Up 34 seconds                                      sa-workers
+    11d46bf1f0f7        minio/minio:latest                        "/usr/bin/docker-ent…"   36 seconds ago      Up 35 seconds (healthy)                            minio
+    9669494b49a2        redis:4.0.9-alpine                        "docker-entrypoint.s…"   36 seconds ago      Up 35 seconds             0.0.0.0:6379->6379/tcp   redis
+
+Stop End-to-End Stack:
+
+::
+
+    ./compose/stop.sh -a
+    -------------
+    stopping integration stack: redis, minio, workers and jupyter
+    Stopping sa-jupyter ... done
+    Stopping sa-workers ... done
+    Stopping minio      ... done
+    Stopping redis      ... done
+    Removing sa-jupyter ... done
+    Removing sa-workers ... done
+    Removing minio      ... done
+    Removing redis      ... done
+    Removing network compose_default
+    stopped end-to-end integration stack: redis, minio, workers and jupyter
+
+Integration UnitTests
+=====================
 
 .. note:: please start redis and minio before running these tests.
 
