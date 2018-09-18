@@ -1,0 +1,58 @@
+version: '2'
+
+services:
+
+  # Redis
+  redis:
+    container_name: "redis"
+    hostname: redis
+    image: redis:4.0.9-alpine
+    ports:
+      - "6379:6379"
+
+  # Minio
+  minio:
+    container_name: "minio"
+    hostname: minio
+    image: minio/minio:latest
+    network_mode: "host"
+    environment:
+      - MINIO_ACCESS_KEY="trexaccesskey"
+      - MINIO_SECRET_KEY="trex123321"
+    ports:
+      - "9000:9000"
+    volumes:
+      - /data/minio/data:/data
+    command: "server /data"
+
+  # Stock Analysis Engine
+  sa-workers:
+    container_name: "sa-workers"
+    hostname: sa-workers
+    image: jayjohnson/stock-analysis-engine:latest
+    network_mode: "host"
+    depends_on:
+      - redis
+      - minio
+    entrypoint: "/bin/sh -c 'cd /opt/sa && 
+                 /opt/sa/start-workers.sh'"
+
+  # Jupyter notebooks, converted noteooks as presentation html slides, and tensorboard
+  sa-jupyter:
+    container_name: "sa-jupyter"
+    hostname: sa-jupyter
+    image: jayjohnson/stock-analysis-engine:latest
+    network_mode: "host"
+    depends_on:
+      - redis
+      - minio
+    environment:
+      - JUPYTER_PASS=admin
+      - SHARED_DIR=/opt/data
+      - BROKER_URL=redis://0.0.0.0:6379/6
+    ports:
+      - "8888:8888"
+      - "8889:8889"
+      - "8890:8890"
+      - "6006:6006"
+    entrypoint: "/opt/antinex/core/docker/jupyter/start-container.sh"
