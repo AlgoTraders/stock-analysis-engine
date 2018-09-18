@@ -293,11 +293,9 @@ Publish from S3 to Redis
 Linting
 -------
 
-::
+flake8 .
 
-    flake8 .
-
-    pycodestyle .
+pycodestyle .
 
 License
 =======
