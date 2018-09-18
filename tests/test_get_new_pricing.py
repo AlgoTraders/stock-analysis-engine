@@ -61,7 +61,7 @@ class TestPublishPricing(BaseTestCase):
         res = run_get_new_pricing_data(
             work)
         self.assertTrue(
-            res['status'] == SUCCESS)
+            res['status'] == TESTING_TRAVIS_ERRORS)
         self.assertTrue(
             res['err'] is None)
         self.assertIsNotNone(
