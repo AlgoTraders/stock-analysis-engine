@@ -27,11 +27,11 @@ def flatten_dict(
     for key, value in data.items():
         new_key = parent_key + sep + key if parent_key else key
         if isinstance(value, dict):
-            items.extend(flatten(value, new_key, sep=sep).items())
+            items.extend(flatten_dict(value, new_key, sep=sep).items())
         elif isinstance(value, list):
             for idx, val in enumerate(value):
                 temp_key = '{}_{}'.format(new_key, idx)
-                items.extend(flatten(val, temp_key, sep=sep).items())
+                items.extend(flatten_dict(val, temp_key, sep=sep).items())
         else:
             items.append((new_key, value))
     return dict(items)
