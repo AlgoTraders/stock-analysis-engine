@@ -370,21 +370,20 @@ def run_sa_tool():
             broker_url,
             backend_url))
 
-    # Get the Celery app
-
     if CELERY_DISABLED:
         log.debug(
             'starting without celery work={}'.format(
                 ppj(work)))
         task_res = {}
         if mode == SA_MODE_PREPARE:
-            task_res = prepare_pricing_dataset(
+            task_res = prepare_pricing_dataset.prepare_pricing_dataset(
                 work)  # note - this is not a named kwarg
         log.info(
             'done - mode={} result={}'.format(
                 get_status(status=mode),
                 ppj(task_res)))
     else:
+        # Get the Celery app
         app = get_celery_app(
             name=__name__,
             auth_url=broker_url,
