@@ -50,9 +50,8 @@ def setup_celery_logging(**kwargs):
     pass
 
 
-name = 'run-analysis'
 log = build_colorized_logger(
-    name=name,
+    name=__name__,
     log_config_path=LOG_CONFIG_PATH)
 
 
@@ -65,7 +64,7 @@ def publish_from_s3_to_redis():
 
     log.info((
         'start - {}').format(
-            name))
+            __name__))
 
     parser = argparse.ArgumentParser(
         description=(
@@ -257,7 +256,7 @@ def publish_from_s3_to_redis():
     # Get the Celery app from the ecommerce project's get_celery_app
 
     app = get_celery_app(
-        name=name,
+        name=__name__,
         auth_url=broker_url,
         backend_url=backend_url,
         ssl_options=ssl_options,
