@@ -134,6 +134,10 @@ NOT_RUN = 4
 INVALID = 5
 NOT_DONE = 6
 
+SA_MODE_PREPARE = 100
+SA_MODE_ANALYZE = 101
+SA_MODE_PREDICT = 102
+
 # version of python
 IS_PY2 = sys.version[0] == '2'
 
@@ -158,6 +162,7 @@ WORKER_TASKS = ev(
      'analysis_engine.work_tasks.publish_from_s3_to_redis,'
      'analysis_engine.work_tasks.publish_pricing_update'))
 INCLUDE_TASKS = WORKER_TASKS.split(',')
+CELERY_DISABLED = ev('CELERY_DISABLED', '1') == '1'
 
 ########################################
 #
@@ -175,7 +180,12 @@ DEFAULT_TICKERS = ev(
     'SPY,XLF,XLK,XLI,XLU').split(',')
 NEXT_EXP = analysis_engine.options_dates.option_expiration()
 NEXT_EXP_STR = NEXT_EXP.strftime('%Y-%m-%d')
-
+PREPARE_S3_BUCKET_NAME = ev(
+    'PREPARE_S3_BUCKET_NAME',
+    'prepared')
+ANALYZE_S3_BUCKET_NAME = ev(
+    'ANALYZE_S3_BUCKET_NAME',
+    'analyzed')
 
 ########################################
 #
@@ -255,6 +265,12 @@ def get_status(
         return 'INVALID'
     elif status == NOT_DONE:
         return 'NOT_DONE'
+    elif status == SA_MODE_PREPARE:
+        return 'SA_MODE_PREPARE'
+    elif status == SA_MODE_ANALYZE:
+        return 'SA_MODE_ANALYZE'
+    elif status == SA_MODE_PREDICT:
+        return 'SA_MODE_PREDICT'
     else:
         return 'unsupported status={}'.format(
             status)

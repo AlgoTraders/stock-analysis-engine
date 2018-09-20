@@ -9,7 +9,7 @@ Example API Requests
 ====================
 
 .. automodule:: analysis_engine.api_requests
-   :members: build_get_new_pricing_request,build_publish_pricing_request,build_cache_ready_pricing_dataset,build_publish_from_s3_to_redis_request
+   :members: build_get_new_pricing_request,build_publish_pricing_request,build_cache_ready_pricing_dataset,build_publish_from_s3_to_redis_request,build_prepare_dataset_request,build_analyze_dataset_request
 
 Constants
 =========
@@ -53,6 +53,15 @@ Publish S3 key with stock data to redis and s3 (if either of them are running an
 .. autotask:: analysis_engine.work_tasks.publish_from_s3_to_redis.publish_from_s3_to_redis
 .. automodule:: analysis_engine.work_tasks.publish_from_s3_to_redis
    :members: run_publish_from_s3_to_redis
+
+Prepare Dataset
+===============
+
+Prepare dataset for analysis. This task collapses nested json dictionaries into a csv file with a header row and stores the output file in s3 and redis automatically.
+
+.. autotask:: analysis_engine.work_tasks.prepare_pricing_dataset.prepare_pricing_dataset
+.. automodule:: analysis_engine.work_tasks.prepare_pricing_dataset
+   :members: run_prepare_pricing_dataset
 
 Read from S3 as a String
 ========================

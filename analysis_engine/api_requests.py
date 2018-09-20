@@ -11,6 +11,8 @@ Task supports:
 import datetime
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import TICKER_ID
+from analysis_engine.consts import PREPARE_S3_BUCKET_NAME
+from analysis_engine.consts import ANALYZE_S3_BUCKET_NAME
 
 
 def build_get_new_pricing_request():
@@ -241,3 +243,91 @@ def build_publish_from_s3_to_redis_request():
 
     return work
 # end of build_publish_from_s3_to_redis_request
+
+
+def build_prepare_dataset_request():
+    """build_prepare_dataset_request
+
+    Build a sample Celery task API request:
+    analysis_engine.work_tasks.prepare_pricing_dataset
+
+    Used for testing: run_prepare_pricing_dataset(work)
+    """
+    ticker = TICKER
+    ticker_id = TICKER_ID
+    base_key = '{}_{}'.format(
+        ticker,
+        datetime.datetime.utcnow().strftime(
+            '%Y_%m_%d_%H_%M_%S'))
+    s3_bucket_name = 'pricing'
+    s3_key = base_key
+    redis_key = base_key
+    s3_prepared_bucket_name = PREPARE_S3_BUCKET_NAME
+    s3_prepared_key = '{}.csv'.format(
+        base_key)
+    redis_prepared_key = '{}'.format(
+        base_key)
+    ignore_columns = None
+    s3_enabled = True
+    redis_enabled = True
+
+    work = {
+        'ticker': ticker,
+        'ticker_id': ticker_id,
+        's3_bucket': s3_bucket_name,
+        's3_key': s3_key,
+        'redis_key': redis_key,
+        'prepared_s3_key': s3_prepared_key,
+        'prepared_s3_bucket': s3_prepared_bucket_name,
+        'prepared_redis_key': redis_prepared_key,
+        'ignore_columns': ignore_columns,
+        's3_enabled': s3_enabled,
+        'redis_enabled': redis_enabled
+    }
+
+    return work
+# end of build_prepare_dataset_request
+
+
+def build_analyze_dataset_request():
+    """build_analyze_dataset_request
+
+    Build a sample Celery task API request:
+    analysis_engine.work_tasks.analyze_pricing_dataset
+
+    Used for testing: run_analyze_pricing_dataset(work)
+    """
+    ticker = TICKER
+    ticker_id = TICKER_ID
+    base_key = '{}_{}'.format(
+        ticker,
+        datetime.datetime.utcnow().strftime(
+            '%Y_%m_%d_%H_%M_%S'))
+    s3_bucket_name = PREPARE_S3_BUCKET_NAME
+    s3_key = base_key
+    redis_key = base_key
+    s3_analyzed_bucket_name = ANALYZE_S3_BUCKET_NAME
+    s3_analyzed_key = '{}.csv'.format(
+        base_key)
+    redis_analyzed_key = '{}'.format(
+        base_key)
+    ignore_columns = None
+    s3_enabled = True
+    redis_enabled = True
+
+    work = {
+        'ticker': ticker,
+        'ticker_id': ticker_id,
+        's3_bucket': s3_bucket_name,
+        's3_key': s3_key,
+        'redis_key': redis_key,
+        'analyzed_s3_key': s3_analyzed_key,
+        'analyzed_s3_bucket': s3_analyzed_bucket_name,
+        'analyzed_redis_key': redis_analyzed_key,
+        'ignore_columns': ignore_columns,
+        's3_enabled': s3_enabled,
+        'redis_enabled': redis_enabled
+    }
+
+    return work
+# end of build_analyze_dataset_request
