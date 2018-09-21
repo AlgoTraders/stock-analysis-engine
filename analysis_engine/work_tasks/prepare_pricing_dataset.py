@@ -10,6 +10,7 @@ import datetime
 import redis
 import analysis_engine.build_result as build_result
 import analysis_engine.api_requests as api_requests
+import analysis_engine.get_data_from_redis_key as redis_get
 import analysis_engine.get_task_results
 import analysis_engine.work_tasks.custom_task
 import analysis_engine.options_dates
@@ -97,6 +98,9 @@ def prepare_pricing_dataset(
             'ticker_id',
             TICKER_ID))
 
+        label = 'prepare ticker={}'.format(
+            ticker)
+
         if not ticker:
             res = build_result.build_result(
                 status=ERR,
@@ -174,7 +178,7 @@ def prepare_pricing_dataset(
         enable_s3 = True
         enable_redis_publish = True
 
-        label += ' '
+        label += ''
 
         rec['ticker'] = ticker
         rec['ticker_id'] = ticker_id
@@ -190,11 +194,10 @@ def prepare_pricing_dataset(
 
         try:
             log.info(
-                '{} ticker={} connecting redis={}:{} '
+                '{} connecting redis={}:{} '
                 'db={} key={} '
                 'updated={} expire={}'.format(
                     label,
-                    ticker,
                     redis_host,
                     redis_port,
                     redis_db,
@@ -208,10 +211,9 @@ def prepare_pricing_dataset(
                 db=redis_db)
         except Exception as e:
             err = (
-                '{} ticker={} failed - redis connection to address={}@{} '
+                '{} failed - redis connection to address={}@{} '
                 'key={} ex={}'.format(
                     label,
-                    ticker,
                     redis_address,
                     redis_key,
                     redis_db,
@@ -223,30 +225,9 @@ def prepare_pricing_dataset(
             return res
         # end of try/ex for connecting to redis
 
-        try:
-            log.info(
-                '{} ticker={} INITIAL - get start data redis_key={}'.format(
-                    label,
-                    ticker,
-                    redis_key))
-            # https://redis-py.readthedocs.io/en/latest/index.html#redis.StrictRedis.get  # noqa
-            initial_data = rc.get(
-                name=redis_key)
-            log.info(
-                '{} ticker={} INITIAL - get done data redis_key={}'.format(
-                    label,
-                    ticker,
-                    redis_key))
-        except Exception as e:
-            initial_data = None
-            log.error(
-                '{} ticker={} failed - redis get from '
-                'key={} ex={}'.format(
-                    label,
-                    ticker,
-                    redis_key,
-                    e))
-        # end of try/ex for creating bucket
+        initial_data = redis_get.get_data_from_redis_key(
+            label=label,
+            redis_client=rc)
 
         if enable_s3 and not initial_data:
 
@@ -272,10 +253,9 @@ def prepare_pricing_dataset(
             get_from_s3_req['redis_key'] = redis_key
 
             log.info(
-                '{} ticker={} load from s3={} to '
+                '{} load from s3={} to '
                 'redis={}'.format(
                     label,
-                    ticker,
                     s3_key,
                     redis_key))
 
@@ -284,19 +264,17 @@ def prepare_pricing_dataset(
                     work_dict)  # note - this is not a named kwarg
                 if task_res.get('status', ERR) == SUCCESS:
                     log.info(
-                        '{} ticker={} loaded s3={}:{} '
+                        '{} loaded s3={}:{} '
                         'to redis={}'.format(
                             label,
-                            ticker,
                             s3_bucket_name,
                             s3_key,
                             redis_key))
                 else:
                     err = (
-                        '{} ticker={} ERR failed loading from bucket={} '
+                        '{} ERR failed loading from bucket={} '
                         's3_key={} to redis_key={} with res={}'.format(
                             label,
-                            ticker,
                             s3_bucket_name,
                             s3_key,
                             redis_key,
@@ -309,10 +287,9 @@ def prepare_pricing_dataset(
                     return res
             except Exception as e:
                 err = (
-                    '{} ticker={} EX failed loading bucket={} '
+                    '{} EX failed loading bucket={} '
                     's3_key={} redis_key={} with ex={}'.format(
                         label,
-                        ticker,
                         s3_bucket_name,
                         s3_key,
                         redis_key,
@@ -328,10 +305,9 @@ def prepare_pricing_dataset(
 
         if not initial_data:
             err = (
-                '{} ticker={} did not find redis_key={} or '
+                '{} did not find redis_key={} or '
                 's3_key={} in bucket={}'.format(
                     label,
-                    ticker,
                     redis_key,
                     s3_key,
                     s3_bucket_name))
@@ -341,6 +317,10 @@ def prepare_pricing_dataset(
                 err=err,
                 rec=rec)
             return res
+        else:
+            log.info(
+                'got data: {}'.format(
+                    str(initial_data)))
         # end of trying to get initial_data
 
         rc = None
