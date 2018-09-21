@@ -58,13 +58,13 @@ Supported S3 Environment Variables
         'ENABLED_S3_UPLOAD',
         '0') == '1'
     S3_ACCESS_KEY = ev(
-        'S3_ACCESS_KEY',
+        'AWS_ACCESS_KEY_ID',
         'trexaccesskey')
     S3_SECRET_KEY = ev(
-        'S3_SECRET_KEY',
+        'AWS_SECRET_ACCESS_KEY',
         'trex123321')
     S3_REGION_NAME = ev(
-        'S3_REGION_NAME',
+        'AWS_DEFAULT_REGION',
         'us-east-1')
     S3_ADDRESS = ev(
         'S3_ADDRESS',
@@ -196,13 +196,13 @@ ENABLED_S3_UPLOAD = ev(
     'ENABLED_S3_UPLOAD',
     '0') == '1'
 S3_ACCESS_KEY = ev(
-    'S3_ACCESS_KEY',
+    'AWS_SECRET_ACCESS_KEY',
     'trexaccesskey')
 S3_SECRET_KEY = ev(
-    'S3_SECRET_KEY',
+    'AWS_SECRET_ACCESS_KEY',
     'trex123321')
 S3_REGION_NAME = ev(
-    'S3_REGION_NAME',
+    'AWS_DEFAULT_REGION',
     'us-east-1')
 S3_ADDRESS = ev(
     'S3_ADDRESS',

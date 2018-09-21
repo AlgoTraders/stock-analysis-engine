@@ -154,6 +154,40 @@ Login
 - username: ``trexaccesskey``
 - password: ``trex123321``
 
+Using the AWS CLI to List the Pricing Bucket
+
+Please refer to the official steps for using the ``awscli`` pip with minio:
+
+https://docs.minio.io/docs/aws-cli-with-minio.html
+
+#.  Export Credentials
+
+    ::
+
+        export AWS_SECRET_ACCESS_KEY=trex123321
+        export AWS_ACCESS_KEY_ID=trexaccesskey
+
+#.  List Buckets
+
+    ::
+
+        aws --endpoint-url http://localhost:9000 s3 ls
+        2018-09-16 07:23:31 integration-tests
+        2018-09-16 07:22:31 pricing
+
+#.  List Pricing Bucket Contents
+
+    ::
+
+        aws --endpoint-url http://localhost:9000 s3 ls s3://pricing
+
+#.  Get the Latest SPY Pricing Key
+
+    ::
+
+        aws --endpoint-url http://localhost:9000 s3 ls s3://pricing | tail -1 | awk '{print $NF}' | grep -i spy
+        SPY_demo
+
 View Caches in Redis
 ====================
 
@@ -289,6 +323,15 @@ Publish from S3 to Redis
 ::
 
     python -m unittest tests.test_publish_from_s3_to_redis.TestPublishFromS3ToRedis.test_integration_publish_from_s3_to_redis
+
+Prepare a Dataset
+-----------------
+
+::
+
+    ticker=SPY
+    sa.py -t ${ticker} -f -o ${ticker}_latest_v1 -j prepared -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -n ${ticker}_demo
+
 
 Linting
 -------
