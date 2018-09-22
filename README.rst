@@ -209,12 +209,56 @@ View Caches in Redis
 Development
 ===========
 
+Ubuntu and CentOS
+-----------------
+
 ::
 
     virtualenv -p python3 /opt/venv && source /opt/venv/bin/activate && pip install -e .
 
+Mac OS X
+--------
+
+#.  Download Python 3.6
+
+    .. note:: Python 3.7 is not supported by celery so please ensure it is python 3.6
+
+    https://www.python.org/downloads/mac-osx/
+
+#.  Install Packages
+
+    ::
+
+        brew install openssl
+        brew install pyenv-virtualenv
+
+#.  Create and Load Virtual Environment
+
+    ::
+
+        virtualenv -p python3 /opt/venv
+        source /opt/venv/bin/activate
+
+#.  Install PyCurl with OpenSSL
+
+    ::
+
+        PYCURL_SSL_LIBRARY=openssl LDFLAGS="-L/usr/local/opt/openssl/lib" CPPFLAGS="-I/usr/local/opt/openssl/include" pip install --no-cache-dir pycurl
+
+#.  Install Analysis Pip
+
+    ::
+
+        pip install -e .
+
+#.  Verify Pip installed
+
+    ::
+
+        pip list | grep stock-analysis-engine
+
 Testing
--------
+=======
 
 Run all
 
@@ -332,13 +376,21 @@ Publish from S3 to Redis
     python -m unittest tests.test_publish_from_s3_to_redis.TestPublishFromS3ToRedis.test_integration_publish_from_s3_to_redis
 
 Prepare a Dataset
------------------
+=================
 
 ::
 
     ticker=SPY
     sa.py -t ${ticker} -f -o ${ticker}_latest_v1 -j prepared -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -n ${ticker}_demo
 
+Debugging
+=========
+
+Most of the scripts support running without Celery workers. To run without workers in a synchronous mode use the command:
+
+::
+
+    export CELERY_DISABLED=1
 
 Linting
 -------

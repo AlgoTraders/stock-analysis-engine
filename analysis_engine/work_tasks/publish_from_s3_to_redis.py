@@ -132,6 +132,8 @@ def publish_from_s3_to_redis(
         rec['s3_enabled'] = enable_s3_read
         rec['redis_enabled'] = enable_redis_publish
 
+        data = None
+
         if enable_s3_read:
 
             log.info(
