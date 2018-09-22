@@ -25,8 +25,11 @@ except(IOError, ImportError):
 cur_path, cur_script = os.path.split(sys.argv[0])
 os.chdir(os.path.abspath(cur_path))
 
+requires_that_fail_on_rtd = [
+    'awscli'
+]
+
 install_requires = [
-    'awscli',
     'antinex-client',
     'celery-connectors',
     'celery-loaders',
@@ -50,6 +53,9 @@ install_requires = [
     'unittest2'
 ]
 
+# if not on readthedocs.io get all the pips:
+if os.getenv("READTHEDOCS", "") == "":
+    install_requires = install_requires + requires_that_fail_on_rtd
 
 if sys.version_info < (3, 5):
     warnings.warn(
