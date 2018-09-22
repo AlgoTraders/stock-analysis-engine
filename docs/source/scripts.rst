@@ -17,6 +17,14 @@ Publish stock data in an s3 key to redis
 .. automodule:: analysis_engine.scripts.publish_from_s3_to_redis
    :members: publish_from_s3_to_redis
 
+Stock Analysis Command Line Tool
+================================
+
+This tool is for preparing, analyzing and using datasets to run predictions using the tensorflow and keras.
+
+.. automodule:: analysis_engine.scripts.sa
+   :members: run_sa_tool
+
 Set S3 Environment Variables
 ============================
 
@@ -33,6 +41,8 @@ Set these as needed for your S3 deployment
     export S3_BUCKET=<bucket name - pricing default>
     export S3_KEY=<key name - SPY_demo default>
     export S3_SECURE=<use ssl '1', disable with '0' which is the default>
+    export PREPARE_S3_BUCKET_NAME=<prepared dataset bucket name>
+    export ANALYZE_S3_BUCKET_NAME=<analyzed dataset bucket name>
 
 Set Redis Environment Variables
 ===============================

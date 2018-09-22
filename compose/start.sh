@@ -26,7 +26,7 @@ fi
 # probably not ideal but needed for working on MacOS
 # will also need to manually add:
 # /data to Docker -> Preferences -> File Sharing
-if [[ ! -d "/data" ]]; then
+if [[ ! -e /data ]]; then
     sudo mkdir -p -m 777 /data
 fi
 
@@ -34,7 +34,14 @@ os_type=`uname -s`
 case "$os_type" in
     Linux*)
         inf "Setting up environment for Linux"
-        sudo apt-get install python3-distutils
+        test_pkman=$(which dpkg | wc -l)
+        if [[ "${test_pkman}" == "1" ]]; then
+            test_deb=$(dpkg -s python3-distutils | grep 'install ok installed' | wc -l)
+            if [[ "${test_deb}" == "0" ]]; then
+                warn "using sudo to install python3-distutils on ubuntu"
+                sudo apt-get install python3-distutils
+            fi
+        fi
         ;;
     Darwin*)
         inf "Setting up environment for MacOS"

@@ -58,13 +58,13 @@ Supported S3 Environment Variables
         'ENABLED_S3_UPLOAD',
         '0') == '1'
     S3_ACCESS_KEY = ev(
-        'S3_ACCESS_KEY',
+        'AWS_ACCESS_KEY_ID',
         'trexaccesskey')
     S3_SECRET_KEY = ev(
-        'S3_SECRET_KEY',
+        'AWS_SECRET_ACCESS_KEY',
         'trex123321')
     S3_REGION_NAME = ev(
-        'S3_REGION_NAME',
+        'AWS_DEFAULT_REGION',
         'us-east-1')
     S3_ADDRESS = ev(
         'S3_ADDRESS',
@@ -134,6 +134,10 @@ NOT_RUN = 4
 INVALID = 5
 NOT_DONE = 6
 
+SA_MODE_PREPARE = 100
+SA_MODE_ANALYZE = 101
+SA_MODE_PREDICT = 102
+
 # version of python
 IS_PY2 = sys.version[0] == '2'
 
@@ -158,6 +162,7 @@ WORKER_TASKS = ev(
      'analysis_engine.work_tasks.publish_from_s3_to_redis,'
      'analysis_engine.work_tasks.publish_pricing_update'))
 INCLUDE_TASKS = WORKER_TASKS.split(',')
+CELERY_DISABLED = ev('CELERY_DISABLED', '1') == '1'
 
 ########################################
 #
@@ -175,7 +180,12 @@ DEFAULT_TICKERS = ev(
     'SPY,XLF,XLK,XLI,XLU').split(',')
 NEXT_EXP = analysis_engine.options_dates.option_expiration()
 NEXT_EXP_STR = NEXT_EXP.strftime('%Y-%m-%d')
-
+PREPARE_S3_BUCKET_NAME = ev(
+    'PREPARE_S3_BUCKET_NAME',
+    'prepared')
+ANALYZE_S3_BUCKET_NAME = ev(
+    'ANALYZE_S3_BUCKET_NAME',
+    'analyzed')
 
 ########################################
 #
@@ -186,13 +196,13 @@ ENABLED_S3_UPLOAD = ev(
     'ENABLED_S3_UPLOAD',
     '0') == '1'
 S3_ACCESS_KEY = ev(
-    'S3_ACCESS_KEY',
+    'AWS_SECRET_ACCESS_KEY',
     'trexaccesskey')
 S3_SECRET_KEY = ev(
-    'S3_SECRET_KEY',
+    'AWS_SECRET_ACCESS_KEY',
     'trex123321')
 S3_REGION_NAME = ev(
-    'S3_REGION_NAME',
+    'AWS_DEFAULT_REGION',
     'us-east-1')
 S3_ADDRESS = ev(
     'S3_ADDRESS',
@@ -255,6 +265,12 @@ def get_status(
         return 'INVALID'
     elif status == NOT_DONE:
         return 'NOT_DONE'
+    elif status == SA_MODE_PREPARE:
+        return 'SA_MODE_PREPARE'
+    elif status == SA_MODE_ANALYZE:
+        return 'SA_MODE_ANALYZE'
+    elif status == SA_MODE_PREDICT:
+        return 'SA_MODE_PREDICT'
     else:
         return 'unsupported status={}'.format(
             status)
@@ -275,3 +291,33 @@ def ppj(
             indent=4,
             separators=(',', ': ')))
 # end of ppj
+
+
+def to_float_str(val):
+    """to_float_str
+
+    :param val: float to change to a 2-decimal string
+    """
+    return str("%0.2f" % float(val))
+# end of to_float_str
+
+
+def to_f(val):
+    """to_f
+
+    :param val: float to change
+    """
+    return float(to_float_str(val))
+# end of to_f
+
+
+def get_percent_done(
+        progress,
+        total):
+    """get_percent_done
+
+    :param progress: progress counter
+    :param total: total number of counts
+    """
+    return to_f(float(float(progress)/float(total)*100.00))
+# end of get_percent_done
