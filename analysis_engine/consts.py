@@ -162,7 +162,7 @@ WORKER_TASKS = ev(
      'analysis_engine.work_tasks.publish_from_s3_to_redis,'
      'analysis_engine.work_tasks.publish_pricing_update'))
 INCLUDE_TASKS = WORKER_TASKS.split(',')
-CELERY_DISABLED = ev('CELERY_DISABLED', '1') == '1'
+CELERY_DISABLED = ev('CELERY_DISABLED', '0') == '1'
 
 ########################################
 #

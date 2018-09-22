@@ -16,11 +16,12 @@ Steps:
 """
 
 import argparse
+import analysis_engine.work_tasks.get_new_pricing_data as task_pricing
 from celery import signals
 from spylunking.log.setup_logging import build_colorized_logger
 from celery_loaders.work_tasks.get_celery_app import get_celery_app
 from analysis_engine.api_requests import build_get_new_pricing_request
-from analysis_engine.consts import ppj
+from analysis_engine.consts import CELERY_DISABLED
 from analysis_engine.consts import LOG_CONFIG_PATH
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import TICKER_ID
@@ -42,6 +43,7 @@ from analysis_engine.consts import REDIS_KEY
 from analysis_engine.consts import REDIS_PASSWORD
 from analysis_engine.consts import REDIS_DB
 from analysis_engine.consts import REDIS_EXPIRE
+from analysis_engine.consts import ppj
 
 
 # Disable celery log hijacking
@@ -333,39 +335,48 @@ def run_ticker_analysis():
     work['s3_enabled'] = s3_enabled
     work['redis_enabled'] = redis_enabled
 
-    log.info((
-        'connecting to broker={} backend={}').format(
-            broker_url,
-            backend_url))
-
-    # Get the Celery app
-
-    app = get_celery_app(
-        name=name,
-        auth_url=broker_url,
-        backend_url=backend_url,
-        ssl_options=ssl_options,
-        transport_options=transport_options,
-        include_tasks=include_tasks)
-
-    # if you want to discover tasks in other directories:
-    # app.autodiscover_tasks(['some_dir_name_with_tasks'])
-
-    log.info(
-        'calling task - work={}'.format(
-            ppj(work)))
     path_to_tasks = 'analysis_engine.work_tasks'
     task_name = (
-        # '{}.handle_pricing_update_task.handle_pricing_update_task'
         '{}.get_new_pricing_data.get_new_pricing_data').format(
             path_to_tasks)
-    job_id = app.send_task(
-        task_name,
-        (work,))
-    log.info((
-        'calling task={} - success job_id={}').format(
+    task_res = None
+    if CELERY_DISABLED:
+        log.debug(
+            'starting without celery work={}'.format(
+                ppj(work)))
+        task_res = task_pricing.get_new_pricing_data(
+            work)  # note - this is not a named kwarg
+        log.info(
+            'done - get pricing result={}'.format(
+                ppj(task_res)))
+    else:
+        log.info(
+            'connecting to broker={} backend={}'.format(
+                broker_url,
+                backend_url))
+
+        # Get the Celery app
+        app = get_celery_app(
+            name=__name__,
+            auth_url=broker_url,
+            backend_url=backend_url,
+            ssl_options=ssl_options,
+            transport_options=transport_options,
+            include_tasks=include_tasks)
+
+        log.info(
+            'calling task={} - work={}'.format(
+                task_name,
+                ppj(work)))
+        job_id = app.send_task(
             task_name,
-            job_id))
+            (work,))
+        log.info((
+            'calling task={} - success job_id={}').format(
+                task_name,
+                job_id))
+    # end of if/else
+
 # end of run_ticker_analysis
 
 

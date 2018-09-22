@@ -368,16 +368,11 @@ def run_sa_tool():
     work['redis_enabled'] = redis_enabled
     work['debug'] = debug
 
-    log.info(
-        'connecting to broker={} backend={}'.format(
-            broker_url,
-            backend_url))
-
+    task_res = None
     if CELERY_DISABLED:
         log.debug(
             'starting without celery work={}'.format(
                 ppj(work)))
-        task_res = {}
         if mode == SA_MODE_PREPARE:
             task_res = prepare_pricing_dataset.prepare_pricing_dataset(
                 work)  # note - this is not a named kwarg
@@ -386,6 +381,11 @@ def run_sa_tool():
                 get_status(status=mode),
                 ppj(task_res)))
     else:
+        log.info(
+            'connecting to broker={} backend={}'.format(
+                broker_url,
+                backend_url))
+
         # Get the Celery app
         app = get_celery_app(
             name=__name__,
