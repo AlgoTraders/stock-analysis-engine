@@ -7,6 +7,7 @@ Publish Pricing from an S3 Key to Redis
 
 import boto3
 import redis
+import json
 import analysis_engine.build_result as build_result
 import analysis_engine.get_task_results
 import analysis_engine.work_tasks.custom_task
@@ -20,7 +21,6 @@ from analysis_engine.consts import ERR
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import TICKER_ID
 from analysis_engine.consts import get_status
-from analysis_engine.consts import ev
 from analysis_engine.consts import S3_ACCESS_KEY
 from analysis_engine.consts import S3_SECRET_KEY
 from analysis_engine.consts import S3_REGION_NAME
@@ -31,6 +31,9 @@ from analysis_engine.consts import REDIS_KEY
 from analysis_engine.consts import REDIS_PASSWORD
 from analysis_engine.consts import REDIS_DB
 from analysis_engine.consts import REDIS_EXPIRE
+from analysis_engine.consts import ev
+from analysis_engine.consts import ppj
+from analysis_engine.consts import to_f
 import analysis_engine.s3_read_contents_from_key as \
     s3_read_contents_from_key
 
@@ -104,12 +107,21 @@ def publish_from_s3_to_redis(
         updated = work_dict.get(
             'updated',
             None)
+        serializer = work_dict.get(
+            'serializer',
+            'json')
+        encoding = work_dict.get(
+            'encoding',
+            'utf-8')
+        label = work_dict.get(
+            'label',
+            label)
 
         enable_s3_read = True
         enable_redis_publish = True
 
-        label += ' ticker.id={}'.format(
-            ticker_id)
+        label += ' ticker={}'.format(
+            ticker)
 
         rec['ticker'] = ticker
         rec['ticker_id'] = ticker_id
@@ -123,7 +135,8 @@ def publish_from_s3_to_redis(
         if enable_s3_read:
 
             log.info(
-                'parsing s3 values')
+                '{} parsing s3 values'.format(
+                    label))
             access_key = work_dict.get(
                 's3_access_key',
                 S3_ACCESS_KEY)
@@ -147,10 +160,9 @@ def publish_from_s3_to_redis(
                     service_address)
 
             log.info((
-                '{} ticker={} building s3 endpoint_url={} '
+                '{} building s3 endpoint_url={} '
                 'region={}').format(
                     label,
-                    ticker,
                     endpoint_url,
                     region_name))
 
@@ -166,34 +178,30 @@ def publish_from_s3_to_redis(
 
             try:
                 log.info((
-                    '{} ticker={} checking bucket={} exists').format(
+                    '{} checking bucket={} exists').format(
                         label,
-                        ticker,
                         s3_bucket_name))
                 if s3.Bucket(s3_bucket_name) not in s3.buckets.all():
                     log.info((
-                        '{} ticker={} creating bucket={}').format(
+                        '{} creating bucket={}').format(
                             label,
-                            ticker,
                             s3_bucket_name))
                     s3.create_bucket(
                         Bucket=s3_bucket_name)
             except Exception as e:
                 log.info((
-                    '{} ticker={} failed creating bucket={} '
+                    '{} failed creating bucket={} '
                     'with ex={}').format(
                         label,
-                        ticker,
                         s3_bucket_name,
                         e))
             # end of try/ex for creating bucket
 
             try:
                 log.info((
-                    '{} ticker={} reading to s3={}/{} '
+                    '{} reading to s3={}/{} '
                     'updated={}').format(
                         label,
-                        ticker,
                         s3_bucket_name,
                         s3_key,
                         updated))
@@ -201,14 +209,31 @@ def publish_from_s3_to_redis(
                     s3=s3,
                     s3_bucket_name=s3_bucket_name,
                     s3_key=s3_key,
-                    encoding='utf-8',
+                    encoding=encoding,
                     convert_as_json=True)
+
+                initial_size_value = \
+                    len(str(data)) / 1024000
+                initial_size_str = to_f(initial_size_value)
+                if ev('DEBUG_S3', '0') == '1':
+                    log.info(
+                        '{} read s3={}/{} data={}'.format(
+                            label,
+                            s3_bucket_name,
+                            s3_key,
+                            ppj(data)))
+                else:
+                    log.info(
+                        '{} read s3={}/{} data size={} MB'.format(
+                            label,
+                            s3_bucket_name,
+                            s3_key,
+                            initial_size_str))
             except Exception as e:
                 err = (
-                    '{} ticker={} failed reading bucket={} '
+                    '{} failed reading bucket={} '
                     'key={} ex={}').format(
                         label,
-                        ticker,
                         s3_bucket_name,
                         s3_key,
                         e)
@@ -221,10 +246,9 @@ def publish_from_s3_to_redis(
             # end of try/ex for creating bucket
         else:
             log.info((
-                '{} ticker={} SKIP S3 read bucket={} '
+                '{} SKIP S3 read bucket={} '
                 'key={}').format(
                     label,
-                    ticker,
                     s3_bucket_name,
                     s3_key))
         # end of if enable_s3_read
@@ -258,47 +282,77 @@ def publish_from_s3_to_redis(
             redis_host = redis_address.split(':')[0]
             redis_port = redis_address.split(':')[1]
             try:
-                log.info((
-                    '{} ticker={} publishing redis={}:{} '
-                    'db={} key={} '
-                    'updated={} expire={}').format(
-                        label,
-                        ticker,
-                        redis_host,
-                        redis_port,
-                        redis_db,
-                        redis_key,
-                        updated,
-                        redis_expire))
+                if ev('DEBUG_REDIS', '0') == '1':
+                    log.info((
+                        '{} publishing redis={}:{} '
+                        'db={} key={} '
+                        'updated={} expire={} '
+                        'data={}').format(
+                            label,
+                            redis_host,
+                            redis_port,
+                            redis_db,
+                            redis_key,
+                            updated,
+                            redis_expire,
+                            ppj(data)))
+                else:
+                    log.info((
+                        '{} publishing redis={}:{} '
+                        'db={} key={} '
+                        'updated={} expire={}').format(
+                            label,
+                            redis_host,
+                            redis_port,
+                            redis_db,
+                            redis_key,
+                            updated,
+                            redis_expire))
+                # end of if/else
+
                 rc = redis.Redis(
                     host=redis_host,
                     port=redis_port,
                     password=redis_password,
                     db=redis_db)
 
-                # https://redis-py.readthedocs.io/en/latest/index.html#redis.StrictRedis.set  # noqa
-                rc.set(
-                    name=redis_key,
-                    value=data,
-                    ex=redis_expire,
-                    px=None,
-                    nx=False,
-                    xx=False)
+                serialized_data = None
+                if serializer == 'json':
+                    log.info(
+                        '{} serialize format={} encoding={}'.format(
+                            label,
+                            serializer,
+                            encoding))
+                    serialized_data = json.dumps(
+                        data).encode(encoding)
+
+                if serialized_data:
+                    # https://redis-py.readthedocs.io/en/latest/index.html#redis.StrictRedis.set  # noqa
+                    rc.set(
+                        name=redis_key,
+                        value=serialized_data,
+                        ex=redis_expire,
+                        px=None,
+                        nx=False,
+                        xx=False)
+                else:
+                    log.info(
+                        '{} no data to set redis_key={}'.format(
+                            label,
+                            redis_key))
             except Exception as e:
                 log.error((
-                    '{} ticker={} failed - redis publish to '
+                    '{} failed - redis publish to '
                     'key={} ex={}').format(
                         label,
-                        ticker,
                         redis_key,
                         e))
             # end of try/ex for creating bucket
         else:
             log.info((
-                '{} ticker={} SKIP REDIS publish '
+                '{} SKIP REDIS publish '
                 'key={}').format(
                     label,
-                    ticker,
                     redis_key))
         # end of if enable_redis_publish
 

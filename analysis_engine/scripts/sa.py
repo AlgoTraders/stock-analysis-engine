@@ -233,10 +233,9 @@ def run_sa_tool():
     parser.add_argument(
         '-i',
         help=(
-            'optional - ticker id '
-            'not used without a database'),
+            'optional - ignore column names (comma separated)'),
         required=False,
-        dest='ticker_id')
+        dest='ignore_columns')
     parser.add_argument(
         '-d',
         help=(
@@ -271,12 +270,11 @@ def run_sa_tool():
     output_s3_bucket = None
     s3_enabled = True
     redis_enabled = True
+    ignore_columns = None
     debug = False
 
     if args.ticker:
         ticker = args.ticker.upper()
-    if args.ticker_id:
-        ticker = args.ticker_id
     if args.broker_url:
         broker_url = args.broker_url
     if args.backend_url:
@@ -315,6 +313,10 @@ def run_sa_tool():
         output_redis_key = args.output_key
     if args.output_s3_bucket:
         output_s3_bucket = args.output_s3_bucket
+    if args.ignore_columns:
+        ignore_columns_org = args.ignore_columns
+        ignore_columns = ignore_columns_org.split(",")
+
     if args.debug:
         debug = True
 
@@ -333,6 +335,7 @@ def run_sa_tool():
             work['prepared_s3_bucket'] = output_s3_bucket
         if output_redis_key:
             work['prepared_redis_key'] = output_redis_key
+        work['ignore_columns'] = ignore_columns
     # end of handling mode-specific arg assignments
 
     # sanity checking the work and task are valid

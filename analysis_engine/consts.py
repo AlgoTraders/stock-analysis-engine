@@ -291,3 +291,33 @@ def ppj(
             indent=4,
             separators=(',', ': ')))
 # end of ppj
+
+
+def to_float_str(val):
+    """to_float_str
+
+    :param val: float to change to a 2-decimal string
+    """
+    return str("%0.2f" % float(val))
+# end of to_float_str
+
+
+def to_f(val):
+    """to_f
+
+    :param val: float to change
+    """
+    return float(to_float_str(val))
+# end of to_f
+
+
+def get_percent_done(
+        progress,
+        total):
+    """get_percent_done
+
+    :param progress: progress counter
+    :param total: total number of counts
+    """
+    return to_f(float(float(progress)/float(total)*100.00))
+# end of get_percent_done

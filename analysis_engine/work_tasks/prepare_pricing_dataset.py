@@ -4,6 +4,12 @@ Prepare Pricing Dataset
 - if key not in redis, load the key by the same name from s3
 - prepare dataset from redis key
 - the dataset will be stored as a dictionary with a pandas dataframe
+
+Debug environment variables
+
+::
+
+    export DEBUG_PREPARE=1
 """
 
 import datetime
@@ -36,6 +42,10 @@ from analysis_engine.consts import REDIS_PASSWORD
 from analysis_engine.consts import REDIS_DB
 from analysis_engine.consts import REDIS_EXPIRE
 from analysis_engine.consts import CELERY_DISABLED
+from analysis_engine.consts import ev
+from analysis_engine.consts import to_f
+from analysis_engine.consts import ppj
+from analysis_engine.dict_to_csv import flatten_dict
 
 
 log = build_colorized_logger(
@@ -83,6 +93,7 @@ def prepare_pricing_dataset(
         'prepared_s3_key': None,
         'prepared_s3_bucket': None,
         'prepared_redis_key': None,
+        'ignore_columns': None,
         'updated': None
     }
     res = build_result.build_result(
@@ -108,6 +119,9 @@ def prepare_pricing_dataset(
                 rec=rec)
             return res
 
+        label = work_dict.get(
+            'label',
+            label)
         s3_key = work_dict.get(
             's3_key',
             None)
@@ -163,15 +177,21 @@ def prepare_pricing_dataset(
         prepared_redis_key = work_dict.get(
             'prepared_redis_key',
             'prepared')
+        ignore_columns = work_dict.get(
+            'ignore_columns',
+            None)
         log.info(
-            'redis enabled address={}@{} '
-            'key={} prepare_s3={}:{} prepare_redis={}'.format(
+            '{} redis enabled address={}@{} '
+            'key={} prepare_s3={}:{} prepare_redis={} '
+            'ignore_columns={}'.format(
+                label,
                 redis_address,
                 redis_db,
                 redis_key,
                 prepared_s3_bucket,
                 prepared_s3_key,
-                prepared_redis_key))
+                prepared_redis_key,
+                ignore_columns))
         redis_host = redis_address.split(':')[0]
         redis_port = redis_address.split(':')[1]
 
@@ -227,13 +247,15 @@ def prepare_pricing_dataset(
 
         initial_data = redis_get.get_data_from_redis_key(
             label=label,
-            redis_client=rc)
+            client=rc,
+            key=redis_key)
 
         if enable_s3 and not initial_data:
 
             log.info(
-                'failed to find redis_key={} trying s3'
+                '{} failed to find redis_key={} trying s3'
                 'from s3_key={} s3_bucket={} s3_address={}'.format(
+                    label,
                     redis_key,
                     s3_key,
                     s3_bucket_name,
@@ -265,11 +287,15 @@ def prepare_pricing_dataset(
                 if task_res.get('status', ERR) == SUCCESS:
                     log.info(
                         '{} loaded s3={}:{} '
-                        'to redis={}'.format(
+                        'to redis={} retrying'.format(
                             label,
                             s3_bucket_name,
                             s3_key,
                             redis_key))
+                    initial_data = redis_get.get_data_from_redis_key(
+                        label=label,
+                        client=rc,
+                        key=redis_key)
                 else:
                     err = (
                         '{} ERR failed loading from bucket={} '
@@ -317,18 +343,127 @@ def prepare_pricing_dataset(
                 err=err,
                 rec=rec)
             return res
+
+        initial_data_num_chars = len(str(initial_data))
+        initial_size_value = None
+        initial_size_str = None
+        if initial_data_num_chars < 10:
+            err = (
+                '{} not enough data={} in redis_key={} or '
+                's3_key={} in bucket={}'.format(
+                    label,
+                    initial_data_num_chars,
+                    redis_key,
+                    s3_key,
+                    s3_bucket_name))
+            log.error(err)
+            res = build_result.build_result(
+                status=ERR,
+                err=err,
+                rec=rec)
+            return res
         else:
-            log.info(
-                'got data: {}'.format(
-                    str(initial_data)))
+            initial_size_value = initial_data_num_chars / 1024000
+            initial_size_str = to_f(initial_size_value)
+            if ev('DEBUG_PREPARE', '0') == '1':
+                log.info(
+                    '{} initial - redis_key={} data={}'.format(
+                        label,
+                        redis_key,
+                        str(initial_data)))
+            else:
+                log.info(
+                    '{} initial - redis_key={} data size={} MB'.format(
+                        label,
+                        redis_key,
+                        initial_size_str))
         # end of trying to get initial_data
 
-        rc = None
+        prepare_data = None
+
+        try:
+            if ev('DEBUG_PREPARE', '0') == '1':
+                log.info(
+                    '{} data={} - flatten - {} MB from '
+                    'redis_key={}'.format(
+                        label,
+                        ppj(initial_data),
+                        initial_size_str,
+                        redis_key))
+            else:
+                log.info(
+                    '{} flatten - {} MB from '
+                    'redis_key={}'.format(
+                        label,
+                        initial_size_str,
+                        redis_key))
+            prepare_data = flatten_dict(
+                data=initial_data)
+        except Exception as e:
+            prepare_data = None
+            log.critical(
+                '{} flatten - failed with ex={} '
+                'redis_key={}'.format(
+                    label,
+                    e,
+                    redis_key))
+        # end of try/ex
+
+        if not prepare_data:
+            err = (
+                '{} flatten - data from redis_key={} '
+                'or s3_key={} in bucket={}'.format(
+                    label,
+                    redis_key,
+                    s3_key,
+                    s3_bucket_name))
+            log.error(err)
+            res = build_result.build_result(
+                status=ERR,
+                err=err,
+                rec=rec)
+            return res
+        # end of prepare_data
+
+        prepare_data_num_chars = len(str(prepare_data))
+        prepare_size_value = None
+
+        if prepare_data_num_chars < 10:
+            err = (
+                '{} prepare - not enough data={} in redis_key={}'
+                ''.format(
+                    label,
+                    prepare_data_num_chars,
+                    redis_key))
+            log.error(err)
+            res = build_result.build_result(
+                status=ERR,
+                err=err,
+                rec=rec)
+            return res
+        else:
+            prepare_size_value = prepare_data_num_chars / 1024000
+            prepare_size_str = to_f(prepare_size_value)
+            if ev('DEBUG_PREPARE', '0') == '1':
+                log.info(
+                    '{} data={} - prepare - redis_key={}'.format(
+                        label,
+                        redis_key,
+                        ppj(prepare_data)))
+            else:
+                log.info(
+                    '{} prepare - redis_key={} data size={} MB'.format(
+                        label,
+                        redis_key,
+                        prepare_size_str))
+        # end of trying to the size of the prepared data
 
         res = build_result.build_result(
             status=SUCCESS,
             err=None,
             rec=rec)
+
+        rc = None
 
     except Exception as e:
         res = build_result.build_result(
