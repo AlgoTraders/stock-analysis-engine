@@ -225,6 +225,14 @@ Mac OS X
 
     https://www.python.org/downloads/mac-osx/
 
+#.  Install Certs
+
+    After hitting ssl verify errors, I found `this stack overflow <https://stackoverflow.com/questions/42098126/mac-osx-python-ssl-sslerror-ssl-certificate-verify-failed-certificate-verify>`__ which shows there's an additional step for setitng up python 3.6:
+
+    ::
+
+        /Applications/Python\ 3.6/Install\ Certificates.command ; exit;
+
 #.  Install Packages
 
     ::

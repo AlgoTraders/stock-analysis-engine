@@ -121,6 +121,11 @@ def get_new_pricing_data(
             True)
         num_news_rec = 0
         num_options_chains = 0
+        cur_high = -1
+        cur_low = -1
+        cur_open = -1
+        cur_close = -1
+        cur_volume = -1
 
         label += ' ticker.id={}'.format(
             ticker_id)
