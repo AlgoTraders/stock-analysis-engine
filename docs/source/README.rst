@@ -29,7 +29,12 @@ Getting Started
 
 #.  Start Redis and Minio
 
-    .. note:: The Minio container is set up to save data to ``/data`` so S3 files can survive a restart/reboot. On Mac, please make sure to add ``/data`` on the Docker Preferences -> File Sharing tab and let the docker daemon restart before trying to start the containers. If not, you will likely see errors like: ``ERROR: for minio  Cannot start service minio: b'Mounts denied: \r\nThe path /data/minio/data\r\nis not shared from OS X``
+    .. note:: The Minio container is set up to save data to ``/data`` so S3 files can survive a restart/reboot. On Mac, please make sure to add ``/data`` on the Docker Preferences -> File Sharing tab and let the docker daemon restart before trying to start the containers. If not, you will likely see errors like:
+
+       ::
+
+            ERROR: for minio  Cannot start service minio:
+            b'Mounts denied: \r\nThe path /data/minio/data\r\nis not shared from OS X
 
     ::
 
