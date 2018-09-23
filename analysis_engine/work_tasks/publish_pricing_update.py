@@ -59,11 +59,9 @@ def publish_pricing_update(
 
     label = 'publish_pricing'
 
-    log.info((
-        'task - {} - start '
-        'work_dict={}').format(
-            label,
-            work_dict))
+    log.info(
+        'task - {} - start'.format(
+            label))
 
     ticker = TICKER
     ticker_id = TICKER_ID
@@ -337,9 +335,8 @@ def run_publish_pricing_update(
 
     :param work_dict: task data
     """
-    log.info((
-        'run_publish_pricing_update start - req={}').format(
-            work_dict))
+
+    log.info('run_publish_pricing_update start')
 
     rec = {}
     response = build_result.build_result(

@@ -43,6 +43,7 @@ def get_data_from_redis_key(
     :param encoding: format of the encoded key in redis
     """
 
+    decoded_data = None
     data = None
 
     try:
@@ -91,9 +92,11 @@ def get_data_from_redis_key(
     except Exception as e:
         data = None
         log.error(
-            '{} failed - redis get from '
+            '{} failed - redis get from decoded={} data={} '
             'key={} ex={}'.format(
                 label,
+                decoded_data,
+                data,
                 key,
                 e))
     # end of try/ex for getting redis data
