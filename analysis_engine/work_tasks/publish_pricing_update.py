@@ -21,8 +21,6 @@ from analysis_engine.consts import NOT_RUN
 from analysis_engine.consts import ERR
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import TICKER_ID
-from analysis_engine.consts import get_status
-from analysis_engine.consts import ev
 from analysis_engine.consts import ENABLED_S3_UPLOAD
 from analysis_engine.consts import S3_ACCESS_KEY
 from analysis_engine.consts import S3_SECRET_KEY
@@ -35,6 +33,8 @@ from analysis_engine.consts import REDIS_KEY
 from analysis_engine.consts import REDIS_PASSWORD
 from analysis_engine.consts import REDIS_DB
 from analysis_engine.consts import REDIS_EXPIRE
+from analysis_engine.consts import get_status
+from analysis_engine.consts import is_celery_disabled
 
 log = build_colorized_logger(
     name=__name__)
@@ -354,7 +354,7 @@ def run_publish_pricing_update(
     task_res = {}
 
     # by default celery is not used for this one:
-    if ev('CELERY_DISABLED', '1') == '1':
+    if is_celery_disabled():
         task_res = publish_pricing_update(
             work_dict)  # note - this is not a named kwarg
     else:

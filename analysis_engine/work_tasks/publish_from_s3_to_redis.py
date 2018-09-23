@@ -34,6 +34,7 @@ from analysis_engine.consts import REDIS_EXPIRE
 from analysis_engine.consts import ev
 from analysis_engine.consts import ppj
 from analysis_engine.consts import to_f
+from analysis_engine.consts import is_celery_disabled
 import analysis_engine.s3_read_contents_from_key as \
     s3_read_contents_from_key
 
@@ -397,7 +398,7 @@ def run_publish_from_s3_to_redis(
     task_res = {}
 
     # by default celery is not used for this one:
-    if ev('CELERY_DISABLED', '1') == '1':
+    if is_celery_disabled():
         task_res = publish_from_s3_to_redis(
             work_dict)  # note - this is not a named kwarg
     else:

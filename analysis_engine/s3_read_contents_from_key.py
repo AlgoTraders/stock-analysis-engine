@@ -21,7 +21,7 @@ def s3_read_contents_from_key(
     Download the S3 key contents as a string. This
     will raise exceptions.
 
-    :param s3_obj: existing S3 object
+    :param s3: existing S3 object
     :param s3_bucket_name: bucket name
     :param s3_key: S3 key
     :param encoding: utf-8 by default

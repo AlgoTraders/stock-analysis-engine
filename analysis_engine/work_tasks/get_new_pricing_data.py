@@ -35,6 +35,7 @@ from analysis_engine.consts import REDIS_EXPIRE
 from analysis_engine.consts import get_status
 from analysis_engine.consts import ev
 from analysis_engine.consts import ppj
+from analysis_engine.consts import is_celery_disabled
 
 
 log = build_colorized_logger(
@@ -377,7 +378,7 @@ def run_get_new_pricing_data(
         err=None,
         rec=rec)
     task_res = {}
-    if ev('CELERY_DISABLED', '0') == '1':
+    if is_celery_disabled():
         task_res = get_new_pricing_data(
             work_dict)  # note - this is not a named kwarg
     else:

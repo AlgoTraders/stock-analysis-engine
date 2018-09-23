@@ -31,7 +31,10 @@ def flatten_dict(
         elif isinstance(value, list):
             for idx, val in enumerate(value):
                 temp_key = '{}_{}'.format(new_key, idx)
-                items.extend(flatten_dict(val, temp_key, sep=sep).items())
+                items.extend(flatten_dict(
+                    val,
+                    temp_key,
+                    sep=sep).items())
         else:
             items.append((new_key, value))
     return dict(items)

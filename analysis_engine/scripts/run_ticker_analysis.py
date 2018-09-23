@@ -21,7 +21,6 @@ from celery import signals
 from spylunking.log.setup_logging import build_colorized_logger
 from celery_loaders.work_tasks.get_celery_app import get_celery_app
 from analysis_engine.api_requests import build_get_new_pricing_request
-from analysis_engine.consts import CELERY_DISABLED
 from analysis_engine.consts import LOG_CONFIG_PATH
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import TICKER_ID
@@ -44,6 +43,7 @@ from analysis_engine.consts import REDIS_PASSWORD
 from analysis_engine.consts import REDIS_DB
 from analysis_engine.consts import REDIS_EXPIRE
 from analysis_engine.consts import ppj
+from analysis_engine.consts import is_celery_disabled
 
 
 # Disable celery log hijacking
@@ -340,7 +340,7 @@ def run_ticker_analysis():
         '{}.get_new_pricing_data.get_new_pricing_data').format(
             path_to_tasks)
     task_res = None
-    if CELERY_DISABLED:
+    if is_celery_disabled():
         log.debug(
             'starting without celery work={}'.format(
                 ppj(work)))

@@ -2,11 +2,78 @@
 Mock boto3 s3 objects
 """
 
+import os
+import json
 from spylunking.log.setup_logging import build_colorized_logger
+from analysis_engine.consts import ev
 
 
 log = build_colorized_logger(
     name=__name__)
+
+
+def mock_s3_read_contents_from_key_ev(
+        s3,
+        s3_bucket_name,
+        s3_key,
+        encoding,
+        convert_as_json):
+    """mock_s3_read_contents_from_key
+
+    :param s3: s3 client
+    :param s3_bucket_name: bucket name
+    :param s3_key: key
+    :param encoding: utf-8
+    :param convert_as_json: convert to json
+    """
+
+    env_key = 'TEST_S3_CONTENTS'
+    str_contents = ev(
+        env_key,
+        None)
+
+    log.info(
+        'returning mock s3={}:{} contents={} encoding={} '
+        'json={} env_key={}'.format(
+            s3_bucket_name,
+            s3_key,
+            str_contents,
+            encoding,
+            convert_as_json,
+            env_key))
+
+    if not str_contents:
+        return str_contents
+
+    if convert_as_json:
+        return json.loads(str_contents)
+# end of mock_s3_read_contents_from_key_ev
+
+
+def mock_publish_from_s3_to_redis(
+        work_dict):
+    """mock_publish_from_s3_to_redis
+
+    :param work_dict: dictionary for driving the task
+    """
+
+    env_key = 'TEST_S3_CONTENTS'
+    redis_key = work_dict.get(
+        'redis_key',
+        env_key)
+    str_dict = ev(
+        env_key,
+        None)
+    log.info(
+        'mock_publish_from_s3_to_redis - '
+        'setting key={} value={}'.format(
+            redis_key,
+            str_dict))
+    if str_dict:
+        os.environ[redis_key] = str_dict
+    else:
+        os.environ[redis_key] = ''
+# end of mock_publish_from_s3_to_redis
 
 
 class MockBotoS3Bucket:

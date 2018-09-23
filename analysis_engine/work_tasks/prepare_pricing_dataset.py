@@ -41,7 +41,7 @@ from analysis_engine.consts import REDIS_KEY
 from analysis_engine.consts import REDIS_PASSWORD
 from analysis_engine.consts import REDIS_DB
 from analysis_engine.consts import REDIS_EXPIRE
-from analysis_engine.consts import CELERY_DISABLED
+from analysis_engine.consts import is_celery_disabled
 from analysis_engine.consts import ev
 from analysis_engine.consts import to_f
 from analysis_engine.consts import ppj
@@ -91,6 +91,8 @@ def prepare_pricing_dataset(
         'prepared_s3_key': None,
         'prepared_s3_bucket': None,
         'prepared_redis_key': None,
+        'prepared_data': None,
+        'initial_data': None,
         'ignore_columns': None,
         'updated': None
     }
@@ -476,6 +478,9 @@ def prepare_pricing_dataset(
                         prepare_size_str))
         # end of trying to the size of the prepared data
 
+        rec['initial_data'] = initial_data
+        rec['prepared_data'] = prepare_data
+
         res = build_result.build_result(
             status=SUCCESS,
             err=None,
@@ -526,7 +531,7 @@ def run_prepare_pricing_dataset(
     task_res = {}
 
     # by default celery is not used for this one:
-    if CELERY_DISABLED:
+    if is_celery_disabled():
         task_res = prepare_pricing_dataset(
             work_dict)  # note - this is not a named kwarg
     else:
