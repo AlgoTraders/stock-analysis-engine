@@ -77,8 +77,6 @@ def prepare_pricing_dataset(
             work_dict))
 
     initial_data = None
-    # prepared_data = None
-    # df = None
 
     ticker = TICKER
     ticker_id = TICKER_ID
@@ -198,8 +196,6 @@ def prepare_pricing_dataset(
         enable_s3 = True
         enable_redis_publish = True
 
-        label += ''
-
         rec['ticker'] = ticker
         rec['ticker_id'] = ticker_id
         rec['s3_bucket'] = s3_bucket_name
@@ -245,10 +241,21 @@ def prepare_pricing_dataset(
             return res
         # end of try/ex for connecting to redis
 
-        initial_data = redis_get.get_data_from_redis_key(
+        initial_data_res = redis_get.get_data_from_redis_key(
             label=label,
             client=rc,
             key=redis_key)
+
+        log.info(
+            '{} get redis key={} status={} err={}'.format(
+                label,
+                redis_key,
+                get_status(initial_data_res['status']),
+                initial_data_res['err']))
+
+        initial_data = initial_data_res['rec'].get(
+            'data',
+            None)
 
         if enable_s3 and not initial_data:
 
@@ -292,10 +299,21 @@ def prepare_pricing_dataset(
                             s3_bucket_name,
                             s3_key,
                             redis_key))
-                    initial_data = redis_get.get_data_from_redis_key(
+                    initial_data_res = redis_get.get_data_from_redis_key(
                         label=label,
                         client=rc,
                         key=redis_key)
+
+                    log.info(
+                        '{} get redis try=2 key={} status={} err={}'.format(
+                            label,
+                            redis_key,
+                            get_status(initial_data_res['status']),
+                            initial_data_res['err']))
+
+                    initial_data = initial_data_res['rec'].get(
+                        'data',
+                        None)
                 else:
                     err = (
                         '{} ERR failed loading from bucket={} '

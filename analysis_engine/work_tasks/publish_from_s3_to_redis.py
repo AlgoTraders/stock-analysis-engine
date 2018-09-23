@@ -7,12 +7,12 @@ Publish Pricing from an S3 Key to Redis
 
 import boto3
 import redis
-import json
 import analysis_engine.build_result as build_result
 import analysis_engine.get_task_results
 import analysis_engine.work_tasks.custom_task
 import analysis_engine.options_dates
 import analysis_engine.get_pricing
+import analysis_engine.set_data_in_redis_key as redis_set
 from celery.task import task
 from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.consts import SUCCESS
@@ -119,9 +119,6 @@ def publish_from_s3_to_redis(
 
         enable_s3_read = True
         enable_redis_publish = True
-
-        label += ' ticker={}'.format(
-            ticker)
 
         rec['ticker'] = ticker
         rec['ticker_id'] = ticker_id
@@ -318,30 +315,24 @@ def publish_from_s3_to_redis(
                     password=redis_password,
                     db=redis_db)
 
-                serialized_data = None
-                if serializer == 'json':
-                    log.info(
-                        '{} serialize format={} encoding={}'.format(
-                            label,
-                            serializer,
-                            encoding))
-                    serialized_data = json.dumps(
-                        data).encode(encoding)
+                redis_set_res = redis_set.set_data_in_redis_key(
+                    label=label,
+                    client=rc,
+                    key=redis_key,
+                    data=data,
+                    serializer=serializer,
+                    encoding=encoding,
+                    expire=redis_expire,
+                    px=None,
+                    nx=False,
+                    xx=False)
 
-                if serialized_data:
-                    # https://redis-py.readthedocs.io/en/latest/index.html#redis.StrictRedis.set  # noqa
-                    rc.set(
-                        name=redis_key,
-                        value=serialized_data,
-                        ex=redis_expire,
-                        px=None,
-                        nx=False,
-                        xx=False)
-                else:
-                    log.info(
-                        '{} no data to set redis_key={}'.format(
-                            label,
-                            redis_key))
+                log.info(
+                    '{} redis_set status={} err={}'.format(
+                        label,
+                        get_status(redis_set_res['status']),
+                        redis_set_res['err']))
+
             except Exception as e:
                 log.error((
                     '{} failed - redis publish to '

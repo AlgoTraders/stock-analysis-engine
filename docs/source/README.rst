@@ -49,6 +49,62 @@ Getting Started
         c2d46e73c355        minio/minio          "/usr/bin/docker-ent…"   4 hours ago         Up 4 hours (healthy)                              minio
         b32838e43edb        redis:4.0.9-alpine   "docker-entrypoint.s…"   4 days ago          Up 4 hours               0.0.0.0:6379->6379/tcp   redis
 
+Ubuntu and CentOS
+-----------------
+
+::
+
+    virtualenv -p python3 /opt/venv && source /opt/venv/bin/activate && pip install -e .
+
+Mac OS X
+--------
+
+#.  Download Python 3.6
+
+    .. note:: Python 3.7 is not supported by celery so please ensure it is python 3.6
+
+    https://www.python.org/downloads/mac-osx/
+
+#.  Install Certs
+
+    After hitting ssl verify errors, I found `this stack overflow <https://stackoverflow.com/questions/42098126/mac-osx-python-ssl-sslerror-ssl-certificate-verify-failed-certificate-verify>`__ which shows there's an additional step for setitng up python 3.6:
+
+    ::
+
+        /Applications/Python\ 3.6/Install\ Certificates.command ; exit;
+
+#.  Install Packages
+
+    ::
+
+        brew install openssl
+        brew install pyenv-virtualenv
+
+#.  Create and Load Virtual Environment
+
+    ::
+
+        virtualenv -p python3 /opt/venv
+        source /opt/venv/bin/activate
+
+#.  Install PyCurl with OpenSSL
+
+    ::
+
+        PYCURL_SSL_LIBRARY=openssl LDFLAGS="-L/usr/local/opt/openssl/lib" CPPFLAGS="-I/usr/local/opt/openssl/include" pip install --no-cache-dir pycurl
+
+#.  Install Analysis Pip
+
+    ::
+
+        pip install -e .
+
+#.  Verify Pip installed
+
+    ::
+
+        pip list | grep stock-analysis-engine
+
 Start Workers
 =============
 
@@ -205,65 +261,6 @@ View Caches in Redis
     OK
     127.0.0.1:6379[4]> keys *
     1) "SPY_demo"
-
-Development
-===========
-
-Ubuntu and CentOS
------------------
-
-::
-
-    virtualenv -p python3 /opt/venv && source /opt/venv/bin/activate && pip install -e .
-
-Mac OS X
---------
-
-#.  Download Python 3.6
-
-    .. note:: Python 3.7 is not supported by celery so please ensure it is python 3.6
-
-    https://www.python.org/downloads/mac-osx/
-
-#.  Install Certs
-
-    After hitting ssl verify errors, I found `this stack overflow <https://stackoverflow.com/questions/42098126/mac-osx-python-ssl-sslerror-ssl-certificate-verify-failed-certificate-verify>`__ which shows there's an additional step for setitng up python 3.6:
-
-    ::
-
-        /Applications/Python\ 3.6/Install\ Certificates.command ; exit;
-
-#.  Install Packages
-
-    ::
-
-        brew install openssl
-        brew install pyenv-virtualenv
-
-#.  Create and Load Virtual Environment
-
-    ::
-
-        virtualenv -p python3 /opt/venv
-        source /opt/venv/bin/activate
-
-#.  Install PyCurl with OpenSSL
-
-    ::
-
-        PYCURL_SSL_LIBRARY=openssl LDFLAGS="-L/usr/local/opt/openssl/lib" CPPFLAGS="-I/usr/local/opt/openssl/include" pip install --no-cache-dir pycurl
-
-#.  Install Analysis Pip
-
-    ::
-
-        pip install -e .
-
-#.  Verify Pip installed
-
-    ::
-
-        pip list | grep stock-analysis-engine
 
 Testing
 =======

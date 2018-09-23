@@ -13,6 +13,7 @@ import analysis_engine.get_task_results
 import analysis_engine.work_tasks.custom_task
 import analysis_engine.options_dates
 import analysis_engine.get_pricing
+import analysis_engine.set_data_in_redis_key as redis_set
 from celery.task import task
 from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.consts import SUCCESS
@@ -59,11 +60,9 @@ def publish_pricing_update(
 
     label = 'publish_pricing'
 
-    log.info((
-        'task - {} - start '
-        'work_dict={}').format(
-            label,
-            work_dict))
+    log.info(
+        'task - {} - start'.format(
+            label))
 
     ticker = TICKER
     ticker_id = TICKER_ID
@@ -97,6 +96,9 @@ def publish_pricing_update(
                 rec=rec)
             return res
 
+        label = work_dict.get(
+            'label',
+            label)
         s3_key = work_dict.get(
             's3_key',
             None)
@@ -118,9 +120,12 @@ def publish_pricing_update(
         enable_redis_publish = work_dict.get(
             'redis_enabled',
             ENABLED_REDIS_PUBLISH)
-
-        label += ' ticker.id={}'.format(
-            ticker_id)
+        serializer = work_dict.get(
+            'serializer',
+            'json')
+        encoding = work_dict.get(
+            'encoding',
+            'utf-8')
 
         rec['ticker'] = ticker
         rec['ticker_id'] = ticker_id
@@ -155,10 +160,9 @@ def publish_pricing_update(
                     service_address)
 
             log.info((
-                '{} ticker={} building s3 endpoint_url={} '
+                '{} building s3 endpoint_url={} '
                 'region={}').format(
                     label,
-                    ticker,
                     endpoint_url,
                     region_name))
 
@@ -174,56 +178,50 @@ def publish_pricing_update(
 
             try:
                 log.info((
-                    '{} ticker={} checking bucket={} exists').format(
+                    '{} checking bucket={} exists').format(
                         label,
-                        ticker,
                         s3_bucket_name))
                 if s3.Bucket(s3_bucket_name) not in s3.buckets.all():
                     log.info((
-                        '{} ticker={} creating bucket={}').format(
+                        '{} creating bucket={}').format(
                             label,
-                            ticker,
                             s3_bucket_name))
                     s3.create_bucket(
                         Bucket=s3_bucket_name)
             except Exception as e:
                 log.info((
-                    '{} ticker={} failed creating bucket={} '
+                    '{} failed creating bucket={} '
                     'with ex={}').format(
                         label,
-                        ticker,
                         s3_bucket_name,
                         e))
             # end of try/ex for creating bucket
 
             try:
                 log.info((
-                    '{} ticker={} uploading to s3={}/{} '
+                    '{} uploading to s3={}/{} '
                     'updated={}').format(
                         label,
-                        ticker,
                         s3_bucket_name,
                         s3_key,
                         updated))
                 s3.Bucket(s3_bucket_name).put_object(
                     Key=s3_key,
-                    Body=json.dumps(data))
+                    Body=json.dumps(data).encode(encoding))
             except Exception as e:
                 log.error((
-                    '{} ticker={} failed uploading bucket={} '
+                    '{} failed uploading bucket={} '
                     'key={} ex={}').format(
                         label,
-                        ticker,
                         s3_bucket_name,
                         s3_key,
                         e))
             # end of try/ex for creating bucket
         else:
             log.info((
-                '{} ticker={} SKIP S3 upload bucket={} '
+                '{} SKIP S3 upload bucket={} '
                 'key={}').format(
                     label,
-                    ticker,
                     s3_bucket_name,
                     s3_key))
         # end of if enable_s3_upload
@@ -258,46 +256,54 @@ def publish_pricing_update(
             redis_port = redis_address.split(':')[1]
             try:
                 log.info((
-                    '{} ticker={} publishing redis={}:{} '
+                    '{} publishing redis={}:{} '
                     'db={} key={} '
                     'updated={} expire={}').format(
                         label,
-                        ticker,
                         redis_host,
                         redis_port,
                         redis_db,
                         redis_key,
                         updated,
                         redis_expire))
+
                 rc = redis.Redis(
                     host=redis_host,
                     port=redis_port,
                     password=redis_password,
                     db=redis_db)
 
-                # https://redis-py.readthedocs.io/en/latest/index.html#redis.StrictRedis.set  # noqa
-                rc.set(
-                    name=redis_key,
-                    value=data,
-                    ex=redis_expire,
+                redis_set_res = redis_set.set_data_in_redis_key(
+                    label=label,
+                    client=rc,
+                    key=redis_key,
+                    data=data,
+                    serializer=serializer,
+                    encoding=encoding,
+                    expire=redis_expire,
                     px=None,
                     nx=False,
                     xx=False)
+
+                log.info(
+                    '{} redis_set status={} err={}'.format(
+                        label,
+                        get_status(redis_set_res['status']),
+                        redis_set_res['err']))
+
             except Exception as e:
                 log.error((
-                    '{} ticker={} failed - redis publish to '
+                    '{} failed - redis publish to '
                     'key={} ex={}').format(
                         label,
-                        ticker,
                         redis_key,
                         e))
             # end of try/ex for creating bucket
         else:
             log.info((
-                '{} ticker={} SKIP REDIS publish '
+                '{} SKIP REDIS publish '
                 'key={}').format(
                     label,
-                    ticker,
                     redis_key))
         # end of if enable_redis_publish
 
@@ -337,9 +343,8 @@ def run_publish_pricing_update(
 
     :param work_dict: task data
     """
-    log.info((
-        'run_publish_pricing_update start - req={}').format(
-            work_dict))
+
+    log.info('run_publish_pricing_update start')
 
     rec = {}
     response = build_result.build_result(
