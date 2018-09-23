@@ -45,6 +45,7 @@ Celery Environment Variables
         'WORKER_TASKS',
         ('analysis_engine.work_tasks.get_new_pricing_data,'
          'analysis_engine.work_tasks.handle_pricing_update_task,'
+         'analysis_engine.work_tasks.prepare_pricing_dataset,'
          'analysis_engine.work_tasks.publish_from_s3_to_redis,'
          'analysis_engine.work_tasks.publish_pricing_update'))
     INCLUDE_TASKS = WORKER_TASKS.split(',')
@@ -159,6 +160,7 @@ WORKER_TASKS = ev(
     'WORKER_TASKS',
     ('analysis_engine.work_tasks.get_new_pricing_data,'
      'analysis_engine.work_tasks.handle_pricing_update_task,'
+     'analysis_engine.work_tasks.prepare_pricing_dataset,'
      'analysis_engine.work_tasks.publish_from_s3_to_redis,'
      'analysis_engine.work_tasks.publish_pricing_update'))
 INCLUDE_TASKS = WORKER_TASKS.split(',')
