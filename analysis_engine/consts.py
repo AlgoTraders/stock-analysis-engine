@@ -323,3 +323,17 @@ def get_percent_done(
     """
     return to_f(float(float(progress)/float(total)*100.00))
 # end of get_percent_done
+
+
+def is_celery_disabled(
+        work_dict=None):
+    """is_celery_disabled
+
+    :param work_dict: request to check
+    """
+    env_disabled = ev('CELERY_DISABLED', '0') == '1'
+    request_disabled = False
+    if work_dict:
+        request_disabled = work_dict.get('celery_disabled', False)
+    return (env_disabled or request_disabled)
+# end of is_celery_disabled

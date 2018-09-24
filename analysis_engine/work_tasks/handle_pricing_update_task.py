@@ -12,7 +12,7 @@ import analysis_engine.get_task_results
 import analysis_engine.work_tasks.custom_task
 import analysis_engine.build_result as build_result
 import analysis_engine.work_tasks.publish_pricing_update as \
-    publish_pricing_update
+    publisher
 import analysis_engine.options_dates
 import analysis_engine.get_pricing
 from celery.task import task
@@ -22,7 +22,7 @@ from analysis_engine.consts import NOT_RUN
 from analysis_engine.consts import ERR
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import get_status
-
+from analysis_engine.consts import is_celery_disabled
 
 log = build_colorized_logger(
     name=__name__)
@@ -44,11 +44,9 @@ def handle_pricing_update_task(
 
     label = 'update_prices'
 
-    log.info((
-        'task - {} - start '
-        'work_dict={}').format(
-            label,
-            work_dict))
+    log.info(
+        'task - {} - start'.format(
+            label))
 
     ticker = TICKER
     ticker_id = 1
@@ -88,8 +86,9 @@ def handle_pricing_update_task(
         news_data = work_dict['news']
         options_data = work_dict['options']
         updated = work_dict['updated']
-        label += ' ticker.id={}'.format(
-            ticker_id)
+        label = work_dict.get(
+            'label',
+            label)
 
         cur_date = datetime.datetime.utcnow()
         cur_date_str = cur_date.strftime(
@@ -153,7 +152,8 @@ def handle_pricing_update_task(
                 'data': pricing_data,
                 'redis_key': pricing_by_ticker_redis_key,
                 'size': pricing_size,
-                'updated': updated
+                'updated': updated,
+                'label': label
             },
             {
                 'ticker': ticker,
@@ -163,7 +163,8 @@ def handle_pricing_update_task(
                 'data': options_data,
                 'redis_key': options_by_ticker_redis_key,
                 'size': options_size,
-                'updated': updated
+                'updated': updated,
+                'label': label
             },
             {
                 'ticker': ticker,
@@ -173,7 +174,8 @@ def handle_pricing_update_task(
                 'data': news_data,
                 'redis_key': news_by_ticker_redis_key,
                 'size': news_size,
-                'updated': updated
+                'updated': updated,
+                'label': label
             }
         ]
 
@@ -204,8 +206,9 @@ def handle_pricing_update_task(
                     total_payloads,
                     r['s3_key'],
                     r['redis_key']))
+            r['celery_disabled'] = False
             payload_res = \
-                publish_pricing_update.task_publish_pricing_update(
+                publisher.task_publish_pricing_update(
                     work_dict=r)
             log.info((
                 '{} ticker={} update={}/{} status={} '
@@ -244,6 +247,62 @@ def handle_pricing_update_task(
             label,
             get_status(res['status'])))
 
-    return analysis_engine.get_task_results.get_task_results(
-        result=res)
+    # if celery is disabled make sure to return the results
+    if is_celery_disabled(work_dict=work_dict):
+        return res
+    else:
+        return analysis_engine.get_task_results.get_task_results(
+            result=res)
 # end of handle_pricing_update_task
+
+
+def run_handle_pricing_update_task(
+        work_dict):
+    """run_handle_pricing_update_task
+
+    Celery wrapper for running without celery
+
+    :param work_dict: task data
+    """
+
+    label = work_dict.get(
+        'label',
+        '')
+
+    log.info(
+        'run_handle_pricing_update_task - {} - start'.format(
+            label))
+
+    response = build_result.build_result(
+        status=NOT_RUN,
+        err=None,
+        rec={})
+    task_res = {}
+
+    # by default celery is not used for this one:
+    if is_celery_disabled():
+        work_dict['celery_disabled'] = True
+        response = handle_pricing_update_task(
+            work_dict)
+    else:
+        task_res = handle_pricing_update_task.delay(
+            work_dict=work_dict)
+        rec = {
+            'task_id': task_res
+        }
+        response = build_result.build_result(
+            status=SUCCESS,
+            err=None,
+            rec=rec)
+    # if celery enabled
+
+    log.info(
+        'run_handle_pricing_update_task - {} - done '
+        'status={} err={} rec={}'.format(
+            label,
+            get_status(response['status']),
+            response['err'],
+            response['rec']))
+
+    return response
+# end of run_handle_pricing_update_task

@@ -16,11 +16,13 @@ Steps:
 """
 
 import argparse
+import analysis_engine.work_tasks.always_fails_task.publish_from_s3_to_redis \
+    as task_publisher
 from celery import signals
 from spylunking.log.setup_logging import build_colorized_logger
 from celery_loaders.work_tasks.get_celery_app import get_celery_app
 from analysis_engine.api_requests import build_publish_from_s3_to_redis_request
-from analysis_engine.consts import ppj
+from analysis_engine.consts import NOT_RUN
 from analysis_engine.consts import LOG_CONFIG_PATH
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import TICKER_ID
@@ -41,6 +43,9 @@ from analysis_engine.consts import REDIS_KEY
 from analysis_engine.consts import REDIS_PASSWORD
 from analysis_engine.consts import REDIS_DB
 from analysis_engine.consts import REDIS_EXPIRE
+from analysis_engine.consts import get_status
+from analysis_engine.consts import ppj
+from analysis_engine.consts import is_celery_disabled
 
 
 # Disable celery log hijacking
@@ -198,6 +203,7 @@ def publish_from_s3_to_redis():
     redis_password = REDIS_PASSWORD
     redis_db = REDIS_DB
     redis_expire = REDIS_EXPIRE
+    debug = False
 
     if args.ticker:
         ticker = args.ticker.upper()
@@ -230,6 +236,8 @@ def publish_from_s3_to_redis():
         redis_db = args.redis_db
     if args.redis_expire:
         redis_expire = args.redis_expire
+    if args.debug:
+        debug = True
 
     work = build_publish_from_s3_to_redis_request()
 
@@ -247,40 +255,53 @@ def publish_from_s3_to_redis():
     work['redis_password'] = redis_password
     work['redis_db'] = redis_db
     work['redis_expire'] = redis_expire
+    work['debug'] = debug
 
-    log.info((
-        'connecting to broker={} backend={}').format(
-            broker_url,
-            backend_url))
-
-    # Get the Celery app from the ecommerce project's get_celery_app
-
-    app = get_celery_app(
-        name=__name__,
-        auth_url=broker_url,
-        backend_url=backend_url,
-        ssl_options=ssl_options,
-        transport_options=transport_options,
-        include_tasks=include_tasks)
-
-    # if you want to discover tasks in other directories:
-    # app.autodiscover_tasks(['some_dir_name_with_tasks'])
-
-    log.info(
-        'calling task - work={}'.format(
-            ppj(work)))
     path_to_tasks = 'analysis_engine.work_tasks'
     task_name = (
-        # '{}.handle_pricing_update_task.handle_pricing_update_task'
         '{}.publish_from_s3_to_redis.publish_from_s3_to_redis').format(
             path_to_tasks)
-    job_id = app.send_task(
-        task_name,
-        (work,))
-    log.info((
-        'calling task={} - success job_id={}').format(
+    task_res = None
+    if is_celery_disabled():
+        work['celery_disabled'] = True
+        log.debug(
+            'starting without celery work={}'.format(
+                ppj(work)))
+        task_res = task_publisher.publish_from_s3_to_redis(
+            work)
+        log.info(
+            'done - publish s3 to redis status={} result={}'.format(
+                get_status(task_res.get(
+                    'status',
+                    NOT_RUN)),
+                ppj(task_res)))
+    else:
+        log.info(
+            'connecting to broker={} backend={}'.format(
+                broker_url,
+                backend_url))
+
+        # Get the Celery app
+        app = get_celery_app(
+            name=__name__,
+            auth_url=broker_url,
+            backend_url=backend_url,
+            ssl_options=ssl_options,
+            transport_options=transport_options,
+            include_tasks=include_tasks)
+
+        log.info(
+            'calling task={} - work={}'.format(
+                task_name,
+                ppj(work)))
+        job_id = app.send_task(
             task_name,
-            job_id))
+            (work,))
+        log.info((
+            'calling task={} - success job_id={}').format(
+                task_name,
+                job_id))
+    # end of if/else
 # end of publish_from_s3_to_redis
 
 

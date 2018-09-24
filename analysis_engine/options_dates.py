@@ -7,7 +7,7 @@ from spylunking.log.setup_logging import build_colorized_logger
 
 
 log = build_colorized_logger(
-    name='optdate')
+    name=__name__)
 
 
 def get_options_for_years(

@@ -34,6 +34,7 @@ from analysis_engine.consts import REDIS_EXPIRE
 from analysis_engine.consts import ev
 from analysis_engine.consts import ppj
 from analysis_engine.consts import to_f
+from analysis_engine.consts import is_celery_disabled
 import analysis_engine.s3_read_contents_from_key as \
     s3_read_contents_from_key
 
@@ -373,7 +374,12 @@ def publish_from_s3_to_redis(
             label,
             get_status(res['status'])))
 
-    return res
+    # if celery is disabled make sure to return the results
+    if is_celery_disabled(work_dict=work_dict):
+        return res
+    else:
+        return analysis_engine.get_task_results.get_task_results(
+            result=res)
 # end of publish_from_s3_to_redis
 
 
@@ -385,43 +391,43 @@ def run_publish_from_s3_to_redis(
 
     :param work_dict: task data
     """
-    log.info((
-        'run_publish_from_s3_to_redis start - req={}').format(
-            work_dict))
 
-    rec = {}
+    label = work_dict.get(
+        'label',
+        '')
+
+    log.info(
+        'run_publish_from_s3_to_redis - {} - start'.format(
+            label))
+
     response = build_result.build_result(
         status=NOT_RUN,
         err=None,
-        rec=rec)
+        rec={})
     task_res = {}
 
-    # by default celery is not used for this one:
-    if ev('CELERY_DISABLED', '1') == '1':
-        task_res = publish_from_s3_to_redis(
-            work_dict)  # note - this is not a named kwarg
+    # allow running without celery
+    if is_celery_disabled():
+        work_dict['celery_disabled'] = True
+        response = publish_from_s3_to_redis(
+            work_dict)
     else:
         task_res = publish_from_s3_to_redis.delay(
             work_dict=work_dict)
+        rec = {
+            'task_id': task_res
+        }
+        response = build_result.build_result(
+            status=SUCCESS,
+            err=None,
+            rec=rec)
     # if celery enabled
 
-    response = build_result.build_result(
-        status=task_res.get(
-            'status',
-            SUCCESS),
-        err=task_res.get(
-            'err',
-            None),
-        rec=task_res.get(
-            'rec',
-            rec))
-
-    response_status = response['status']
-
-    log.info((
-        'run_publish_from_s3_to_redis done - '
-        'status={} err={} rec={}').format(
-            response_status,
+    log.info(
+        'run_publish_from_s3_to_redis - {} - done '
+        'status={} err={} rec={}'.format(
+            label,
+            get_status(response['status']),
             response['err'],
             response['rec']))
 

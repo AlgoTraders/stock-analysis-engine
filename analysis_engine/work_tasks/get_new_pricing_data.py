@@ -35,6 +35,7 @@ from analysis_engine.consts import REDIS_EXPIRE
 from analysis_engine.consts import get_status
 from analysis_engine.consts import ev
 from analysis_engine.consts import ppj
+from analysis_engine.consts import is_celery_disabled
 
 
 log = build_colorized_logger(
@@ -119,6 +120,9 @@ def get_new_pricing_data(
         get_options = work_dict.get(
             'get_options',
             True)
+        label = work_dict.get(
+            'label',
+            label)
         num_news_rec = 0
         num_options_chains = 0
         cur_high = -1
@@ -126,9 +130,6 @@ def get_new_pricing_data(
         cur_open = -1
         cur_close = -1
         cur_volume = -1
-
-        label += ' ticker.id={}'.format(
-            ticker_id)
 
         if not exp_date:
             exp_date = analysis_engine.options_dates.option_expiration(
@@ -299,6 +300,8 @@ def get_new_pricing_data(
             'redis_expire',
             REDIS_EXPIRE)
         update_req['updated'] = rec['updated']
+        update_req['label'] = label
+        update_req['celery_disabled'] = True
 
         if ev('DEBUG_GET_PRICING', '0') == '1':
             log.info((
@@ -325,9 +328,10 @@ def get_new_pricing_data(
             work_dict=update_req)
 
         log.info((
-            '{} ticker={} update_res={}'.format(
+            '{} ticker={} update_res status={} data={}'.format(
                 label,
                 ticker,
+                get_status(update_res['status']),
                 update_res)))
 
         res = build_result.build_result(
@@ -354,8 +358,12 @@ def get_new_pricing_data(
             label,
             get_status(res['status'])))
 
-    return analysis_engine.get_task_results.get_task_results(
-        result=res)
+    # if celery is disabled make sure to return the results
+    if is_celery_disabled(work_dict=work_dict):
+        return res
+    else:
+        return analysis_engine.get_task_results.get_task_results(
+            result=res)
 # end of get_new_pricing_data
 
 
@@ -367,41 +375,43 @@ def run_get_new_pricing_data(
 
     :param work_dict: task data
     """
-    log.info((
-        'run_get_new_pricing_data start - req={}').format(
-            work_dict))
 
-    rec = {}
+    label = work_dict.get(
+        'label',
+        '')
+
+    log.info(
+        'run_get_new_pricing_data - {} - start'.format(
+            label))
+
     response = build_result.build_result(
         status=NOT_RUN,
         err=None,
-        rec=rec)
+        rec={})
     task_res = {}
-    if ev('CELERY_DISABLED', '0') == '1':
-        task_res = get_new_pricing_data(
-            work_dict)  # note - this is not a named kwarg
+
+    # allow running without celery
+    if is_celery_disabled():
+        work_dict['celery_disabled'] = True
+        response = get_new_pricing_data(
+            work_dict)
     else:
         task_res = get_new_pricing_data.delay(
             work_dict=work_dict)
+        rec = {
+            'task_id': task_res
+        }
+        response = build_result.build_result(
+            status=SUCCESS,
+            err=None,
+            rec=rec)
     # if celery enabled
 
-    response = build_result.build_result(
-        status=task_res['result'].get(
-            'status',
-            SUCCESS),
-        err=task_res['result'].get(
-            'err',
-            None),
-        rec=task_res['result'].get(
-            'rec',
-            rec))
-
-    response_status = response['status']
-
-    log.info((
-        'run_get_new_pricing_data done - '
-        'status={} err={} rec={}').format(
-            response_status,
+    log.info(
+        'run_get_new_pricing_data - {} - done '
+        'status={} err={} rec={}'.format(
+            label,
+            get_status(response['status']),
             response['err'],
             response['rec']))
 

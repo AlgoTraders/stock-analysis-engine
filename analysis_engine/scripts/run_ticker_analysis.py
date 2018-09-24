@@ -21,7 +21,6 @@ from celery import signals
 from spylunking.log.setup_logging import build_colorized_logger
 from celery_loaders.work_tasks.get_celery_app import get_celery_app
 from analysis_engine.api_requests import build_get_new_pricing_request
-from analysis_engine.consts import CELERY_DISABLED
 from analysis_engine.consts import LOG_CONFIG_PATH
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import TICKER_ID
@@ -44,6 +43,7 @@ from analysis_engine.consts import REDIS_PASSWORD
 from analysis_engine.consts import REDIS_DB
 from analysis_engine.consts import REDIS_EXPIRE
 from analysis_engine.consts import ppj
+from analysis_engine.consts import is_celery_disabled
 
 
 # Disable celery log hijacking
@@ -261,6 +261,7 @@ def run_ticker_analysis():
     get_options = True
     s3_enabled = True
     redis_enabled = True
+    debug = False
 
     if args.ticker:
         ticker = args.ticker.upper()
@@ -309,6 +310,8 @@ def run_ticker_analysis():
         s3_enabled = args.s3_enabled == '1'
     if args.redis_enabled:
         redis_enabled = args.redis_enabled == '1'
+    if args.debug:
+        debug = True
 
     work = build_get_new_pricing_request()
 
@@ -334,18 +337,22 @@ def run_ticker_analysis():
     work['get_options'] = get_options
     work['s3_enabled'] = s3_enabled
     work['redis_enabled'] = redis_enabled
+    work['debug'] = debug
+    work['label'] = 'ticker={}'.format(
+        ticker)
 
     path_to_tasks = 'analysis_engine.work_tasks'
     task_name = (
         '{}.get_new_pricing_data.get_new_pricing_data').format(
             path_to_tasks)
     task_res = None
-    if CELERY_DISABLED:
+    if is_celery_disabled():
+        work['celery_disabled'] = True
         log.debug(
             'starting without celery work={}'.format(
                 ppj(work)))
         task_res = task_pricing.get_new_pricing_data(
-            work)  # note - this is not a named kwarg
+            work)
         log.info(
             'done - get pricing result={}'.format(
                 ppj(task_res)))
