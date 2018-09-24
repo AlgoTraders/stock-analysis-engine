@@ -261,6 +261,7 @@ def run_ticker_analysis():
     get_options = True
     s3_enabled = True
     redis_enabled = True
+    debug = False
 
     if args.ticker:
         ticker = args.ticker.upper()
@@ -309,6 +310,8 @@ def run_ticker_analysis():
         s3_enabled = args.s3_enabled == '1'
     if args.redis_enabled:
         redis_enabled = args.redis_enabled == '1'
+    if args.debug:
+        debug = True
 
     work = build_get_new_pricing_request()
 
@@ -334,6 +337,9 @@ def run_ticker_analysis():
     work['get_options'] = get_options
     work['s3_enabled'] = s3_enabled
     work['redis_enabled'] = redis_enabled
+    work['debug'] = debug
+    work['label'] = 'ticker={}'.format(
+        ticker)
 
     path_to_tasks = 'analysis_engine.work_tasks'
     task_name = (

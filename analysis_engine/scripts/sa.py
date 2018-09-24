@@ -367,6 +367,8 @@ def run_sa_tool():
     work['s3_enabled'] = s3_enabled
     work['redis_enabled'] = redis_enabled
     work['debug'] = debug
+    work['label'] = 'ticker={}'.format(
+        ticker)
 
     task_res = None
     if is_celery_disabled():

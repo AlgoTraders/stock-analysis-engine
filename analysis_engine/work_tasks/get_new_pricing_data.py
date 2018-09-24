@@ -120,6 +120,9 @@ def get_new_pricing_data(
         get_options = work_dict.get(
             'get_options',
             True)
+        label = work_dict.get(
+            'label',
+            label)
         num_news_rec = 0
         num_options_chains = 0
         cur_high = -1
@@ -127,9 +130,6 @@ def get_new_pricing_data(
         cur_open = -1
         cur_close = -1
         cur_volume = -1
-
-        label += ' ticker.id={}'.format(
-            ticker_id)
 
         if not exp_date:
             exp_date = analysis_engine.options_dates.option_expiration(
@@ -300,6 +300,7 @@ def get_new_pricing_data(
             'redis_expire',
             REDIS_EXPIRE)
         update_req['updated'] = rec['updated']
+        update_req['label'] = label
 
         if ev('DEBUG_GET_PRICING', '0') == '1':
             log.info((
@@ -368,41 +369,65 @@ def run_get_new_pricing_data(
 
     :param work_dict: task data
     """
-    log.info((
-        'run_get_new_pricing_data start - req={}').format(
-            work_dict))
 
+    label = work_dict.get(
+        'label',
+        '')
+
+    log.info(
+        'run_get_new_pricing_data - {} - start'.format(
+            label))
+
+    status = NOT_RUN
+    err = None
     rec = {}
     response = build_result.build_result(
         status=NOT_RUN,
         err=None,
         rec=rec)
     task_res = {}
+
+    # by default celery is not used for this one:
     if is_celery_disabled():
         task_res = get_new_pricing_data(
             work_dict)  # note - this is not a named kwarg
+        status = task_res.get(
+            'status',
+            SUCCESS)
+        rec = task_res.get(
+            'rec',
+            rec)
+        err = task_res.get(
+            'err',
+            None)
+        if err:
+            log.error(
+                'run_get_new_pricing_data - {} - failed '
+                'with status={} err={}'.format(
+                    label,
+                    get_status(status),
+                    err))
+        # end of if err
     else:
         task_res = get_new_pricing_data.delay(
             work_dict=work_dict)
+        rec = {
+            'task_id': task_res
+        }
+        status = SUCCESS
+        err = None
     # if celery enabled
 
     response = build_result.build_result(
-        status=task_res['result'].get(
-            'status',
-            SUCCESS),
-        err=task_res['result'].get(
-            'err',
-            None),
-        rec=task_res['result'].get(
-            'rec',
-            rec))
+        status=status,
+        err=err,
+        rec=rec)
 
-    response_status = response['status']
-
-    log.info((
-        'run_get_new_pricing_data done - '
-        'status={} err={} rec={}').format(
-            response_status,
+    log.info(
+        'run_get_new_pricing_data - {} - done '
+        'status={} err={} rec={}'.format(
+            label,
+            get_status(response['status']),
             response['err'],
             response['rec']))
 

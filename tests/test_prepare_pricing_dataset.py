@@ -125,9 +125,6 @@ class TestPreparePricingDataset(BaseTestCase):
         new=mock_publish_from_s3_to_redis)
     def test_success_prepare_pricing_dataset_already_cached(self):
         """test_success_prepare_pricing_dataset_already_cached"""
-
-        return
-
         test_name = 'test_success_prepare_pricing_dataset_already_cached'
         redis_key = (
             'unittest_TestPreparePricingDataset_'

@@ -47,7 +47,6 @@ from analysis_engine.consts import to_f
 from analysis_engine.consts import ppj
 from analysis_engine.dict_to_csv import flatten_dict
 
-
 log = build_colorized_logger(
     name=__name__)
 
@@ -108,9 +107,6 @@ def prepare_pricing_dataset(
         ticker_id = int(work_dict.get(
             'ticker_id',
             TICKER_ID))
-
-        label = 'prepare ticker={}'.format(
-            ticker)
 
         if not ticker:
             res = build_result.build_result(
@@ -282,6 +278,7 @@ def prepare_pricing_dataset(
             get_from_s3_req['s3_key'] = s3_key
             get_from_s3_req['s3_bucket'] = s3_bucket_name
             get_from_s3_req['redis_key'] = redis_key
+            get_from_s3_req['label'] = label
 
             log.info(
                 '{} load from s3={} to '
@@ -292,7 +289,7 @@ def prepare_pricing_dataset(
 
             try:
                 task_res = s3_to_redis.publish_from_s3_to_redis(
-                    work_dict)  # note - this is not a named kwarg
+                    get_from_s3_req)  # note - this is not a named kwarg
                 if task_res.get('status', ERR) == SUCCESS:
                     log.info(
                         '{} loaded s3={}:{} '
@@ -519,10 +516,17 @@ def run_prepare_pricing_dataset(
 
     :param work_dict: task data
     """
-    log.info(
-        'run_prepare_pricing_dataset start - req={}'.format(
-            work_dict))
 
+    label = work_dict.get(
+        'label',
+        '')
+
+    log.info(
+        'run_prepare_pricing_dataset - {} - start'.format(
+            label))
+
+    status = NOT_RUN
+    err = None
     rec = {}
     response = build_result.build_result(
         status=NOT_RUN,
@@ -534,28 +538,43 @@ def run_prepare_pricing_dataset(
     if is_celery_disabled():
         task_res = prepare_pricing_dataset(
             work_dict)  # note - this is not a named kwarg
+        status = task_res.get(
+            'status',
+            SUCCESS)
+        rec = task_res.get(
+            'rec',
+            rec)
+        err = task_res.get(
+            'err',
+            None)
+        if err:
+            log.error(
+                'run_prepare_pricing_dataset - {} - failed '
+                'with status={} err={}'.format(
+                    label,
+                    get_status(status),
+                    err))
+        # end of if err
     else:
         task_res = prepare_pricing_dataset.delay(
             work_dict=work_dict)
+        rec = {
+            'task_id': task_res
+        }
+        status = SUCCESS
+        err = None
     # if celery enabled
 
     response = build_result.build_result(
-        status=task_res.get(
-            'status',
-            SUCCESS),
-        err=task_res.get(
-            'err',
-            None),
-        rec=task_res.get(
-            'rec',
-            rec))
-
-    response_status = response['status']
+        status=status,
+        err=err,
+        rec=rec)
 
     log.info(
-        'run_prepare_pricing_dataset done - '
+        'run_prepare_pricing_dataset - {} - done '
         'status={} err={} rec={}'.format(
-            response_status,
+            label,
+            get_status(response['status']),
             response['err'],
             response['rec']))
 

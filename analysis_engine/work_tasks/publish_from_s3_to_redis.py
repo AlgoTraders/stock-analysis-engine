@@ -386,10 +386,17 @@ def run_publish_from_s3_to_redis(
 
     :param work_dict: task data
     """
-    log.info((
-        'run_publish_from_s3_to_redis start - req={}').format(
-            work_dict))
 
+    label = work_dict.get(
+        'label',
+        '')
+
+    log.info(
+        'run_publish_from_s3_to_redis - {} - start'.format(
+            label))
+
+    status = NOT_RUN
+    err = None
     rec = {}
     response = build_result.build_result(
         status=NOT_RUN,
@@ -401,28 +408,43 @@ def run_publish_from_s3_to_redis(
     if is_celery_disabled():
         task_res = publish_from_s3_to_redis(
             work_dict)  # note - this is not a named kwarg
+        status = task_res.get(
+            'status',
+            SUCCESS)
+        rec = task_res.get(
+            'rec',
+            rec)
+        err = task_res.get(
+            'err',
+            None)
+        if err:
+            log.error(
+                'run_publish_from_s3_to_redis - {} - failed '
+                'with status={} err={}'.format(
+                    label,
+                    get_status(status),
+                    err))
+        # end of if err
     else:
         task_res = publish_from_s3_to_redis.delay(
             work_dict=work_dict)
+        rec = {
+            'task_id': task_res
+        }
+        status = SUCCESS
+        err = None
     # if celery enabled
 
     response = build_result.build_result(
-        status=task_res.get(
-            'status',
-            SUCCESS),
-        err=task_res.get(
-            'err',
-            None),
-        rec=task_res.get(
-            'rec',
-            rec))
+        status=status,
+        err=err,
+        rec=rec)
 
-    response_status = response['status']
-
-    log.info((
-        'run_publish_from_s3_to_redis done - '
-        'status={} err={} rec={}').format(
-            response_status,
+    log.info(
+        'run_publish_from_s3_to_redis - {} - done '
+        'status={} err={} rec={}'.format(
+            label,
+            get_status(response['status']),
             response['err'],
             response['rec']))
 
