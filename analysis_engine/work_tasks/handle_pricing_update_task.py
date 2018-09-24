@@ -12,7 +12,7 @@ import analysis_engine.get_task_results
 import analysis_engine.work_tasks.custom_task
 import analysis_engine.build_result as build_result
 import analysis_engine.work_tasks.publish_pricing_update as \
-    publish_pricing_update
+    publisher
 import analysis_engine.options_dates
 import analysis_engine.get_pricing
 from celery.task import task
@@ -206,8 +206,9 @@ def handle_pricing_update_task(
                     total_payloads,
                     r['s3_key'],
                     r['redis_key']))
+            r['celery_disabled'] = False
             payload_res = \
-                publish_pricing_update.task_publish_pricing_update(
+                publisher.task_publish_pricing_update(
                     work_dict=r)
             log.info((
                 '{} ticker={} update={}/{} status={} '
@@ -246,8 +247,12 @@ def handle_pricing_update_task(
             label,
             get_status(res['status'])))
 
-    return analysis_engine.get_task_results.get_task_results(
-        result=res)
+    # if celery is disabled make sure to return the results
+    if is_celery_disabled(work_dict=work_dict):
+        return res
+    else:
+        return analysis_engine.get_task_results.get_task_results(
+            result=res)
 # end of handle_pricing_update_task
 
 
@@ -268,50 +273,28 @@ def run_handle_pricing_update_task(
         'run_handle_pricing_update_task - {} - start'.format(
             label))
 
-    status = NOT_RUN
-    err = None
-    rec = {}
     response = build_result.build_result(
         status=NOT_RUN,
         err=None,
-        rec=rec)
+        rec={})
     task_res = {}
 
     # by default celery is not used for this one:
     if is_celery_disabled():
-        task_res = handle_pricing_update_task(
-            work_dict)  # note - this is not a named kwarg
-        status = task_res.get(
-            'status',
-            SUCCESS)
-        rec = task_res.get(
-            'rec',
-            rec)
-        err = task_res.get(
-            'err',
-            None)
-        if err:
-            log.error(
-                'run_handle_pricing_update_task - {} - failed '
-                'with status={} err={}'.format(
-                    label,
-                    get_status(status),
-                    err))
-        # end of if err
+        work_dict['celery_disabled'] = True
+        response = handle_pricing_update_task(
+            work_dict)
     else:
         task_res = handle_pricing_update_task.delay(
             work_dict=work_dict)
         rec = {
             'task_id': task_res
         }
-        status = SUCCESS
-        err = None
+        response = build_result.build_result(
+            status=SUCCESS,
+            err=None,
+            rec=rec)
     # if celery enabled
-
-    response = build_result.build_result(
-        status=status,
-        err=err,
-        rec=rec)
 
     log.info(
         'run_handle_pricing_update_task - {} - done '

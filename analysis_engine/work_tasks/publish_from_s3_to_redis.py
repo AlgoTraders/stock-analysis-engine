@@ -374,7 +374,12 @@ def publish_from_s3_to_redis(
             label,
             get_status(res['status'])))
 
-    return res
+    # if celery is disabled make sure to return the results
+    if is_celery_disabled(work_dict=work_dict):
+        return res
+    else:
+        return analysis_engine.get_task_results.get_task_results(
+            result=res)
 # end of publish_from_s3_to_redis
 
 
@@ -395,50 +400,28 @@ def run_publish_from_s3_to_redis(
         'run_publish_from_s3_to_redis - {} - start'.format(
             label))
 
-    status = NOT_RUN
-    err = None
-    rec = {}
     response = build_result.build_result(
         status=NOT_RUN,
         err=None,
-        rec=rec)
+        rec={})
     task_res = {}
 
-    # by default celery is not used for this one:
+    # allow running without celery
     if is_celery_disabled():
-        task_res = publish_from_s3_to_redis(
-            work_dict)  # note - this is not a named kwarg
-        status = task_res.get(
-            'status',
-            SUCCESS)
-        rec = task_res.get(
-            'rec',
-            rec)
-        err = task_res.get(
-            'err',
-            None)
-        if err:
-            log.error(
-                'run_publish_from_s3_to_redis - {} - failed '
-                'with status={} err={}'.format(
-                    label,
-                    get_status(status),
-                    err))
-        # end of if err
+        work_dict['celery_disabled'] = True
+        response = publish_from_s3_to_redis(
+            work_dict)
     else:
         task_res = publish_from_s3_to_redis.delay(
             work_dict=work_dict)
         rec = {
             'task_id': task_res
         }
-        status = SUCCESS
-        err = None
+        response = build_result.build_result(
+            status=SUCCESS,
+            err=None,
+            rec=rec)
     # if celery enabled
-
-    response = build_result.build_result(
-        status=status,
-        err=err,
-        rec=rec)
 
     log.info(
         'run_publish_from_s3_to_redis - {} - done '

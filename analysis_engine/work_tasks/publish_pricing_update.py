@@ -331,7 +331,12 @@ def publish_pricing_update(
             label,
             get_status(res['status'])))
 
-    return res
+    # if celery is disabled make sure to return the results
+    if is_celery_disabled(work_dict=work_dict):
+        return res
+    else:
+        return analysis_engine.get_task_results.get_task_results(
+            result=res)
 # end of publish_pricing_update
 
 
@@ -352,50 +357,28 @@ def run_publish_pricing_update(
         'run_publish_pricing_update - {} - start'.format(
             label))
 
-    status = NOT_RUN
-    err = None
-    rec = {}
     response = build_result.build_result(
         status=NOT_RUN,
         err=None,
-        rec=rec)
+        rec={})
     task_res = {}
 
-    # by default celery is not used for this one:
+    # allow running without celery
     if is_celery_disabled():
-        task_res = publish_pricing_update(
-            work_dict)  # note - this is not a named kwarg
-        status = task_res.get(
-            'status',
-            SUCCESS)
-        rec = task_res.get(
-            'rec',
-            rec)
-        err = task_res.get(
-            'err',
-            None)
-        if err:
-            log.error(
-                'run_publish_pricing_update - {} - failed '
-                'with status={} err={}'.format(
-                    label,
-                    get_status(status),
-                    err))
-        # end of if err
+        work_dict['celery_disabled'] = True
+        response = publish_pricing_update(
+            work_dict)
     else:
         task_res = publish_pricing_update.delay(
             work_dict=work_dict)
         rec = {
             'task_id': task_res
         }
-        status = SUCCESS
-        err = None
+        response = build_result.build_result(
+            status=SUCCESS,
+            err=None,
+            rec=rec)
     # if celery enabled
-
-    response = build_result.build_result(
-        status=status,
-        err=err,
-        rec=rec)
 
     log.info(
         'run_publish_pricing_update - {} - done '

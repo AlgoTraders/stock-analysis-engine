@@ -288,8 +288,10 @@ def prepare_pricing_dataset(
                     redis_key))
 
             try:
+                # run in synchronous mode:
+                get_from_s3_req['celery_disabled'] = True
                 task_res = s3_to_redis.publish_from_s3_to_redis(
-                    get_from_s3_req)  # note - this is not a named kwarg
+                    get_from_s3_req)
                 if task_res.get('status', ERR) == SUCCESS:
                     log.info(
                         '{} loaded s3={}:{} '
@@ -504,7 +506,12 @@ def prepare_pricing_dataset(
             label,
             get_status(res['status'])))
 
-    return res
+    # if celery is disabled make sure to return the results
+    if is_celery_disabled(work_dict=work_dict):
+        return res
+    else:
+        return analysis_engine.get_task_results.get_task_results(
+            result=res)
 # end of prepare_pricing_dataset
 
 
@@ -525,50 +532,28 @@ def run_prepare_pricing_dataset(
         'run_prepare_pricing_dataset - {} - start'.format(
             label))
 
-    status = NOT_RUN
-    err = None
-    rec = {}
     response = build_result.build_result(
         status=NOT_RUN,
         err=None,
-        rec=rec)
+        rec={})
     task_res = {}
 
-    # by default celery is not used for this one:
+    # allow running without celery
     if is_celery_disabled():
-        task_res = prepare_pricing_dataset(
-            work_dict)  # note - this is not a named kwarg
-        status = task_res.get(
-            'status',
-            SUCCESS)
-        rec = task_res.get(
-            'rec',
-            rec)
-        err = task_res.get(
-            'err',
-            None)
-        if err:
-            log.error(
-                'run_prepare_pricing_dataset - {} - failed '
-                'with status={} err={}'.format(
-                    label,
-                    get_status(status),
-                    err))
-        # end of if err
+        work_dict['celery_disabled'] = True
+        response = prepare_pricing_dataset(
+            work_dict)
     else:
         task_res = prepare_pricing_dataset.delay(
             work_dict=work_dict)
         rec = {
             'task_id': task_res
         }
-        status = SUCCESS
-        err = None
+        response = build_result.build_result(
+            status=SUCCESS,
+            err=None,
+            rec=rec)
     # if celery enabled
-
-    response = build_result.build_result(
-        status=status,
-        err=err,
-        rec=rec)
 
     log.info(
         'run_prepare_pricing_dataset - {} - done '

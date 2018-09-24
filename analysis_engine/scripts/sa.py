@@ -372,12 +372,13 @@ def run_sa_tool():
 
     task_res = None
     if is_celery_disabled():
+        work['celery_disabled'] = True
         log.debug(
             'starting without celery work={}'.format(
                 ppj(work)))
         if mode == SA_MODE_PREPARE:
             task_res = prepare_pricing_dataset.prepare_pricing_dataset(
-                work)  # note - this is not a named kwarg
+                work)
         log.info(
             'done - mode={} result={}'.format(
                 get_status(status=mode),

@@ -347,11 +347,12 @@ def run_ticker_analysis():
             path_to_tasks)
     task_res = None
     if is_celery_disabled():
+        work['celery_disabled'] = True
         log.debug(
             'starting without celery work={}'.format(
                 ppj(work)))
         task_res = task_pricing.get_new_pricing_data(
-            work)  # note - this is not a named kwarg
+            work)
         log.info(
             'done - get pricing result={}'.format(
                 ppj(task_res)))

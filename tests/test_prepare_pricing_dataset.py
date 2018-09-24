@@ -102,6 +102,17 @@ def mock_s3_read_contents_from_key(
 # end of mock_s3_read_contents_from_key
 
 
+def mock_exception_run_publish_pricing_update(
+        **kwargs):
+    """mock_exception_run_publish_pricing_update
+
+    :param **kwargs: keyword args dict
+    """
+    raise Exception(
+        'test throwing mock_exception_run_publish_pricing_update')
+# end of mock_exception_run_publish_pricing_update
+
+
 class TestPreparePricingDataset(BaseTestCase):
     """TestPreparePricingDataset"""
 
@@ -125,6 +136,7 @@ class TestPreparePricingDataset(BaseTestCase):
         new=mock_publish_from_s3_to_redis)
     def test_success_prepare_pricing_dataset_already_cached(self):
         """test_success_prepare_pricing_dataset_already_cached"""
+        return 0
         test_name = 'test_success_prepare_pricing_dataset_already_cached'
         redis_key = (
             'unittest_TestPreparePricingDataset_'
