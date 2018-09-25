@@ -10,6 +10,7 @@ Debug environment variables
 ::
 
     export DEBUG_PREPARE=1
+
 """
 
 import datetime
@@ -23,6 +24,7 @@ import analysis_engine.options_dates
 import analysis_engine.get_pricing
 import analysis_engine.work_tasks.publish_from_s3_to_redis as \
     s3_to_redis
+import analysis_engine.dict_to_csv
 from celery.task import task
 from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.consts import SUCCESS
@@ -30,7 +32,6 @@ from analysis_engine.consts import NOT_RUN
 from analysis_engine.consts import ERR
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import TICKER_ID
-from analysis_engine.consts import get_status
 from analysis_engine.consts import S3_ACCESS_KEY
 from analysis_engine.consts import S3_SECRET_KEY
 from analysis_engine.consts import S3_REGION_NAME
@@ -41,11 +42,12 @@ from analysis_engine.consts import REDIS_KEY
 from analysis_engine.consts import REDIS_PASSWORD
 from analysis_engine.consts import REDIS_DB
 from analysis_engine.consts import REDIS_EXPIRE
-from analysis_engine.consts import is_celery_disabled
+from analysis_engine.consts import PREPARE_DATA_MIN_SIZE
+from analysis_engine.consts import get_status
 from analysis_engine.consts import ev
+from analysis_engine.consts import is_celery_disabled
 from analysis_engine.consts import to_f
 from analysis_engine.consts import ppj
-from analysis_engine.dict_to_csv import flatten_dict
 
 log = build_colorized_logger(
     name=__name__)
@@ -91,7 +93,9 @@ def prepare_pricing_dataset(
         'prepared_s3_bucket': None,
         'prepared_redis_key': None,
         'prepared_data': None,
+        'prepared_size': None,
         'initial_data': None,
+        'initial_size': None,
         'ignore_columns': None,
         'updated': None
     }
@@ -278,7 +282,9 @@ def prepare_pricing_dataset(
             get_from_s3_req['s3_key'] = s3_key
             get_from_s3_req['s3_bucket'] = s3_bucket_name
             get_from_s3_req['redis_key'] = redis_key
-            get_from_s3_req['label'] = label
+            get_from_s3_req['label'] = (
+                '{}-run_publish_from_s3_to_redis'.format(
+                    label))
 
             log.info(
                 '{} load from s3={} to '
@@ -290,7 +296,7 @@ def prepare_pricing_dataset(
             try:
                 # run in synchronous mode:
                 get_from_s3_req['celery_disabled'] = True
-                task_res = s3_to_redis.publish_from_s3_to_redis(
+                task_res = s3_to_redis.run_publish_from_s3_to_redis(
                     get_from_s3_req)
                 if task_res.get('status', ERR) == SUCCESS:
                     log.info(
@@ -324,7 +330,7 @@ def prepare_pricing_dataset(
                             s3_key,
                             redis_key,
                             task_res))
-                    log.err(err)
+                    log.error(err)
                     res = build_result.build_result(
                         status=ERR,
                         err=err,
@@ -332,8 +338,10 @@ def prepare_pricing_dataset(
                     return res
             except Exception as e:
                 err = (
-                    '{} EX failed loading bucket={} '
-                    's3_key={} redis_key={} with ex={}'.format(
+                    '{} extract from s3 and publish to redis failed loading '
+                    'data from bucket={} in '
+                    's3_key={} with publish to redis_key={} '
+                    'with ex={}'.format(
                         label,
                         s3_bucket_name,
                         s3_key,
@@ -350,7 +358,7 @@ def prepare_pricing_dataset(
 
         if not initial_data:
             err = (
-                '{} did not find redis_key={} or '
+                '{} did not find any data to prepare in redis_key={} or '
                 's3_key={} in bucket={}'.format(
                     label,
                     redis_key,
@@ -366,7 +374,7 @@ def prepare_pricing_dataset(
         initial_data_num_chars = len(str(initial_data))
         initial_size_value = None
         initial_size_str = None
-        if initial_data_num_chars < 10:
+        if initial_data_num_chars < PREPARE_DATA_MIN_SIZE:
             err = (
                 '{} not enough data={} in redis_key={} or '
                 's3_key={} in bucket={}'.format(
@@ -398,6 +406,9 @@ def prepare_pricing_dataset(
                         initial_size_str))
         # end of trying to get initial_data
 
+        rec['initial_data'] = initial_data
+        rec['initial_size'] = initial_data_num_chars
+
         prepare_data = None
 
         try:
@@ -416,21 +427,27 @@ def prepare_pricing_dataset(
                         label,
                         initial_size_str,
                         redis_key))
-            prepare_data = flatten_dict(
+            prepare_data = analysis_engine.dict_to_csv.flatten_dict(
                 data=initial_data)
         except Exception as e:
             prepare_data = None
-            log.critical(
-                '{} flatten - failed with ex={} '
+            err = (
+                '{} flatten - convert to csv failed with ex={} '
                 'redis_key={}'.format(
                     label,
                     e,
                     redis_key))
+            log.error(err)
+            res = build_result.build_result(
+                status=ERR,
+                err=err,
+                rec=rec)
+            return res
         # end of try/ex
 
         if not prepare_data:
             err = (
-                '{} flatten - data from redis_key={} '
+                '{} flatten - did not return any data from redis_key={} '
                 'or s3_key={} in bucket={}'.format(
                     label,
                     redis_key,
@@ -447,9 +464,9 @@ def prepare_pricing_dataset(
         prepare_data_num_chars = len(str(prepare_data))
         prepare_size_value = None
 
-        if prepare_data_num_chars < 10:
+        if prepare_data_num_chars < PREPARE_DATA_MIN_SIZE:
             err = (
-                '{} prepare - not enough data={} in redis_key={}'
+                '{} prepare - there is not enough data={} in redis_key={}'
                 ''.format(
                     label,
                     prepare_data_num_chars,
@@ -477,8 +494,8 @@ def prepare_pricing_dataset(
                         prepare_size_str))
         # end of trying to the size of the prepared data
 
-        rec['initial_data'] = initial_data
         rec['prepared_data'] = prepare_data
+        rec['prepared_size'] = prepare_data_num_chars
 
         res = build_result.build_result(
             status=SUCCESS,
@@ -547,9 +564,14 @@ def run_prepare_pricing_dataset(
             response = task_res.get(
                 'result',
                 task_res)
+            response_details = response
+            try:
+                response_details = ppj(response)
+            except Exception:
+                response_details = response
             log.info(
                 'getting task result={}'.format(
-                    ppj(response)))
+                    response_details))
         else:
             log.error(
                 '{} celery was disabled but the task={} '

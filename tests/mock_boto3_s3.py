@@ -5,6 +5,8 @@ Mock boto3 s3 objects
 import os
 import json
 from spylunking.log.setup_logging import build_colorized_logger
+from analysis_engine.consts import SUCCESS
+from analysis_engine.consts import ERR
 from analysis_engine.consts import ev
 
 
@@ -69,11 +71,74 @@ def mock_publish_from_s3_to_redis(
         'setting key={} value={}'.format(
             redis_key,
             str_dict))
+    data = None
     if str_dict:
         os.environ[redis_key] = str_dict
+        data = str_dict.encode('utf-8')
     else:
         os.environ[redis_key] = ''
+        data = None
+
+    status = SUCCESS
+    err = None
+    return {
+        'status': status,
+        'err': err,
+        'rec': {
+            'data': data
+        }
+    }
 # end of mock_publish_from_s3_to_redis
+
+
+def mock_publish_from_s3_to_redis_err(
+        work_dict):
+    """mock_publish_from_s3_to_redis_err
+
+    :param work_dict: dictionary for driving the task
+    """
+
+    env_key = 'TEST_S3_CONTENTS'
+    redis_key = work_dict.get(
+        'redis_key',
+        env_key)
+    str_dict = ev(
+        env_key,
+        None)
+    log.info(
+        'mock_publish_from_s3_to_redis_err - '
+        'setting key={} value={}'.format(
+            redis_key,
+            str_dict))
+    data = None
+    if str_dict:
+        os.environ[redis_key] = str_dict
+        data = str_dict.encode('utf-8')
+    else:
+        os.environ[redis_key] = ''
+        data = None
+
+    status = ERR
+    err = None
+    return {
+        'status': status,
+        'err': err,
+        'rec': {
+            'data': data
+        }
+    }
+# end of mock_publish_from_s3_to_redis_err
+
+
+def mock_publish_from_s3_exception(
+        work_dict):
+    """mock_publish_from_s3_exception
+
+    :param work_dict: dictionary for driving the task
+    """
+    raise Exception(
+        'test mock_publish_from_s3_exception')
+# end of mock_publish_from_s3_exception
 
 
 class MockBotoS3Bucket:

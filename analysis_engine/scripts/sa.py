@@ -19,6 +19,8 @@ Supports
 
 import sys
 import argparse
+import pandas as pd
+import analysis_engine.charts
 import analysis_engine.work_tasks.prepare_pricing_dataset \
     as prepare_pricing_dataset
 from celery import signals
@@ -46,6 +48,10 @@ from analysis_engine.consts import REDIS_KEY
 from analysis_engine.consts import REDIS_PASSWORD
 from analysis_engine.consts import REDIS_DB
 from analysis_engine.consts import REDIS_EXPIRE
+from analysis_engine.consts import SUCCESS
+from analysis_engine.consts import PLOT_ACTION_SHOW
+from analysis_engine.consts import PLOT_ACTION_SAVE_TO_S3
+from analysis_engine.consts import PLOT_ACTION_SAVE_AS_FILE
 from analysis_engine.consts import get_status
 from analysis_engine.consts import ppj
 from analysis_engine.consts import is_celery_disabled
@@ -102,6 +108,13 @@ def run_sa_tool():
             'prepared'),
         required=False,
         dest='output_s3_bucket')
+    parser.add_argument(
+        '-J',
+        help=(
+            'plot action - after preparing you can use: '
+            '-J show to open the image (good for debugging)'),
+        required=False,
+        dest='plot_action')
     parser.add_argument(
         '-l',
         help=(
@@ -246,6 +259,7 @@ def run_sa_tool():
     args = parser.parse_args()
 
     mode = 'prepare'
+    plot_action = PLOT_ACTION_SHOW
     ticker = TICKER
     ticker_id = TICKER_ID
     ssl_options = SSL_OPTIONS
@@ -316,6 +330,18 @@ def run_sa_tool():
     if args.ignore_columns:
         ignore_columns_org = args.ignore_columns
         ignore_columns = ignore_columns_org.split(",")
+    if args.plot_action:
+        if str(args.plot_action).lower() == 'show':
+            plot_action = PLOT_ACTION_SHOW
+        elif str(args.plot_action).lower() == 's3':
+            plot_action = PLOT_ACTION_SAVE_TO_S3
+        elif str(args.plot_action).lower() == 'save':
+            plot_action = PLOT_ACTION_SAVE_AS_FILE
+        else:
+            plot_action = PLOT_ACTION_SHOW
+            log.warning(
+                'unsupported plot_action: {}'.format(
+                    args.plot_action))
 
     if args.debug:
         debug = True
@@ -389,6 +415,76 @@ def run_sa_tool():
                 get_status(status=task_res['status']),
                 task_res['err'],
                 work['label']))
+
+        if task_res['status'] == SUCCESS:
+            image_res = None
+            if plot_action == PLOT_ACTION_SHOW:
+                log.info(
+                    'showing plot')
+                initial_data = task_res['rec']['initial_data']
+                initial_data = [
+                    {
+                        'close': 1,
+                        'date': '2018-01-01'
+                    },
+                    {
+                        'close': 2,
+                        'date': '2018-02-02'
+                    },
+                    {
+                        'close': 3,
+                        'date': '2018-03-03'
+                    },
+                    {
+                        'close': 4,
+                        'date': '2018-04-04'
+                    },
+                    {
+                        'close': 5,
+                        'date': '2018-05-05'
+                    },
+                    {
+                        'close': 6,
+                        'date': '2018-06-06'
+                    },
+                    {
+                        'close': 7,
+                        'date': '2018-07-07'
+                    },
+                    {
+                        'close': 8,
+                        'date': '2018-08-08'
+                    }
+                ]
+                df = pd.DataFrame(
+                    initial_data)
+                df['date'] = pd.to_datetime(
+                    df["date"], format='%Y-%m-%d')
+                column_list = [
+                    'close',
+                    'date'
+                ]
+                image_res = analysis_engine.charts.plot_df(
+                    log_label=work['label'],
+                    title='Pricing Title',
+                    column_list=column_list,
+                    df=df,
+                    xcol='date',
+                    xlabel='Date',
+                    ylabel='Pricing',
+                    show_plot=False)
+            elif plot_action == PLOT_ACTION_SAVE_TO_S3:
+                log.info(
+                    'coming soon - support to save to s3')
+            elif plot_action == PLOT_ACTION_SAVE_AS_FILE:
+                log.info(
+                    'coming soon - support to save as file')
+            if image_res:
+                log.info(
+                    '{} show plot - status={} err={}'.format(
+                        work['label'],
+                        get_status(image_res['status']),
+                        image_res['err']))
     else:
         log.info(
             'connecting to broker={} backend={}'.format(

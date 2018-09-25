@@ -301,6 +301,13 @@ Redis Cache Set
 
     python -m unittest tests.test_publish_pricing_update.TestPublishPricingData.test_success_redis_set
 
+Prepare Dataset
+---------------
+
+::
+
+    python -m unittest tests.test_prepare_pricing_dataset.TestPreparePricingDataset.test_prepare_pricing_data_success
+
 End-to-End Integration Testing
 ==============================
 
@@ -379,6 +386,13 @@ Publish from S3 to Redis
 ::
 
     python -m unittest tests.test_publish_from_s3_to_redis.TestPublishFromS3ToRedis.test_integration_publish_from_s3_to_redis
+
+Prepare Dataset
+---------------
+
+::
+
+    python -m unittest tests.test_prepare_pricing_dataset.TestPreparePricingDataset.test_integration_prepare_pricing_dataset
 
 Prepare a Dataset
 =================

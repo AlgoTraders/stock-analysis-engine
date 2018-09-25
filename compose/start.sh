@@ -38,8 +38,8 @@ case "$os_type" in
         if [[ "${test_pkman}" == "1" ]]; then
             test_deb=$(dpkg -s python3-distutils | grep 'install ok installed' | wc -l)
             if [[ "${test_deb}" == "0" ]]; then
-                warn "using sudo to install python3-distutils on ubuntu"
-                sudo apt-get install python3-distutils
+                warn "using sudo to install python3-distutils python3-tk on ubuntu"
+                sudo apt-get install python3-distutils python3-tk
             fi
         fi
         ;;

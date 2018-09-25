@@ -29,7 +29,11 @@ services:
     container_name: "sa-workers"
     hostname: sa-workers
     image: jayjohnson/stock-analysis-engine:latest
-    network_mode: "host"
+    environment:
+      - S3_ADDRESS=minio:9000
+      - REDIS_ADDRESS=redis:6379
+      - WORKER_BROKER_URL="redis://redis:6379/13"
+      - WORKER_BACKEND_URL="redis://redis:6379/14"
     depends_on:
       - redis
       - minio
@@ -40,15 +44,16 @@ services:
   sa-jupyter:
     container_name: "sa-jupyter"
     hostname: sa-jupyter
-    image: jayjohnson/stock-analysis-engine:latest
-    network_mode: "host"
+    image: jayjohnson/stock-analysis-jupyter:latest
     depends_on:
       - redis
       - minio
     environment:
       - JUPYTER_PASS=admin
-      - SHARED_DIR=/opt/data
-      - BROKER_URL=redis://0.0.0.0:6379/6
+      - S3_ADDRESS=minio:9000
+      - REDIS_ADDRESS=redis:6379
+      - WORKER_BROKER_URL="redis://redis:6379/13"
+      - WORKER_BACKEND_URL="redis://redis:6379/14"
     ports:
       - "8888:8888"
       - "8889:8889"
