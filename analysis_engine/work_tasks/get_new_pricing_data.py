@@ -327,11 +327,12 @@ def get_new_pricing_data(
         try:
             update_res = publisher.run_publish_pricing_update(
                 work_dict=update_req)
-
             log.info((
                 '{} update_res status={} data={}'.format(
                     label,
-                    get_status(update_res['status']),
+                    get_status(update_res['result'].get(
+                        'status',
+                        ERR)),
                     update_res)))
             res = build_result.build_result(
                 status=SUCCESS,
@@ -363,8 +364,9 @@ def get_new_pricing_data(
                 res['err']))
     # end of try/ex
 
-    log.info((
-        'task - {} - done - status={}').format(
+    log.info(
+        'task - get_new_pricing_data done - '
+        '{} - status={}'.format(
             label,
             get_status(res['status'])))
 
@@ -401,9 +403,12 @@ def run_get_new_pricing_data(
     if is_celery_disabled(
             work_dict=work_dict):
         work_dict['celery_disabled'] = True
-        response = get_new_pricing_data(
+        task_res = get_new_pricing_data(
             work_dict)
-        if response:
+        if task_res:
+            response = task_res.get(
+                'result',
+                task_res)
             log.info(
                 'getting task result={}'.format(
                     ppj(response)))

@@ -327,8 +327,9 @@ def publish_pricing_update(
                 res['err']))
     # end of try/ex
 
-    log.info((
-        'task - {} - done - status={}').format(
+    log.info(
+        'task - publish_pricing_update done - '
+        '{} - status={}'.format(
             label,
             get_status(res['status'])))
 
@@ -365,9 +366,12 @@ def run_publish_pricing_update(
     if is_celery_disabled(
             work_dict=work_dict):
         work_dict['celery_disabled'] = True
-        response = publish_pricing_update(
+        task_res = publish_pricing_update(
             work_dict)
-        if response:
+        if task_res:
+            response = task_res.get(
+                'result',
+                task_res)
             log.info(
                 'getting task result={}'.format(
                     ppj(response)))
