@@ -70,9 +70,9 @@ def get_options_for_years(
     last_exp_date = 0
     date_format = '%m-%d-%Y'
     str_output = now.strftime(date_format)
-    log.info(('current date={}')
-             .format(
-                str_output))
+    log.info(
+        'current date={}'.format(
+            str_output))
 
     entities.append(str_output)
 
@@ -224,8 +224,8 @@ def get_options_for_today():
     previous_exp = None
     valid_option_exps = []
     for idx, org_exp_date_str in enumerate(cycle_exps):
-        log.debug((
-            'cycle={} expiration={}').format(
+        log.debug(
+            'cycle={} expiration={}'.format(
                 idx,
                 org_exp_date_str))
         exp_date = datetime.datetime.strptime(

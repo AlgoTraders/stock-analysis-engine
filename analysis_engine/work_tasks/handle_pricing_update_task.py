@@ -23,6 +23,7 @@ from analysis_engine.consts import ERR
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import get_status
 from analysis_engine.consts import is_celery_disabled
+from analysis_engine.consts import ppj
 
 log = build_colorized_logger(
     name=__name__)
@@ -191,15 +192,15 @@ def handle_pricing_update_task(
 
         total_payloads = len(payloads_to_publish)
 
-        log.info((
-            '{} ticker={} processing payloads={}').format(
+        log.info(
+            '{} ticker={} processing payloads={}'.format(
                 label,
                 ticker,
                 total_payloads))
 
         for ridx, r in enumerate(payloads_to_publish):
-            log.info((
-                '{} ticker={} update={}/{} key={} redis_key={}').format(
+            log.info(
+                '{} ticker={} update={}/{} key={} redis_key={}'.format(
                     label,
                     ticker,
                     ridx,
@@ -207,12 +208,14 @@ def handle_pricing_update_task(
                     r['s3_key'],
                     r['redis_key']))
             r['celery_disabled'] = False
+            r['label'] = 'handle_pricing_update_task-{}'.format(
+                label)
             payload_res = \
                 publisher.task_publish_pricing_update(
                     work_dict=r)
-            log.info((
+            log.info(
                 '{} ticker={} update={}/{} status={} '
-                's3_key={} redis_key={}').format(
+                's3_key={} redis_key={}'.format(
                     label,
                     ticker,
                     ridx,
@@ -236,23 +239,21 @@ def handle_pricing_update_task(
                     work_dict,
                     e),
             rec=rec)
-        log.error((
-            '{} - {}').format(
+        log.error(
+            '{} - {}'.format(
                 label,
                 res['err']))
     # end of try/ex
 
-    log.info((
-        'task - {} - done - status={}').format(
+    log.info(
+        'task - handle_pricing_update_task done - '
+        '{} - status={}'.format(
             label,
             get_status(res['status'])))
 
-    # if celery is disabled make sure to return the results
-    if is_celery_disabled(work_dict=work_dict):
-        return res
-    else:
-        return analysis_engine.get_task_results.get_task_results(
-            result=res)
+    return analysis_engine.get_task_results.get_task_results(
+        work_dict=work_dict,
+        result=res)
 # end of handle_pricing_update_task
 
 
@@ -279,11 +280,34 @@ def run_handle_pricing_update_task(
         rec={})
     task_res = {}
 
-    # by default celery is not used for this one:
-    if is_celery_disabled():
+    log.info(
+        'run_handle_pricing_update_task - {} - done '
+        'status={} err={} rec={}'.format(
+            label,
+            get_status(response['status']),
+            response['err'],
+            response['rec']))
+
+    # allow running without celery
+    if is_celery_disabled(
+            work_dict=work_dict):
         work_dict['celery_disabled'] = True
-        response = handle_pricing_update_task(
+        task_res = handle_pricing_update_task(
             work_dict)
+        if task_res:
+            response = task_res.get(
+                'result',
+                task_res)
+            log.info(
+                'getting task result={}'.format(
+                    ppj(response)))
+        else:
+            log.error(
+                '{} celery was disabled but the task={} '
+                'did not return anything'.format(
+                    label,
+                    response))
+        # end of if response
     else:
         task_res = handle_pricing_update_task.delay(
             work_dict=work_dict)
@@ -296,13 +320,20 @@ def run_handle_pricing_update_task(
             rec=rec)
     # if celery enabled
 
-    log.info(
-        'run_handle_pricing_update_task - {} - done '
-        'status={} err={} rec={}'.format(
-            label,
-            get_status(response['status']),
-            response['err'],
-            response['rec']))
+    if response:
+        log.info(
+            'run_handle_pricing_update_task - {} - done '
+            'status={} err={} rec={}'.format(
+                label,
+                get_status(response['status']),
+                response['err'],
+                response['rec']))
+    else:
+        log.info(
+            'run_handle_pricing_update_task - {} - done '
+            'no response'.format(
+                label))
+    # end of if/else response
 
     return response
 # end of run_handle_pricing_update_task

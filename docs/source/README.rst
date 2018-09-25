@@ -397,6 +397,13 @@ Most of the scripts support running without Celery workers. To run without worke
 
     export CELERY_DISABLED=1
 
+::
+
+    ticker=SPY
+    publish_from_s3_to_redis.py -t ${ticker} -u integration-tests -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -n integration-test-v1
+    sa.py -t ${ticker} -f -o ${ticker}_latest_v1 -j prepared -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -n ${ticker}_demo
+    run_ticker_analysis.py -t ${ticker} -e 2018-09-21 -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -n ${ticker}_demo -P 1 -N 1 -O 1 -U 1 -R 1
+
 Linting
 -------
 

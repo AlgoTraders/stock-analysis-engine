@@ -16,13 +16,12 @@ Steps:
 """
 
 import argparse
-import analysis_engine.work_tasks.always_fails_task.publish_from_s3_to_redis \
+import analysis_engine.work_tasks.publish_from_s3_to_redis \
     as task_publisher
 from celery import signals
 from spylunking.log.setup_logging import build_colorized_logger
 from celery_loaders.work_tasks.get_celery_app import get_celery_app
 from analysis_engine.api_requests import build_publish_from_s3_to_redis_request
-from analysis_engine.consts import NOT_RUN
 from analysis_engine.consts import LOG_CONFIG_PATH
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import TICKER_ID
@@ -56,7 +55,7 @@ def setup_celery_logging(**kwargs):
 
 
 log = build_colorized_logger(
-    name=__name__,
+    name='pub-from-s3-to-redis',
     log_config_path=LOG_CONFIG_PATH)
 
 
@@ -67,8 +66,8 @@ def publish_from_s3_to_redis():
 
     """
 
-    log.info((
-        'start - {}').format(
+    log.info(
+        'start - {}'.format(
             __name__))
 
     parser = argparse.ArgumentParser(
@@ -256,11 +255,13 @@ def publish_from_s3_to_redis():
     work['redis_db'] = redis_db
     work['redis_expire'] = redis_expire
     work['debug'] = debug
+    work['label'] = 'ticker={}'.format(
+        ticker)
 
     path_to_tasks = 'analysis_engine.work_tasks'
     task_name = (
-        '{}.publish_from_s3_to_redis.publish_from_s3_to_redis').format(
-            path_to_tasks)
+        '{}.publish_from_s3_to_redis.publish_from_s3_to_redis'.format(
+            path_to_tasks))
     task_res = None
     if is_celery_disabled():
         work['celery_disabled'] = True
@@ -270,11 +271,14 @@ def publish_from_s3_to_redis():
         task_res = task_publisher.publish_from_s3_to_redis(
             work)
         log.info(
-            'done - publish s3 to redis status={} result={}'.format(
-                get_status(task_res.get(
-                    'status',
-                    NOT_RUN)),
-                ppj(task_res)))
+            'done - result={} '
+            'task={} status={} '
+            'err={} label={}'.format(
+                ppj(task_res),
+                task_name,
+                get_status(status=task_res['status']),
+                task_res['err'],
+                work['label']))
     else:
         log.info(
             'connecting to broker={} backend={}'.format(
@@ -297,8 +301,8 @@ def publish_from_s3_to_redis():
         job_id = app.send_task(
             task_name,
             (work,))
-        log.info((
-            'calling task={} - success job_id={}').format(
+        log.info(
+            'calling task={} - success job_id={}'.format(
                 task_name,
                 job_id))
     # end of if/else

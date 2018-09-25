@@ -134,6 +134,7 @@ EX = 3
 NOT_RUN = 4
 INVALID = 5
 NOT_DONE = 6
+NOT_SET = 7
 
 SA_MODE_PREPARE = 100
 SA_MODE_ANALYZE = 101
@@ -267,6 +268,8 @@ def get_status(
         return 'INVALID'
     elif status == NOT_DONE:
         return 'NOT_DONE'
+    elif status == NOT_SET:
+        return 'NOT_SET'
     elif status == SA_MODE_PREPARE:
         return 'SA_MODE_PREPARE'
     elif status == SA_MODE_ANALYZE:

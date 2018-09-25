@@ -44,6 +44,7 @@ from analysis_engine.consts import REDIS_DB
 from analysis_engine.consts import REDIS_EXPIRE
 from analysis_engine.consts import ppj
 from analysis_engine.consts import is_celery_disabled
+from analysis_engine.consts import get_status
 
 
 # Disable celery log hijacking
@@ -53,9 +54,8 @@ def setup_celery_logging(**kwargs):
     pass
 
 
-name = 'run-analysis'
 log = build_colorized_logger(
-    name=name,
+    name='run-analysis',
     log_config_path=LOG_CONFIG_PATH)
 
 
@@ -67,9 +67,8 @@ def run_ticker_analysis():
 
     """
 
-    log.info((
-        'start - {}').format(
-            name))
+    log.info(
+        'start - run_ticker_analysis')
 
     parser = argparse.ArgumentParser(
         description=(
@@ -343,8 +342,8 @@ def run_ticker_analysis():
 
     path_to_tasks = 'analysis_engine.work_tasks'
     task_name = (
-        '{}.get_new_pricing_data.get_new_pricing_data').format(
-            path_to_tasks)
+        '{}.get_new_pricing_data.get_new_pricing_data'.format(
+            path_to_tasks))
     task_res = None
     if is_celery_disabled():
         work['celery_disabled'] = True
@@ -354,8 +353,14 @@ def run_ticker_analysis():
         task_res = task_pricing.get_new_pricing_data(
             work)
         log.info(
-            'done - get pricing result={}'.format(
-                ppj(task_res)))
+            'done - result={} '
+            'task={} status={} '
+            'err={} label={}'.format(
+                ppj(task_res),
+                task_name,
+                get_status(status=task_res['status']),
+                task_res['err'],
+                work['label']))
     else:
         log.info(
             'connecting to broker={} backend={}'.format(
@@ -378,8 +383,8 @@ def run_ticker_analysis():
         job_id = app.send_task(
             task_name,
             (work,))
-        log.info((
-            'calling task={} - success job_id={}').format(
+        log.info(
+            'calling task={} - success job_id={}'.format(
                 task_name,
                 job_id))
     # end of if/else

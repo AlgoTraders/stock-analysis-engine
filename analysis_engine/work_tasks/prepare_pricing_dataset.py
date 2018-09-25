@@ -492,9 +492,10 @@ def prepare_pricing_dataset(
             status=ERR,
             err=(
                 'failed - prepare_pricing_dataset '
-                'dict={} with ex={}'.format(
+                'dict={} with ex={}').format(
                     work_dict,
-                    e)))
+                    e),
+            rec=rec)
         log.error(
             '{} - {}'.format(
                 label,
@@ -502,16 +503,14 @@ def prepare_pricing_dataset(
     # end of try/ex
 
     log.info(
-        'task - {} - done - status={}'.format(
+        'task - prepare_pricing_dataset done - '
+        '{} - status={}'.format(
             label,
             get_status(res['status'])))
 
-    # if celery is disabled make sure to return the results
-    if is_celery_disabled(work_dict=work_dict):
-        return res
-    else:
-        return analysis_engine.get_task_results.get_task_results(
-            result=res)
+    return analysis_engine.get_task_results.get_task_results(
+        work_dict=work_dict,
+        result=res)
 # end of prepare_pricing_dataset
 
 
@@ -539,10 +538,25 @@ def run_prepare_pricing_dataset(
     task_res = {}
 
     # allow running without celery
-    if is_celery_disabled():
+    if is_celery_disabled(
+            work_dict=work_dict):
         work_dict['celery_disabled'] = True
-        response = prepare_pricing_dataset(
+        task_res = prepare_pricing_dataset(
             work_dict)
+        if task_res:
+            response = task_res.get(
+                'result',
+                task_res)
+            log.info(
+                'getting task result={}'.format(
+                    ppj(response)))
+        else:
+            log.error(
+                '{} celery was disabled but the task={} '
+                'did not return anything'.format(
+                    label,
+                    response))
+        # end of if response
     else:
         task_res = prepare_pricing_dataset.delay(
             work_dict=work_dict)
@@ -555,13 +569,20 @@ def run_prepare_pricing_dataset(
             rec=rec)
     # if celery enabled
 
-    log.info(
-        'run_prepare_pricing_dataset - {} - done '
-        'status={} err={} rec={}'.format(
-            label,
-            get_status(response['status']),
-            response['err'],
-            response['rec']))
+    if response:
+        log.info(
+            'run_prepare_pricing_dataset - {} - done '
+            'status={} err={} rec={}'.format(
+                label,
+                get_status(response['status']),
+                response['err'],
+                response['rec']))
+    else:
+        log.info(
+            'run_prepare_pricing_dataset - {} - done '
+            'no response'.format(
+                label))
+    # end of if/else response
 
     return response
 # end of run_prepare_pricing_dataset

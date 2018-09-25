@@ -380,9 +380,15 @@ def run_sa_tool():
             task_res = prepare_pricing_dataset.prepare_pricing_dataset(
                 work)
         log.info(
-            'done - mode={} result={}'.format(
+            'done - result={} '
+            'mode={} task='
+            'prepare_pricing_dataset.prepare_pricing_dataset '
+            'status={} err={} label={}'.format(
+                ppj(task_res),
                 get_status(status=mode),
-                ppj(task_res)))
+                get_status(status=task_res['status']),
+                task_res['err'],
+                work['label']))
     else:
         log.info(
             'connecting to broker={} backend={}'.format(
@@ -405,8 +411,8 @@ def run_sa_tool():
         job_id = app.send_task(
             task_name,
             (work,))
-        log.info((
-            'calling task={} - success job_id={}').format(
+        log.info(
+            'calling task={} - success job_id={}'.format(
                 task_name,
                 job_id))
     # end of if/else

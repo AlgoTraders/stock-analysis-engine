@@ -35,6 +35,7 @@ from analysis_engine.consts import REDIS_DB
 from analysis_engine.consts import REDIS_EXPIRE
 from analysis_engine.consts import get_status
 from analysis_engine.consts import is_celery_disabled
+from analysis_engine.consts import ppj
 
 log = build_colorized_logger(
     name=__name__)
@@ -159,9 +160,9 @@ def publish_pricing_update(
                 endpoint_url = 'https://{}'.format(
                     service_address)
 
-            log.info((
+            log.info(
                 '{} building s3 endpoint_url={} '
-                'region={}').format(
+                'region={}'.format(
                     label,
                     endpoint_url,
                     region_name))
@@ -177,30 +178,30 @@ def publish_pricing_update(
             )
 
             try:
-                log.info((
-                    '{} checking bucket={} exists').format(
+                log.info(
+                    '{} checking bucket={} exists'.format(
                         label,
                         s3_bucket_name))
                 if s3.Bucket(s3_bucket_name) not in s3.buckets.all():
-                    log.info((
-                        '{} creating bucket={}').format(
+                    log.info(
+                        '{} creating bucket={}'.format(
                             label,
                             s3_bucket_name))
                     s3.create_bucket(
                         Bucket=s3_bucket_name)
             except Exception as e:
-                log.info((
+                log.info(
                     '{} failed creating bucket={} '
-                    'with ex={}').format(
+                    'with ex={}'.format(
                         label,
                         s3_bucket_name,
                         e))
             # end of try/ex for creating bucket
 
             try:
-                log.info((
+                log.info(
                     '{} uploading to s3={}/{} '
-                    'updated={}').format(
+                    'updated={}'.format(
                         label,
                         s3_bucket_name,
                         s3_key,
@@ -209,18 +210,18 @@ def publish_pricing_update(
                     Key=s3_key,
                     Body=json.dumps(data).encode(encoding))
             except Exception as e:
-                log.error((
+                log.error(
                     '{} failed uploading bucket={} '
-                    'key={} ex={}').format(
+                    'key={} ex={}'.format(
                         label,
                         s3_bucket_name,
                         s3_key,
                         e))
             # end of try/ex for creating bucket
         else:
-            log.info((
+            log.info(
                 '{} SKIP S3 upload bucket={} '
-                'key={}').format(
+                'key={}'.format(
                     label,
                     s3_bucket_name,
                     s3_key))
@@ -255,10 +256,10 @@ def publish_pricing_update(
             redis_host = redis_address.split(':')[0]
             redis_port = redis_address.split(':')[1]
             try:
-                log.info((
+                log.info(
                     '{} publishing redis={}:{} '
                     'db={} key={} '
-                    'updated={} expire={}').format(
+                    'updated={} expire={}'.format(
                         label,
                         redis_host,
                         redis_port,
@@ -292,17 +293,17 @@ def publish_pricing_update(
                         redis_set_res['err']))
 
             except Exception as e:
-                log.error((
+                log.error(
                     '{} failed - redis publish to '
-                    'key={} ex={}').format(
+                    'key={} ex={}'.format(
                         label,
                         redis_key,
                         e))
             # end of try/ex for creating bucket
         else:
-            log.info((
+            log.info(
                 '{} SKIP REDIS publish '
-                'key={}').format(
+                'key={}'.format(
                     label,
                     redis_key))
         # end of if enable_redis_publish
@@ -319,24 +320,23 @@ def publish_pricing_update(
                 'failed - publish_pricing_update '
                 'dict={} with ex={}').format(
                     work_dict,
-                    e))
-        log.error((
-            '{} - {}').format(
+                    e),
+            rec=rec)
+        log.error(
+            '{} - {}'.format(
                 label,
                 res['err']))
     # end of try/ex
 
-    log.info((
-        'task - {} - done - status={}').format(
+    log.info(
+        'task - publish_pricing_update done - '
+        '{} - status={}'.format(
             label,
             get_status(res['status'])))
 
-    # if celery is disabled make sure to return the results
-    if is_celery_disabled(work_dict=work_dict):
-        return res
-    else:
-        return analysis_engine.get_task_results.get_task_results(
-            result=res)
+    return analysis_engine.get_task_results.get_task_results(
+        work_dict=work_dict,
+        result=res)
 # end of publish_pricing_update
 
 
@@ -364,10 +364,25 @@ def run_publish_pricing_update(
     task_res = {}
 
     # allow running without celery
-    if is_celery_disabled():
+    if is_celery_disabled(
+            work_dict=work_dict):
         work_dict['celery_disabled'] = True
-        response = publish_pricing_update(
+        task_res = publish_pricing_update(
             work_dict)
+        if task_res:
+            response = task_res.get(
+                'result',
+                task_res)
+            log.info(
+                'getting task result={}'.format(
+                    ppj(response)))
+        else:
+            log.error(
+                '{} celery was disabled but the task={} '
+                'did not return anything'.format(
+                    label,
+                    response))
+        # end of if response
     else:
         task_res = publish_pricing_update.delay(
             work_dict=work_dict)
@@ -380,13 +395,20 @@ def run_publish_pricing_update(
             rec=rec)
     # if celery enabled
 
-    log.info(
-        'run_publish_pricing_update - {} - done '
-        'status={} err={} rec={}'.format(
-            label,
-            get_status(response['status']),
-            response['err'],
-            response['rec']))
+    if response:
+        log.info(
+            'run_publish_pricing_update - {} - done '
+            'status={} err={} rec={}'.format(
+                label,
+                get_status(response['status']),
+                response['err'],
+                response['rec']))
+    else:
+        log.info(
+            'run_publish_pricing_update - {} - done '
+            'no response'.format(
+                label))
+    # end of if/else response
 
     return response
 # end of run_publish_pricing_update
