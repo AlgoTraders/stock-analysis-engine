@@ -1,15 +1,33 @@
+"""
+Base Test Case class
+
+This class provides common functionality for most
+unittests:
+
+- turns on debugging values
+- adds and removes test environment variables
+- interface for building test data
+"""
+
 import os
 import unittest
+from analysis_engine.api_requests \
+    import build_cache_ready_pricing_dataset
 
 
 class BaseTestCase(unittest.TestCase):
+    """BaseTestCase"""
 
     debug = False
     celery_disabled_value = None
     debug_get_pricing = None
     debug_pub_pricing = None
+    backup_s3_contents = None
 
-    def setUp(self):
+    def setUp(
+            self):
+        """setUp"""
+        self.backup_s3_contents = None
         self.celery_disabled_value = None
         self.debug_get_pricing = None
         if os.getenv(
@@ -33,9 +51,18 @@ class BaseTestCase(unittest.TestCase):
                 'DEBUG_PUB_PRICING',
                 None)
         os.environ['DEBUG_PUB_PRICING'] = '1'
+        if os.getenv(
+                'TEST_S3_CONTENTS',
+                'not-set') != 'not-set':
+            self.backup_s3_contents = os.getenv(
+                'TEST_S3_CONTENTS',
+                None)
+        os.environ.pop('TEST_S3_CONTENTS', None)
     # end of setUp
 
-    def tearDown(self):
+    def tearDown(
+            self):
+        """tearDown"""
         if self.celery_disabled_value:
             os.environ['CELERY_DISABLED'] = self.celery_disabled_value
         else:
@@ -48,6 +75,22 @@ class BaseTestCase(unittest.TestCase):
             os.environ['DEBUG_PUB_PRICING'] = self.debug_pub_pricing
         else:
             os.environ.pop('DEBUG_PUB_PRICING', None)
+        if self.backup_s3_contents:
+            os.environ['TEST_S3_CONTENTS'] = self.backup_s3_contents
+        else:
+            os.environ.pop('TEST_S3_CONTENTS', None)
     # end of tearDown
+
+    def get_pricing_test_data(
+            self,
+            test_name=None):
+        """get_pricing_test_data"""
+        test_data = build_cache_ready_pricing_dataset()
+        if test_name:
+            test_data['_TEST_NAME'] = test_name
+        else:
+            test_data['_TEST_NAME'] = 'not-set'
+        return test_data
+    # end of get_pricing_test_data
 
 # end of BaseTestCase

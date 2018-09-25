@@ -140,6 +140,10 @@ SA_MODE_PREPARE = 100
 SA_MODE_ANALYZE = 101
 SA_MODE_PREDICT = 102
 
+PLOT_ACTION_SHOW = 900
+PLOT_ACTION_SAVE_TO_S3 = 901
+PLOT_ACTION_SAVE_AS_FILE = 902
+
 # version of python
 IS_PY2 = sys.version[0] == '2'
 
@@ -189,6 +193,33 @@ PREPARE_S3_BUCKET_NAME = ev(
 ANALYZE_S3_BUCKET_NAME = ev(
     'ANALYZE_S3_BUCKET_NAME',
     'analyzed')
+PREPARE_DATA_MIN_SIZE = 11
+PLOT_COLORS = {
+    'red': '#E74C3C',
+    'feldspar': '#D19275',
+    'copper': '#EDC393',
+    'brown': '#6B4226',
+    'orange': '#FF7D40',
+    'maroon': '#800000',
+    'gray': '#8B8989',
+    'black': '#111111',
+    'pink': '#FFCCCC',
+    'green': '#2ECC71',
+    'blue': '#3498db',
+    'darkblue': '#000080',
+    'lightgreen': '#C0FF3E',
+    'darkgreen': '#385E0F',
+    'gold': '#FFCC11',
+    'yellow': '#FFE600',
+    'volumetop': '#385E0F',
+    'volume': '#ADFF2F',
+    'high': '#CC1100',
+    'low': '#164E71',
+    'open': '#608DC0',
+    'close': '#99CC32',
+    'white': '#FFFFFF'
+}
+
 
 ########################################
 #
@@ -199,7 +230,7 @@ ENABLED_S3_UPLOAD = ev(
     'ENABLED_S3_UPLOAD',
     '0') == '1'
 S3_ACCESS_KEY = ev(
-    'AWS_SECRET_ACCESS_KEY',
+    'AWS_ACCESS_KEY_ID',
     'trexaccesskey')
 S3_SECRET_KEY = ev(
     'AWS_SECRET_ACCESS_KEY',
@@ -276,6 +307,12 @@ def get_status(
         return 'SA_MODE_ANALYZE'
     elif status == SA_MODE_PREDICT:
         return 'SA_MODE_PREDICT'
+    elif status == PLOT_ACTION_SHOW:
+        return 'PLOT_ACTION_SHOW'
+    elif status == PLOT_ACTION_SAVE_TO_S3:
+        return 'PLOT_ACTION_SAVE_TO_S3'
+    elif status == PLOT_ACTION_SAVE_AS_FILE:
+        return 'PLOT_ACTION_SAVE_AS_FILE'
     else:
         return 'unsupported status={}'.format(
             status)

@@ -6,6 +6,8 @@ RUN echo "creating project directories" \
   && chmod 777 /var/log/sa \
   && touch /var/log/sa/worker.log \
   && chmod 777 /var/log/sa/worker.log \
+  && touch /var/log/sa/jupyter.log \
+  && chmod 777 /var/log/sa/jupyter.log \
   && echo "updating repo" \
   && cd /opt/sa \
   && git checkout master \

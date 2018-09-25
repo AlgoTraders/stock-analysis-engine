@@ -11,6 +11,7 @@ before_install:
   - export PIP_USE_MIRRORS=true
   - export USE_VERSION=$(cat setup.py | grep " version=" | sed -e 's/"/ /g' | sed -e "s/'/ /g" | awk '{print $2}')
   - export REPO=jayjohnson/stock-analysis-engine
+  - export REPO_JUPYTER=jayjohnson/stock-analysis-jupyter
   - echo "is TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST}"
   - >
     if [[ "${TRAVIS_PULL_REQUEST}" == "false" ]]; then
@@ -50,6 +51,14 @@ after_success:
       echo "docker push ${REPO}:${USE_VERSION}";
       docker push $REPO:$USE_VERSION;
       echo "";
+      echo "Starting Jupyter container build: ${REPO_JUPYTER}";
+      cd jupyter && docker build -f Dockerfile -t $REPO_JUPYTER .;
+      echo "docker tag ${REPO_JUPYTER} ${REPO_JUPYTER}:${USE_VERSION}";
+      docker tag $REPO_JUPYTER $REPO_JUPYTER:$USE_VERSION;
+      echo "docker push ${REPO_JUPYTER}";
+      docker push $REPO_JUPYTER;
+      echo "docker push ${REPO_JUPYTER}:${USE_VERSION}";
+      docker push $REPO_JUPYTER:$USE_VERSION;
     else
       echo "Done testing";
     fi

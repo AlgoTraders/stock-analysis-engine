@@ -9,6 +9,32 @@ log = build_colorized_logger(
     name=__name__)
 
 
+class MockRedisFailToConnect:
+    """MockRedisFailToConnect"""
+
+    def __init__(
+            self,
+            host=None,
+            port=None,
+            password=None,
+            db=None):
+        """__init__
+
+        build a mock redis client that will raise an exception
+        to test failures during connection
+
+        :param host: hostname
+        :param port: port
+        :param password: password
+        :param db: database number
+        """
+        raise Exception(
+            'test MockRedisFailToConnect')
+    # end of __init__
+
+# end of MockRedisFailToConnect
+
+
 class MockRedis:
     """MockRedis"""
 
@@ -103,7 +129,10 @@ class MockRedis:
                 'env={}'.format(
                     name,
                     value_in_env))
-            return value_in_env
+            if value_in_env:
+                return value_in_env.encode('utf-8')
+            else:
+                return None
         else:
             log.info(
                 'mock - MockRedis.get('

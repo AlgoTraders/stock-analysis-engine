@@ -67,8 +67,7 @@ def publish_from_s3_to_redis():
     """
 
     log.info(
-        'start - {}'.format(
-            __name__))
+        'start - publish_from_s3_to_redis')
 
     parser = argparse.ArgumentParser(
         description=(

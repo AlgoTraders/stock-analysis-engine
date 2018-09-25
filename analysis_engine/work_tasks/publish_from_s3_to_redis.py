@@ -415,9 +415,14 @@ def run_publish_from_s3_to_redis(
             response = task_res.get(
                 'result',
                 task_res)
+            response_details = response
+            try:
+                response_details = ppj(response)
+            except Exception:
+                response_details = response
             log.info(
                 'getting task result={}'.format(
-                    ppj(response)))
+                    response_details))
         else:
             log.error(
                 '{} celery was disabled but the task={} '

@@ -44,7 +44,7 @@ def mock_exception_run_publish_pricing_update(
         **kwargs):
     """mock_exception_run_publish_pricing_update
 
-    :param **kwargs: keyword args dict
+    :param kwargs: keyword args dict
     """
     raise Exception(
         'test throwing mock_exception_run_publish_pricing_update')
