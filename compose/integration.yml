@@ -50,6 +50,8 @@ services:
       - minio
     environment:
       - JUPYTER_PASS=admin
+      - JUPYTER_CONFIG=/opt/sa/docker/jupyter/jupyter_notebook_config.py
+      - NOTEBOOK_DIR=/opt/sa/docker/notebooks
       - S3_ADDRESS=minio:9000
       - REDIS_ADDRESS=redis:6379
       - WORKER_BROKER_URL="redis://redis:6379/13"
@@ -59,4 +61,4 @@ services:
       - "8889:8889"
       - "8890:8890"
       - "6006:6006"
-    entrypoint: "/opt/antinex/core/docker/jupyter/start-container.sh"
+    entrypoint: "/opt/sa/docker/jupyter/start-container.sh"

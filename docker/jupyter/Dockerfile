@@ -14,7 +14,9 @@ ENV PROJECT_NAME="jupyter" \
     API_DEBUG="false" \
     USE_FILE="false" \
     SILENT="-s" \
-    RUN_JUPYTER="/opt/sa/docker/jupyter/start-container.sh"
+    RUN_JUPYTER="/opt/sa/docker/jupyter/start-container.sh" \
+    JUPYTER_CONFIG="/opt/sa/docker/jupyter/jupyter_notebook_config.py" \
+    NOTEBOOK_DIR="/opt/sa/docker/notebooks"
 
 WORKDIR /opt/sa/docker/jupyter
 
