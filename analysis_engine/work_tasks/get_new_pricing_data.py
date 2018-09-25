@@ -324,21 +324,31 @@ def get_new_pricing_data(
                     num_options_chains,
                     num_news_rec))
 
-        update_res = publisher.run_publish_pricing_update(
-            work_dict=update_req)
+        try:
+            update_res = publisher.run_publish_pricing_update(
+                work_dict=update_req)
 
-        log.info((
-            '{} ticker={} update_res status={} data={}'.format(
-                label,
-                ticker,
-                get_status(update_res['status']),
-                update_res)))
-
-        res = build_result.build_result(
-            status=SUCCESS,
-            err=None,
-            rec=rec)
-
+            log.info((
+                '{} update_res status={} data={}'.format(
+                    label,
+                    get_status(update_res['status']),
+                    update_res)))
+            res = build_result.build_result(
+                status=SUCCESS,
+                err=None,
+                rec=rec)
+        except Exception as f:
+            err = (
+                '{} publisher.run_publish_pricing_update failed '
+                'with ex={}'.format(
+                    label,
+                    f))
+            log.error(err)
+            res = build_result.build_result(
+                status=ERR,
+                err=err,
+                rec=rec)
+        # end of trying to publish results to connected services
     except Exception as e:
         res = build_result.build_result(
             status=ERR,
@@ -358,12 +368,9 @@ def get_new_pricing_data(
             label,
             get_status(res['status'])))
 
-    # if celery is disabled make sure to return the results
-    if is_celery_disabled(work_dict=work_dict):
-        return res
-    else:
-        return analysis_engine.get_task_results.get_task_results(
-            result=res)
+    return analysis_engine.get_task_results.get_task_results(
+        work_dict=work_dict,
+        result=res)
 # end of get_new_pricing_data
 
 
@@ -391,10 +398,22 @@ def run_get_new_pricing_data(
     task_res = {}
 
     # allow running without celery
-    if is_celery_disabled():
+    if is_celery_disabled(
+            work_dict=work_dict):
         work_dict['celery_disabled'] = True
         response = get_new_pricing_data(
             work_dict)
+        if response:
+            log.info(
+                'getting task result={}'.format(
+                    ppj(response)))
+        else:
+            log.error(
+                '{} celery was disabled but the task={} '
+                'did not return anything'.format(
+                    label,
+                    response))
+        # end of if response
     else:
         task_res = get_new_pricing_data.delay(
             work_dict=work_dict)
@@ -407,13 +426,20 @@ def run_get_new_pricing_data(
             rec=rec)
     # if celery enabled
 
-    log.info(
-        'run_get_new_pricing_data - {} - done '
-        'status={} err={} rec={}'.format(
-            label,
-            get_status(response['status']),
-            response['err'],
-            response['rec']))
+    if response:
+        log.info(
+            'run_get_new_pricing_data - {} - done '
+            'status={} err={} rec={}'.format(
+                label,
+                get_status(response['status']),
+                response['err'],
+                response['rec']))
+    else:
+        log.info(
+            'run_get_new_pricing_data - {} - done '
+            'no response'.format(
+                label))
+    # end of if/else response
 
     return response
 # end of run_get_new_pricing_data

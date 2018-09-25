@@ -1,5 +1,5 @@
-broker_url = "redis://localhost:6379/9"
-result_backend = "redis://localhost:6379/10"
+broker_url = 'redis://localhost:6379/9'
+result_backend = 'redis://localhost:6379/10'
 
 # http://docs.celeryproject.org/en/latest/userguide/optimizing.html
 
@@ -21,16 +21,14 @@ task_acks_late = True
 
 # http://docs.celeryproject.org/en/latest/userguide/calling.html#calling-retry
 task_publish_retry_policy = {
-    "interval_max": 1,
-    "max_retries": 120,     # None = forever
-    "interval_start": 0.1,
-    "interval_step": 0.2}
+    'interval_max': 1,
+    'max_retries': 120,     # None = forever
+    'interval_start': 0.1,
+    'interval_step': 0.2}
 
-task_serializer = "json"
-result_serializer = "json"
-accept_content = ["json"]
-timezone = "America/Los_Angeles"
+task_serializer = 'json'
+result_serializer = 'json'
+accept_content = ['json']
+timezone = 'America/Los_Angeles'
 
-task_routes = {
-    "run.check_values": "low-priority",
-    "run.calculate_results": "high-priority"}
+task_routes = {}

@@ -374,12 +374,9 @@ def publish_from_s3_to_redis(
             label,
             get_status(res['status'])))
 
-    # if celery is disabled make sure to return the results
-    if is_celery_disabled(work_dict=work_dict):
-        return res
-    else:
-        return analysis_engine.get_task_results.get_task_results(
-            result=res)
+    return analysis_engine.get_task_results.get_task_results(
+        work_dict=work_dict,
+        result=res)
 # end of publish_from_s3_to_redis
 
 
@@ -407,10 +404,22 @@ def run_publish_from_s3_to_redis(
     task_res = {}
 
     # allow running without celery
-    if is_celery_disabled():
+    if is_celery_disabled(
+            work_dict=work_dict):
         work_dict['celery_disabled'] = True
         response = publish_from_s3_to_redis(
             work_dict)
+        if response:
+            log.info(
+                'getting task result={}'.format(
+                    ppj(response)))
+        else:
+            log.error(
+                '{} celery was disabled but the task={} '
+                'did not return anything'.format(
+                    label,
+                    response))
+        # end of if response
     else:
         task_res = publish_from_s3_to_redis.delay(
             work_dict=work_dict)
@@ -423,13 +432,20 @@ def run_publish_from_s3_to_redis(
             rec=rec)
     # if celery enabled
 
-    log.info(
-        'run_publish_from_s3_to_redis - {} - done '
-        'status={} err={} rec={}'.format(
-            label,
-            get_status(response['status']),
-            response['err'],
-            response['rec']))
+    if response:
+        log.info(
+            'run_publish_from_s3_to_redis - {} - done '
+            'status={} err={} rec={}'.format(
+                label,
+                get_status(response['status']),
+                response['err'],
+                response['rec']))
+    else:
+        log.info(
+            'run_publish_from_s3_to_redis - {} - done '
+            'no response'.format(
+                label))
+    # end of if/else response
 
     return response
 # end of run_publish_from_s3_to_redis

@@ -506,12 +506,9 @@ def prepare_pricing_dataset(
             label,
             get_status(res['status'])))
 
-    # if celery is disabled make sure to return the results
-    if is_celery_disabled(work_dict=work_dict):
-        return res
-    else:
-        return analysis_engine.get_task_results.get_task_results(
-            result=res)
+    return analysis_engine.get_task_results.get_task_results(
+        work_dict=work_dict,
+        result=res)
 # end of prepare_pricing_dataset
 
 

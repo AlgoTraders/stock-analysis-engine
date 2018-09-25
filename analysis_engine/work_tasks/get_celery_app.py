@@ -9,7 +9,7 @@ from celery_loaders.log.setup_logging import build_colorized_logger
 
 
 log = build_colorized_logger(
-    name='get_app')
+    name=__name__)
 
 
 def get_celery_app(

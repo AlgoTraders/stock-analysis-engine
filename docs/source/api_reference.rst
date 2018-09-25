@@ -68,3 +68,9 @@ Read from S3 as a String
 
 .. automodule:: analysis_engine.s3_read_contents_from_key
    :members: s3_read_contents_from_key
+
+Get Task Results
+================
+
+.. automodule:: analysis_engine.get_task_results
+   :members: get_task_results

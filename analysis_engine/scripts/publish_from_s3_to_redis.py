@@ -16,7 +16,7 @@ Steps:
 """
 
 import argparse
-import analysis_engine.work_tasks.always_fails_task.publish_from_s3_to_redis \
+import analysis_engine.work_tasks.publish_from_s3_to_redis \
     as task_publisher
 from celery import signals
 from spylunking.log.setup_logging import build_colorized_logger
