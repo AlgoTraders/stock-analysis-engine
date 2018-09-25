@@ -107,8 +107,8 @@ def extract_options_data(
     :param strike: strike price
     """
     if strike:
-        log.debug((
-            'getting contract={} strike={}').format(
+        log.debug(
+            'getting contract={} strike={}'.format(
                 contract_type,
                 strike))
         if contract_type == 'C':
@@ -127,8 +127,8 @@ def extract_options_data(
                         put
                     ]
     else:
-        log.debug((
-            'getting all chains'))
+        log.debug(
+            'getting all chains')
     # end of if strike
 
     return response['optionChain']['result'][0]['options']
@@ -148,8 +148,8 @@ def get_quotes(
         quotes_data = response['optionChain']['result'][0]['quote']
         return quotes_data
     except Exception as e:
-        log.error((
-            'failed get_quotes(ticker={}) with ex={}').format(
+        log.error(
+            'failed get_quotes(ticker={}) with ex={}'.format(
                 ticker,
                 e))
         return []
@@ -171,9 +171,9 @@ def get_options(
                           ``strike=None`` then the ``contract_type``
                           is ignored
     """
-    log.info((
+    log.info(
         'get_options ticker={} '
-        'contract={} exp_date={} strike={}').format(
+        'contract={} exp_date={} strike={}'.format(
             ticker,
             contract_type,
             exp_date_str,
@@ -189,12 +189,12 @@ def get_options(
             strike=strike)
         return options_data
     except Exception as e:
-        log.error((
+        log.error(
             'failed get_options('
             'ticker={}, '
             'contract_type={}, '
             'exp_date_str={}, '
-            'strike={}) with ex={}').format(
+            'strike={}) with ex={}'.format(
                 ticker,
                 contract_type,
                 exp_date_str,

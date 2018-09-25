@@ -492,9 +492,10 @@ def prepare_pricing_dataset(
             status=ERR,
             err=(
                 'failed - prepare_pricing_dataset '
-                'dict={} with ex={}'.format(
+                'dict={} with ex={}').format(
                     work_dict,
-                    e)))
+                    e),
+            rec=rec)
         log.error(
             '{} - {}'.format(
                 label,

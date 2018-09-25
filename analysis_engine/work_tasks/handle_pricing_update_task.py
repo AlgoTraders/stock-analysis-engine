@@ -192,15 +192,15 @@ def handle_pricing_update_task(
 
         total_payloads = len(payloads_to_publish)
 
-        log.info((
-            '{} ticker={} processing payloads={}').format(
+        log.info(
+            '{} ticker={} processing payloads={}'.format(
                 label,
                 ticker,
                 total_payloads))
 
         for ridx, r in enumerate(payloads_to_publish):
-            log.info((
-                '{} ticker={} update={}/{} key={} redis_key={}').format(
+            log.info(
+                '{} ticker={} update={}/{} key={} redis_key={}'.format(
                     label,
                     ticker,
                     ridx,
@@ -208,12 +208,14 @@ def handle_pricing_update_task(
                     r['s3_key'],
                     r['redis_key']))
             r['celery_disabled'] = False
+            r['label'] = 'handle_pricing_update_task-{}'.format(
+                label)
             payload_res = \
                 publisher.task_publish_pricing_update(
                     work_dict=r)
-            log.info((
+            log.info(
                 '{} ticker={} update={}/{} status={} '
-                's3_key={} redis_key={}').format(
+                's3_key={} redis_key={}'.format(
                     label,
                     ticker,
                     ridx,
@@ -237,8 +239,8 @@ def handle_pricing_update_task(
                     work_dict,
                     e),
             rec=rec)
-        log.error((
-            '{} - {}').format(
+        log.error(
+            '{} - {}'.format(
                 label,
                 res['err']))
     # end of try/ex

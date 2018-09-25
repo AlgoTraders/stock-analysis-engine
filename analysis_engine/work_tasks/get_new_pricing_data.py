@@ -16,6 +16,7 @@ from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.consts import SUCCESS
 from analysis_engine.consts import NOT_RUN
 from analysis_engine.consts import ERR
+from analysis_engine.consts import NOT_SET
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import TICKER_ID
 from analysis_engine.consts import ENABLED_S3_UPLOAD
@@ -62,9 +63,9 @@ def get_new_pricing_data(
 
     label = 'get_new_pricing_data'
 
-    log.info((
+    log.info(
         'task - {} - start '
-        'work_dict={}').format(
+        'work_dict={}'.format(
             label,
             work_dict))
 
@@ -75,6 +76,7 @@ def get_new_pricing_data(
         'options': None,
         'news': None,
         'exp_date': None,
+        'publish_pricing_update': None,
         'date': None,
         'updated': None
     }
@@ -140,9 +142,9 @@ def get_new_pricing_data(
                 '%Y-%m-%d')
 
         rec['updated'] = cur_date.strftime('%Y-%m-%d %H:%M:%S')
-        log.info((
+        log.info(
             '{} getting pricing for ticker={} '
-            'cur_date={} exp_date={}').format(
+            'cur_date={} exp_date={}'.format(
                 label,
                 ticker,
                 cur_date,
@@ -151,8 +153,8 @@ def get_new_pricing_data(
         ticker_results = pinance.Pinance(ticker)
 
         if get_pricing:
-            log.info((
-                '{} getting ticker={} pricing').format(
+            log.info(
+                '{} getting ticker={} pricing'.format(
                     label,
                     ticker))
             ticker_results.get_quotes()
@@ -180,29 +182,29 @@ def get_new_pricing_data(
                 rec['pricing']['close'] = cur_close
                 rec['pricing']['volume'] = cur_volume
             else:
-                log.error((
-                    '{} ticker={} missing quotes_data').format(
+                log.error(
+                    '{} ticker={} missing quotes_data'.format(
                         label,
                         ticker))
             # end of if ticker_results.quotes_data
 
-            log.info((
-                '{} ticker={} close={} vol={}').format(
+            log.info(
+                '{} ticker={} close={} vol={}'.format(
                     label,
                     ticker,
                     cur_close,
                     cur_volume))
         else:
-            log.info((
-                '{} skip - getting ticker={} pricing').format(
+            log.info(
+                '{} skip - getting ticker={} pricing'.format(
                     label,
                     ticker,
                     get_pricing))
         # if get_pricing
 
         if get_news:
-            log.info((
-                '{} getting ticker={} news').format(
+            log.info(
+                '{} getting ticker={} news'.format(
                     label,
                     ticker))
             ticker_results.get_news()
@@ -210,8 +212,8 @@ def get_new_pricing_data(
                 rec['news'] = ticker_results.news_data
             # end of if ticker_results.news_data
         else:
-            log.info((
-                '{} skip - getting ticker={} news').format(
+            log.info(
+                '{} skip - getting ticker={} news'.format(
                     label,
                     ticker))
         # end if get_news
@@ -226,9 +228,9 @@ def get_new_pricing_data(
             num_news_rec = 0
             if rec['news']:
                 num_news_rec = len(rec['news'])
-            log.info((
+            log.info(
                 '{} ticker={} num_news={} get options close={} '
-                'exp_date={} contract={} strike={}').format(
+                'exp_date={} contract={} strike={}'.format(
                     label,
                     ticker,
                     num_news_rec,
@@ -246,8 +248,8 @@ def get_new_pricing_data(
 
             num_options_chains = len(rec['options'])
         else:
-            log.info((
-                '{} skip - getting ticker={} options').format(
+            log.info(
+                '{} skip - getting ticker={} options'.format(
                     label,
                     ticker))
         # end of if get_options
@@ -304,9 +306,9 @@ def get_new_pricing_data(
         update_req['celery_disabled'] = True
 
         if ev('DEBUG_GET_PRICING', '0') == '1':
-            log.info((
+            log.info(
                 '{} updating pricing for ticker={} close={} '
-                'options={} news={} data={}').format(
+                'options={} news={} data={}'.format(
                     label,
                     ticker,
                     cur_close,
@@ -315,25 +317,37 @@ def get_new_pricing_data(
                     ppj(update_req)))
 
         else:
-            log.info((
+            log.info(
                 '{} updating pricing for ticker={} close={} '
-                'options={} news={}').format(
+                'options={} news={}'.format(
                     label,
                     ticker,
                     cur_close,
                     num_options_chains,
                     num_news_rec))
 
+        update_status = NOT_SET
         try:
             update_res = publisher.run_publish_pricing_update(
                 work_dict=update_req)
-            log.info((
-                '{} update_res status={} data={}'.format(
-                    label,
-                    get_status(update_res['result'].get(
-                        'status',
-                        ERR)),
-                    update_res)))
+            update_status = update_res.get(
+                'status',
+                NOT_SET)
+            if ev('DEBUG_GET_PRICING', '0') == '1':
+                log.info(
+                    '{} update_res status={} data={}'.format(
+                        label,
+                        get_status(status=update_status),
+                        ppj(update_res)))
+            else:
+                log.info(
+                    '{} update_res status={} data={}'.format(
+                        label,
+                        get_status(status=update_status),
+                        update_res))
+            # end of if/else
+
+            rec['publish_pricing_update'] = update_res
             res = build_result.build_result(
                 status=SUCCESS,
                 err=None,
@@ -357,9 +371,10 @@ def get_new_pricing_data(
                 'failed - get_new_pricing_data '
                 'dict={} with ex={}').format(
                     work_dict,
-                    e))
-        log.error((
-            '{} - {}').format(
+                    e),
+            rec=rec)
+        log.error(
+            '{} - {}'.format(
                 label,
                 res['err']))
     # end of try/ex

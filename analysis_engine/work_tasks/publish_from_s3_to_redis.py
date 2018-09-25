@@ -58,9 +58,9 @@ def publish_from_s3_to_redis(
 
     label = 'pub-s3-to-redis'
 
-    log.info((
+    log.info(
         'task - {} - start '
-        'work_dict={}').format(
+        'work_dict={}'.format(
             label,
             work_dict))
 
@@ -159,9 +159,9 @@ def publish_from_s3_to_redis(
                 endpoint_url = 'https://{}'.format(
                     service_address)
 
-            log.info((
+            log.info(
                 '{} building s3 endpoint_url={} '
-                'region={}').format(
+                'region={}'.format(
                     label,
                     endpoint_url,
                     region_name))
@@ -177,30 +177,30 @@ def publish_from_s3_to_redis(
             )
 
             try:
-                log.info((
-                    '{} checking bucket={} exists').format(
+                log.info(
+                    '{} checking bucket={} exists'.format(
                         label,
                         s3_bucket_name))
                 if s3.Bucket(s3_bucket_name) not in s3.buckets.all():
-                    log.info((
-                        '{} creating bucket={}').format(
+                    log.info(
+                        '{} creating bucket={}'.format(
                             label,
                             s3_bucket_name))
                     s3.create_bucket(
                         Bucket=s3_bucket_name)
             except Exception as e:
-                log.info((
+                log.info(
                     '{} failed creating bucket={} '
-                    'with ex={}').format(
+                    'with ex={}'.format(
                         label,
                         s3_bucket_name,
                         e))
             # end of try/ex for creating bucket
 
             try:
-                log.info((
+                log.info(
                     '{} reading to s3={}/{} '
-                    'updated={}').format(
+                    'updated={}'.format(
                         label,
                         s3_bucket_name,
                         s3_key,
@@ -245,9 +245,9 @@ def publish_from_s3_to_redis(
                     rec=rec)
             # end of try/ex for creating bucket
         else:
-            log.info((
+            log.info(
                 '{} SKIP S3 read bucket={} '
-                'key={}').format(
+                'key={}'.format(
                     label,
                     s3_bucket_name,
                     s3_key))
@@ -283,11 +283,11 @@ def publish_from_s3_to_redis(
             redis_port = redis_address.split(':')[1]
             try:
                 if ev('DEBUG_REDIS', '0') == '1':
-                    log.info((
+                    log.info(
                         '{} publishing redis={}:{} '
                         'db={} key={} '
                         'updated={} expire={} '
-                        'data={}').format(
+                        'data={}'.format(
                             label,
                             redis_host,
                             redis_port,
@@ -297,10 +297,10 @@ def publish_from_s3_to_redis(
                             redis_expire,
                             ppj(data)))
                 else:
-                    log.info((
+                    log.info(
                         '{} publishing redis={}:{} '
                         'db={} key={} '
-                        'updated={} expire={}').format(
+                        'updated={} expire={}'.format(
                             label,
                             redis_host,
                             redis_port,
@@ -335,17 +335,17 @@ def publish_from_s3_to_redis(
                         redis_set_res['err']))
 
             except Exception as e:
-                log.error((
+                log.error(
                     '{} failed - redis publish to '
-                    'key={} ex={}').format(
+                    'key={} ex={}'.format(
                         label,
                         redis_key,
                         e))
             # end of try/ex for creating bucket
         else:
-            log.info((
+            log.info(
                 '{} SKIP REDIS publish '
-                'key={}').format(
+                'key={}'.format(
                     label,
                     redis_key))
         # end of if enable_redis_publish
@@ -362,9 +362,10 @@ def publish_from_s3_to_redis(
                 'failed - publish_from_s3_to_redis '
                 'dict={} with ex={}').format(
                     work_dict,
-                    e))
-        log.error((
-            '{} - {}').format(
+                    e),
+            rec=rec)
+        log.error(
+            '{} - {}'.format(
                 label,
                 res['err']))
     # end of try/ex

@@ -22,12 +22,12 @@ log = build_colorized_logger(
     name=APP_NAME,
     log_config_path=LOG_CONFIG_PATH)
 
-log.info((
-    'start - {}').format(
+log.info(
+    'start - {}'.format(
         APP_NAME))
 
-log.info((
-    'broker={} backend={} include_tasks={}').format(
+log.info(
+    'broker={} backend={} include_tasks={}'.format(
         WORKER_BROKER_URL,
         WORKER_BACKEND_URL,
         WORKER_TASKS))
@@ -42,6 +42,6 @@ app = get_celery_app(
 log.info('starting celery')
 app.start()
 
-log.info(('end - {}')
-         .format(
-             APP_NAME))
+log.info(
+    'end - {}'.format(
+        APP_NAME))
