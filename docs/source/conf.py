@@ -22,9 +22,12 @@
 import os
 import sys
 from unittest.mock import MagicMock
-from recommonmark.parser import CommonMarkParser
+# from recommonmark.parser import CommonMarkParser
 
 sys.path.insert(0, os.path.abspath(".."))
+sys.path.insert(0, os.path.abspath('../analysis_engine/scripts'))
+sys.path.insert(0, os.path.abspath('../analysis_engine/work_tasks'))
+sys.path.insert(0, os.path.abspath('../analysis_engine'))
 
 project = 'Stock Analysis Engine'
 copyright = '2018, Jay Johnson'
@@ -97,9 +100,9 @@ templates_path = ['_templates']
 # source_suffix = ['.rst', '.md']
 source_suffix = '.rst'
 
-source_parsers = {
-    '.md': CommonMarkParser,
-}
+# source_parsers = {
+#     '.md': CommonMarkParser,
+# }
 
 # The master toctree document.
 master_doc = 'index'
