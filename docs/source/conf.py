@@ -22,7 +22,7 @@
 import os
 import sys
 from unittest.mock import MagicMock
-# from recommonmark.parser import CommonMarkParser
+from recommonmark.parser import CommonMarkParser
 
 sys.path.insert(0, os.path.abspath(".."))
 sys.path.insert(0, os.path.abspath('../analysis_engine/scripts'))
@@ -80,11 +80,7 @@ release = '1.0.0'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
-    'sphinx.ext.todo',
-    'sphinx.ext.coverage',
-    'sphinx.ext.mathjax',
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
@@ -97,12 +93,11 @@ templates_path = ['_templates']
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-# source_suffix = ['.rst', '.md']
-source_suffix = '.rst'
+source_suffix = ['.rst', '.md']
 
-# source_parsers = {
-#     '.md': CommonMarkParser,
-# }
+source_parsers = {
+    '.md': CommonMarkParser,
+}
 
 # The master toctree document.
 master_doc = 'index'
