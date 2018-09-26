@@ -33,8 +33,6 @@ Get New Pricing Data Task
 =========================
 
 .. autotask:: analysis_engine.work_tasks.get_new_pricing_data.get_new_pricing_data
-.. automodule:: analysis_engine.work_tasks.get_new_pricing_data
-   :members: run_get_new_pricing_data
 
 Publish Pricing Data Task
 =========================
@@ -42,8 +40,6 @@ Publish Pricing Data Task
 Publish new stock data to redis and s3 (if either of them are running and enabled)
 
 .. autotask:: analysis_engine.work_tasks.publish_pricing_update.publish_pricing_update
-.. automodule:: analysis_engine.work_tasks.publish_pricing_update
-   :members: run_publish_pricing_update
 
 Publish from S3 to Redis Task
 =============================
@@ -51,17 +47,13 @@ Publish from S3 to Redis Task
 Publish S3 key with stock data to redis and s3 (if either of them are running and enabled)
 
 .. autotask:: analysis_engine.work_tasks.publish_from_s3_to_redis.publish_from_s3_to_redis
-.. automodule:: analysis_engine.work_tasks.publish_from_s3_to_redis
-   :members: run_publish_from_s3_to_redis
 
-Prepare Dataset
-===============
+Prepare Pricing Dataset
+=======================
 
 Prepare dataset for analysis. This task collapses nested json dictionaries into a csv file with a header row and stores the output file in s3 and redis automatically.
 
 .. autotask:: analysis_engine.work_tasks.prepare_pricing_dataset.prepare_pricing_dataset
-.. automodule:: analysis_engine.work_tasks.prepare_pricing_dataset
-   :members: run_prepare_pricing_dataset
 
 Read from S3 as a String
 ========================
