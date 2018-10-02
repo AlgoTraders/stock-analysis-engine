@@ -5,7 +5,7 @@
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 SPHINXPROJ    = StockAnalysisEngine
-SOURCEDIR     = source
+SOURCEDIR     = ./source
 BUILDDIR      = build
 
 # Put it first so that "make" without argument is like "make help".
