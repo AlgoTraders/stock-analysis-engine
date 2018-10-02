@@ -31,6 +31,7 @@ requires_that_fail_on_rtd = [
 
 install_requires = [
     'antinex-client',
+    'celery',
     'celery-connectors',
     'celery-loaders',
     'colorlog',
