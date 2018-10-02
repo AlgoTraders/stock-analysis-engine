@@ -1,3 +1,7 @@
+"""
+Fetch API calls wrapping pyEX
+"""
+
 import pyEX.stocks as pyex_stocks
 import analysis_engine.iex.utils as fetch_utils
 from spylunking.log.setup_logging import build_colorized_logger
@@ -10,6 +14,9 @@ log = build_colorized_logger(
 def fetch_daily(
         work_dict):
     """fetch_daily
+
+    Fetch the IEX daily data for a ticker and
+    return it as a pandas Dataframe
 
     :param work_dict: dictionary of args
     """
@@ -41,6 +48,9 @@ def fetch_daily(
 def fetch_minute(
         work_dict):
     """fetch_minute
+
+    Fetch the IEX minute intraday data for a ticker and
+    return it as a pandas Dataframe
 
     :param work_dict: dictionary of args
     """
@@ -88,6 +98,9 @@ def fetch_stats(
         work_dict):
     """fetch_stats
 
+    Fetch the IEX statistics data for a ticker and
+    return it as a pandas Dataframe
+
     :param work_dict: dictionary of args
     """
     ticker = work_dict.get(
@@ -112,6 +125,9 @@ def fetch_stats(
 def fetch_peers(
         work_dict):
     """fetch_peers
+
+    Fetch the IEX peers data for a ticker and
+    return it as a pandas Dataframe
 
     :param work_dict: dictionary of args
     """
@@ -138,6 +154,9 @@ def fetch_news(
         work_dict):
     """fetch_news
 
+    Fetch the IEX news data for a ticker and
+    return it as a pandas Dataframe
+
     :param work_dict: dictionary of args
     """
     ticker = work_dict.get(
@@ -162,6 +181,9 @@ def fetch_news(
 def fetch_financials(
         work_dict):
     """fetch_financials
+
+    Fetch the IEX financial data for a ticker and
+    return it as a pandas Dataframe
 
     :param work_dict: dictionary of args
     """
@@ -188,6 +210,9 @@ def fetch_earnings(
         work_dict):
     """fetch_earnings
 
+    Fetch the IEX earnings data for a ticker and
+    return it as a pandas Dataframe
+
     :param work_dict: dictionary of args
     """
     ticker = work_dict.get(
@@ -213,6 +238,9 @@ def fetch_dividends(
         work_dict):
     """fetch_dividends
 
+    Fetch the IEX dividends data for a ticker and
+    return it as a pandas Dataframe
+
     :param work_dict: dictionary of args
     """
     ticker = work_dict.get(
@@ -237,6 +265,9 @@ def fetch_dividends(
 def fetch_company(
         work_dict):
     """fetch_company
+
+    Fetch the IEX company data for a ticker and
+    return it as a pandas Dataframe
 
     :param work_dict: dictionary of args
     """

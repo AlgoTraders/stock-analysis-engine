@@ -109,6 +109,7 @@ Running on Mac OS X
 
         python3 -m venv /opt/venv
         source /opt/venv/bin/activate
+        pip install --upgrade pip setuptools
 
 #.  Install Certs
 

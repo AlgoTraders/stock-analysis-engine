@@ -664,14 +664,12 @@ class TestPreparePricingDataset(BaseTestCase):
             None)
         self.assertTrue(
             res['rec'] is not None)
-        self.assertEqual(
-            res['rec']['initial_size'],
-            118387)
+        self.assertTrue(
+            res['rec']['initial_size'] > 1000)
         self.assertTrue(
             res['rec']['initial_data'] is not None)
-        self.assertEqual(
-            res['rec']['prepared_size'],
-            213407)
+        self.assertTrue(
+            res['rec']['prepared_size'] > 1000)
         self.assertTrue(
             res['rec']['prepared_data'] is not None)
     # end of test_integration_prepare_pricing_dataset

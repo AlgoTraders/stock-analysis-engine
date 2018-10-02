@@ -1,3 +1,7 @@
+"""
+Factory method for running fetch data from IEX
+"""
+
 import analysis_engine.iex.fetch_api as fetch_api
 from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.iex.consts import FETCH_DAILY
@@ -23,6 +27,36 @@ def fetch_data(
 
     factory method for fetching data using an enum or
     string alias
+
+    Supported enums from: ``analysis_engine.iex.consts``
+
+    ::
+
+        fetch_type = FETCH_DAILY
+        fetch_type = FETCH_MINUTE
+        fetch_type = FETCH_TICK
+        fetch_type = FETCH_STATS
+        fetch_type = FETCH_PEERS
+        fetch_type = FETCH_NEWS
+        fetch_type = FETCH_FINANCIALS
+        fetch_type = FETCH_EARNINGS
+        fetch_type = FETCH_DIVIDENDS
+        fetch_type = FETCH_COMPANY
+
+    Supported ``work_dict['ft_type']`` string values:
+
+    ::
+
+        work_dict['ft_type'] = 'daily'
+        work_dict['ft_type'] = 'minute'
+        work_dict['ft_type'] = 'tick'
+        work_dict['ft_type'] = 'stats'
+        work_dict['ft_type'] = 'peers'
+        work_dict['ft_type'] = 'news'
+        work_dict['ft_type'] = 'financials'
+        work_dict['ft_type'] = 'earnings'
+        work_dict['ft_type'] = 'dividends'
+        work_dict['ft_type'] = 'company'
 
     :param work_dict: dictionary of args for the pEX call
     :param fetch_type: optional - name or enum of the fetcher to create
