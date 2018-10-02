@@ -9,6 +9,8 @@ import ujson
 import pandas as pd
 import pyEX as p
 import string
+import warnings
+warnings.filterwarnings("ignore")  # noqa
 from spylunking.log.setup_logging import build_colorized_logger
 from trading_calendars import get_calendar
 from datetime import datetime, timedelta, date

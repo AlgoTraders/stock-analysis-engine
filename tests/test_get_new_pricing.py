@@ -4,8 +4,8 @@ update prices
 """
 
 import mock
-import tests.mock_pinance
-from tests.base_test import BaseTestCase
+import analysis_engine.mocks.mock_pinance
+from analysis_engine.mocks.base_test import BaseTestCase
 from analysis_engine.consts import SUCCESS
 from analysis_engine.consts import ERR
 from analysis_engine.work_tasks.get_new_pricing_data \
@@ -56,11 +56,11 @@ class TestGetNewPricing(BaseTestCase):
 
     @mock.patch(
         'pinance.Pinance',
-        new=tests.mock_pinance.MockPinance)
+        new=analysis_engine.mocks.mock_pinance.MockPinance)
     @mock.patch(
         ('analysis_engine.get_pricing.'
          'get_options'),
-        new=tests.mock_pinance.mock_get_options)
+        new=analysis_engine.mocks.mock_pinance.mock_get_options)
     @mock.patch(
         ('analysis_engine.get_task_results.'
          'get_task_results'),
@@ -87,7 +87,7 @@ class TestGetNewPricing(BaseTestCase):
 
     @mock.patch(
         'pinance.Pinance',
-        new=tests.mock_pinance.MockPinance)
+        new=analysis_engine.mocks.mock_pinance.MockPinance)
     @mock.patch(
         ('analysis_engine.work_tasks.publish_pricing_update.'
          'run_publish_pricing_update'),

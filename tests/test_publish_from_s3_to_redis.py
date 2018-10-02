@@ -16,8 +16,9 @@ Please ensure ``redis`` and ``minio`` are running and export this:
 
 import json
 import mock
-import tests.mock_boto3_s3
-import tests.mock_redis
+import analysis_engine.mocks.mock_boto3_s3
+import analysis_engine.mocks.mock_redis
+from analysis_engine.mocks.base_test import BaseTestCase
 from analysis_engine.consts import S3_ACCESS_KEY
 from analysis_engine.consts import S3_SECRET_KEY
 from analysis_engine.consts import S3_REGION_NAME
@@ -32,7 +33,6 @@ from analysis_engine.consts import TICKER
 from analysis_engine.consts import SUCCESS
 from analysis_engine.consts import ERR
 from analysis_engine.consts import ev
-from tests.base_test import BaseTestCase
 from analysis_engine.api_requests \
     import build_cache_ready_pricing_dataset
 from analysis_engine.work_tasks.publish_from_s3_to_redis \
@@ -104,10 +104,10 @@ class TestPublishFromS3ToRedis(BaseTestCase):
 
     @mock.patch(
         ('boto3.resource'),
-        new=tests.mock_boto3_s3.build_boto3_resource)
+        new=analysis_engine.mocks.mock_boto3_s3.build_boto3_resource)
     @mock.patch(
         ('redis.Redis'),
-        new=tests.mock_redis.MockRedis)
+        new=analysis_engine.mocks.mock_redis.MockRedis)
     @mock.patch(
         ('analysis_engine.get_task_results.'
          'get_task_results'),

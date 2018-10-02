@@ -95,6 +95,7 @@ setup(
     packages=[
         'analysis_engine',
         'analysis_engine.iex',
+        'analysis_engine.mocks',
         'analysis_engine.log',
         'analysis_engine.scripts',
         'analysis_engine.work_tasks',

@@ -18,13 +18,17 @@ import os
 import uuid
 import json
 import mock
-from tests.mock_boto3_s3 import build_boto3_resource
-from tests.mock_boto3_s3 import mock_publish_from_s3_to_redis
-from tests.mock_boto3_s3 import mock_publish_from_s3_to_redis_err
-from tests.mock_boto3_s3 import mock_publish_from_s3_exception
-from tests.mock_redis import MockRedis
-from tests.mock_redis import MockRedisFailToConnect
-from tests.base_test import BaseTestCase
+from analysis_engine.mocks.mock_boto3_s3 import \
+    build_boto3_resource
+from analysis_engine.mocks.mock_boto3_s3 import \
+    mock_publish_from_s3_to_redis
+from analysis_engine.mocks.mock_boto3_s3 import \
+    mock_publish_from_s3_to_redis_err
+from analysis_engine.mocks.mock_boto3_s3 import \
+    mock_publish_from_s3_exception
+from analysis_engine.mocks.mock_redis import MockRedis
+from analysis_engine.mocks.mock_redis import MockRedisFailToConnect
+from analysis_engine.mocks.base_test import BaseTestCase
 from analysis_engine.consts import S3_ACCESS_KEY
 from analysis_engine.consts import S3_SECRET_KEY
 from analysis_engine.consts import S3_REGION_NAME

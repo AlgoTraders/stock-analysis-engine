@@ -3,7 +3,7 @@ Test file for:
 IEX Fetch Data
 """
 
-from tests.base_test import BaseTestCase
+from analysis_engine.mocks.base_test import BaseTestCase
 from analysis_engine.consts import ev
 from analysis_engine.iex.fetch_data \
     import fetch_data
