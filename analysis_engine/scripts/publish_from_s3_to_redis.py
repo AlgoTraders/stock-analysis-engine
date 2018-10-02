@@ -269,15 +269,26 @@ def publish_from_s3_to_redis():
                 ppj(work)))
         task_res = task_publisher.publish_from_s3_to_redis(
             work)
-        log.info(
-            'done - result={} '
-            'task={} status={} '
-            'err={} label={}'.format(
-                ppj(task_res),
-                task_name,
-                get_status(status=task_res['status']),
-                task_res['err'],
-                work['label']))
+        if debug:
+            log.info(
+                'done - result={} '
+                'task={} status={} '
+                'err={} label={}'.format(
+                    ppj(task_res),
+                    task_name,
+                    get_status(status=task_res['status']),
+                    task_res['err'],
+                    work['label']))
+        else:
+            log.info(
+                'done - result '
+                'task={} status={} '
+                'err={} label={}'.format(
+                    task_name,
+                    get_status(status=task_res['status']),
+                    task_res['err'],
+                    work['label']))
+        # if/else debug
     else:
         log.info(
             'connecting to broker={} backend={}'.format(

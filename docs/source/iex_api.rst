@@ -1,18 +1,32 @@
 IEX API
 =======
 
-These are documents for developing and understanding how the Stock Analysis Engine works. Please refer to the repository for the latest source code examples:
+Get Data from IEX
+=================
 
-https://github.com/AlgoTraders/stock-analysis-engine/
+.. automodule:: analysis_engine.iex.get_data
+   :members: get_data_from_iex
 
 Fetch Data from IEX
 ===================
 
+This is a helper for the parent method:
+
+``analysis_engine.iex.get_data.py``
+
 .. automodule:: analysis_engine.iex.fetch_data
    :members: fetch_data
 
-Fetch Helpers
-=============
+Fetch Common Utilities
+======================
 
 .. automodule:: analysis_engine.iex.fetch_api
    :members: fetch_daily,fetch_minute,fetch_stats,fetch_stats,fetch_news,fetch_financials,fetch_earnings,fetch_dividends,fetch_company
+
+Default Fields
+--------------
+
+.. automodule:: analysis_engine.iex.get_default_fields
+   :members: get_default_fields
+
+

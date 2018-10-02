@@ -1,5 +1,9 @@
 """
-Factory method for running fetch data from IEX
+Fetch data from
+`IEX <https://iextrading.com/developer/docs/>`__
+using
+`pyEX <https://github.com/timkpaine/pyEX>`__
+with the factory method ``fetch_data``
 """
 
 import analysis_engine.iex.fetch_api as fetch_api
@@ -25,8 +29,10 @@ def fetch_data(
         fetch_type=None):
     """fetch_data
 
-    factory method for fetching data using an enum or
-    string alias
+    Factory method for fetching data from
+    IEX using an enum or string alias. Returns
+    a pandas ``DataFrame`` and only supports
+    one ticker at a time.
 
     Supported enums from: ``analysis_engine.iex.consts``
 

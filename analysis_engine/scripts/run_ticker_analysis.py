@@ -84,6 +84,15 @@ def run_ticker_analysis():
         required=True,
         dest='ticker')
     parser.add_argument(
+        '-g',
+        help=(
+            'optional - fetch mode: '
+            'all = fetch from all data sources (default), '
+            'yahoo = fetch from just Yahoo sources, '
+            'iex = fetch from just IEX sources'),
+        required=False,
+        dest='fetch_mode')
+    parser.add_argument(
         '-i',
         help=(
             'optional - ticker id '
@@ -145,7 +154,7 @@ def run_ticker_analysis():
         required=False,
         dest='s3_bucket_name')
     parser.add_argument(
-        '-g',
+        '-G',
         help=(
             'optional - s3 region name'),
         required=False,
@@ -235,6 +244,7 @@ def run_ticker_analysis():
 
     ticker = TICKER
     ticker_id = TICKER_ID
+    fetch_mode = 'all'
     exp_date_str = NEXT_EXP_STR
     ssl_options = SSL_OPTIONS
     transport_options = TRANSPORT_OPTIONS
@@ -309,6 +319,8 @@ def run_ticker_analysis():
         s3_enabled = args.s3_enabled == '1'
     if args.redis_enabled:
         redis_enabled = args.redis_enabled == '1'
+    if args.fetch_mode:
+        fetch_mode = str(args.fetch_mode).lower()
     if args.debug:
         debug = True
 
@@ -336,6 +348,7 @@ def run_ticker_analysis():
     work['get_options'] = get_options
     work['s3_enabled'] = s3_enabled
     work['redis_enabled'] = redis_enabled
+    work['fetch_mode'] = fetch_mode
     work['debug'] = debug
     work['label'] = 'ticker={}'.format(
         ticker)
@@ -352,15 +365,27 @@ def run_ticker_analysis():
                 ppj(work)))
         task_res = task_pricing.get_new_pricing_data(
             work)
-        log.info(
-            'done - result={} '
-            'task={} status={} '
-            'err={} label={}'.format(
-                ppj(task_res),
-                task_name,
-                get_status(status=task_res['status']),
-                task_res['err'],
-                work['label']))
+
+        if debug:
+            log.info(
+                'done - result={} '
+                'task={} status={} '
+                'err={} label={}'.format(
+                    ppj(task_res),
+                    task_name,
+                    get_status(status=task_res['status']),
+                    task_res['err'],
+                    work['label']))
+        else:
+            log.info(
+                'done - result '
+                'task={} status={} '
+                'err={} label={}'.format(
+                    task_name,
+                    get_status(status=task_res['status']),
+                    task_res['err'],
+                    work['label']))
+        # if/else debug
     else:
         log.info(
             'connecting to broker={} backend={}'.format(

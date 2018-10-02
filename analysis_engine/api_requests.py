@@ -12,12 +12,38 @@ import datetime
 import analysis_engine.iex.utils as iex_utils
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import TICKER_ID
+from analysis_engine.consts import DAILY_S3_BUCKET_NAME
+from analysis_engine.consts import MINUTE_S3_BUCKET_NAME
+from analysis_engine.consts import TICK_S3_BUCKET_NAME
+from analysis_engine.consts import STATS_S3_BUCKET_NAME
+from analysis_engine.consts import PEERS_S3_BUCKET_NAME
+from analysis_engine.consts import NEWS_S3_BUCKET_NAME
+from analysis_engine.consts import FINANCIALS_S3_BUCKET_NAME
+from analysis_engine.consts import EARNINGS_S3_BUCKET_NAME
+from analysis_engine.consts import DIVIDENDS_S3_BUCKET_NAME
+from analysis_engine.consts import COMPANY_S3_BUCKET_NAME
 from analysis_engine.consts import PREPARE_S3_BUCKET_NAME
 from analysis_engine.consts import ANALYZE_S3_BUCKET_NAME
 from analysis_engine.iex.consts import FETCH_DAILY
 from analysis_engine.iex.consts import FETCH_MINUTE
+from analysis_engine.iex.consts import FETCH_TICK
+from analysis_engine.iex.consts import FETCH_STATS
+from analysis_engine.iex.consts import FETCH_PEERS
+from analysis_engine.iex.consts import FETCH_NEWS
+from analysis_engine.iex.consts import FETCH_FINANCIALS
+from analysis_engine.iex.consts import FETCH_EARNINGS
+from analysis_engine.iex.consts import FETCH_DIVIDENDS
+from analysis_engine.iex.consts import FETCH_COMPANY
 from analysis_engine.iex.consts import DATAFEED_DAILY
 from analysis_engine.iex.consts import DATAFEED_MINUTE
+from analysis_engine.iex.consts import DATAFEED_TICK
+from analysis_engine.iex.consts import DATAFEED_STATS
+from analysis_engine.iex.consts import DATAFEED_PEERS
+from analysis_engine.iex.consts import DATAFEED_NEWS
+from analysis_engine.iex.consts import DATAFEED_FINANCIALS
+from analysis_engine.iex.consts import DATAFEED_EARNINGS
+from analysis_engine.iex.consts import DATAFEED_DIVIDENDS
+from analysis_engine.iex.consts import DATAFEED_COMPANY
 
 
 def build_get_new_pricing_request(
@@ -380,6 +406,8 @@ def build_iex_fetch_daily_request(
         label=None):
     """build_iex_fetch_daily_request
 
+    Fetch daily data from IEX
+
     :param label: log label to use
     """
     ticker = TICKER
@@ -387,7 +415,7 @@ def build_iex_fetch_daily_request(
         ticker,
         datetime.datetime.utcnow().strftime(
             '%Y_%m_%d_%H_%M_%S'))
-    s3_bucket_name = PREPARE_S3_BUCKET_NAME
+    s3_bucket_name = DAILY_S3_BUCKET_NAME
     s3_key = base_key
     redis_key = base_key
     s3_enabled = True
@@ -416,6 +444,8 @@ def build_iex_fetch_minute_request(
         label=None):
     """build_iex_fetch_minute_request
 
+    Fetch minute data from IEX
+
     :param label: log label to use
     """
     ticker = TICKER
@@ -423,7 +453,7 @@ def build_iex_fetch_minute_request(
         ticker,
         datetime.datetime.utcnow().strftime(
             '%Y_%m_%d_%H_%M_%S'))
-    s3_bucket_name = PREPARE_S3_BUCKET_NAME
+    s3_bucket_name = MINUTE_S3_BUCKET_NAME
     s3_key = base_key
     redis_key = base_key
     s3_enabled = True
@@ -434,7 +464,8 @@ def build_iex_fetch_minute_request(
         'fd_type': DATAFEED_MINUTE,
         'ticker': ticker,
         'timeframe': '1d',
-        'from_historical_date': iex_utils.last_month(),
+        'from': iex_utils.last_month().strftime(
+            '%Y-%m-%d %H:%M:%S'),
         'last_close': None,
         's3_bucket': s3_bucket_name,
         's3_key': s3_key,
@@ -448,3 +479,323 @@ def build_iex_fetch_minute_request(
 
     return work
 # end of build_iex_fetch_minute_request
+
+
+def build_iex_fetch_tick_request(
+        label=None):
+    """build_iex_fetch_tick_request
+
+    Fetch tick data from IEX
+
+    :param label: log label to use
+    """
+    ticker = TICKER
+    base_key = '{}_tick_{}'.format(
+        ticker,
+        datetime.datetime.utcnow().strftime(
+            '%Y_%m_%d_%H_%M_%S'))
+    s3_bucket_name = TICK_S3_BUCKET_NAME
+    s3_key = base_key
+    redis_key = base_key
+    s3_enabled = True
+    redis_enabled = True
+
+    work = {
+        'ft_type': FETCH_TICK,
+        'fd_type': DATAFEED_TICK,
+        'ticker': ticker,
+        'timeframe': '1d',
+        'from': iex_utils.last_month().strftime(
+            '%Y-%m-%d %H:%M:%S'),
+        'last_close': None,
+        's3_bucket': s3_bucket_name,
+        's3_key': s3_key,
+        'redis_key': redis_key,
+        's3_enabled': s3_enabled,
+        'redis_enabled': redis_enabled
+    }
+
+    if label:
+        work['label'] = label
+
+    return work
+# end of build_iex_fetch_tick_request
+
+
+def build_iex_fetch_stats_request(
+        label=None):
+    """build_iex_fetch_stats_request
+
+    Fetch statistic data from IEX
+
+    :param label: log label to use
+    """
+    ticker = TICKER
+    base_key = '{}_stat_{}'.format(
+        ticker,
+        datetime.datetime.utcnow().strftime(
+            '%Y_%m_%d_%H_%M_%S'))
+    s3_bucket_name = STATS_S3_BUCKET_NAME
+    s3_key = base_key
+    redis_key = base_key
+    s3_enabled = True
+    redis_enabled = True
+
+    work = {
+        'ft_type': FETCH_STATS,
+        'fd_type': DATAFEED_STATS,
+        'ticker': ticker,
+        'from': iex_utils.last_month().strftime(
+            '%Y-%m-%d %H:%M:%S'),
+        's3_bucket': s3_bucket_name,
+        's3_key': s3_key,
+        'redis_key': redis_key,
+        's3_enabled': s3_enabled,
+        'redis_enabled': redis_enabled
+    }
+
+    if label:
+        work['label'] = label
+
+    return work
+# end of build_iex_fetch_stats_request
+
+
+def build_iex_fetch_peers_request(
+        label=None):
+    """build_iex_fetch_peers_request
+
+    Fetch peer data from IEX
+
+    :param label: log label to use
+    """
+    ticker = TICKER
+    base_key = '{}_peer_{}'.format(
+        ticker,
+        datetime.datetime.utcnow().strftime(
+            '%Y_%m_%d_%H_%M_%S'))
+    s3_bucket_name = PEERS_S3_BUCKET_NAME
+    s3_key = base_key
+    redis_key = base_key
+    s3_enabled = True
+    redis_enabled = True
+
+    work = {
+        'ft_type': FETCH_PEERS,
+        'fd_type': DATAFEED_PEERS,
+        'ticker': ticker,
+        'timeframe': '1d',
+        'from': iex_utils.last_month().strftime(
+            '%Y-%m-%d %H:%M:%S'),
+        's3_bucket': s3_bucket_name,
+        's3_key': s3_key,
+        'redis_key': redis_key,
+        's3_enabled': s3_enabled,
+        'redis_enabled': redis_enabled
+    }
+
+    if label:
+        work['label'] = label
+
+    return work
+# end of build_iex_fetch_peers_request
+
+
+def build_iex_fetch_news_request(
+        label=None):
+    """build_iex_fetch_news_request
+
+    Fetch news data from IEX
+
+    :param label: log label to use
+    """
+    ticker = TICKER
+    base_key = '{}_news_{}'.format(
+        ticker,
+        datetime.datetime.utcnow().strftime(
+            '%Y_%m_%d_%H_%M_%S'))
+    s3_bucket_name = NEWS_S3_BUCKET_NAME
+    s3_key = base_key
+    redis_key = base_key
+    s3_enabled = True
+    redis_enabled = True
+
+    work = {
+        'ft_type': FETCH_NEWS,
+        'fd_type': DATAFEED_NEWS,
+        'ticker': ticker,
+        'timeframe': '1d',
+        'from': iex_utils.last_month().strftime(
+            '%Y-%m-%d %H:%M:%S'),
+        's3_bucket': s3_bucket_name,
+        's3_key': s3_key,
+        'redis_key': redis_key,
+        's3_enabled': s3_enabled,
+        'redis_enabled': redis_enabled
+    }
+
+    if label:
+        work['label'] = label
+
+    return work
+# end of build_iex_fetch_news_request
+
+
+def build_iex_fetch_financials_request(
+        label=None):
+    """build_iex_fetch_financials_request
+
+    Fetch financial data from IEX
+
+    :param label: log label to use
+    """
+    ticker = TICKER
+    base_key = '{}_financial_{}'.format(
+        ticker,
+        datetime.datetime.utcnow().strftime(
+            '%Y_%m_%d_%H_%M_%S'))
+    s3_bucket_name = FINANCIALS_S3_BUCKET_NAME
+    s3_key = base_key
+    redis_key = base_key
+    s3_enabled = True
+    redis_enabled = True
+
+    work = {
+        'ft_type': FETCH_FINANCIALS,
+        'fd_type': DATAFEED_FINANCIALS,
+        'ticker': ticker,
+        'timeframe': '1d',
+        'from': iex_utils.last_month().strftime(
+            '%Y-%m-%d %H:%M:%S'),
+        's3_bucket': s3_bucket_name,
+        's3_key': s3_key,
+        'redis_key': redis_key,
+        's3_enabled': s3_enabled,
+        'redis_enabled': redis_enabled
+    }
+
+    if label:
+        work['label'] = label
+
+    return work
+# end of build_iex_fetch_financials_request
+
+
+def build_iex_fetch_earnings_request(
+        label=None):
+    """build_iex_fetch_earnings_request
+
+    Fetch earnings data from IEX
+
+    :param label: log label to use
+    """
+    ticker = TICKER
+    base_key = '{}_earning_{}'.format(
+        ticker,
+        datetime.datetime.utcnow().strftime(
+            '%Y_%m_%d_%H_%M_%S'))
+    s3_bucket_name = EARNINGS_S3_BUCKET_NAME
+    s3_key = base_key
+    redis_key = base_key
+    s3_enabled = True
+    redis_enabled = True
+
+    work = {
+        'ft_type': FETCH_EARNINGS,
+        'fd_type': DATAFEED_EARNINGS,
+        'ticker': ticker,
+        'timeframe': '1d',
+        'from': iex_utils.last_month().strftime(
+            '%Y-%m-%d %H:%M:%S'),
+        's3_bucket': s3_bucket_name,
+        's3_key': s3_key,
+        'redis_key': redis_key,
+        's3_enabled': s3_enabled,
+        'redis_enabled': redis_enabled
+    }
+
+    if label:
+        work['label'] = label
+
+    return work
+# end of build_iex_fetch_earnings_request
+
+
+def build_iex_fetch_dividends_request(
+        label=None):
+    """build_iex_fetch_dividends_request
+
+    Fetch dividend data from IEX
+
+    :param label: log label to use
+    """
+    ticker = TICKER
+    base_key = '{}_dividend_{}'.format(
+        ticker,
+        datetime.datetime.utcnow().strftime(
+            '%Y_%m_%d_%H_%M_%S'))
+    s3_bucket_name = DIVIDENDS_S3_BUCKET_NAME
+    s3_key = base_key
+    redis_key = base_key
+    s3_enabled = True
+    redis_enabled = True
+
+    work = {
+        'ft_type': FETCH_DIVIDENDS,
+        'fd_type': DATAFEED_DIVIDENDS,
+        'ticker': ticker,
+        'timeframe': '1d',
+        'from': iex_utils.last_month().strftime(
+            '%Y-%m-%d %H:%M:%S'),
+        's3_bucket': s3_bucket_name,
+        's3_key': s3_key,
+        'redis_key': redis_key,
+        's3_enabled': s3_enabled,
+        'redis_enabled': redis_enabled
+    }
+
+    if label:
+        work['label'] = label
+
+    return work
+# end of build_iex_fetch_dividends_request
+
+
+def build_iex_fetch_company_request(
+        label=None):
+    """build_iex_fetch_company_request
+
+    Fetch company data from IEX
+
+    :param label: log label to use
+    """
+    ticker = TICKER
+    base_key = '{}_company_{}'.format(
+        ticker,
+        datetime.datetime.utcnow().strftime(
+            '%Y_%m_%d_%H_%M_%S'))
+    s3_bucket_name = COMPANY_S3_BUCKET_NAME
+    s3_key = base_key
+    redis_key = base_key
+    s3_enabled = True
+    redis_enabled = True
+
+    work = {
+        'ft_type': FETCH_COMPANY,
+        'fd_type': DATAFEED_COMPANY,
+        'ticker': ticker,
+        'timeframe': '1d',
+        'from': iex_utils.last_month().strftime(
+            '%Y-%m-%d %H:%M:%S'),
+        's3_bucket': s3_bucket_name,
+        's3_key': s3_key,
+        'redis_key': redis_key,
+        's3_enabled': s3_enabled,
+        'redis_enabled': redis_enabled
+    }
+
+    if label:
+        work['label'] = label
+
+    return work
+# end of build_iex_fetch_company_request

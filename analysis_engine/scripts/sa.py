@@ -405,16 +405,26 @@ def run_sa_tool():
         if mode == SA_MODE_PREPARE:
             task_res = prepare_pricing_dataset.prepare_pricing_dataset(
                 work)
-        log.info(
-            'done - result={} '
-            'mode={} task='
-            'prepare_pricing_dataset.prepare_pricing_dataset '
-            'status={} err={} label={}'.format(
-                ppj(task_res),
-                get_status(status=mode),
-                get_status(status=task_res['status']),
-                task_res['err'],
-                work['label']))
+
+        if debug:
+            log.info(
+                'done - result={} '
+                'task={} status={} '
+                'err={} label={}'.format(
+                    ppj(task_res),
+                    task_name,
+                    get_status(status=task_res['status']),
+                    task_res['err'],
+                    work['label']))
+        else:
+            log.info(
+                'done - result '
+                'task={} status={} '
+                'err={} label={}'.format(
+                    task_name,
+                    get_status(status=task_res['status']),
+                    task_res['err'],
+                    work['label']))
 
         if task_res['status'] == SUCCESS:
             image_res = None

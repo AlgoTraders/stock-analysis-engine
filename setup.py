@@ -99,6 +99,7 @@ setup(
         'analysis_engine.log',
         'analysis_engine.scripts',
         'analysis_engine.work_tasks',
+        'analysis_engine.yahoo'
     ],
     package_data={},
     install_requires=install_requires,
