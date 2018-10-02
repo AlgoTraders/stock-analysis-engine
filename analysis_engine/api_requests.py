@@ -9,19 +9,27 @@ Task supports:
 """
 
 import datetime
+import analysis_engine.iex.utils as iex_utils
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import TICKER_ID
 from analysis_engine.consts import PREPARE_S3_BUCKET_NAME
 from analysis_engine.consts import ANALYZE_S3_BUCKET_NAME
+from analysis_engine.iex.consts import FETCH_DAILY
+from analysis_engine.iex.consts import FETCH_MINUTE
+from analysis_engine.iex.consts import DATAFEED_DAILY
+from analysis_engine.iex.consts import DATAFEED_MINUTE
 
 
-def build_get_new_pricing_request():
+def build_get_new_pricing_request(
+        label=None):
     """build_get_new_pricing_request
 
     Build a sample Celery task API request:
     analysis_engine.work_tasks.get_new_pricing_data
 
     Used for testing: run_get_new_pricing_data(work)
+
+    :param label: log label to use
     """
     ticker = TICKER
     ticker_id = TICKER_ID
@@ -51,15 +59,21 @@ def build_get_new_pricing_request():
         'get_options': get_options
     }
 
+    if label:
+        work['label'] = label
+
     return work
 # end of build_get_new_pricing_request
 
 
-def build_cache_ready_pricing_dataset():
+def build_cache_ready_pricing_dataset(
+        label=None):
     """build_cache_ready_pricing_dataset
 
     Build a cache-ready pricing dataset to replicate
     the ``get_new_pricing_data`` task
+
+    :param label: log label to use
     """
     cache_data = {
         "news": [
@@ -175,13 +189,16 @@ def build_cache_ready_pricing_dataset():
 # end of build_cache_ready_pricing_dataset
 
 
-def build_publish_pricing_request():
+def build_publish_pricing_request(
+        label=None):
     """build_publish_pricing_request
 
     Build a sample Celery task API request:
     analysis_engine.work_tasks.publisher_pricing_update
 
     Used for testing: run_publish_pricing_update(work)
+
+    :param label: log label to use
     """
     ticker = TICKER
     ticker_id = TICKER_ID
@@ -207,17 +224,23 @@ def build_publish_pricing_request():
         'data': use_data
     }
 
+    if label:
+        work['label'] = label
+
     return work
 # end of build_publish_pricing_request
 
 
-def build_publish_from_s3_to_redis_request():
+def build_publish_from_s3_to_redis_request(
+        label=None):
     """build_publish_from_s3_to_redis_request
 
     Build a sample Celery task API request:
     analysis_engine.work_tasks.publish_from_s3_to_redis
 
     Used for testing: run_publish_from_s3_to_redis(work)
+
+    :param label: log label to use
     """
     ticker = TICKER
     ticker_id = TICKER_ID
@@ -241,17 +264,23 @@ def build_publish_from_s3_to_redis_request():
         'redis_enabled': redis_enabled
     }
 
+    if label:
+        work['label'] = label
+
     return work
 # end of build_publish_from_s3_to_redis_request
 
 
-def build_prepare_dataset_request():
+def build_prepare_dataset_request(
+        label=None):
     """build_prepare_dataset_request
 
     Build a sample Celery task API request:
     analysis_engine.work_tasks.prepare_pricing_dataset
 
     Used for testing: run_prepare_pricing_dataset(work)
+
+    :param label: log label to use
     """
     ticker = TICKER
     ticker_id = TICKER_ID
@@ -285,17 +314,23 @@ def build_prepare_dataset_request():
         'redis_enabled': redis_enabled
     }
 
+    if label:
+        work['label'] = label
+
     return work
 # end of build_prepare_dataset_request
 
 
-def build_analyze_dataset_request():
+def build_analyze_dataset_request(
+        label=None):
     """build_analyze_dataset_request
 
     Build a sample Celery task API request:
     analysis_engine.work_tasks.analyze_pricing_dataset
 
     Used for testing: run_analyze_pricing_dataset(work)
+
+    :param label: log label to use
     """
     ticker = TICKER
     ticker_id = TICKER_ID
@@ -329,5 +364,87 @@ def build_analyze_dataset_request():
         'redis_enabled': redis_enabled
     }
 
+    if label:
+        work['label'] = label
+
     return work
 # end of build_analyze_dataset_request
+
+
+"""
+IEX API Requests
+"""
+
+
+def build_iex_fetch_daily_request(
+        label=None):
+    """build_iex_fetch_daily_request
+
+    :param label: log label to use
+    """
+    ticker = TICKER
+    base_key = '{}_daily_{}'.format(
+        ticker,
+        datetime.datetime.utcnow().strftime(
+            '%Y_%m_%d_%H_%M_%S'))
+    s3_bucket_name = PREPARE_S3_BUCKET_NAME
+    s3_key = base_key
+    redis_key = base_key
+    s3_enabled = True
+    redis_enabled = True
+
+    work = {
+        'ft_type': FETCH_DAILY,
+        'fd_type': DATAFEED_DAILY,
+        'ticker': ticker,
+        'timeframe': '5y',
+        's3_bucket': s3_bucket_name,
+        's3_key': s3_key,
+        'redis_key': redis_key,
+        's3_enabled': s3_enabled,
+        'redis_enabled': redis_enabled
+    }
+
+    if label:
+        work['label'] = label
+
+    return work
+# end of build_iex_fetch_daily_request
+
+
+def build_iex_fetch_minute_request(
+        label=None):
+    """build_iex_fetch_minute_request
+
+    :param label: log label to use
+    """
+    ticker = TICKER
+    base_key = '{}_minute_{}'.format(
+        ticker,
+        datetime.datetime.utcnow().strftime(
+            '%Y_%m_%d_%H_%M_%S'))
+    s3_bucket_name = PREPARE_S3_BUCKET_NAME
+    s3_key = base_key
+    redis_key = base_key
+    s3_enabled = True
+    redis_enabled = True
+
+    work = {
+        'ft_type': FETCH_MINUTE,
+        'fd_type': DATAFEED_MINUTE,
+        'ticker': ticker,
+        'timeframe': '1d',
+        'from_historical_date': iex_utils.last_month(),
+        'last_close': None,
+        's3_bucket': s3_bucket_name,
+        's3_key': s3_key,
+        'redis_key': redis_key,
+        's3_enabled': s3_enabled,
+        'redis_enabled': redis_enabled
+    }
+
+    if label:
+        work['label'] = label
+
+    return work
+# end of build_iex_fetch_minute_request

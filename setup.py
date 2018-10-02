@@ -50,6 +50,7 @@ install_requires = [
     'sphinx-autobuild',
     'sphinx_rtd_theme',
     'spylunking',
+    'trading_calendars',
     'unittest2'
 ]
 
@@ -79,7 +80,7 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.0.12',
+    version='1.0.13',
     description=(
         'Stock Analysis Engine - '
         'Use this to get pricing data for tickers '
@@ -92,6 +93,7 @@ setup(
     url='https://github.com/AlgoTraders/stock-analysis-engine',
     packages=[
         'analysis_engine',
+        'analysis_engine.iex',
         'analysis_engine.log',
         'analysis_engine.scripts',
         'analysis_engine.work_tasks',

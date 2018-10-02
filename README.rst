@@ -426,6 +426,13 @@ Prepare Dataset
 
     python -m unittest tests.test_prepare_pricing_dataset.TestPreparePricingDataset.test_integration_prepare_pricing_dataset
 
+IEX Fetch Testing
+-----------------
+
+::
+
+    python -m unittest tests.test_iex_fetch_data
+
 Prepare a Dataset
 =================
 
@@ -463,3 +470,21 @@ License
 Apache 2.0 - Please refer to the LICENSE_ for more details
 
 .. _License: https://github.com/AlgoTraders/stock-analysis-engine/blob/master/LICENSE
+
+Terms of Service
+================
+
+Data Attribution
+================
+
+This repository currently uses yahoo and `IEX <https://iextrading.com/developer/docs/>`__ for pricing data. Usage of these feeds require the following agreements in the terms of service.
+
+IEX Real-Time Price
+===================
+
+If you redistribute our API data:
+
+- Cite IEX using the following text and link: "Data provided for free by IEX."
+- Provide a link to https://iextrading.com/api-exhibit-a in your terms of service.
+- Additionally, if you display our TOPS price data, cite "IEX Real-Time Price" near the price.
+
