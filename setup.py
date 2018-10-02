@@ -44,6 +44,7 @@ install_requires = [
     'pypandoc',
     'pycodestyle<=2.3.1',
     'pylint',
+    'pyEX',
     'recommonmark',
     'redis',
     'sphinx',
