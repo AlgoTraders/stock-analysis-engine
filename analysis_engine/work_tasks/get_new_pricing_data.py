@@ -1,16 +1,24 @@
 """
 Get New Pricing Data
+
+.. warning:: When fetching pricing data from sources like IEX,
+             Please ensure the returned values are
+             not serialized pandas Dataframes to prevent
+             issues with celery task results. Instead
+             it is preferred to returned a ``df.to_json()``
+             before sending the results into the
+             results backend.
+
 """
 
 import datetime
+import copy
 import analysis_engine.build_result as build_result
 import analysis_engine.get_task_results
 import analysis_engine.work_tasks.custom_task
 import analysis_engine.options_dates
-import analysis_engine.get_pricing
 import analysis_engine.work_tasks.publish_pricing_update as \
     publisher
-import pinance
 from celery.task import task
 from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.consts import SUCCESS
@@ -37,6 +45,13 @@ from analysis_engine.consts import get_status
 from analysis_engine.consts import ev
 from analysis_engine.consts import ppj
 from analysis_engine.consts import is_celery_disabled
+from analysis_engine.consts import FETCH_MODE_ALL
+from analysis_engine.consts import FETCH_MODE_YHO
+from analysis_engine.consts import FETCH_MODE_IEX
+from analysis_engine.iex.consts import DEFAULT_FETCH_DATASETS
+from analysis_engine.iex.consts import get_ft_str
+import analysis_engine.yahoo.get_data as yahoo_data
+import analysis_engine.iex.get_data as iex_data
 
 
 log = build_colorized_logger(
@@ -75,6 +90,16 @@ def get_new_pricing_data(
         'pricing': None,
         'options': None,
         'news': None,
+        'daily': None,
+        'minute': None,
+        'tick': None,
+        'stats': None,
+        'peers': None,
+        'iex_news': None,
+        'financials': None,
+        'earnings': None,
+        'dividends': None,
+        'company': None,
         'exp_date': None,
         'publish_pricing_update': None,
         'date': None,
@@ -106,32 +131,46 @@ def get_new_pricing_data(
             'exp_date',
             None)
         cur_date = datetime.datetime.utcnow()
-        cur_close = None
         cur_strike = work_dict.get(
             'strike',
             None)
         contract_type = str(work_dict.get(
             'contract',
             'C')).upper()
-        get_pricing = work_dict.get(
-            'get_pricing',
-            True)
-        get_news = work_dict.get(
-            'get_news',
-            True)
-        get_options = work_dict.get(
-            'get_options',
-            True)
         label = work_dict.get(
             'label',
             label)
-        num_news_rec = 0
-        num_options_chains = 0
-        cur_high = -1
-        cur_low = -1
-        cur_open = -1
-        cur_close = -1
-        cur_volume = -1
+        iex_datasets = work_dict.get(
+            'iex_datasets',
+            DEFAULT_FETCH_DATASETS)
+        fetch_mode = work_dict.get(
+            'fetch_mode',
+            FETCH_MODE_ALL)
+
+        # control flags to deal with feed issues:
+        get_yahoo_data = True
+        get_iex_data = True
+
+        if (
+                fetch_mode == FETCH_MODE_ALL
+                or str(fetch_mode).lower() == 'all'):
+            get_yahoo_data = True
+            get_iex_data = True
+        elif (
+                fetch_mode == FETCH_MODE_YHO
+                or str(fetch_mode).lower() == 'yahoo'):
+            get_yahoo_data = True
+            get_iex_data = False
+        elif (
+                fetch_mode == FETCH_MODE_IEX
+                or str(fetch_mode).lower() == 'iex'):
+            get_yahoo_data = False
+            get_iex_data = True
+        else:
+            log.debug(
+                '{} - unsupported fetch_mode={} value'.format(
+                    label,
+                    fetch_mode))
 
         if not exp_date:
             exp_date = analysis_engine.options_dates.option_expiration(
@@ -144,122 +183,109 @@ def get_new_pricing_data(
         rec['updated'] = cur_date.strftime('%Y-%m-%d %H:%M:%S')
         log.info(
             '{} getting pricing for ticker={} '
-            'cur_date={} exp_date={}'.format(
+            'cur_date={} exp_date={} '
+            'yahoo={} iex={}'.format(
                 label,
                 ticker,
                 cur_date,
-                exp_date))
+                exp_date,
+                get_yahoo_data,
+                get_iex_data))
 
-        ticker_results = pinance.Pinance(ticker)
+        yahoo_rec = {
+            'pricing': None,
+            'options': None,
+            'news': None,
+            'exp_date': None,
+            'publish_pricing_update': None,
+            'date': None,
+            'updated': None
+        }
 
-        if get_pricing:
+        if get_yahoo_data:
             log.info(
-                '{} getting ticker={} pricing'.format(
+                '{} yahoo ticker={}'.format(
                     label,
                     ticker))
-            ticker_results.get_quotes()
-            if ticker_results.quotes_data:
-                rec['pricing'] = ticker_results.quotes_data
-
-                cur_high = rec['pricing'].get(
-                    'regularMarketDayHigh',
-                    None)
-                cur_low = rec['pricing'].get(
-                    'regularMarketDayLow',
-                    None)
-                cur_open = rec['pricing'].get(
-                    'regularMarketOpen',
-                    None)
-                cur_close = rec['pricing'].get(
-                    'regularMarketPreviousClose',
-                    None)
-                cur_volume = rec['pricing'].get(
-                    'regularMarketVolume',
-                    None)
-                rec['pricing']['high'] = cur_high
-                rec['pricing']['low'] = cur_low
-                rec['pricing']['open'] = cur_open
-                rec['pricing']['close'] = cur_close
-                rec['pricing']['volume'] = cur_volume
+            yahoo_res = yahoo_data.get_data_from_yahoo(
+                work_dict=work_dict)
+            if yahoo_res['status'] == SUCCESS:
+                yahoo_rec = yahoo_res['rec']
+                log.info(
+                    '{} yahoo ticker={} '
+                    'status={} err={}'.format(
+                        label,
+                        ticker,
+                        get_status(status=yahoo_res['status']),
+                        yahoo_res['err']))
+                rec['pricing'] = yahoo_rec.get('pricing', None)
+                rec['news'] = yahoo_rec.get('news', None)
+                rec['options'] = yahoo_rec.get('options', None)
             else:
                 log.error(
-                    '{} ticker={} missing quotes_data'.format(
+                    '{} failed YAHOO ticker={} '
+                    'status={} err={}'.format(
                         label,
+                        ticker,
+                        get_status(status=yahoo_res['status']),
+                        yahoo_res['err']))
+        # end of get from yahoo
+
+        if get_iex_data:
+            num_iex_ds = len(iex_datasets)
+            log.debug(
+                '{} iex datasaets={}'.format(
+                    label,
+                    num_iex_ds))
+            for idx, ft_type in enumerate(iex_datasets):
+                dataset_field = get_ft_str(ft_type=ft_type)
+
+                log.info(
+                    '{} iex={}/{} field={} ticker={}'.format(
+                        label,
+                        idx,
+                        num_iex_ds,
+                        dataset_field,
                         ticker))
-            # end of if ticker_results.quotes_data
-
-            log.info(
-                '{} ticker={} close={} vol={}'.format(
+                iex_label = '{}-{}'.format(
                     label,
-                    ticker,
-                    cur_close,
-                    cur_volume))
-        else:
-            log.info(
-                '{} skip - getting ticker={} pricing'.format(
-                    label,
-                    ticker,
-                    get_pricing))
-        # if get_pricing
+                    dataset_field)
+                iex_req = copy.deepcopy(work_dict)
+                iex_req['label'] = iex_label
+                iex_req['ft_type'] = ft_type
+                iex_req['field'] = dataset_field
+                iex_res = iex_data.get_data_from_iex(
+                    work_dict=iex_req)
 
-        if get_news:
-            log.info(
-                '{} getting ticker={} news'.format(
-                    label,
-                    ticker))
-            ticker_results.get_news()
-            if ticker_results.news_data:
-                rec['news'] = ticker_results.news_data
-            # end of if ticker_results.news_data
-        else:
-            log.info(
-                '{} skip - getting ticker={} news'.format(
-                    label,
-                    ticker))
-        # end if get_news
-
-        if get_options:
-            use_date = exp_date.strftime('%Y-%m-%d')
-            if cur_close:
-                cur_strike = int(cur_close)
-            if not cur_strike:
-                cur_strike = 287
-
-            num_news_rec = 0
-            if rec['news']:
-                num_news_rec = len(rec['news'])
-            log.info(
-                '{} ticker={} num_news={} get options close={} '
-                'exp_date={} contract={} strike={}'.format(
-                    label,
-                    ticker,
-                    num_news_rec,
-                    cur_close,
-                    use_date,
-                    contract_type,
-                    cur_strike))
-
-            rec['options'] = \
-                analysis_engine.get_pricing.get_options(
-                    ticker=ticker,
-                    exp_date_str=use_date,
-                    contract_type=contract_type,
-                    strike=cur_strike)
-
-            num_options_chains = len(rec['options'])
-        else:
-            log.info(
-                '{} skip - getting ticker={} options'.format(
-                    label,
-                    ticker))
-        # end of if get_options
+                if iex_res['status'] == SUCCESS:
+                    iex_rec = iex_res['rec']
+                    log.info(
+                        '{} iex ticker={} field={} '
+                        'status={} err={}'.format(
+                            label,
+                            ticker,
+                            dataset_field,
+                            get_status(status=iex_res['status']),
+                            iex_res['err']))
+                    if dataset_field == 'news':
+                        rec['iex_news'] = iex_rec['data']
+                    else:
+                        rec[dataset_field] = iex_rec['data']
+                else:
+                    log.debug(
+                        '{} failed IEX ticker={} field={} '
+                        'status={} err={}'.format(
+                            label,
+                            ticker,
+                            dataset_field,
+                            get_status(status=iex_res['status']),
+                            iex_res['err']))
+                # end of if/else succcess
+            # end idx, ft_type in enumerate(iex_datasets):
+        # end of if get_iex_data
 
         update_req = {
-            'data': {
-                'pricing': rec.get('pricing', None),
-                'news': rec.get('news', None),
-                'options': rec.get('options', None)
-            }
+            'data': rec
         }
         update_req['ticker'] = ticker
         update_req['ticker_id'] = ticker_id
@@ -304,29 +330,8 @@ def get_new_pricing_data(
         update_req['updated'] = rec['updated']
         update_req['label'] = label
         update_req['celery_disabled'] = True
-
-        if ev('DEBUG_GET_PRICING', '0') == '1':
-            log.info(
-                '{} updating pricing for ticker={} close={} '
-                'options={} news={} data={}'.format(
-                    label,
-                    ticker,
-                    cur_close,
-                    num_options_chains,
-                    num_news_rec,
-                    ppj(update_req)))
-
-        else:
-            log.info(
-                '{} updating pricing for ticker={} close={} '
-                'options={} news={}'.format(
-                    label,
-                    ticker,
-                    cur_close,
-                    num_options_chains,
-                    num_news_rec))
-
         update_status = NOT_SET
+
         try:
             update_res = publisher.run_publish_pricing_update(
                 work_dict=update_req)

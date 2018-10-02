@@ -79,6 +79,42 @@ Supported S3 Environment Variables
     S3_KEY = ev(
         'S3_KEY',
         'test_key')
+    DAILY_S3_BUCKET_NAME = ev(
+        'DAILY_S3_BUCKET_NAME',
+        'daily')
+    MINUTE_S3_BUCKET_NAME = ev(
+        'MINUTE_S3_BUCKET_NAME',
+        'minute')
+    TICK_S3_BUCKET_NAME = ev(
+        'TICK_S3_BUCKET_NAME',
+        'tick')
+    STATS_S3_BUCKET_NAME = ev(
+        'STATS_S3_BUCKET_NAME',
+        'stats')
+    PEERS_S3_BUCKET_NAME = ev(
+        'PEERS_S3_BUCKET_NAME',
+        'peers')
+    NEWS_S3_BUCKET_NAME = ev(
+        'NEWS_S3_BUCKET_NAME',
+        'news')
+    FINANCIALS_S3_BUCKET_NAME = ev(
+        'FINANCIALS_S3_BUCKET_NAME',
+        'financials')
+    EARNINGS_S3_BUCKET_NAME = ev(
+        'EARNINGS_S3_BUCKET_NAME',
+        'earnings')
+    DIVIDENDS_S3_BUCKET_NAME = ev(
+        'DIVIDENDS_S3_BUCKET_NAME',
+        'dividends')
+    COMPANY_S3_BUCKET_NAME = ev(
+        'COMPANY_S3_BUCKET_NAME',
+        'company')
+    PREPARE_S3_BUCKET_NAME = ev(
+        'PREPARE_S3_BUCKET_NAME',
+        'prepared')
+    ANALYZE_S3_BUCKET_NAME = ev(
+        'ANALYZE_S3_BUCKET_NAME',
+        'analyzed')
 
 Supported Redis Environment Variables
 -------------------------------------
@@ -144,6 +180,10 @@ PLOT_ACTION_SHOW = 900
 PLOT_ACTION_SAVE_TO_S3 = 901
 PLOT_ACTION_SAVE_AS_FILE = 902
 
+FETCH_MODE_ALL = 1000
+FETCH_MODE_YHO = 1001
+FETCH_MODE_IEX = 1002
+
 # version of python
 IS_PY2 = sys.version[0] == '2'
 
@@ -187,6 +227,39 @@ DEFAULT_TICKERS = ev(
     'SPY,XLF,XLK,XLI,XLU').split(',')
 NEXT_EXP = analysis_engine.options_dates.option_expiration()
 NEXT_EXP_STR = NEXT_EXP.strftime('%Y-%m-%d')
+DAILY_S3_BUCKET_NAME = ev(
+    'DAILY_S3_BUCKET_NAME',
+    'daily')
+MINUTE_S3_BUCKET_NAME = ev(
+    'MINUTE_S3_BUCKET_NAME',
+    'minute')
+TICK_S3_BUCKET_NAME = ev(
+    'TICK_S3_BUCKET_NAME',
+    'tick')
+STATS_S3_BUCKET_NAME = ev(
+    'STATS_S3_BUCKET_NAME',
+    'stats')
+PEERS_S3_BUCKET_NAME = ev(
+    'PEERS_S3_BUCKET_NAME',
+    'peers')
+NEWS_S3_BUCKET_NAME = ev(
+    'NEWS_S3_BUCKET_NAME',
+    'news')
+FINANCIALS_S3_BUCKET_NAME = ev(
+    'FINANCIALS_S3_BUCKET_NAME',
+    'financials')
+EARNINGS_S3_BUCKET_NAME = ev(
+    'EARNINGS_S3_BUCKET_NAME',
+    'earnings')
+DIVIDENDS_S3_BUCKET_NAME = ev(
+    'DIVIDENDS_S3_BUCKET_NAME',
+    'dividends')
+COMPANY_S3_BUCKET_NAME = ev(
+    'COMPANY_S3_BUCKET_NAME',
+    'company')
+FETCH_MODE = ev(
+    'FETCH_MODE',
+    'full')
 PREPARE_S3_BUCKET_NAME = ev(
     'PREPARE_S3_BUCKET_NAME',
     'prepared')

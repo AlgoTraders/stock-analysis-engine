@@ -29,14 +29,14 @@ def get_task_results(
     """get_task_results
 
     If celery is disabled by the
-    environment key ```export CELERY_DISABLED=1```
-    or requested in the ```work_dict['celery_disabled'] = True``` then
+    environment key ``export CELERY_DISABLED=1``
+    or requested in the ``work_dict['celery_disabled'] = True`` then
     return the task result dictionary, otherwise
-    return ```None```.
+    return ``None``.
 
     This method is useful for allowing tests
     to override the returned payloads during task chaining
-    using ```@mock.patch```.
+    using ``@mock.patch``.
 
     :param work_dict: task work dictionary
     :param result: task result dictionary

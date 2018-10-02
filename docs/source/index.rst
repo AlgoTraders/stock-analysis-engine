@@ -29,7 +29,10 @@ It uses `Celery workers to process all tasks <http://www.celeryproject.org/>`__ 
    README
    scripts
    api_reference
+   iex_api
+   yahoo_api
    charts
+   mock_api
 
 Indices and tables
 ==================

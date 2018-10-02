@@ -1,7 +1,7 @@
 Stock Analysis Engine
 =====================
 
-Use this to get pricing data for tickers (news, quotes and options right now) and archive it in s3 (using `minio <https://minio.io>`__) and cache it in redis.
+Analyze information about publicly traded companies from `Yahoo <https://finance.yahoo.com/>`__ and `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__ (supported data includes: news, quotes, dividends, daily, intraday, statistics, financials, earnings, options, and more). Once collected the data is archived in s3 (using `minio <https://minio.io>`__) and automatically cached in redis.
 
 It uses `Celery workers to process all tasks <http://www.celeryproject.org/>`__ and is a horizontally scalable worker pool that works with many `transports and backends <https://github.com/celery/celery#transports-and-backends>`__
 
@@ -109,6 +109,7 @@ Running on Mac OS X
 
         python3 -m venv /opt/venv
         source /opt/venv/bin/activate
+        pip install --upgrade pip setuptools
 
 #.  Install Certs
 
@@ -158,21 +159,21 @@ Run the ticker analysis using the `./analysis_engine/scripts/run_ticker_analysis
 
 ::
 
-    run_ticker_analysis.py -t SPY -e 2018-09-21 -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -n SPY_demo -P 1 -N 1 -O 1 -U 1 -R 1
+    run_ticker_analysis.py -t SPY -g all -e 2018-10-19 -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -n SPY_demo -P 1 -N 1 -O 1 -U 1 -R 1
 
 ::
 
-    run_ticker_analysis.py -h
-    usage: run_ticker_analysis.py [-h] -t TICKER [-i TICKER_ID] [-e EXP_DATE_STR]
-                                [-l LOG_CONFIG_PATH] [-b BROKER_URL]
-                                [-B BACKEND_URL] [-k S3_ACCESS_KEY]
-                                [-s S3_SECRET_KEY] [-a S3_ADDRESS]
-                                [-S S3_SECURE] [-u S3_BUCKET_NAME]
-                                [-g S3_REGION_NAME] [-p REDIS_PASSWORD]
-                                [-r REDIS_ADDRESS] [-n KEYNAME] [-m REDIS_DB]
-                                [-x REDIS_EXPIRE] [-z STRIKE] [-c CONTRACT_TYPE]
-                                [-P GET_PRICING] [-N GET_NEWS] [-O GET_OPTIONS]
-                                [-U S3_ENABLED] [-R REDIS_ENABLED] [-d]
+    usage: run_ticker_analysis.py [-h] -t TICKER [-g FETCH_MODE] [-i TICKER_ID]
+                              [-e EXP_DATE_STR] [-l LOG_CONFIG_PATH]
+                              [-b BROKER_URL] [-B BACKEND_URL]
+                              [-k S3_ACCESS_KEY] [-s S3_SECRET_KEY]
+                              [-a S3_ADDRESS] [-S S3_SECURE]
+                              [-u S3_BUCKET_NAME] [-G S3_REGION_NAME]
+                              [-p REDIS_PASSWORD] [-r REDIS_ADDRESS]
+                              [-n KEYNAME] [-m REDIS_DB] [-x REDIS_EXPIRE]
+                              [-z STRIKE] [-c CONTRACT_TYPE] [-P GET_PRICING]
+                              [-N GET_NEWS] [-O GET_OPTIONS] [-U S3_ENABLED]
+                              [-R REDIS_ENABLED] [-d]
 
     Download and store the latest stock pricing, news, and options chain data and
     store it in S3 and Redis. Once stored, this will also start the buy and sell
@@ -181,6 +182,9 @@ Run the ticker analysis using the `./analysis_engine/scripts/run_ticker_analysis
     optional arguments:
     -h, --help          show this help message and exit
     -t TICKER           ticker
+    -g FETCH_MODE       optional - fetch mode: all = fetch from all data sources
+                        (default), yahoo = fetch from just Yahoo sources, iex =
+                        fetch from just IEX sources
     -i TICKER_ID        optional - ticker id not used without a database
     -e EXP_DATE_STR     optional - options expiration date
     -l LOG_CONFIG_PATH  optional - path to the log config file
@@ -191,7 +195,7 @@ Run the ticker analysis using the `./analysis_engine/scripts/run_ticker_analysis
     -a S3_ADDRESS       optional - s3 address format: <host:port>
     -S S3_SECURE        optional - s3 ssl or not
     -u S3_BUCKET_NAME   optional - s3 bucket name
-    -g S3_REGION_NAME   optional - s3 region name
+    -G S3_REGION_NAME   optional - s3 region name
     -p REDIS_PASSWORD   optional - redis_password
     -r REDIS_ADDRESS    optional - redis_address format: <host:port>
     -n KEYNAME          optional - redis and s3 key name
@@ -236,7 +240,20 @@ Run Publish from an Existing S3 Key to Redis
         127.0.0.1:6379> select 4
         OK
         127.0.0.1:6379[4]> keys *
-        1) "integration-test-v1"
+        keys *
+        1) "SPY_demo_daily"
+        2) "SPY_demo_minute"
+        3) "SPY_demo_company"
+        4) "integration-test-v1"
+        5) "SPY_demo_stats"
+        6) "SPY_demo"
+        7) "SPY_demo_tick"
+        8) "SPY_demo_peers"
+        9) "SPY_demo_dividends"
+        10) "SPY_demo_news1"
+        11) "SPY_demo_news"
+        12) "SPY_demo_options"
+        13) "SPY_demo_pricing"
         127.0.0.1:6379[4]>
 
 View Archives in S3 - Minio
@@ -267,8 +284,16 @@ https://docs.minio.io/docs/aws-cli-with-minio.html
     ::
 
         aws --endpoint-url http://localhost:9000 s3 ls
-        2018-09-16 07:23:31 integration-tests
-        2018-09-16 07:22:31 pricing
+        2018-10-02 22:24:06 company
+        2018-10-02 22:24:02 daily
+        2018-10-02 22:24:06 dividends
+        2018-10-02 22:33:15 integration-tests
+        2018-10-02 22:24:03 minute
+        2018-10-02 22:24:05 news
+        2018-10-02 22:24:04 peers
+        2018-10-02 22:24:06 pricing
+        2018-10-02 22:24:04 stats
+        2018-10-02 22:24:04 tick
 
 #.  List Pricing Bucket Contents
 
@@ -280,7 +305,7 @@ https://docs.minio.io/docs/aws-cli-with-minio.html
 
     ::
 
-        aws --endpoint-url http://localhost:9000 s3 ls s3://pricing | tail -1 | awk '{print $NF}' | grep -i spy
+        aws --endpoint-url http://localhost:9000 s3 ls s3://pricing | grep -i spy_demo
         SPY_demo
 
 View Caches in Redis
@@ -297,6 +322,12 @@ View Caches in Redis
 Testing
 =======
 
+.. note:: There is a known `pandas issue that logs a warning about _timelex <https://github.com/pandas-dev/pandas/issues/18141>`__, and it will show as a warning until it is fixed in pandas. Please ignore this warning for now.
+
+   ::
+
+        DeprecationWarning: _timelex is a private class and may break without warning, it will be moved and or renamed in future versions.
+
 Run all
 
 ::
@@ -307,7 +338,7 @@ Run a test case
 
 ::
 
-    python -m unittest tests.test_update_prices.TestUpdatePrices.test_success_update_prices
+    python -m unittest tests.test_publish_pricing_update.TestPublishPricingData.test_success_publish_pricing_data
 
 Test Publishing
 ---------------
@@ -426,6 +457,13 @@ Prepare Dataset
 
     python -m unittest tests.test_prepare_pricing_dataset.TestPreparePricingDataset.test_integration_prepare_pricing_dataset
 
+IEX Fetch Testing
+-----------------
+
+::
+
+    python -m unittest tests.test_iex_fetch_data
+
 Prepare a Dataset
 =================
 
@@ -448,7 +486,7 @@ Most of the scripts support running without Celery workers. To run without worke
     ticker=SPY
     publish_from_s3_to_redis.py -t ${ticker} -u integration-tests -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -n integration-test-v1
     sa.py -t ${ticker} -f -o ${ticker}_latest_v1 -j prepared -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -n ${ticker}_demo
-    run_ticker_analysis.py -t ${ticker} -e 2018-09-21 -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -n ${ticker}_demo -P 1 -N 1 -O 1 -U 1 -R 1
+    run_ticker_analysis.py -t ${ticker} -g all -e 2018-10-19 -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -n ${ticker}_demo -P 1 -N 1 -O 1 -U 1 -R 1
 
 Linting
 -------
@@ -463,3 +501,21 @@ License
 Apache 2.0 - Please refer to the LICENSE_ for more details
 
 .. _License: https://github.com/AlgoTraders/stock-analysis-engine/blob/master/LICENSE
+
+Terms of Service
+================
+
+Data Attribution
+================
+
+This repository currently uses yahoo and `IEX <https://iextrading.com/developer/docs/>`__ for pricing data. Usage of these feeds require the following agreements in the terms of service.
+
+IEX Real-Time Price
+===================
+
+If you redistribute our API data:
+
+- Cite IEX using the following text and link: "Data provided for free by IEX."
+- Provide a link to https://iextrading.com/api-exhibit-a in your terms of service.
+- Additionally, if you display our TOPS price data, cite "IEX Real-Time Price" near the price.
+

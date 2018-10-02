@@ -16,10 +16,10 @@ Please ensure ``redis`` and ``minio`` are running and export this:
 
 import os
 import mock
-import tests.mock_pinance
-import tests.mock_boto3_s3
-import tests.mock_redis
-from tests.base_test import BaseTestCase
+import analysis_engine.mocks.mock_pinance
+import analysis_engine.mocks.mock_boto3_s3
+import analysis_engine.mocks.mock_redis
+from analysis_engine.mocks.base_test import BaseTestCase
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import SUCCESS
 from analysis_engine.consts import ERR
@@ -71,11 +71,11 @@ class TestPublishPricingData(BaseTestCase):
 
     @mock.patch(
         'pinance.Pinance',
-        new=tests.mock_pinance.MockPinance)
+        new=analysis_engine.mocks.mock_pinance.MockPinance)
     @mock.patch(
         ('analysis_engine.get_pricing.'
          'get_options'),
-        new=tests.mock_pinance.mock_get_options)
+        new=analysis_engine.mocks.mock_pinance.mock_get_options)
     @mock.patch(
         ('analysis_engine.get_task_results.'
          'get_task_results'),
@@ -126,18 +126,18 @@ class TestPublishPricingData(BaseTestCase):
 
     @mock.patch(
         'pinance.Pinance',
-        new=tests.mock_pinance.MockPinance)
+        new=analysis_engine.mocks.mock_pinance.MockPinance)
     @mock.patch(
         ('analysis_engine.get_pricing.'
          'get_options'),
-        new=tests.mock_pinance.mock_get_options)
+        new=analysis_engine.mocks.mock_pinance.mock_get_options)
     @mock.patch(
         ('analysis_engine.get_task_results.'
          'get_task_results'),
         new=mock_success_task_result)
     @mock.patch(
         ('boto3.resource'),
-        new=tests.mock_boto3_s3.build_boto3_resource)
+        new=analysis_engine.mocks.mock_boto3_s3.build_boto3_resource)
     def test_success_s3_upload(self):
         """test_success_s3_upload"""
         work = build_publish_pricing_request()
@@ -156,18 +156,18 @@ class TestPublishPricingData(BaseTestCase):
 
     @mock.patch(
         'pinance.Pinance',
-        new=tests.mock_pinance.MockPinance)
+        new=analysis_engine.mocks.mock_pinance.MockPinance)
     @mock.patch(
         ('analysis_engine.get_pricing.'
          'get_options'),
-        new=tests.mock_pinance.mock_get_options)
+        new=analysis_engine.mocks.mock_pinance.mock_get_options)
     @mock.patch(
         ('analysis_engine.get_task_results.'
          'get_task_results'),
         new=mock_success_task_result)
     @mock.patch(
         ('redis.Redis'),
-        new=tests.mock_redis.MockRedis)
+        new=analysis_engine.mocks.mock_redis.MockRedis)
     def test_success_redis_set(self):
         """test_success_redis_set"""
         work = build_publish_pricing_request()
@@ -197,11 +197,11 @@ class TestPublishPricingData(BaseTestCase):
 
     @mock.patch(
         'pinance.Pinance',
-        new=tests.mock_pinance.MockPinance)
+        new=analysis_engine.mocks.mock_pinance.MockPinance)
     @mock.patch(
         ('analysis_engine.get_pricing.'
          'get_options'),
-        new=tests.mock_pinance.mock_get_options)
+        new=analysis_engine.mocks.mock_pinance.mock_get_options)
     @mock.patch(
         ('analysis_engine.get_task_results.'
          'get_task_results'),
@@ -229,11 +229,11 @@ class TestPublishPricingData(BaseTestCase):
 
     @mock.patch(
         'pinance.Pinance',
-        new=tests.mock_pinance.MockPinance)
+        new=analysis_engine.mocks.mock_pinance.MockPinance)
     @mock.patch(
         ('analysis_engine.get_pricing.'
          'get_options'),
-        new=tests.mock_pinance.mock_get_options)
+        new=analysis_engine.mocks.mock_pinance.mock_get_options)
     @mock.patch(
         ('analysis_engine.get_task_results.'
          'get_task_results'),
