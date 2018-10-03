@@ -1,8 +1,39 @@
 """
-Publish Pricing Updates to external services
+Publish Pricing Data Task
+=========================
+
+Publish new stock data to external services and systems
+(redis and s3) provided the system(s) are running and enabled.
 
 - redis - using `redis-py <https://github.com/andymccurdy/redis-py>`__
 - s3 - using boto3
+
+Sample work_dict request for this method
+----------------------------------------
+
+`analysis_engine.api_requests.publish_pricing_update <https://
+github.com/AlgoTraders/stock-analysis-engine/blob/master/ana
+lysis_engine/api_requests.py#L218>`__
+
+::
+
+    work_request = {
+        'ticker': ticker,
+        'ticker_id': ticker_id,
+        'strike': use_strike,
+        'contract': contract_type,
+        's3_bucket': s3_bucket_name,
+        's3_key': s3_key,
+        'redis_key': redis_key,
+        'data': use_data
+    }
+
+.. tip:: This task uses the `analysis_engine.work_tasks.
+    custom_task.CustomTask class <https://github.com/A
+    lgoTraders/stock-analysis-engine/blob/master/anal
+    ysis_engine/work_tasks/custom_task.py>`__ for
+    task event handling.
+
 """
 
 import boto3

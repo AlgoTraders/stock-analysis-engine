@@ -1,5 +1,10 @@
 """
-Custom Celery task event handling
+Custom Celery Task Handling
+===========================
+
+Define your own ``on_failure`` and ``on_success``
+with the ``analysis_engine.work_tasks.custom_task.CustomTask`` custom
+class object.
 
 Debug values with the environment variable:
 
@@ -47,6 +52,9 @@ class CustomTask(celery.Task):
             kwargs):
         """on_success
 
+        Handle custom actions when a task completes
+        successfully.
+
         http://docs.celeryproject.org/en/latest/reference/celery.app.task.html
 
         :param retval: return value
@@ -82,6 +90,11 @@ class CustomTask(celery.Task):
             kwargs,
             einfo):
         """on_failure
+
+        Handle custom actions when a task completes
+        not successfully. As an example, if the task throws an
+        exception, then this ``on_failure`` method can
+        customize how to handle **exceptional** cases.
 
         http://docs.celeryproject.org/en/latest/userguide/tasks.html#task-inheritance
 
