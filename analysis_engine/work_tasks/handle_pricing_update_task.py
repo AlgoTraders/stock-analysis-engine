@@ -1,10 +1,41 @@
 """
+Handle Pricing Update Task
+==========================
+
+Get the latest stock news, quotes and options chains for a
+ticker and publish the values to redis and S3 for downstream analysis.
 
 Writes pricing updates to S3 and Redis by
 building a list of publishing sub-task:
 
-``analysis_engine.work_tasks.publish_pricing_update``
+Sample work_dict request for this method
+----------------------------------------
 
+`analysis_engine.api_requests.publish_pricing_update <https://
+github.com/AlgoTraders/stock-analysis-engine/blob/master/ana
+lysis_engine/api_requests.py#L218>`__
+
+::
+
+    work = {
+        'ticker': ticker,
+        'ticker_id': ticker_id,
+        's3_bucket': s3_bucket_name,
+        's3_key': s3_key,
+        'redis_key': redis_key,
+        'prepared_s3_key': s3_prepared_key,
+        'prepared_s3_bucket': s3_prepared_bucket_name,
+        'prepared_redis_key': redis_prepared_key,
+        'ignore_columns': ignore_columns,
+        's3_enabled': s3_enabled,
+        'redis_enabled': redis_enabled
+    }
+
+.. tip:: This task uses the `analysis_engine.work_tasks.
+    custom_task.CustomTask class <https://github.com/A
+    lgoTraders/stock-analysis-engine/blob/master/anal
+    ysis_engine/work_tasks/custom_task.py>`__ for
+    task event handling.
 """
 
 import datetime
@@ -36,12 +67,12 @@ log = build_colorized_logger(
 def handle_pricing_update_task(
         self,
         work_dict):
-    '''handle_pricing_update_task
+    """handle_pricing_update_task
 
     Writes pricing updates to S3 and Redis
 
     :param work_dict: dictionary for key/values
-    '''
+    """
 
     label = 'update_prices'
 

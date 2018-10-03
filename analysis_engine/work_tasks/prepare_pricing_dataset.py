@@ -1,15 +1,50 @@
 """
 Prepare Pricing Dataset
+=======================
+
+Prepare dataset for analysis. This task collapses
+nested json dictionaries into a
+csv file with a header row and stores the output
+file in s3 and redis automatically.
 
 - if key not in redis, load the key by the same name from s3
 - prepare dataset from redis key
 - the dataset will be stored as a dictionary with a pandas dataframe
+
+Sample work_dict request for this method
+----------------------------------------
+
+`analysis_engine.api_requests.build_prepare_dataset_request <https://
+github.com/AlgoTraders/stock-analysis-engine/blob/master/ana
+lysis_engine/api_requests.py#L300>`__
+
+::
+
+    work_request = {
+        'ticker': ticker,
+        'ticker_id': ticker_id,
+        's3_bucket': s3_bucket_name,
+        's3_key': s3_key,
+        'redis_key': redis_key,
+        'prepared_s3_key': s3_prepared_key,
+        'prepared_s3_bucket': s3_prepared_bucket_name,
+        'prepared_redis_key': redis_prepared_key,
+        'ignore_columns': ignore_columns,
+        's3_enabled': s3_enabled,
+        'redis_enabled': redis_enabled
+    }
 
 Debug environment variables
 
 ::
 
     export DEBUG_PREPARE=1
+
+.. tip:: This task uses the `analysis_engine.work_tasks.
+    custom_task.CustomTask class <https://github.com/A
+    lgoTraders/stock-analysis-engine/blob/master/anal
+    ysis_engine/work_tasks/custom_task.py>`__ for
+    task event handling.
 
 """
 

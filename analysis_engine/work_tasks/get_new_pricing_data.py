@@ -1,5 +1,35 @@
 """
-Get New Pricing Data
+Get New Pricing Data Task
+=========================
+
+This will fetch data (pricing, financials, earnings, dividends, options,
+and more) from these sources:
+
+#.  Yahoo
+
+#.  IEX
+
+Sample work_dict request for this method
+----------------------------------------
+
+`analysis_engine.api_requests.build_get_new_pricing_request <https://
+github.com/AlgoTraders/stock-analysis-engine/blob/master/ana
+lysis_engine/api_requests.py#L49>`__
+
+::
+
+    work_request = {
+        'ticker': ticker,
+        'ticker_id': ticker_id,
+        's3_bucket': s3_bucket_name,
+        's3_key': s3_key,
+        'redis_key': redis_key,
+        'strike': use_strike,
+        'contract': contract_type,
+        'get_pricing': get_pricing,
+        'get_news': get_news,
+        'get_options': get_options
+    }
 
 .. warning:: When fetching pricing data from sources like IEX,
              Please ensure the returned values are
@@ -8,6 +38,12 @@ Get New Pricing Data
              it is preferred to returned a ``df.to_json()``
              before sending the results into the
              results backend.
+
+.. tip:: This task uses the `analysis_engine.work_tasks.
+    custom_task.CustomTask class <https://github.com/A
+    lgoTraders/stock-analysis-engine/blob/master/anal
+    ysis_engine/work_tasks/custom_task.py>`__ for
+    task event handling.
 
 """
 

@@ -24,6 +24,14 @@ import sys
 from unittest.mock import MagicMock
 from recommonmark.parser import CommonMarkParser
 
+sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('../'))
+sys.path.insert(0, os.path.abspath('../analysis_engine/'))
+sys.path.insert(0, os.path.abspath('../analysis_engine/iex/'))
+sys.path.insert(0, os.path.abspath('../analysis_engine/scripts/'))
+sys.path.insert(0, os.path.abspath('../analysis_engine/work_tasks/'))
+sys.path.insert(0, os.path.abspath('../analysis_engine/yahoo/'))
+
 project = 'Stock Analysis Engine'
 copyright = '2018, Jay Johnson'
 author = 'Jay Johnson'
@@ -75,10 +83,7 @@ release = '1.0.0'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
-    'sphinx.ext.githubpages',
     'celery.contrib.sphinx',
 ]
 
@@ -110,7 +115,7 @@ language = None
 exclude_patterns = []
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = None
 
 
 # -- Options for HTML output -------------------------------------------------

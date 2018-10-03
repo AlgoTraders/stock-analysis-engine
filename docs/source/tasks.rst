@@ -3,35 +3,22 @@ Celery Worker Tasks
 
 Celery tasks are automatically processed by the workers. You can turn off celery task publishing by setting the environment variable ``CELERY_DISABLED`` is set to ``1`` (by default celery is enabled for task publishing).
 
-Handle Pricing Update Task
-==========================
+.. tip:: all tasks share the `analysis_engine.work_tasks.custom_task.CustomTask class <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/work_tasks/custom_task.py>`__ for customizing event handling.
 
-Get the latest stock news, quotes and options chains for a ticker and publish the values to redis and S3 for downstream analysis.
+.. automodule:: analysis_engine.work_tasks.handle_pricing_update_task
+    :members: run_handle_pricing_update_task,handle_pricing_update_task
 
-.. autotask:: analysis_engine.work_tasks.handle_pricing_update_task.handle_pricing_update_task
+.. automodule:: analysis_engine.work_tasks.get_new_pricing_data
+    :members: run_get_new_pricing_data,get_new_pricing_data
 
-Get New Pricing Data Task
-=========================
+.. automodule:: analysis_engine.work_tasks.publish_pricing_update
+    :members: run_publish_pricing_update,publish_pricing_update
 
-.. autotask:: analysis_engine.work_tasks.get_new_pricing_data.get_new_pricing_data
+.. automodule:: analysis_engine.work_tasks.publish_from_s3_to_redis
+    :members: run_publish_from_s3_to_redis,publish_from_s3_to_redis
 
-Publish Pricing Data Task
-=========================
+.. automodule:: analysis_engine.work_tasks.prepare_pricing_dataset
+    :members: run_prepare_pricing_dataset,prepare_pricing_dataset
 
-Publish new stock data to redis and s3 (if either of them are running and enabled)
-
-.. autotask:: analysis_engine.work_tasks.publish_pricing_update.publish_pricing_update
-
-Publish from S3 to Redis Task
-=============================
-
-Publish S3 key with stock data to redis and s3 (if either of them are running and enabled)
-
-.. autotask:: analysis_engine.work_tasks.publish_from_s3_to_redis.publish_from_s3_to_redis
-
-Prepare Pricing Dataset
-=======================
-
-Prepare dataset for analysis. This task collapses nested json dictionaries into a csv file with a header row and stores the output file in s3 and redis automatically.
-
-.. autotask:: analysis_engine.work_tasks.prepare_pricing_dataset.prepare_pricing_dataset
+.. automodule:: analysis_engine.work_tasks.custom_task
+    :members: CustomTask
