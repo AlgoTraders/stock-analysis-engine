@@ -24,12 +24,6 @@ import sys
 from unittest.mock import MagicMock
 from recommonmark.parser import CommonMarkParser
 
-sys.path.insert(0, os.path.abspath("."))
-sys.path.insert(0, os.path.abspath(".."))
-sys.path.insert(0, os.path.abspath('../analysis_engine/scripts'))
-sys.path.insert(0, os.path.abspath('../analysis_engine/work_tasks'))
-sys.path.insert(0, os.path.abspath('../analysis_engine'))
-
 project = 'Stock Analysis Engine'
 copyright = '2018, Jay Johnson'
 author = 'Jay Johnson'
@@ -85,7 +79,7 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
-    'celery.contrib.sphinx'
+    'celery.contrib.sphinx',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
