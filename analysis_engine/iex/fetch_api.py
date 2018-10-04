@@ -12,7 +12,7 @@ Supported environment variables:
 
 import pyEX.stocks as pyex_stocks
 import analysis_engine.iex.utils as fetch_utils
-import analysis_engine.scrub_utils as scrub_utils
+import analysis_engine.dataset_scrub_utils as scrub_utils
 from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.iex.consts import DATAFEED_DAILY
 from analysis_engine.iex.consts import DATAFEED_MINUTE
@@ -64,7 +64,7 @@ def fetch_daily(
             'date',
             None))
 
-    scrubbed_df = scrub_utils.scrub_dataset(
+    scrubbed_df = scrub_utils.ingress_scrub_dataset(
         label=label,
         scrub_mode=scrub_mode,
         datafeed_type=datafeed_type,
@@ -125,7 +125,7 @@ def fetch_minute(
             'date',
             None))
 
-    scrubbed_df = scrub_utils.scrub_dataset(
+    scrubbed_df = scrub_utils.ingress_scrub_dataset(
         label=label,
         scrub_mode=scrub_mode,
         datafeed_type=datafeed_type,
@@ -165,7 +165,7 @@ def fetch_stats(
     res = pyex_stocks.stockStatsDF(
         symbol=ticker)
 
-    scrubbed_df = scrub_utils.scrub_dataset(
+    scrubbed_df = scrub_utils.ingress_scrub_dataset(
         label=label,
         scrub_mode=scrub_mode,
         datafeed_type=datafeed_type,
@@ -205,7 +205,7 @@ def fetch_peers(
     res = pyex_stocks.peersDF(
         symbol=ticker)
 
-    scrubbed_df = scrub_utils.scrub_dataset(
+    scrubbed_df = scrub_utils.ingress_scrub_dataset(
         label=label,
         scrub_mode=scrub_mode,
         datafeed_type=datafeed_type,
@@ -245,7 +245,7 @@ def fetch_news(
     res = pyex_stocks.newsDF(
         symbol=ticker)
 
-    scrubbed_df = scrub_utils.scrub_dataset(
+    scrubbed_df = scrub_utils.ingress_scrub_dataset(
         label=label,
         scrub_mode=scrub_mode,
         datafeed_type=datafeed_type,
@@ -285,7 +285,7 @@ def fetch_financials(
     res = pyex_stocks.financialsDF(
         symbol=ticker)
 
-    scrubbed_df = scrub_utils.scrub_dataset(
+    scrubbed_df = scrub_utils.ingress_scrub_dataset(
         label=label,
         scrub_mode=scrub_mode,
         datafeed_type=datafeed_type,
@@ -325,7 +325,7 @@ def fetch_earnings(
     res = pyex_stocks.earningsDF(
         symbol=ticker)
 
-    scrubbed_df = scrub_utils.scrub_dataset(
+    scrubbed_df = scrub_utils.ingress_scrub_dataset(
         label=label,
         scrub_mode=scrub_mode,
         datafeed_type=datafeed_type,
@@ -365,7 +365,7 @@ def fetch_dividends(
     res = pyex_stocks.dividendsDF(
         symbol=ticker)
 
-    scrubbed_df = scrub_utils.scrub_dataset(
+    scrubbed_df = scrub_utils.ingress_scrub_dataset(
         label=label,
         scrub_mode=scrub_mode,
         datafeed_type=datafeed_type,
@@ -406,7 +406,7 @@ def fetch_company(
     res = pyex_stocks.companyDF(
         symbol=ticker)
 
-    scrubbed_df = scrub_utils.scrub_dataset(
+    scrubbed_df = scrub_utils.ingress_scrub_dataset(
         label=label,
         scrub_mode=scrub_mode,
         datafeed_type=datafeed_type,

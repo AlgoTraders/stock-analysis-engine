@@ -1,2 +1,2 @@
-.. automodule:: analysis_engine.scrub_utils
-   :members: debug_msg,scrub_dataset
+.. automodule:: analysis_engine.dataset_scrub_utils
+   :members: debug_msg,ingress_scrub_dataset,extract_scrub_dataset
