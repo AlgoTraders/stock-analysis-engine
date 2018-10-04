@@ -22,6 +22,7 @@ from analysis_engine.consts import SUCCESS
 from analysis_engine.consts import NOT_RUN
 from analysis_engine.consts import ERR
 from analysis_engine.consts import PLOT_COLORS
+from analysis_engine.consts import IEX_MINUTE_DATE_FORMAT
 from analysis_engine.consts import ev
 from analysis_engine.consts import get_status
 
@@ -178,9 +179,13 @@ def show_with_entities(
 def plot_overlay_pricing_and_volume(
         log_label,
         ticker,
-        plot_colors,
-        volume_color,
         df,
+        xlabel=None,
+        ylabel=None,
+        high_color=PLOT_COLORS['high'],
+        close_color=PLOT_COLORS['blue'],
+        volume_color=PLOT_COLORS['green'],
+        date_format=IEX_MINUTE_DATE_FORMAT,
         show_plot=True):
     """plot_overlay_pricing_and_volume
 
@@ -189,10 +194,17 @@ def plot_overlay_pricing_and_volume(
 
     :param log_label: log identifier
     :param ticker: ticker name
-    :param plot_colors: colors to use
-    :param volume_color: volume color
-    :param df: pandas dataframe
-    :param show_plot: bool to show the plot
+    :param df: timeseries ``pandas.DateFrame``
+    :param xlabel: x-axis label
+    :param ylabel: y-axis label
+    :param high_color: optional - high plot color
+    :param close_color: optional - close plot color
+    :param volume_color: optional - volume color
+    :param data_format: optional - date format string this must
+                        be a valid value for the ``df['date']`` column
+                        that would work with:
+                        ``datetime.datetime.stftime(date_format)``
+    :param show_plot: optional - bool to show the plot
     """
 
     rec = {
@@ -216,17 +228,17 @@ def plot_overlay_pricing_and_volume(
         set_common_seaborn_fonts()
 
         fig, ax = plt.subplots(
+            sharex=True,
+            sharey=True,
             figsize=(15.0, 10.0))
-        df[['date', 'close']].plot(
-            x='date',
-            linestyle='-',
-            ax=ax,
-            color=plot_colors[0])
-        df[['date', 'high']].plot(
-            x='date',
-            linestyle='-',
-            ax=ax,
-            color=plot_colors[1])
+        ax.plot(
+            df['date'],
+            df['close'],
+            color=close_color)
+        ax.plot(
+            df['date'],
+            df['high'],
+            color=high_color)
 
         # use a second axis to display the
         # volume since it is in a different range
@@ -249,12 +261,27 @@ def plot_overlay_pricing_and_volume(
         ax2.set_ylim([0, ax2.get_ylim()[1] * 3])
 
         plt.grid(True)
-        plt.xlabel('Dates')
-        plt.ylabel('Prices')
+        use_xlabel = xlabel
+        use_ylabel = ylabel
+        if not use_xlabel:
+            xlabel = 'Minute Dates'
+        if not use_ylabel:
+            ylabel = '{} High and Close Prices'.format(
+                ticker)
+        plt.xlabel(use_xlabel)
+        plt.ylabel(use_ylabel)
 
         # Build a date vs Close DataFrame
-        start_date = str(df.iloc[0]['date'].strftime('%Y-%m-%d'))
-        end_date = str(df.iloc[-1]['date'].strftime('%Y-%m-%d'))
+        start_date = ''
+        end_date = ''
+        try:
+            start_date = str(df.iloc[0]['date'].strftime(date_format))
+            end_date = str(df.iloc[-1]['date'].strftime(date_format))
+        except Exception as f:
+            date_format = '%Y-%m-%d'
+            start_date = str(df.iloc[0]['date'].strftime(date_format))
+            end_date = str(df.iloc[-1]['date'].strftime(date_format))
+
         use_title = (
             '{} Pricing from: {} to {}'.format(
                 ticker,
@@ -278,16 +305,26 @@ def plot_overlay_pricing_and_volume(
 
         # Build out the xtick chart by the dates
         ax.xaxis.grid(True, which='minor')
-        xfmt = mdates.DateFormatter('%Y-%m-%d')
-        ax.xaxis.set_major_formatter(xfmt)
-        ax.xaxis.set_minor_formatter(xfmt)
+        ax.fmt_xdata = mdates.DateFormatter(date_format)
+        ax.xaxis.set_major_formatter(ax.fmt_xdata)
+        ax.xaxis.set_minor_formatter(ax.fmt_xdata)
 
         # turn off the grids on volume
+        ax2.fmt_xdata = mdates.DateFormatter(date_format)
         ax2.xaxis.grid(False)
         ax2.yaxis.grid(False)
         ax2.yaxis.set_ticklabels([])
 
         fig.autofmt_xdate()
+
+        show_with_entities(
+            log_label=log_label,
+            xlabel=xlabel,
+            ylabel=ylabel,
+            title=use_title,
+            ax=ax,
+            fig=fig,
+            show_plot=show_plot)
 
         rec['fig'] = fig
         rec['ax'] = ax
@@ -330,7 +367,7 @@ def plot_hloc_pricing(
 
     :param log_label: log identifier
     :param ticker: ticker
-    :param df: dataframe
+    :param df: initialized ``pandas.DataFrame``
     :param title: title for the chart
     :param show_plot: bool to show the plot
     """
@@ -359,48 +396,28 @@ def plot_hloc_pricing(
 
         plt.plot(
             df['date'],
-            df['chigh'],
+            df['high'],
             label='High',
             color=PLOT_COLORS['high'],
             alpha=0.4)
         plt.plot(
             df['date'],
-            df['clow'],
+            df['low'],
             label='Low',
             color=PLOT_COLORS['low'],
             alpha=0.4)
         plt.plot(
             df['date'],
-            df['cclose'],
+            df['close'],
             label='Close',
             color=PLOT_COLORS['close'],
             alpha=0.4)
         plt.plot(
             df['date'],
-            df['copen'],
+            df['open'],
             label='Open',
             color=PLOT_COLORS['open'],
             alpha=0.4)
-        plt.plot(
-            df['date'],
-            df['fhigh'],
-            label='Future High',
-            color=PLOT_COLORS['high'])
-        plt.plot(
-            df['date'],
-            df['flow'],
-            label='Future Low',
-            color=PLOT_COLORS['low'])
-        plt.plot(
-            df['date'],
-            df['fclose'],
-            label='Future Close',
-            color=PLOT_COLORS['close'])
-        plt.plot(
-            df['date'],
-            df['fopen'],
-            label='Future Open',
-            color=PLOT_COLORS['open'])
 
         xlabel = 'Dates'
         ylabel = 'Prices'
@@ -427,11 +444,7 @@ def plot_hloc_pricing(
             'high',
             'low',
             'close',
-            'open',
-            'future high',
-            'future low',
-            'future close',
-            'future low'
+            'open'
         ]
 
         fig.autofmt_xdate()
@@ -489,8 +502,8 @@ def plot_df(
     :param log_label: log identifier
     :param title: title of the plot
     :param column_list: list of columns in the df to show
-    :param df: dataframe
-    :param xcol: x-axis column in the dataframe
+    :param df: initialized ``pandas.DataFrame``
+    :param xcol: x-axis column in the initialized ``pandas.DataFrame``
     :param xlabel: x-axis label
     :param ylabel: y-axis label
     :param linestyle: style of the plot line
@@ -610,7 +623,7 @@ def dist_plot(
     Show a distribution plot for the passed in dataframe: ``df``
 
     :param log_label: log identifier
-    :param df: pandas dataframe
+    :param df: initialized ``pandas.DataFrame``
     :param width: width of figure
     :param height: height of figure
     :param style: style to use

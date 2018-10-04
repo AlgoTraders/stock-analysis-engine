@@ -293,6 +293,8 @@ PLOT_COLORS = {
     'white': '#FFFFFF'
 }
 
+IEX_MINUTE_DATE_FORMAT = '%Y-%m-%d %H:%M:%S %p'
+
 
 ########################################
 #

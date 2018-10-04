@@ -3,9 +3,10 @@
 """
 
 Stock Analysis Command Line Tool
+================================
 
-Supports
---------
+How it works
+------------
 
 - Preparing a dataset from s3 or redis. A prepared
   dataset can be used for analysis.
@@ -13,16 +14,18 @@ Supports
   in s3 and redis.
 - Coming Soon - Make predictions using an analyzed dataset
 
-.. note:: if the output redis key or s3 key already exists, this
-          process will overwrite the previously stored values
+.. warning:: if the output redis key or s3 key already exists, this
+             process will overwrite the previously stored values
 """
 
 import sys
+import datetime
 import argparse
-import analysis_engine.charts
+import analysis_engine.charts as ae_charts
 import analysis_engine.work_tasks.prepare_pricing_dataset \
     as prepare_pricing_dataset
-import analysis_engine.build_df_from_redis as build_df
+import analysis_engine.iex.extract_df_from_redis \
+    as extract_utils
 from celery import signals
 from spylunking.log.setup_logging import build_colorized_logger
 from celery_loaders.work_tasks.get_celery_app import get_celery_app
@@ -52,6 +55,7 @@ from analysis_engine.consts import SUCCESS
 from analysis_engine.consts import PLOT_ACTION_SHOW
 from analysis_engine.consts import PLOT_ACTION_SAVE_TO_S3
 from analysis_engine.consts import PLOT_ACTION_SAVE_AS_FILE
+from analysis_engine.consts import IEX_MINUTE_DATE_FORMAT
 from analysis_engine.consts import get_status
 from analysis_engine.consts import ppj
 from analysis_engine.consts import is_celery_disabled
@@ -428,13 +432,16 @@ def run_sa_tool():
 
         if task_res['status'] == SUCCESS:
             image_res = None
+            label = work['label']
+            ticker = work['ticker']
             if plot_action == PLOT_ACTION_SHOW:
                 log.info(
                     'showing plot')
+                """
                 minute_key = '{}_minute'.format(
                     redis_key)
                 minute_df_res = build_df.build_df_from_redis(
-                    label=work['label'],
+                    label=label',
                     address=redis_address,
                     db=redis_db,
                     key=minute_key)
@@ -449,8 +456,59 @@ def run_sa_tool():
                         'close',
                         'date'
                     ]
-                    image_res = analysis_engine.charts.plot_df(
-                        log_label=work['label'],
+                """
+                today_str = datetime.datetime.now().strftime(
+                    '%Y-%m-%d')
+                extract_req = work
+                extract_req['redis_key'] = '{}_minute'.format(
+                    work['redis_key'])
+                extract_status, minute_df = \
+                    extract_utils.extract_minute_dataset(
+                        work_dict=work)
+                if extract_status == SUCCESS:
+                    log.info(
+                        '{} - ticker={} creating chart date={}'.format(
+                            label,
+                            ticker,
+                            today_str))
+                    """
+                    Plot Pricing with the Volume Overlay:
+                    """
+                    image_res = ae_charts.plot_overlay_pricing_and_volume(
+                        log_label=label,
+                        ticker=ticker,
+                        date_format=IEX_MINUTE_DATE_FORMAT,
+                        df=minute_df,
+                        show_plot=True)
+
+                    """
+                    Plot the High-Low-Open-Close Pricing:
+                    """
+                    """
+                    image_res = ae_charts.plot_hloc_pricing(
+                        log_label=label,
+                        ticker=ticker,
+                        title='{} - Minute Pricing - {}'.format(
+                            ticker,
+                            today_str),
+                        df=minute_df,
+                        show_plot=True)
+                    """
+
+                    """
+                    Plot by custom columns in the DataFrame
+                    """
+                    """
+                    column_list = minute_df.columns.values
+                    column_list = [
+                        'date',
+                        'close',
+                        'high',
+                        'low',
+                        'open'
+                    ]
+                    image_res = ae_charts.plot_df(
+                        log_label=label,
                         title='Pricing Title',
                         column_list=column_list,
                         df=minute_df,
@@ -458,6 +516,7 @@ def run_sa_tool():
                         xlabel='Date',
                         ylabel='Pricing',
                         show_plot=True)
+                    """
             elif plot_action == PLOT_ACTION_SAVE_TO_S3:
                 log.info(
                     'coming soon - support to save to s3')
@@ -467,7 +526,7 @@ def run_sa_tool():
             if image_res:
                 log.info(
                     '{} show plot - status={} err={}'.format(
-                        work['label'],
+                        label,
                         get_status(image_res['status']),
                         image_res['err']))
     else:

@@ -1,7 +1,7 @@
 """
 
-Scrubbing Utilities for Transforming Datasets
-=============================================
+Dataset Scrubbing Utilities
+===========================
 
 Perform dataset scrubbing action
 and return the scrubbed dataset as a ready-to-go
@@ -18,7 +18,10 @@ Supported environment variables:
     # production:
     export DEBUG_FETCH=1
 
-Supports Data feed outputs:
+Ingress Scrubbing supports converting an incoming
+dataset (from IEX) and converts it to one
+of the following data feed and returned as a
+``pandas DataFrame``:
 
 ::
 
@@ -62,6 +65,8 @@ def debug_msg(
         date_str,
         df):
     """debug_msg
+
+    Debug helper for debugging scrubbing handlers
 
     :param label: log label
     :param datafeed_type: fetch type
@@ -121,7 +126,7 @@ def debug_msg(
 # end of debug_msg
 
 
-def scrub_dataset(
+def ingress_scrub_dataset(
         label,
         datafeed_type,
         df,
@@ -129,9 +134,10 @@ def scrub_dataset(
         msg_format=None,
         scrub_mode='sort-by-date',
         ds_id='no-id'):
-    """scrub_dataset
+    """ingress_scrub_dataset
 
-    Scrub a DataFrame and return the resulting DataFrame
+    Scrub a ``pandas.DataFrame`` from an Ingress pricing service
+    and return the resulting ``pandas.DataFrame``
 
     :param label: log label
     :param datafeed_type: ``analysis_engine.iex.consts.DATAFEED_*`` type
@@ -339,4 +345,52 @@ def scrub_dataset(
         df=out_df)
 
     return out_df
-# end of scrub_dataset
+# end of ingress_scrub_dataset
+
+
+def extract_scrub_dataset(
+        label,
+        datafeed_type,
+        df,
+        date_str=None,
+        msg_format=None,
+        scrub_mode='sort-by-date',
+        ds_id='no-id'):
+    """extract_scrub_dataset
+
+    Scrub a cached ``pandas.DataFrame`` that was stored
+    in Redis and return the resulting ``pandas.DataFrame``
+
+    :param label: log label
+    :param datafeed_type: ``analysis_engine.iex.consts.DATAFEED_*`` type
+            ::
+
+                DATAFEED_DAILY = 900
+                DATAFEED_MINUTE = 901
+                DATAFEED_TICK = 902
+                DATAFEED_STATS = 903
+                DATAFEED_PEERS = 904
+                DATAFEED_NEWS = 905
+                DATAFEED_FINANCIALS = 906
+                DATAFEED_EARNINGS = 907
+                DATAFEED_DIVIDENDS = 908
+                DATAFEED_COMPANY = 909
+    :param df: ``pandas DataFrame``
+    :param date_str: date string for simulating historical dates
+                     or ``datetime.datetime.now()`` if not
+                     set
+    :param msg_format: msg format for a ``string.format()``
+    :param scrub_mode: mode to scrub this dataset
+    :param ds_id: dataset identifier
+    """
+
+    if not hasattr(df, 'empty'):
+        log.info(
+            '{} - {} no dataset_id={}'.format(
+                label,
+                datafeed_type,
+                ds_id))
+        return None
+
+    return df
+# end of extract_scrub_dataset

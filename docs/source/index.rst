@@ -31,10 +31,11 @@ It uses `Celery workers to process all tasks <http://www.celeryproject.org/>`__ 
    api_reference
    iex_api
    yahoo_api
-   charts
-   mock_api
    scrub_utils
+   extract_utils
+   charts
    tasks
+   mock_api
 
 Indices and tables
 ==================
