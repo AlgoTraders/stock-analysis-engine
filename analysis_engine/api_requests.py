@@ -744,7 +744,7 @@ def build_iex_fetch_dividends_request(
         'ft_type': FETCH_DIVIDENDS,
         'fd_type': DATAFEED_DIVIDENDS,
         'ticker': ticker,
-        'timeframe': '1d',
+        'timeframe': '2y',
         'from': iex_utils.last_month().strftime(
             '%Y-%m-%d %H:%M:%S'),
         's3_bucket': s3_bucket_name,

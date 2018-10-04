@@ -355,15 +355,21 @@ def fetch_dividends(
     label = work_dict.get(
         'label',
         None)
+    timeframe = work_dict.get(
+        'timeframe',
+        '2y')
 
     log.info(
-        '{} - dividends - args={} ticker={}'.format(
+        '{} - dividends - args={} ticker={} '
+        'timeframe={}'.format(
             label,
             work_dict,
-            ticker))
+            ticker,
+            timeframe))
 
     res = pyex_stocks.dividendsDF(
-        symbol=ticker)
+        symbol=ticker,
+        timeframe=timeframe)
 
     scrubbed_df = scrub_utils.ingress_scrub_dataset(
         label=label,

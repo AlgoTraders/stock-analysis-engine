@@ -125,12 +125,14 @@ def earningsDF(
 
 
 def dividendsDF(
-        symbol):
+        symbol,
+        **kwargs):
     """dividendsDF
 
     mock pyEX dividendsDF
 
     :param symbol: ticker symbol
+    :param kwargs: keyword arguments dictionary
     """
 
     val = {
