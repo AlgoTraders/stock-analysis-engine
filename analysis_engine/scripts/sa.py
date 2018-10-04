@@ -19,10 +19,10 @@ Supports
 
 import sys
 import argparse
-import pandas as pd
 import analysis_engine.charts
 import analysis_engine.work_tasks.prepare_pricing_dataset \
     as prepare_pricing_dataset
+import analysis_engine.build_df_from_redis as build_df
 from celery import signals
 from spylunking.log.setup_logging import build_colorized_logger
 from celery_loaders.work_tasks.get_celery_app import get_celery_app
@@ -431,58 +431,33 @@ def run_sa_tool():
             if plot_action == PLOT_ACTION_SHOW:
                 log.info(
                     'showing plot')
-                initial_data = task_res['rec']['initial_data']
-                initial_data = [
-                    {
-                        'close': 1,
-                        'date': '2018-01-01'
-                    },
-                    {
-                        'close': 2,
-                        'date': '2018-02-02'
-                    },
-                    {
-                        'close': 3,
-                        'date': '2018-03-03'
-                    },
-                    {
-                        'close': 4,
-                        'date': '2018-04-04'
-                    },
-                    {
-                        'close': 5,
-                        'date': '2018-05-05'
-                    },
-                    {
-                        'close': 6,
-                        'date': '2018-06-06'
-                    },
-                    {
-                        'close': 7,
-                        'date': '2018-07-07'
-                    },
-                    {
-                        'close': 8,
-                        'date': '2018-08-08'
-                    }
-                ]
-                df = pd.DataFrame(
-                    initial_data)
-                df['date'] = pd.to_datetime(
-                    df["date"], format='%Y-%m-%d')
-                column_list = [
-                    'close',
-                    'date'
-                ]
-                image_res = analysis_engine.charts.plot_df(
-                    log_label=work['label'],
-                    title='Pricing Title',
-                    column_list=column_list,
-                    df=df,
-                    xcol='date',
-                    xlabel='Date',
-                    ylabel='Pricing',
-                    show_plot=False)
+                minute_key = '{}_minute'.format(
+                    redis_key)
+                minute_df_res = build_df.build_df_from_redis(
+                    label=work['label'],
+                    address=redis_address,
+                    db=redis_db,
+                    key=minute_key)
+
+                minute_df = None
+                if (
+                        minute_df_res['status'] == SUCCESS
+                        and minute_df_res['rec']['valid_df']):
+                    minute_df = minute_df_res['rec']['data']
+                    print(minute_df.columns.values)
+                    column_list = [
+                        'close',
+                        'date'
+                    ]
+                    image_res = analysis_engine.charts.plot_df(
+                        log_label=work['label'],
+                        title='Pricing Title',
+                        column_list=column_list,
+                        df=minute_df,
+                        xcol='date',
+                        xlabel='Date',
+                        ylabel='Pricing',
+                        show_plot=True)
             elif plot_action == PLOT_ACTION_SAVE_TO_S3:
                 log.info(
                     'coming soon - support to save to s3')

@@ -83,6 +83,9 @@ def get_data_from_iex(
         label = work_dict.get(
             'label',
             label)
+        orient = work_dict.get(
+            'orient',
+            'records')
 
         iex_req = None
         if ft_type == FETCH_DAILY:
@@ -138,10 +141,12 @@ def get_data_from_iex(
             return res
         else:
             log.info(
-                '{} - ticker={} field={} fetch'.format(
+                '{} - ticker={} field={} '
+                'orient={} fetch'.format(
                     label,
                     ticker,
-                    field))
+                    field,
+                    orient))
         # if invalid iex request
 
         df = None
@@ -153,7 +158,8 @@ def get_data_from_iex(
             df = iex_fetch_data.fetch_data(
                 work_dict=iex_req,
                 fetch_type=ft_type)
-            rec['data'] = df.to_json()
+            rec['data'] = df.to_json(
+                orient=orient)
             rec['updated'] = datetime.datetime.utcnow().strftime(
                 '%Y-%m-%d %H:%M:%S')
         except Exception as f:

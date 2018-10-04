@@ -58,7 +58,7 @@ def get_data_from_redis_key(
         err=None,
         rec=rec)
 
-    log_id = label if label else 'set-redis'
+    log_id = label if label else 'get-data'
 
     try:
         log.info(
@@ -86,6 +86,10 @@ def get_data_from_redis_key(
 
             if serializer == 'json':
                 data = json.loads(decoded_data)
+            elif serializer == 'df':
+                data = decoded_data
+            else:
+                data = decoded_data
 
             if data:
                 if ev('DEBUG_REDIS', '0') == '1':
