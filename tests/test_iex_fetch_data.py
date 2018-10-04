@@ -258,6 +258,24 @@ class TestIEXFetchData(BaseTestCase):
 
     """
 
+    def debug_df(
+            self,
+            df):
+        """debug_df
+
+        :param df: ``pandas.DataFrame`` from a fetch
+        """
+        print('-----------------------------------')
+        print(
+            'dataframe: {}'.format(
+                df))
+        print('')
+        print(
+            'dataframe columns:\n{}'.format(
+                df.columns.values))
+        print('-----------------------------------')
+    # end of debug_df
+
     def test_integration_fetch_daily(self):
         """test_integration_fetch_daily"""
         if ev('INT_TESTS', '0') == '0':
@@ -271,6 +289,154 @@ class TestIEXFetchData(BaseTestCase):
             work_dict=work)
         self.assertIsNotNone(
             res)
+        self.debug_df(df=res)
     # end of test_integration_fetch_daily
+
+    def test_integration_fetch_minute(self):
+        """test_integration_fetch_minute"""
+        if ev('INT_TESTS', '0') == '0':
+            return
+
+        # store data
+        work = build_iex_fetch_minute_request(
+            label='test_integration_fetch_minute')
+
+        res = fetch_data(
+            work_dict=work)
+        self.assertIsNotNone(
+            res)
+        self.debug_df(df=res)
+    # end of test_integration_fetch_minute
+
+    def test_integration_fetch_tick(self):
+        """test_integration_fetch_tick"""
+        if ev('INT_TESTS', '0') == '0':
+            return
+
+        # store data
+        work = build_iex_fetch_tick_request(
+            label='test_integration_fetch_tick')
+
+        res = fetch_data(
+            work_dict=work)
+        self.assertIsNotNone(
+            res)
+        self.debug_df(df=res)
+    # end of test_integration_fetch_tick
+
+    def test_integration_fetch_stats(self):
+        """test_integration_fetch_stats"""
+        if ev('INT_TESTS', '0') == '0':
+            return
+
+        # store data
+        work = build_iex_fetch_stats_request(
+            label='test_integration_fetch_stats')
+
+        res = fetch_data(
+            work_dict=work)
+        self.assertIsNotNone(
+            res)
+        self.debug_df(df=res)
+    # end of test_integration_fetch_stats
+
+    def test_integration_fetch_peers(self):
+        """test_integration_fetch_peers"""
+        if ev('INT_TESTS', '0') == '0':
+            return
+
+        # store data
+        work = build_iex_fetch_peers_request(
+            label='test_integration_fetch_peers')
+
+        res = fetch_data(
+            work_dict=work)
+        self.assertIsNotNone(
+            res)
+        self.debug_df(df=res)
+    # end of test_integration_fetch_peers
+
+    def test_integration_fetch_news(self):
+        """test_integration_fetch_news"""
+        if ev('INT_TESTS', '0') == '0':
+            return
+
+        # store data
+        work = build_iex_fetch_news_request(
+            label='test_integration_fetch_news')
+
+        res = fetch_data(
+            work_dict=work)
+        self.assertIsNotNone(
+            res)
+        self.debug_df(df=res)
+    # end of test_integration_fetch_news
+
+    def test_integration_fetch_financials(self):
+        """test_integration_fetch_financials"""
+        if ev('INT_TESTS', '0') == '0':
+            return
+
+        # store data
+        work = build_iex_fetch_financials_request(
+            label='test_integration_fetch_financials')
+        work['ticker'] = 'AAPL'
+
+        res = fetch_data(
+            work_dict=work)
+        self.assertIsNotNone(
+            res)
+        self.debug_df(df=res)
+    # end of test_integration_fetch_financials
+
+    def test_integration_fetch_earnings(self):
+        """test_integration_fetch_earnings"""
+        if ev('INT_TESTS', '0') == '0':
+            return
+
+        # store data
+        work = build_iex_fetch_earnings_request(
+            label='test_integration_fetch_earnings')
+        work['ticker'] = 'AAPL'
+
+        res = fetch_data(
+            work_dict=work)
+        self.assertIsNotNone(
+            res)
+        self.debug_df(df=res)
+    # end of test_integration_fetch_earnings
+
+    def test_integration_fetch_dividends(self):
+        """test_integration_fetch_dividends"""
+        if ev('INT_TESTS', '0') == '0':
+            return
+
+        # store data
+        work = build_iex_fetch_dividends_request(
+            label='test_integration_fetch_dividends')
+        work['ticker'] = 'AAPL'
+
+        res = fetch_data(
+            work_dict=work)
+        self.assertIsNotNone(
+            res)
+        self.debug_df(df=res)
+    # end of test_integration_fetch_dividends
+
+    def test_integration_fetch_company(self):
+        """test_integration_fetch_company"""
+        if ev('INT_TESTS', '0') == '0':
+            return
+
+        # store data
+        work = build_iex_fetch_company_request(
+            label='test_integration_fetch_company')
+
+        res = fetch_data(
+            work_dict=work)
+        self.assertIsNotNone(
+            res)
+        self.debug_df(df=res)
+    # end of test_integration_fetch_company
 
 # end of TestIEXFetchData
