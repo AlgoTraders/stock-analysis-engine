@@ -42,6 +42,9 @@ import datetime
 import pandas as pd
 from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.consts import ev
+from analysis_engine.consts import IEX_DAILY_DATE_FORMAT
+from analysis_engine.consts import IEX_MINUTE_DATE_FORMAT
+from analysis_engine.consts import IEX_TICK_DATE_FORMAT
 from analysis_engine.iex.consts import DATAFEED_DAILY
 from analysis_engine.iex.consts import DATAFEED_MINUTE
 from analysis_engine.iex.consts import DATAFEED_TICK
@@ -181,12 +184,14 @@ def ingress_scrub_dataset(
         use_msg_format = 'df={} date_str={}'
 
     use_date_str = date_str
+    today_str = datetime.datetime.now().strftime(
+        '%Y-%m-%d')
+    year_str = today_str.split('-')[0]
     if not use_date_str:
-        use_date_str = datetime.datetime.now().strftime(
-            '%Y-%m-%d')
-        daily_date_format = '%Y-%m-%d %I:%M %p'
-        minute_date_format = '%Y-%m-%d %I:%M %p'
-        tick_date_format = '%Y-%m-%d %I:%M %p'
+        use_date_str = today_str
+        daily_date_format = IEX_DAILY_DATE_FORMAT
+        minute_date_format = IEX_MINUTE_DATE_FORMAT
+        tick_date_format = IEX_TICK_DATE_FORMAT
 
     debug_msg(
         label=label,
@@ -199,39 +204,69 @@ def ingress_scrub_dataset(
     try:
         if scrub_mode == 'sort-by-date':
             if datafeed_type == DATAFEED_DAILY:
-                return out_df
+                new_dates = []
+                if 'label' in df:
+                    for idx, i in enumerate(out_df['label']):
+                        new_str = ''
+                        if ',' not in i:
+                            # Oct 3
+                            new_str = '{}-{}-{}'.format(
+                                year_str,
+                                i.split(' ')[0],
+                                i.split(' ')[1])
+                        else:
+                            # Aug 29, 18
+                            new_str = '20{}-{}-{}'.format(
+                                i.split(' ')[2],
+                                i.split(' ')[0],
+                                i.split(' ')[1]).replace(',', '')
+                        new_dates.append(new_str)
+                    # end for all rows
+                    out_df['date'] = pd.to_datetime(
+                        new_dates,
+                        format=daily_date_format)
+                # end if label is in df
             elif datafeed_type == DATAFEED_MINUTE:
+                new_dates = []
                 if 'label' in df:
                     for idx, i in enumerate(out_df['label']):
+                        new_str = ''
                         if ':' not in i:
-                            out_df['label'][idx] = '{} {}:00 {}'.format(
+                            new_str = '{} {}:00 {}'.format(
                                 use_date_str,
                                 i.split(' ')[0],
                                 i.split(' ')[1])
                         else:
-                            out_df['label'][idx] = '{} {} {}'.format(
+                            new_str = '{} {} {}'.format(
                                 use_date_str,
                                 i.split(' ')[0],
                                 i.split(' ')[1])
+                        new_dates.append(new_str)
+                    # end for all rows
                     out_df['date'] = pd.to_datetime(
-                        df['label'],
+                        new_dates,
                         format=minute_date_format)
+                # end if label is in df
             elif datafeed_type == DATAFEED_TICK:
+                new_dates = []
                 if 'label' in df:
                     for idx, i in enumerate(out_df['label']):
+                        new_str = ''
                         if ':' not in i:
-                            out_df['label'][idx] = '{} {}:00 {}'.format(
+                            new_str = '{} {}:00 {}'.format(
                                 use_date_str,
                                 i.split(' ')[0],
                                 i.split(' ')[1])
                         else:
-                            out_df['label'][idx] = '{} {} {}'.format(
+                            new_str = '{} {} {}'.format(
                                 use_date_str,
                                 i.split(' ')[0],
                                 i.split(' ')[1])
+                    # end for all rows
                     out_df['date'] = pd.to_datetime(
-                        df['label'],
+                        new_dates,
                         format=tick_date_format)
+                # end if label is in df
             elif datafeed_type == DATAFEED_STATS:
                 log.info(
                     '{} - {} - no scrub_mode={} '

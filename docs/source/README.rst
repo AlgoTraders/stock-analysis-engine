@@ -113,7 +113,7 @@ Running on Mac OS X
 
 #.  Install Certs
 
-    After hitting ssl verify errors, I found `this stack overflow <https://stackoverflow.com/questions/42098126/mac-osx-python-ssl-sslerror-ssl-certificate-verify-failed-certificate-verify>`__ which shows there's an additional step for setitng up python 3.6:
+    After hitting ssl verify errors, I found `this stack overflow <https://stackoverflow.com/questions/42098126/mac-osx-python-ssl-sslerror-ssl-certificate-verify-failed-certificate-verify>`__ which shows there's an additional step for setting up python 3.6:
 
     ::
 
@@ -457,12 +457,75 @@ Prepare Dataset
 
     python -m unittest tests.test_prepare_pricing_dataset.TestPreparePricingDataset.test_integration_prepare_pricing_dataset
 
-IEX Fetch Testing
------------------
+IEX Test - Fetching All Datasets
+--------------------------------
 
 ::
 
     python -m unittest tests.test_iex_fetch_data
+
+IEX Test - Fetch Daily
+----------------------
+
+::
+
+    python -m unittest tests.test_iex_fetch_data.TestIEXFetchData.test_integration_fetch_daily
+
+IEX Test - Fetch Minute
+-----------------------
+
+::
+
+    python -m unittest tests.test_iex_fetch_data.TestIEXFetchData.test_integration_fetch_minute
+
+IEX Test - Fetch Stats
+----------------------
+
+::
+
+    python -m unittest tests.test_iex_fetch_data.TestIEXFetchData.test_integration_fetch_stats
+
+IEX Test - Fetch Peers
+----------------------
+
+::
+
+    python -m unittest tests.test_iex_fetch_data.TestIEXFetchData.test_integration_fetch_peers
+
+IEX Test - Fetch News
+---------------------
+
+::
+
+    python -m unittest tests.test_iex_fetch_data.TestIEXFetchData.test_integration_fetch_news
+
+IEX Test - Fetch Financials
+---------------------------
+
+::
+
+    python -m unittest tests.test_iex_fetch_data.TestIEXFetchData.test_integration_fetch_financials
+
+IEX Test - Fetch Earnings
+-------------------------
+
+::
+
+    python -m unittest tests.test_iex_fetch_data.TestIEXFetchData.test_integration_fetch_earnings
+
+IEX Test - Fetch Dividends
+--------------------------
+
+::
+
+    python -m unittest tests.test_iex_fetch_data.TestIEXFetchData.test_integration_fetch_dividends
+
+IEX Test - Fetch Company
+------------------------
+
+::
+
+    python -m unittest tests.test_iex_fetch_data.TestIEXFetchData.test_integration_fetch_company
 
 Prepare a Dataset
 =================

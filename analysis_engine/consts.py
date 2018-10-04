@@ -293,7 +293,9 @@ PLOT_COLORS = {
     'white': '#FFFFFF'
 }
 
-IEX_MINUTE_DATE_FORMAT = '%Y-%m-%d %H:%M:%S %p'
+IEX_DAILY_DATE_FORMAT = '%Y-%b-%d'
+IEX_MINUTE_DATE_FORMAT = '%Y-%m-%d %H:%M %p'
+IEX_TICK_DATE_FORMAT = '%Y-%m-%d %H:%M:%S %p'
 
 
 ########################################
