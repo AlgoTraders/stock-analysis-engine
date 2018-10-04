@@ -95,3 +95,36 @@ def get_ft_str(
         return 'unsupported ft_type={}'.format(
             ft_type)
 # end of get_ft_str
+
+
+def get_datafeed_str(
+        df_type):
+    """get_datafeed_str
+
+    :param df_type: enum fetch type value to return
+                    as a string
+    """
+    if df_type == DATAFEED_DAILY:
+        return 'daily'
+    elif df_type == DATAFEED_MINUTE:
+        return 'minute'
+    elif df_type == DATAFEED_TICK:
+        return 'tick'
+    elif df_type == DATAFEED_STATS:
+        return 'stats'
+    elif df_type == DATAFEED_PEERS:
+        return 'peers'
+    elif df_type == DATAFEED_NEWS:
+        return 'news'
+    elif df_type == DATAFEED_FINANCIALS:
+        return 'financials'
+    elif df_type == DATAFEED_EARNINGS:
+        return 'earnings'
+    elif df_type == DATAFEED_DIVIDENDS:
+        return 'dividends'
+    elif df_type == DATAFEED_COMPANY:
+        return 'company'
+    else:
+        return 'unsupported df_type={}'.format(
+            df_type)
+# end of get_datafeed_str

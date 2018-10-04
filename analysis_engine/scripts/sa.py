@@ -19,7 +19,6 @@ Supports
 
 import sys
 import argparse
-import pandas as pd
 import analysis_engine.charts
 import analysis_engine.work_tasks.prepare_pricing_dataset \
     as prepare_pricing_dataset
@@ -445,20 +444,7 @@ def run_sa_tool():
                         minute_df_res['status'] == SUCCESS
                         and minute_df_res['rec']['valid_df']):
                     minute_df = minute_df_res['rec']['data']
-                    minute_date_format = '%I:%M %p'
-                    log.info(
-                        '{} - plotting minute chart'.format(
-                            work['label']))
                     print(minute_df.columns.values)
-                    for idx, i in enumerate(minute_df['label']):
-                        if ':' not in i:
-                            minute_df['label'][idx] = '{}:00 {}'.format(
-                                i.split(' ')[0],
-                                i.split(' ')[1])
-                    minute_df = minute_df_res['rec']['data']
-                    minute_df['date'] = pd.to_datetime(
-                        minute_df['label'],
-                        format=minute_date_format)
                     column_list = [
                         'close',
                         'date'

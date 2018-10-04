@@ -141,10 +141,12 @@ def get_data_from_iex(
             return res
         else:
             log.info(
-                '{} - ticker={} field={} fetch'.format(
+                '{} - ticker={} field={} '
+                'orient={} fetch'.format(
                     label,
                     ticker,
-                    field))
+                    field,
+                    orient))
         # if invalid iex request
 
         df = None
