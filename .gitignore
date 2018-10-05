@@ -135,3 +135,4 @@ docker/notebooks/.ipynb_checkpoints
 docker/notebooks/*.slides.html
 run-s3-test.txt
 compose/docker/notebooks/.ipynb_checkpoints
+compose/docker/notebooks/.gitignore

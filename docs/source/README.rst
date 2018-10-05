@@ -20,6 +20,10 @@ It uses `Celery workers to process all tasks <http://www.celeryproject.org/>`__ 
 Getting Started
 ===============
 
+For additional details, please refer to this intro Jupyter notebook:
+
+- `Stock Analysis Intro <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro.ipynb>`__
+
 #.  Clone
 
     ::
@@ -318,6 +322,13 @@ View Caches in Redis
     OK
     127.0.0.1:6379[4]> keys *
     1) "SPY_demo"
+
+Jupyter
+=======
+
+With the included Jupyter container running, you can access the `Stock Analysis Intro notebook <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro.ipynb>`__ at the url (default login password is ``admin``):
+
+http://localhost:8888/notebooks/Stock-Analysis-Intro.ipynb
 
 Testing
 =======
