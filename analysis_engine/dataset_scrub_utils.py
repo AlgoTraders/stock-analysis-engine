@@ -45,6 +45,7 @@ from analysis_engine.consts import ev
 from analysis_engine.consts import IEX_DAILY_DATE_FORMAT
 from analysis_engine.consts import IEX_MINUTE_DATE_FORMAT
 from analysis_engine.consts import IEX_TICK_DATE_FORMAT
+from analysis_engine.consts import COMMON_TICK_DATE_FORMAT
 from analysis_engine.iex.consts import DATAFEED_DAILY
 from analysis_engine.iex.consts import DATAFEED_MINUTE
 from analysis_engine.iex.consts import DATAFEED_TICK
@@ -129,6 +130,50 @@ def debug_msg(
 # end of debug_msg
 
 
+def build_dates_from_df_col(
+        df,
+        use_date_str,
+        src_col='label',
+        src_date_format=IEX_MINUTE_DATE_FORMAT,
+        output_date_format=COMMON_TICK_DATE_FORMAT):
+    """build_dates_from_df_col
+
+    Converts a string date column series in a ``pandas.DataFrame``
+    to a well-formed date string list.
+
+    :param src_col: source column name
+    :param use_date_str: date string for today
+    :param src_date_format: format of the string in the
+                            ```df[src_col]`` columne
+    :param output_date_format: write the new date strings
+                               in this format.
+    :param df: source ``pandas.DataFrame``
+    """
+    new_dates = []
+    for idx, i in enumerate(df['label']):
+        org_new_str = ''
+        if ':' not in i:
+            org_new_str = '{} {}:00:00 {}'.format(
+                use_date_str,
+                i.split(' ')[0],
+                i.split(' ')[1])
+        else:
+            org_new_str = '{} {}:00 {}'.format(
+                use_date_str,
+                i.split(' ')[0],
+                i.split(' ')[1])
+        new_date_val = datetime.datetime.strptime(
+            org_new_str,
+            src_date_format)
+        new_str = new_date_val.strftime(
+            output_date_format)
+        new_dates.append(new_str)
+    # for all rows
+
+    return new_dates
+# end of build_dates_from_df_col
+
+
 def ingress_scrub_dataset(
         label,
         datafeed_type,
@@ -189,9 +234,10 @@ def ingress_scrub_dataset(
     year_str = today_str.split('-')[0]
     if not use_date_str:
         use_date_str = today_str
-        daily_date_format = IEX_DAILY_DATE_FORMAT
-        minute_date_format = IEX_MINUTE_DATE_FORMAT
-        tick_date_format = IEX_TICK_DATE_FORMAT
+
+    daily_date_format = IEX_DAILY_DATE_FORMAT
+    minute_date_format = IEX_MINUTE_DATE_FORMAT
+    tick_date_format = IEX_TICK_DATE_FORMAT
 
     debug_msg(
         label=label,
@@ -229,23 +275,14 @@ def ingress_scrub_dataset(
             elif datafeed_type == DATAFEED_MINUTE:
                 new_dates = []
                 if 'label' in df:
-                    for idx, i in enumerate(out_df['label']):
-                        new_str = ''
-                        if ':' not in i:
-                            new_str = '{} {}:00 {}'.format(
-                                use_date_str,
-                                i.split(' ')[0],
-                                i.split(' ')[1])
-                        else:
-                            new_str = '{} {} {}'.format(
-                                use_date_str,
-                                i.split(' ')[0],
-                                i.split(' ')[1])
-                        new_dates.append(new_str)
-                    # end for all rows
+                    new_dates = build_dates_from_df_col(
+                        src_col='label',
+                        src_date_format=minute_date_format,
+                        use_date_str=use_date_str,
+                        df=out_df)
                     out_df['date'] = pd.to_datetime(
                         new_dates,
-                        format=minute_date_format)
+                        format='%Y-%m-%d %H:%M:%S')
                 # end if label is in df
             elif datafeed_type == DATAFEED_TICK:
                 new_dates = []
@@ -355,6 +392,7 @@ def ingress_scrub_dataset(
                     out_df['date'] = pd.to_datetime(
                         df['label'],
                         format=daily_date_format)
+            # if/else
         else:
             log.info(
                 '{} - {} - no scrub_mode'.format(
