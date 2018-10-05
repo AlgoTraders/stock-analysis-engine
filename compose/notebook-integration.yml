@@ -1,0 +1,68 @@
+version: '2'
+
+services:
+
+  # Redis
+  redis:
+    container_name: "redis"
+    hostname: redis
+    image: redis:4.0.9-alpine
+    ports:
+      - "6379:6379"
+
+  # Minio
+  minio:
+    container_name: "minio"
+    hostname: minio
+    image: minio/minio:latest
+    environment:
+      - MINIO_ACCESS_KEY=trexaccesskey
+      - MINIO_SECRET_KEY=trex123321
+    ports:
+      - "9000:9000"
+    volumes:
+      - /data/minio/data:/data
+    command: "server /data"
+
+  # Stock Analysis Engine
+  sa-workers:
+    container_name: "sa-workers"
+    hostname: sa-workers
+    image: jayjohnson/stock-analysis-engine:latest
+    environment:
+      - S3_ADDRESS=minio:9000
+      - REDIS_ADDRESS=redis:6379
+      - WORKER_BROKER_URL=redis://redis:6379/13
+      - WORKER_BACKEND_URL=redis://redis:6379/14
+    depends_on:
+      - redis
+      - minio
+    entrypoint: "/bin/sh -c 'cd /opt/sa && 
+                 /opt/sa/start-workers.sh'"
+
+  # Jupyter notebooks, converted noteooks as presentation html slides, and tensorboard
+  sa-jupyter:
+    container_name: "sa-jupyter"
+    hostname: sa-jupyter
+    image: jayjohnson/stock-analysis-jupyter:latest
+    depends_on:
+      - redis
+      - minio
+    environment:
+      - JUPYTER_PASS=admin
+      - JUPYTER_CONFIG=/opt/sa/docker/jupyter/jupyter_notebook_config.py
+      - NOTEBOOK_DIR=/opt/sa/docker/notebooks
+      - S3_ADDRESS=minio:9000
+      - REDIS_ADDRESS=redis:6379
+      - WORKER_BROKER_URL=redis://redis:6379/13
+      - WORKER_BACKEND_URL=redis://redis:6379/14
+    volumes:
+      # please run this from the repo
+      # base directory
+      - ./docker/notebooks:/opt/sa/docker/notebooks
+    ports:
+      - "8888:8888"
+      - "8889:8889"
+      - "8890:8890"
+      - "6006:6006"
+    entrypoint: "/opt/sa/docker/jupyter/start-container.sh"
