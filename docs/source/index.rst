@@ -8,6 +8,8 @@ Stock Analysis Engine
 
 Analyze information about publicly traded companies from `Yahoo <https://finance.yahoo.com/>`__ and `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__ (supported data includes: news, quotes, dividends, daily, intraday, statistics, financials, earnings, options, and more). Once collected the data is archived in s3 (using `minio <https://minio.io>`__) and automatically cached in redis.
 
+.. image:: https://i.imgur.com/pH368gy.png
+
 It uses `Celery workers to process all tasks <http://www.celeryproject.org/>`__ and is a horizontally scalable worker pool that works with many `transports and backends <https://github.com/celery/celery#transports-and-backends>`__
 
 .. list-table::
@@ -21,6 +23,9 @@ It uses `Celery workers to process all tasks <http://www.celeryproject.org/>`__ 
      - .. image:: https://readthedocs.org/projects/stock-analysis-engine/badge/?version=latest
            :alt: Read the Docs Stock Analysis Engine
            :target: https://stock-analysis-engine.readthedocs.io/en/latest/README.html
+
+Table of Contents
+=================
 
 .. toctree::
    :maxdepth: 2
