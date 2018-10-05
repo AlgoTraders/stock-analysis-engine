@@ -64,6 +64,11 @@ do
     elif [[ "${i}" == "-a" ]]; then
         debug="1"
         compose="integration.yml"
+    # end-to-end integration testing with notebook editing
+    # over <repo base>/docker/notebooks:
+    elif [[ "${i}" == "-j" ]]; then
+        debug="1"
+        compose="notebook-integration.yml"
     fi
 done
 
@@ -72,6 +77,8 @@ if [[ "${compose}" == "dev.yml" ]]; then
     inf "starting redis and minio"
 elif [[ "${compose}" == "integration.yml" ]]; then
     inf "starting end-to-end integration stack: redis, minio, workers and jupyter"
+elif [[ "${compose}" == "notebook-integration.yml" ]]; then
+    inf "starting end-to-end with notebook integration stack: redis, minio, workers and jupyter"
 else
     err "unsupported compose file: ${compose}"
     exit 1

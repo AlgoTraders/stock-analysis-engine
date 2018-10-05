@@ -56,6 +56,10 @@ services:
       - REDIS_ADDRESS=redis:6379
       - WORKER_BROKER_URL=redis://redis:6379/13
       - WORKER_BACKEND_URL=redis://redis:6379/14
+    volumes:
+      # please run this from the repo
+      # base directory
+      - ./docker/notebooks:/opt/sa/docker/notebooks
     ports:
       - "8888:8888"
       - "8889:8889"
