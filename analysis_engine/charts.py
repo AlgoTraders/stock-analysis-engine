@@ -7,7 +7,7 @@ Change the footnote with:
 
     export PLOT_FOOTNOTE="custom footnote on images"
 
-.. note: these functions were ported from
+.. note: most of these functions were ported from
          the repo: https://github.com/jay-johnson/scipype
 
 """
@@ -191,6 +191,13 @@ def plot_overlay_pricing_and_volume(
 
     Plot pricing (high, low, open, close) and volume as
     an overlay off the x-axis
+
+    Here is a sample chart from the
+    `Stock Analysis Jupyter Intro Notebook <https://github.com/Al
+    goTraders/stock-analysis-engine/blob/master/co
+    mpose/docker/notebooks/Stock-Analysis-Intro.ipynb>`__
+
+    .. image:: https://i.imgur.com/pH368gy.png
 
     :param log_label: log identifier
     :param ticker: ticker name
