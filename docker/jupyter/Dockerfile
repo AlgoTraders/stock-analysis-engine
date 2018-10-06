@@ -18,6 +18,8 @@ ENV PROJECT_NAME="jupyter" \
     JUPYTER_CONFIG="/opt/sa/docker/jupyter/jupyter_notebook_config.py" \
     NOTEBOOK_DIR="/opt/notebooks"
 
+WORKDIR /opt
+
 RUN . /opt/venv/bin/activate \
   && rm -rf /opt/sa \
   && git clone https://github.com/AlgoTraders/stock-analysis-engine.git /opt/sa \
