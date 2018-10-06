@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 from celery import signals
-from celery_loaders.work_tasks.get_celery_app import get_celery_app
 from spylunking.log.setup_logging import build_colorized_logger
+from analysis_engine.work_tasks.get_celery_app import get_celery_app
 from analysis_engine.consts import APP_NAME
 from analysis_engine.consts import LOG_CONFIG_PATH
 from analysis_engine.consts import WORKER_BROKER_URL
