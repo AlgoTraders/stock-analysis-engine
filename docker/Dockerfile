@@ -17,6 +17,8 @@ RUN echo "creating project directories" \
   && echo "activating venv" \
   && . /opt/venv/bin/activate \
   && cd /opt/sa \
+  && echo "upgrading pip" \
+  && pip install --upgrade pip \
   && echo "installing pip upgrades" \
   && pip install --upgrade -e . \
   && echo "installing pip fixes for 2018-10-06" \

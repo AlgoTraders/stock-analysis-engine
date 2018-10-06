@@ -4,9 +4,6 @@ if [[ -e /opt/venv/bin/activate ]]; then
     source /opt/venv/bin/activate
 fi
 
-num_workers=1
-log_level=INFO
-
 echo "------------------------"
 echo "starting data collection"
 date -u +"%Y-%m-%d %H:%M:%S"
