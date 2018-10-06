@@ -44,7 +44,7 @@ for d in ${repos}; do
     git pull origin master
     echo ""
     if [[ "${use_fork}" == "1" ]]; then
-        has_fork=$(cat ${d}/.git/config | grep ${remote_uri} | wc -l)
+        has_fork=$(git remote -v | grep ${remote_uri} | wc -l)
         if [[ "${has_fork}" == "0" ]]; then
             echo "adding remote:"
             echo "git remote add ${remote_name} ${remote_uri}"
