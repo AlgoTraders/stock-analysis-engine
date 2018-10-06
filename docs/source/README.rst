@@ -35,7 +35,7 @@ For additional details, please refer to this intro Jupyter notebook:
 
 #.  Start Redis and Minio
 
-    .. note:: The Minio container is set up to save data to ``/data`` so S3 files can survive a restart/reboot. On Mac, please make sure to add ``/data`` on the Docker Preferences -> File Sharing tab and let the docker daemon restart before trying to start the containers. If not, you will likely see errors like:
+    .. note:: The Minio container is set up to save data to ``/data`` so S3 files can survive a restart/reboot. On Mac, please make sure to add ``/data`` (and ``/opt/sa/compose/docker/notebooks`` for Jupyter notebooks) on the Docker Preferences -> File Sharing tab and let the docker daemon restart before trying to start the containers. If not, you will likely see errors like:
 
        ::
 
@@ -327,6 +327,14 @@ View Caches in Redis
 
 Jupyter
 =======
+
+You can run the Jupyter notebooks by starting the `notebook-integration.yml stack <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/notebook-integration.yml>`__ with the command:
+
+::
+
+    ./compose/start.sh -j
+
+.. warning:: On Mac OS X, please make sure ``/opt/sa/compose/docker/notebooks`` is a shared directory on the Docker Preferences -> File Sharing tab and restart the docker daemon.
 
 With the included Jupyter container running, you can access the `Stock Analysis Intro notebook <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro.ipynb>`__ at the url (default login password is ``admin``):
 
