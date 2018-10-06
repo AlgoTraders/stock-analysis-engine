@@ -669,6 +669,27 @@ Linting and Other Tools
 
         docker pull jayjohnson/stock-analysis-jupyter && docker pull jayjohnson/stock-analysis-engine
 
+Deploy Fork Feature Branch to Running Containers
+================================================
+
+If you want to deploy your own fork to the containers use the command:
+
+::
+
+    ./tools/update-stack.sh <git fork https uri> <optional - branch name (master by default)> <optional - fork repo name>
+
+Example:
+
+::
+
+    ./tools/update-stack.sh https://github.com/jay-johnson/stock-analysis-engine.git timeseries-charts jay
+
+Restore the containers back to the master build from the https://github.com/AlgoTraders/stock-analysis-engine with:
+
+::
+
+    ./tools/update-stack.sh https://github.com/AlgoTraders/stock-analysis-engine.git master upstream
+
 License
 =======
 
