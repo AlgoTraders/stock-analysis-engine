@@ -28,7 +28,7 @@ import analysis_engine.iex.extract_df_from_redis \
     as extract_utils
 from celery import signals
 from spylunking.log.setup_logging import build_colorized_logger
-from celery_loaders.work_tasks.get_celery_app import get_celery_app
+from analysis_engine.work_tasks.get_celery_app import get_celery_app
 from analysis_engine.api_requests import build_prepare_dataset_request
 from analysis_engine.consts import SA_MODE_PREPARE
 from analysis_engine.consts import LOG_CONFIG_PATH
@@ -36,6 +36,7 @@ from analysis_engine.consts import TICKER
 from analysis_engine.consts import TICKER_ID
 from analysis_engine.consts import WORKER_BROKER_URL
 from analysis_engine.consts import WORKER_BACKEND_URL
+from analysis_engine.consts import WORKER_CELERY_CONFIG_MODULE
 from analysis_engine.consts import INCLUDE_TASKS
 from analysis_engine.consts import SSL_OPTIONS
 from analysis_engine.consts import TRANSPORT_OPTIONS
@@ -270,6 +271,7 @@ def run_sa_tool():
     transport_options = TRANSPORT_OPTIONS
     broker_url = WORKER_BROKER_URL
     backend_url = WORKER_BACKEND_URL
+    celery_config_module = WORKER_CELERY_CONFIG_MODULE
     include_tasks = INCLUDE_TASKS
     s3_access_key = S3_ACCESS_KEY
     s3_secret_key = S3_SECRET_KEY
@@ -540,6 +542,7 @@ def run_sa_tool():
             name=__name__,
             auth_url=broker_url,
             backend_url=backend_url,
+            path_to_config_module=celery_config_module,
             ssl_options=ssl_options,
             transport_options=transport_options,
             include_tasks=include_tasks)

@@ -5,7 +5,7 @@ and includable tasks lists
 
 import os
 import celery
-from celery_loaders.log.setup_logging import build_colorized_logger
+from spylunking.log.setup_logging import build_colorized_logger
 
 
 log = build_colorized_logger(
@@ -14,19 +14,19 @@ log = build_colorized_logger(
 
 def get_celery_app(
         name=os.getenv(
-            'CELERY_NAME',
+            'APP_NAME',
             'worker'),
         auth_url=os.getenv(
-            'BROKER_URL',
-            'redis://localhost:6379/9'),
+            'WORKER_BROKER_URL',
+            'redis://localhost:6379/13'),
         backend_url=os.getenv(
-            'BACKEND_URL',
-            'redis://localhost:6379/10'),
+            'WORKER_BACKEND_URL',
+            'redis://localhost:6379/14'),
         include_tasks=[],
         ssl_options=None,
         transport_options=None,
         path_to_config_module=os.getenv(
-            'CONFIG_MODULE_PATH',
+            'WORKER_CELERY_CONFIG_MODULE',
             'celery_loaders.work_tasks.celery_config'),
         worker_log_format=os.getenv(
             'WORKER_LOG_FORMAT',

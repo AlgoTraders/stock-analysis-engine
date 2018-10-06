@@ -1,5 +1,11 @@
-broker_url = 'redis://localhost:6379/9'
-result_backend = 'redis://localhost:6379/10'
+import os
+
+broker_url = os.getenv(
+    'WORKER_BROKER_URL',
+    'redis://0.0.0.0:6379/13')
+result_backend = os.getenv(
+    'WORKER_BACKEND_URL',
+    'redis://0.0.0.0:6379/14')
 
 # http://docs.celeryproject.org/en/latest/userguide/optimizing.html
 
