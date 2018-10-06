@@ -3,6 +3,7 @@ FROM jayjohnson/ai-core:latest
 RUN echo "creating project directories" \
   && git clone https://github.com/AlgoTraders/stock-analysis-engine.git /opt/sa \
   && mkdir -p -m 777 /var/log/sa \
+  && mkdir -p -m 777 /opt/notebooks \
   && chmod 777 /var/log/sa \
   && touch /var/log/sa/worker.log \
   && chmod 777 /var/log/sa/worker.log \
@@ -14,6 +15,8 @@ RUN echo "creating project directories" \
   && git pull \
   && echo "checking repo in container" \
   && ls -l /opt/sa \
+  && echo "installing notebooks from: /opt/sa/compose/docker/notebooks/ to /opt/notebooks" \
+  && cp -r /opt/sa/compose/docker/notebooks/* /opt/notebooks/ \
   && echo "activating venv" \
   && . /opt/venv/bin/activate \
   && cd /opt/sa \
@@ -69,6 +72,7 @@ WORKDIR /opt/sa
 # set for anonymous user access in the container
 RUN find /opt/sa -type d -exec chmod 777 {} \;
 RUN find /var/log/sa -type d -exec chmod 777 {} \;
+RUN find /opt/notebooks -type d -exec chmod 777 {} \;
 
 ENTRYPOINT . /opt/venv/bin/activate \
   && /opt/sa/start-workers.sh
