@@ -35,6 +35,7 @@ which python
 echo "updating pip"
 pip install --upgrade pip
 
+cd /opt
 repos="/opt/sa"
 echo "updating: ${repos}"
 for d in ${repos}; do
