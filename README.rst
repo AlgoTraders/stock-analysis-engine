@@ -342,6 +342,20 @@ With the included Jupyter container running, you can access the `Stock Analysis 
 
 http://localhost:8888/notebooks/Stock-Analysis-Intro.ipynb
 
+Distributed Automation with Docker
+==================================
+
+.. note:: Automation requires the integration stack running (redis + minio + engine) and docker-compose.
+
+Dataset Collection
+==================
+
+Start automated dataset collection with docker compose:
+
+::
+
+    ./compose/start.sh -c
+
 Testing
 =======
 
