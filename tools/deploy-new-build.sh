@@ -8,7 +8,7 @@ echo "deploying new build"
 
 echo ""
 echo "python version:"
-which pythono
+which python
 
 echo "updating pip"
 pip install --upgrade pip
