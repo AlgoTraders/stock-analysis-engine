@@ -354,6 +354,66 @@ Start automated dataset collection with docker compose:
 
     ./compose/start.sh -c
 
+Datasets in Redis
+=================
+
+After running the dataset collection container, the datasets should be auto-cached in Minio (http://localhost:9000/minio/pricing/) and Redis:
+
+::
+
+    redis-cli
+    127.0.0.1:6379> select 4
+    OK
+    127.0.0.1:6379[4]> keys *
+    1) "SPY_2018-10-06"
+    2) "AMZN_2018-10-06_peers"
+    3) "AMZN_2018-10-06_pricing"
+    4) "TSLA_2018-10-06_options"
+    5) "SPY_2018-10-06_dividends"
+    6) "NFLX_2018-10-06_minute"
+    7) "TSLA_2018-10-06_news"
+    8) "SPY_2018-10-06_tick"
+    9) "AMZN_2018-10-06_company"
+    10) "TSLA_2018-10-06"
+    11) "TSLA_2018-10-06_pricing"
+    12) "SPY_2018-10-06_company"
+    13) "SPY_2018-10-06_stats"
+    14) "NFLX_2018-10-06_peers"
+    15) "NFLX_2018-10-06_tick"
+    16) "SPY_2018-10-06_news1"
+    17) "AMZN_2018-10-06_stats"
+    18) "TSLA_2018-10-06_news1"
+    19) "AMZN_2018-10-06_news"
+    20) "TSLA_2018-10-06_company"
+    21) "AMZN_2018-10-06_minute"
+    22) "AMZN_2018-10-06_tick"
+    23) "NFLX_2018-10-06_dividends"
+    24) "NFLX_2018-10-06_options"
+    25) "TSLA_2018-10-06_daily"
+    26) "SPY_2018-10-06_news"
+    27) "SPY_2018-10-06_options"
+    28) "NFLX_2018-10-06"
+    29) "NFLX_2018-10-06_daily"
+    30) "AMZN_2018-10-06"
+    31) "AMZN_2018-10-06_options"
+    32) "NFLX_2018-10-06_pricing"
+    33) "TSLA_2018-10-06_stats"
+    34) "TSLA_2018-10-06_minute"
+    35) "SPY_2018-10-06_peers"
+    36) "AMZN_2018-10-06_dividends"
+    37) "TSLA_2018-10-06_dividends"
+    38) "NFLX_2018-10-06_company"
+    39) "NFLX_2018-10-06_news"
+    40) "SPY_2018-10-06_pricing"
+    41) "SPY_2018-10-06_daily"
+    42) "TSLA_2018-10-06_tick"
+    43) "AMZN_2018-10-06_news1"
+    44) "AMZN_2018-10-06_daily"
+    45) "TSLA_2018-10-06_peers"
+    46) "SPY_2018-10-06_minute"
+    47) "NFLX_2018-10-06_stats"
+    48) "NFLX_2018-10-06_news1"
+
 Testing
 =======
 
