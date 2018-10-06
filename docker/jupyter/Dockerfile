@@ -23,7 +23,7 @@ WORKDIR /opt
 RUN . /opt/venv/bin/activate \
   && rm -rf /opt/sa \
   && git clone https://github.com/AlgoTraders/stock-analysis-engine.git /opt/sa \
-  && /opt/sa \
+  && cd /opt/sa \
   && echo "pulling latest" \
   && git pull \
   && echo "installing notebooks from: /opt/sa/compose/docker/notebooks/ to /opt/notebooks" \
