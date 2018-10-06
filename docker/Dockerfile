@@ -29,6 +29,7 @@ ENV PROJECT_NAME="sa" \
     TICKER_ID="1" \
     WORKER_BROKER_URL="redis://0.0.0.0:6379/13" \
     WORKER_BACKEND_URL="redis://0.0.0.0:6379/14" \
+    WORKER_CELERY_CONFIG_MODULE="analysis_engine.work_tasks.celery_service_config" \
     ENABLED_S3_UPLOAD="1" \
     S3_ACCESS_KEY="trexaccesskey" \
     S3_SECRET_KEY="trex123321" \

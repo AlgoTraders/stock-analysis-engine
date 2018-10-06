@@ -34,6 +34,7 @@ services:
       - REDIS_ADDRESS=redis:6379
       - WORKER_BROKER_URL=redis://redis:6379/13
       - WORKER_BACKEND_URL=redis://redis:6379/14
+      - WORKER_CELERY_CONFIG_MODULE=analysis_engine.work_tasks.celery_service_config
     depends_on:
       - redis
       - minio
@@ -56,6 +57,7 @@ services:
       - REDIS_ADDRESS=redis:6379
       - WORKER_BROKER_URL=redis://redis:6379/13
       - WORKER_BACKEND_URL=redis://redis:6379/14
+      - WORKER_CELERY_CONFIG_MODULE=analysis_engine.work_tasks.celery_service_config
     ports:
       - "8888:8888"
       - "8889:8889"
