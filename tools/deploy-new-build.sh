@@ -5,10 +5,13 @@ if [[ -e /opt/venv/bin/activate ]]; then
 fi
 
 use_fork="0"
-remote_uri=""
-remote_name=""
+remote_uri="https://github.com/AlgoTraders/stock-analysis-engine.git"
+remote_name="upstream"
 remote_branch="master"
 
+# deploy your own fork with command:
+# ./tools/deploy-new-build.sh <git fork uri> <optional - branch name (master by default)> <optional - fork repo name>
+# ./tools/deploy-new-build.sh git@github.com:jay-johnson/stock-analysis-engine.git timeseries-charts jay
 if [[ "${1}" != "" ]]; then
     use_fork="1"
     remote_uri="${1}"
