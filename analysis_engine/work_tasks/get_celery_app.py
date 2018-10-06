@@ -1,6 +1,6 @@
 """
-Build a Celery Application with a config module
-and includable tasks lists
+Celery Get Application Helper
+=============================
 """
 
 import os
@@ -27,20 +27,46 @@ def get_celery_app(
         transport_options=None,
         path_to_config_module=os.getenv(
             'WORKER_CELERY_CONFIG_MODULE',
-            'celery_loaders.work_tasks.celery_config'),
+            'analysis_engine.work_tasks.celery_config'),
         worker_log_format=os.getenv(
             'WORKER_LOG_FORMAT',
             '%(asctime)s: %(levelname)s %(message)s'),
         **kwargs):
     """get_celery_app
 
+    Build a Celery app with support for environment variables
+    to set endpoints locations.
+
+    - export WORKER_BROKER_URL=redis://localhost:6379/13
+    - export WORKER_BACKEND_URL=redis://localhost:6379/14
+    - export WORKER_CELERY_CONFIG_MODULE=analysis_engine.work_tasks.cel
+      ery_config
+
+    .. note:: Jupyter notebooks need to use the
+              ``WORKER_CELERY_CONFIG_MODULE=analysis_engine.work_tasks.celery
+              service_config`` value which uses resolvable hostnames with
+              docker compose:
+
+              - export WORKER_BROKER_URL=redis://redis:6379/13
+              - export WORKER_BACKEND_URL=redis://redis:6379/14
+
     :param name: name for this app
-    :param auth_url: celery broker
-    :param backend_url: celery backend
+    :param auth_url: celery broker ``redis://localhost:6379/13``
+                     by default
+                     or ``WORKER_BROKER_URL`` environment variable
+    :param backend_url: celery backend ``redis://localhost:6379/14``
+                        by default
+                        or ``WORKER_BACKEND_URL``
+                        environment variable
     :param include_tasks: list of modules containing tasks to add
     :param ssl_options: security options dictionary
     :param trasport_options: transport options dictionary
     :param path_to_config_module: config module
+                                  ``analysis_engine.work_ta
+                                  sks.celery_config``
+                                  by default or ``WORKER_CELERY_CONFI
+                                  G_MODULE``
+                                  environment variable
     :param worker_log_format: format for logs
     """
 
