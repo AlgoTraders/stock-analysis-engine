@@ -75,6 +75,14 @@ for d in ${repos}; do
         echo ""
         echo "checking git status"
         git status
+        echo ""
+        echo "checking out: ${remote_branch}"
+        git checkout ${remote_branch}
+        echo ""
+        echo ""
+        echo "checking final git status"
+        git status
+        echo ""
     fi
     echo "installing latest"
     pip install --upgrade -e .
