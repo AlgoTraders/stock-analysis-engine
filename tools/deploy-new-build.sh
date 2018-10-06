@@ -35,47 +35,14 @@ which python
 echo "updating pip"
 pip install --upgrade pip
 
+cd /opt
 repos="/opt/sa"
 echo "updating: ${repos}"
 for d in ${repos}; do
+    rm -rf ${d}
+    git clone ${remote_uri} ${d}
     cd ${d}
-    echo ""
-    echo "pulling latest: ${d} origin master"
-    git pull origin master
-    echo ""
-    if [[ "${use_fork}" == "1" ]]; then
-        has_fork=$(git remote -v | grep ${remote_uri} | wc -l)
-        if [[ "${has_fork}" == "0" ]]; then
-            echo "adding remote:"
-            echo "git remote add ${remote_name} ${remote_uri}"
-            git remote add ${remote_name} ${remote_uri}
-        else
-            remote_name=$(git remote -v | grep ${remote_uri} | grep fetch | awk '{print $1}')
-            echo "using existing remote: ${remote_name} with remote uri: ${remote_uri}"
-        fi
-        echo "fetching:"
-        echo "git fetch"
-        git fetch
-        echo ""
-        echo "fetching:"
-        echo "git fetch ${remote_name}"
-        git fetch ${remote_name}
-        echo ""
-        echo "checking out: ${remote_name} ${remote_branch}"
-        git checkout ${remote_name} ${remote_branch}
-        echo ""
-        echo "checking git status"
-        git status
-        echo ""
-        echo "pulling: ${remote_name} ${remote_branch}"
-        git pull ${remote_name} ${remote_branch}
-        echo ""
-        echo "pulling: ${remote_name} ${remote_branch}"
-        git pull
-        echo ""
-        echo "checking git status"
-        git status
-    fi
+    git checkout ${remote_branch}
     echo "installing latest"
     pip install --upgrade -e .
 done
