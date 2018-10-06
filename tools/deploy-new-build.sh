@@ -46,10 +46,13 @@ for d in ${repos}; do
             echo "adding remote:"
             echo "git remote add ${remote_name} ${remote_uri}"
             git remote add ${remote_name} ${remote_uri}
+        else
+            remote_name=$(git remote -v | grep ${remote_uri} | grep fetch | awk '{print $1}')
+            echo "using existing remote: ${remote_name} with remote uri: ${remote_uri}"
         fi
-        echo "fetching: ${remote_name}"
-        echo "git fetch ${remote_name}"
-        git fetch ${remote_name}
+        echo "fetching:"
+        echo "git fetch"
+        git fetch
         echo ""
         echo "checking out: ${remote_name} ${remote_branch}"
         git checkout ${remote_branch}
@@ -59,6 +62,9 @@ for d in ${repos}; do
         echo ""
         echo "pulling: ${remote_name} ${remote_branch}"
         git pull ${remote_name} ${remote_branch}
+        echo ""
+        echo "pulling: ${remote_name} ${remote_branch}"
+        git pull
         echo ""
         echo "checking git status"
         git status
