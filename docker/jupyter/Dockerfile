@@ -19,6 +19,8 @@ ENV PROJECT_NAME="jupyter" \
     NOTEBOOK_DIR="/opt/sa/docker/notebooks"
 
 RUN . /opt/venv/bin/activate \
+  && rm -rf /opt/sa \
+  && git clone https://github.com/AlgoTraders/stock-analysis-engine.git /opt/sa \
   && /opt/sa \
   && echo "pulling latest" \
   && git pull \
@@ -28,6 +30,9 @@ RUN . /opt/venv/bin/activate \
   && pip install --upgrade -e . \
   && echo "installing pip fixes for 2018-10-06" \
   && pip install --upgrade awscli boto3 botocore
+
+# set for anonymous user access in the container
+RUN find /opt/sa -type d -exec chmod 777 {} \;
 
 WORKDIR /opt/sa/docker/jupyter
 
