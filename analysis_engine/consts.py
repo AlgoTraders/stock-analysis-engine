@@ -14,7 +14,7 @@ Stock and Analysis Environment Variables
         '1'))
     DEFAULT_TICKERS = ev(
         'DEFAULT_TICKERS',
-        'SPY,XLF,XLK,XLI,XLU').split(',')
+        'SPY,AMZN,TSLA,NFLX').split(',')
     NEXT_EXP = analysis_engine.options_dates.option_expiration()
     NEXT_EXP_STR = NEXT_EXP.strftime('%Y-%m-%d')
 
@@ -230,7 +230,7 @@ TICKER_ID = int(ev(
     '1'))
 DEFAULT_TICKERS = ev(
     'DEFAULT_TICKERS',
-    'SPY,XLF,XLK,XLI,XLU').split(',')
+    'SPY,AMZN,TSLA,NFLX').split(',')
 NEXT_EXP = analysis_engine.options_dates.option_expiration()
 NEXT_EXP_STR = NEXT_EXP.strftime('%Y-%m-%d')
 DAILY_S3_BUCKET_NAME = ev(
