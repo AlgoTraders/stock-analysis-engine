@@ -43,10 +43,42 @@ for c in ${containers_to_update}; do
             docker exec -it ${c} /bin/bash /opt/sa/tools/deploy-new-build.sh
             echo ""
         fi
+
+        container_id=$(docker ps | grep ${c} | awk '{print $1}')
+        echo "saving container changes to container: ${c} with id: ${container_id}"
+        image_name="jayjohnson/stock-analysis-engine"
+        if [[ "${c}" == "sa-jupyter" ]]; then
+            image_name="jayjohnson/stock-analysis-jupyter"
+        fi
+        echo "saving container changes as latest: container: ${c} container id: ${container_id} as image: ${image_name}"
+        commit_msg=$(docker commit ${container_id} ${image_name}:latest)
+        echo "commit msg: ${commit_msg}"
+        image_id=$(echo "${commit_msg}" | sed -e 's/:/ /g' | awk '{print $NF}')
+        echo "tagging image from container: ${c} with image id: ${image_id}"
+        docker tag ${image_id} ${image_name}:latest
+
+        echo "stopping container: ${c}"
+        docker stop ${c}
+        echo "removing container: ${c}"
+        docker rm ${c}
     else
         echo "cannot update: ${c} - it is not running"
     fi
+
 done
 
 date -u +"%Y-%m-%d %H:%M:%S"
 echo "done updating images"
+
+echo ""
+echo "Please restart the containers again:"
+echo ""
+echo "Start integration stack:"
+echo "./compose/start.sh -a"
+echo ""
+echo "Start notebook-integration stack:"
+echo "./compose/start.sh -j"
+echo ""
+
+echo "Starting jupyter integration by default:"
+./compose/start.sh -j
