@@ -51,7 +51,7 @@ services:
     volumes:
       # please run this from the repo
       # base directory
-      - ./docker/notebooks:/opt/sa/docker/notebooks
+      - /data/sa/notebooks:/opt/notebooks
     ports:
       - "8888:8888"
       - "8889:8889"

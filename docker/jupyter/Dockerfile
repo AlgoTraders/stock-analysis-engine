@@ -16,7 +16,7 @@ ENV PROJECT_NAME="jupyter" \
     SILENT="-s" \
     RUN_JUPYTER="/opt/sa/docker/jupyter/start-container.sh" \
     JUPYTER_CONFIG="/opt/sa/docker/jupyter/jupyter_notebook_config.py" \
-    NOTEBOOK_DIR="/opt/sa/docker/notebooks"
+    NOTEBOOK_DIR="/opt/notebooks"
 
 RUN . /opt/venv/bin/activate \
   && rm -rf /opt/sa \
@@ -24,6 +24,8 @@ RUN . /opt/venv/bin/activate \
   && /opt/sa \
   && echo "pulling latest" \
   && git pull \
+  && echo "installing notebooks from: /opt/sa/compose/docker/notebooks/ to /opt/notebooks" \
+  && cp -r /opt/sa/compose/docker/notebooks/* /opt/notebooks/ \
   && echo "upgrading pip" \
   && pip install --upgrade pip \
   && echo "installing pip upgrades" \
@@ -33,6 +35,7 @@ RUN . /opt/venv/bin/activate \
 
 # set for anonymous user access in the container
 RUN find /opt/sa -type d -exec chmod 777 {} \;
+RUN find /opt/notebooks -type d -exec chmod 777 {} \;
 
 WORKDIR /opt/sa/docker/jupyter
 

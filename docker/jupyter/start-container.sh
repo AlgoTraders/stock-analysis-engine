@@ -27,7 +27,7 @@ fi
 
 echo "Starting Jupyter"
 notebook_config=/opt/sa/docker/jupyter/jupyter_notebook_config.py
-notebook_dir=/opt/sa/docker/notebooks
+notebook_dir=/opt/notebooks
 
 if [[ "${JUPYTER_CONFIG}" != "" ]]; then
     if [[ -e ${JUPYTER_CONFIG} ]]; then
