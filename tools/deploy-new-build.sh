@@ -43,6 +43,7 @@ for d in ${repos}; do
     git clone ${remote_uri} ${d}
     cd ${d}
 <<<<<<< HEAD
+<<<<<<< HEAD
     git checkout ${remote_branch}
 =======
     echo ""
@@ -91,6 +92,9 @@ for d in ${repos}; do
         echo ""
     fi
 >>>>>>> testing fix for checking out the branch before final status check
+=======
+    git checkout ${remote_branch}
+>>>>>>> testing hard removal instead of git remote ops
     echo "installing latest"
     pip install --upgrade -e .
 done
