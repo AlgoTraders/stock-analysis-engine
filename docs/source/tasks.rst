@@ -22,3 +22,6 @@ Celery tasks are automatically processed by the workers. You can turn off celery
 
 .. automodule:: analysis_engine.work_tasks.custom_task
     :members: CustomTask
+
+.. automodule:: analysis_engine.work_tasks.get_celery_app
+    :members: get_celery_app

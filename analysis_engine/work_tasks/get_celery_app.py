@@ -1,6 +1,6 @@
 """
-Build a Celery Application with a config module
-and includable tasks lists
+Celery Get Application Helper
+=============================
 """
 
 import os
