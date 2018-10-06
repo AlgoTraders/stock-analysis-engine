@@ -8,6 +8,7 @@ services:
     container_name: "sa-dataset-collection"
     hostname: sa-dataset-collection-1
     image: jayjohnson/stock-analysis-engine:latest
+    tty: true
     env_file:
       - ./envs/local.env
     entrypoint: "/bin/sh -c 'cd /opt/sa && 

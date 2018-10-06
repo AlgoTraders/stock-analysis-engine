@@ -28,6 +28,7 @@ services:
     container_name: "sa-workers"
     hostname: sa-workers
     image: jayjohnson/stock-analysis-engine:latest
+    tty: true
     env_file:
       - ./envs/local.env
     depends_on:
@@ -41,6 +42,7 @@ services:
     container_name: "sa-jupyter"
     hostname: sa-jupyter
     image: jayjohnson/stock-analysis-jupyter:latest
+    tty: true
     env_file:
       - ./envs/local.env
     depends_on:

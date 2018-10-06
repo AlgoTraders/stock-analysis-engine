@@ -62,7 +62,7 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.0.34',
+    version='1.0.35',
     description=(
         'Stock Analysis Engine - '
         'Use this to get pricing data for tickers '
@@ -90,7 +90,13 @@ setup(
     scripts=[
         'analysis_engine/scripts/publish_from_s3_to_redis.py',
         'analysis_engine/scripts/run_ticker_analysis.py',
-        'analysis_engine/scripts/sa.py'
+        'analysis_engine/scripts/sa.py',
+        'tools/logs-dataset-collection.sh',
+        'tools/logs-jupyter.sh',
+        'tools/logs-workers.sh',
+        'tools/ssh-jupyter.sh',
+        'tools/ssh-workers.sh',
+        'tools/update-stack.sh'
     ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',

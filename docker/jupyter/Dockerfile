@@ -18,8 +18,19 @@ ENV PROJECT_NAME="jupyter" \
     JUPYTER_CONFIG="/opt/sa/docker/jupyter/jupyter_notebook_config.py" \
     NOTEBOOK_DIR="/opt/sa/docker/notebooks"
 
+RUN . /opt/venv/bin/activate \
+  && /opt/sa \
+  && echo "pulling latest" \
+  && git pull \
+  && echo "upgrading pip" \
+  && pip install --upgrade pip \
+  && echo "installing pip upgrades" \
+  && pip install --upgrade -e . \
+  && echo "installing pip fixes for 2018-10-06" \
+  && pip install --upgrade awscli boto3 botocore
+
 WORKDIR /opt/sa/docker/jupyter
 
 ENTRYPOINT . /opt/venv/bin/activate \
   && /opt/sa/docker/jupyter \
-  && ${RUN_JUPYTER}
+  && /opt/sa/docker/jupyter/start-container.sh
