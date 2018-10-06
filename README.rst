@@ -648,20 +648,28 @@ Most of the scripts support running without Celery workers. To run without worke
     sa.py -t ${ticker} -f -o ${ticker}_latest_v1 -j prepared -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -n ${ticker}_demo
     run_ticker_analysis.py -t ${ticker} -g all -e 2018-10-19 -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -n ${ticker}_demo -P 1 -N 1 -O 1 -U 1 -R 1
 
-Linting
--------
+Linting and Other Tools
+-----------------------
 
-flake8 .
+#.  Linting
 
-pycodestyle .
+    ::
 
-Sphinx Docs
------------
+        flake8 .
+        pycodestyle .
 
-::
+#.  Sphinx Docs
 
-    cd docs
-    make html
+    ::
+
+        cd docs
+        make html
+
+#.  Docker Admin - Pull Latest
+
+    ::
+
+        docker pull jayjohnson/stock-analysis-jupyter && docker pull jayjohnson/stock-analysis-engine
 
 License
 =======
