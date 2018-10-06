@@ -41,6 +41,9 @@ Celery Environment Variables
     WORKER_BACKEND_URL = ev(
         'WORKER_BACKEND_URL',
         'redis://localhost:6379/14').strip()
+    WORKER_CELERY_CONFIG_MODULE = ev(
+        'WORKER_CELERY_CONFIG_MODULE',
+        'analysis_engine.work_tasks.celery_config').strip()
     WORKER_TASKS = ev(
         'WORKER_TASKS',
         ('analysis_engine.work_tasks.get_new_pricing_data,'

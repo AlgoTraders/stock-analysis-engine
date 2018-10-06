@@ -15,9 +15,8 @@ services:
     container_name: "minio"
     hostname: minio
     image: minio/minio:latest
-    environment:
-      - MINIO_ACCESS_KEY=trexaccesskey
-      - MINIO_SECRET_KEY=trex123321
+    env_file:
+      - ./envs/local.env
     ports:
       - "9000:9000"
     volumes:
@@ -29,12 +28,8 @@ services:
     container_name: "sa-workers"
     hostname: sa-workers
     image: jayjohnson/stock-analysis-engine:latest
-    environment:
-      - S3_ADDRESS=minio:9000
-      - REDIS_ADDRESS=redis:6379
-      - WORKER_BROKER_URL=redis://redis:6379/13
-      - WORKER_BACKEND_URL=redis://redis:6379/14
-      - WORKER_CELERY_CONFIG_MODULE=analysis_engine.work_tasks.celery_service_config
+    env_file:
+      - ./envs/local.env
     depends_on:
       - redis
       - minio
@@ -46,18 +41,11 @@ services:
     container_name: "sa-jupyter"
     hostname: sa-jupyter
     image: jayjohnson/stock-analysis-jupyter:latest
+    env_file:
+      - ./envs/local.env
     depends_on:
       - redis
       - minio
-    environment:
-      - JUPYTER_PASS=admin
-      - JUPYTER_CONFIG=/opt/sa/docker/jupyter/jupyter_notebook_config.py
-      - NOTEBOOK_DIR=/opt/sa/docker/notebooks
-      - S3_ADDRESS=minio:9000
-      - REDIS_ADDRESS=redis:6379
-      - WORKER_BROKER_URL=redis://redis:6379/13
-      - WORKER_BACKEND_URL=redis://redis:6379/14
-      - WORKER_CELERY_CONFIG_MODULE=analysis_engine.work_tasks.celery_service_config
     volumes:
       # please run this from the repo
       # base directory
