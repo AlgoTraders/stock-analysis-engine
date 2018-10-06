@@ -57,8 +57,12 @@ for d in ${repos}; do
         echo "git fetch"
         git fetch
         echo ""
+        echo "fetching:"
+        echo "git fetch ${remote_name}"
+        git fetch ${remote_name}
+        echo ""
         echo "checking out: ${remote_name} ${remote_branch}"
-        git checkout ${remote_branch}
+        git checkout ${remote_name} ${remote_branch}
         echo ""
         echo "checking git status"
         git status
