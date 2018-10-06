@@ -40,6 +40,10 @@ do
     elif [[ "${i}" == "-j" ]]; then
         debug="1"
         compose="notebook-integration.yml"
+    # automation - dataset collection
+    elif [[ "${i}" == "-c" ]]; then
+        debug="1"
+        compose="automation-dataset-collection.yml"
     fi
 done
 
@@ -49,7 +53,9 @@ if [[ "${compose}" == "dev.yml" ]]; then
 elif [[ "${compose}" == "integration.yml" ]]; then
     inf "stopping integration stack: redis, minio, workers and jupyter"
 elif [[ "${compose}" == "notebook-integration.yml" ]]; then
-    inf "starting end-to-end with notebook integration stack: redis, minio, workers and jupyter"
+    inf "stopping end-to-end with notebook integration stack: redis, minio, workers and jupyter"
+elif [[ "${compose}" == "automation-dataset-collection.yml" ]]; then
+    inf "stopping dataset collection"
 else
     err "unsupported compose file: ${compose}"
     exit 1

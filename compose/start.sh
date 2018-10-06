@@ -84,7 +84,7 @@ elif [[ "${compose}" == "integration.yml" ]]; then
 elif [[ "${compose}" == "notebook-integration.yml" ]]; then
     inf "starting end-to-end with notebook integration stack: redis, minio, workers and jupyter"
 elif [[ "${compose}" == "automation-dataset-collection.yml" ]]; then
-    inf "starting end-to-end with notebook integration stack: redis, minio, workers and jupyter"
+    inf "starting dataset collection"
 else
     err "unsupported compose file: ${compose}"
     exit 1

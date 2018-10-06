@@ -11,4 +11,5 @@ services:
     env_file:
       - ./envs/local.env
     entrypoint: "/bin/sh -c 'cd /opt/sa && 
+                 . /opt/venv/bin/activate &&
                  /opt/sa/tools/start-dataset-collection.sh'"

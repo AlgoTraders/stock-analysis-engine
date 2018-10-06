@@ -101,10 +101,9 @@ def backfillData(
 if __name__ == '__main__':
     syms = [
         'SPY',
-        'XLF',
-        'XLK',
-        'XLI',
-        'XLE'
+        'AMZN',
+        'TLSA',
+        'NFLX'
     ]
     backfillData(
         symbols=syms,
