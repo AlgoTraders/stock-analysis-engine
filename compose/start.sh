@@ -28,6 +28,8 @@ fi
 # /data to Docker -> Preferences -> File Sharing
 if [[ ! -e /data ]]; then
     sudo mkdir -p -m 777 /data
+    sudo mkdir -p -m 777 /data/minio/data
+    sudo mkdir -p -m 777 /data/sa/notebooks
 fi
 
 os_type=`uname -s`
