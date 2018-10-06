@@ -8,6 +8,7 @@ from analysis_engine.consts import LOG_CONFIG_PATH
 from analysis_engine.consts import WORKER_BROKER_URL
 from analysis_engine.consts import WORKER_BACKEND_URL
 from analysis_engine.consts import WORKER_TASKS
+from analysis_engine.consts import WORKER_CELERY_CONFIG_MODULE
 from analysis_engine.consts import INCLUDE_TASKS
 
 
@@ -27,14 +28,17 @@ log.info(
         APP_NAME))
 
 log.info(
-    'broker={} backend={} include_tasks={}'.format(
+    'broker={} backend={} '
+    'config={} include_tasks={}'.format(
         WORKER_BROKER_URL,
         WORKER_BACKEND_URL,
+        WORKER_CELERY_CONFIG_MODULE,
         WORKER_TASKS))
 
 # Get the Celery app from the project's get_celery_app module
 app = get_celery_app(
     name=APP_NAME,
+    path_to_config_module=WORKER_CELERY_CONFIG_MODULE,
     auth_url=WORKER_BROKER_URL,
     backend_url=WORKER_BACKEND_URL,
     include_tasks=INCLUDE_TASKS)

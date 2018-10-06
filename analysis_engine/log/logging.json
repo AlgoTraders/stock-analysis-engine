@@ -10,6 +10,10 @@
       "()": "colorlog.ColoredFormatter",
       "format": "%(log_color)s%(name)s - %(levelname)s - %(message)s%(reset)s"
     },
+    "jupyter": {
+      "()": "colorlog.ColoredFormatter",
+      "format": "%(log_color)s%(levelname)s - %(message)s%(reset)s"
+    },
     "simple": {
       "()": "colorlog.ColoredFormatter",
       "format": "%(log_color)s%(message)s%(reset)s"
@@ -26,6 +30,12 @@
       "class": "logging.StreamHandler",
       "level": "INFO",
       "formatter": "no_date_colors",
+      "stream": "ext://sys.stdout"
+    },
+    "jupyter": {
+      "class": "logging.StreamHandler",
+      "level": "INFO",
+      "formatter": "jupyter",
       "stream": "ext://sys.stdout"
     },
     "simple": {
