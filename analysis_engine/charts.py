@@ -303,7 +303,7 @@ def plot_overlay_pricing_and_volume(
             if label not in newLabels:
                 newLabels.append(label)
                 newHandles.append(handle)
-        lines = ax.get_lines() + newHandles
+        lines = ax.get_lines() + ax2.get_lines() + newHandles
         ax.legend(
             lines,
             [l.get_label() for l in lines],
