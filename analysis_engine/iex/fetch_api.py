@@ -46,6 +46,9 @@ def fetch_daily(
     label = work_dict.get(
         'label',
         None)
+    use_date = work_dict.get(
+        'use_date',
+        None)
 
     log.info(
         '{} - daily - scrub_mode={} args={} '
@@ -70,6 +73,7 @@ def fetch_daily(
         datafeed_type=datafeed_type,
         msg_format='df={} date_str={}',
         ds_id=ticker,
+        date_str=use_date,
         df=res)
 
     return scrubbed_df
@@ -93,6 +97,9 @@ def fetch_minute(
         None)
     label = work_dict.get(
         'label',
+        None)
+    use_date = work_dict.get(
+        'use_date',
         None)
 
     from_historical_date = None
@@ -131,6 +138,7 @@ def fetch_minute(
         datafeed_type=datafeed_type,
         msg_format='df={} date_str={}',
         ds_id=ticker,
+        date_str=use_date,
         df=res)
 
     return scrubbed_df
@@ -155,6 +163,9 @@ def fetch_stats(
     label = work_dict.get(
         'label',
         None)
+    use_date = work_dict.get(
+        'use_date',
+        None)
 
     log.info(
         '{} - stats - args={} ticker={}'.format(
@@ -171,6 +182,7 @@ def fetch_stats(
         datafeed_type=datafeed_type,
         msg_format='df={} date_str={}',
         ds_id=ticker,
+        date_str=use_date,
         df=res)
 
     return scrubbed_df
@@ -195,6 +207,9 @@ def fetch_peers(
     label = work_dict.get(
         'label',
         None)
+    use_date = work_dict.get(
+        'use_date',
+        None)
 
     log.info(
         '{} - peers - args={} ticker={}'.format(
@@ -211,6 +226,7 @@ def fetch_peers(
         datafeed_type=datafeed_type,
         msg_format='df={} date_str={}',
         ds_id=ticker,
+        date_str=use_date,
         df=res)
 
     return scrubbed_df
@@ -235,6 +251,9 @@ def fetch_news(
     label = work_dict.get(
         'label',
         None)
+    use_date = work_dict.get(
+        'use_date',
+        None)
 
     log.info(
         '{} - news - args={} ticker={}'.format(
@@ -251,6 +270,7 @@ def fetch_news(
         datafeed_type=datafeed_type,
         msg_format='df={} date_str={}',
         ds_id=ticker,
+        date_str=use_date,
         df=res)
 
     return scrubbed_df
@@ -275,6 +295,9 @@ def fetch_financials(
     label = work_dict.get(
         'label',
         None)
+    use_date = work_dict.get(
+        'use_date',
+        None)
 
     log.info(
         '{} - financials - args={} ticker={}'.format(
@@ -291,6 +314,7 @@ def fetch_financials(
         datafeed_type=datafeed_type,
         msg_format='df={} date_str={}',
         ds_id=ticker,
+        date_str=use_date,
         df=res)
 
     return scrubbed_df
@@ -315,6 +339,9 @@ def fetch_earnings(
     label = work_dict.get(
         'label',
         None)
+    use_date = work_dict.get(
+        'use_date',
+        None)
 
     log.info(
         '{} - earnings - args={} ticker={}'.format(
@@ -331,6 +358,7 @@ def fetch_earnings(
         datafeed_type=datafeed_type,
         msg_format='df={} date_str={}',
         ds_id=ticker,
+        date_str=use_date,
         df=res)
 
     return scrubbed_df
@@ -358,6 +386,9 @@ def fetch_dividends(
     timeframe = work_dict.get(
         'timeframe',
         '2y')
+    use_date = work_dict.get(
+        'use_date',
+        None)
 
     log.info(
         '{} - dividends - args={} ticker={} '
@@ -377,6 +408,7 @@ def fetch_dividends(
         datafeed_type=datafeed_type,
         msg_format='df={} date_str={}',
         ds_id=ticker,
+        date_str=use_date,
         df=res)
 
     return scrubbed_df
@@ -401,6 +433,9 @@ def fetch_company(
     label = work_dict.get(
         'label',
         None)
+    use_date = work_dict.get(
+        'use_date',
+        None)
 
     log.info(
         '{} - company - args={} ticker={}'.format(
@@ -418,6 +453,7 @@ def fetch_company(
         datafeed_type=datafeed_type,
         msg_format='df={} date_str={}',
         ds_id=ticker,
+        date_str=use_date,
         df=res)
 
     return scrubbed_df

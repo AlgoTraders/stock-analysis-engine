@@ -40,6 +40,7 @@ of the following data feed and returned as a
 
 import datetime
 import pandas as pd
+import analysis_engine.iex.utils
 from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.consts import ev
 from analysis_engine.consts import IEX_DAILY_DATE_FORMAT
@@ -229,8 +230,9 @@ def ingress_scrub_dataset(
         use_msg_format = 'df={} date_str={}'
 
     use_date_str = date_str
-    today_str = datetime.datetime.now().strftime(
-        '%Y-%m-%d')
+    last_close_date = analysis_engine.iex.utils.last_close()
+    today_str = last_close_date.strftime('%Y-%m-%d')
+
     year_str = today_str.split('-')[0]
     if not use_date_str:
         use_date_str = today_str
