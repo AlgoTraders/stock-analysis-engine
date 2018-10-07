@@ -62,7 +62,15 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
+<<<<<<< HEAD
     version='1.0.59',
+=======
+<<<<<<< HEAD
+    version='1.0.57',
+=======
+    version='1.0.43',
+>>>>>>> adding tools for looking up the current option cycle expiration date and the last business close date (not sure Friday holidays are perfect yet though...) these are now used by the distributed automated dataset collection tools to ensure the date on the keys are not Saturday or Sunday datasets (for now)
+>>>>>>> adding tools for looking up the current option cycle expiration date and the last business close date (not sure Friday holidays are perfect yet though...) these are now used by the distributed automated dataset collection tools to ensure the date on the keys are not Saturday or Sunday datasets (for now)
     description=(
         'Stock Analysis Engine - '
         'Use this to get pricing data for tickers '
