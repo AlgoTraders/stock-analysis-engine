@@ -64,10 +64,13 @@ setup(
     cmdclass={'build_py': build_py},
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     version='1.0.59',
 =======
 =======
 >>>>>>> fix for data automation
+=======
+>>>>>>> allow historical date string extraction for multi-day analysis
 <<<<<<< HEAD
     version='1.0.57',
 =======
@@ -79,7 +82,13 @@ setup(
 =======
     version='1.0.44',
 >>>>>>> fix for data automation
+<<<<<<< HEAD
 >>>>>>> fix for data automation
+=======
+=======
+    version='1.0.45',
+>>>>>>> allow historical date string extraction for multi-day analysis
+>>>>>>> allow historical date string extraction for multi-day analysis
     description=(
         'Stock Analysis Engine - '
         'Use this to get pricing data for tickers '
