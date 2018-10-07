@@ -65,12 +65,15 @@ setup(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     version='1.0.59',
 =======
 =======
 >>>>>>> fix for data automation
 =======
 >>>>>>> allow historical date string extraction for multi-day analysis
+=======
+>>>>>>> doc updates for the new deploy from public or private fork support
 <<<<<<< HEAD
     version='1.0.57',
 =======
@@ -88,7 +91,13 @@ setup(
 =======
     version='1.0.45',
 >>>>>>> allow historical date string extraction for multi-day analysis
+<<<<<<< HEAD
 >>>>>>> allow historical date string extraction for multi-day analysis
+=======
+=======
+    version='1.0.46',
+>>>>>>> doc updates for the new deploy from public or private fork support
+>>>>>>> doc updates for the new deploy from public or private fork support
     description=(
         'Stock Analysis Engine - '
         'Use this to get pricing data for tickers '
