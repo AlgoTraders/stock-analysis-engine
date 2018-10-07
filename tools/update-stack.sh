@@ -84,6 +84,7 @@ echo "Start notebook-integration stack:"
 echo "./compose/start.sh -j"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 echo ""
 echo "Starting jupyter integration by default:"
 ./compose/start.sh -j
@@ -95,3 +96,8 @@ if [[ ! -e ./compose/start.sh ]]; then
     ./compose/start.sh -j
 fi
 >>>>>>> change to the correct dir for build alias
+=======
+echo ""
+echo "Starting jupyter integration by default:"
+./compose/start.sh -j
+>>>>>>> fix for stack updater
