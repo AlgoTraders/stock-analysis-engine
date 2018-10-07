@@ -78,7 +78,10 @@ echo "./compose/start.sh -a"
 echo ""
 echo "Start notebook-integration stack:"
 echo "./compose/start.sh -j"
-echo ""
 
-echo "Starting jupyter integration by default:"
-./compose/start.sh -j
+if [[ ! -e ./compose/start.sh ]]; then
+    echo ""
+    echo "Starting jupyter integration by default:"
+    cd /opt/sa
+    ./compose/start.sh -j
+fi
