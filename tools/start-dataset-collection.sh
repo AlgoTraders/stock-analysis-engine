@@ -10,10 +10,17 @@ date -u +"%Y-%m-%d %H:%M:%S"
 tickers="$(echo ${DEFAULT_TICKERS} | sed -e 's/,/ /g')"
 exp_date="${EXP_DATE}"
 if [[ "${exp_date}" == "" ]]; then
-    exp_date="2018-10-19"
+    if [[ -e /opt/sa/analysis_engine/scripts/print_next_expiration_date.py ]]; then
+        exp_date=$(/opt/sa/analysis_engine/scripts/print_next_expiration_date.py)
+    fi
 fi
 
 use_date=$(date +"%Y-%m-%d")
+if [[ -e /opt/sa/analysis_engine/scripts/print_last_close_date.py ]]; then
+    use_date_str=$(/opt/sa/analysis_engine/scripts/print_last_close_date.py)
+    use_date=$(echo ${use_date_str} | awk '{print $1}')
+fi
+
 for ticker in ${tickers}; do
     echo ""
     s3_key="${ticker}_${use_date}"

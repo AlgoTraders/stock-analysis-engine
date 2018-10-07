@@ -1,5 +1,19 @@
 """
-Option Contract Pricing Utilities
+Option Date Utilities
+=====================
+
+These are a collection of functions for determining
+when the current options cycle expires (3rd Friday of most months)
+and for calculating historical option expiration dates.
+
+.. tip:: If you need to automate looking up the current option
+    cycle expiration, then please checkout using the script:
+
+    ::
+
+        /opt/sa/analysis_engine/scripts/print_next_expiration_date.py
+        2018-10-19
+
 """
 import datetime
 from pandas.tseries.offsets import BDay
@@ -23,11 +37,11 @@ def get_options_for_years(
             '2021',
             '2022',
         ]):
-    '''get_options_for_years
+    """get_options_for_years
 
     :param years: number of years back
     :param months: number of months to build year
-    '''
+    """
 
     entities = []
     months = [
@@ -120,10 +134,10 @@ def historical_options(
             '2027',
             '2028'
         ]):
-    '''historical_options
+    """historical_options
 
     :param years: years to build
-    '''
+    """
 
     entities = []
     months = [
@@ -184,11 +198,11 @@ def historical_options(
 def get_options_between_dates(
         start_date,
         end_date):
-    '''get_options_between_dates
+    """get_options_between_dates
 
     :param start_date: start date
     :param end_date: end date
-    '''
+    """
     valid_options = []
 
     for rec in historical_options():
@@ -204,10 +218,10 @@ def get_options_between_dates(
 
 def option_expiration(
         date=None):
-    '''option_expiration
+    """option_expiration
 
     :param date: date to find the current expiration
-    '''
+    """
     cur_date = date
     if not cur_date:
         cur_date = datetime.datetime.now()
@@ -218,7 +232,12 @@ def option_expiration(
 
 
 def get_options_for_today():
-    '''get_options_for_today'''
+    """get_options_for_today
+
+    Get a list of option expiration nodes where the last cell
+    has the current option cycle's expiration date.
+
+    """
     cur_date = datetime.datetime.now()
     cycle_exps = historical_options()
     previous_exp = None
