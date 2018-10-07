@@ -28,6 +28,10 @@ else
     echo "deploying new build"
 fi
 
+if [[ ! -e ./compose/start.sh ]]; then
+    cd /opt/sa
+fi
+
 echo "containers to update: ${containers_to_update}"
 
 for c in ${containers_to_update}; do
@@ -79,9 +83,6 @@ echo ""
 echo "Start notebook-integration stack:"
 echo "./compose/start.sh -j"
 
-if [[ ! -e ./compose/start.sh ]]; then
-    echo ""
-    echo "Starting jupyter integration by default:"
-    cd /opt/sa
-    ./compose/start.sh -j
-fi
+echo ""
+echo "Starting jupyter integration by default:"
+./compose/start.sh -j
