@@ -11,7 +11,7 @@ tickers="$(echo ${DEFAULT_TICKERS} | sed -e 's/,/ /g')"
 exp_date="${EXP_DATE}"
 if [[ "${exp_date}" == "" ]]; then
     if [[ -e /opt/sa/analysis_engine/scripts/print_next_expiration_date.py ]]; then
-        exp_date_full=$(/opt/sa/analysis_engine/scripts/print_next_expiration_date.py)
+        exp_date=$(/opt/sa/analysis_engine/scripts/print_next_expiration_date.py)
     fi
 fi
 
