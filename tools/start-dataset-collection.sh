@@ -11,13 +11,14 @@ tickers="$(echo ${DEFAULT_TICKERS} | sed -e 's/,/ /g')"
 exp_date="${EXP_DATE}"
 if [[ "${exp_date}" == "" ]]; then
     if [[ -e /opt/sa/analysis_engine/scripts/print_next_expiration_date.py ]]; then
-        exp_date=$(/opt/sa/analysis_engine/scripts/print_next_expiration_date.py)
+        exp_date_full=$(/opt/sa/analysis_engine/scripts/print_next_expiration_date.py)
     fi
 fi
 
 use_date=$(date +"%Y-%m-%d")
 if [[ -e /opt/sa/analysis_engine/scripts/print_last_close_date.py ]]; then
-    use_date=$(/opt/sa/analysis_engine/scripts/print_last_close_date.py)
+    use_date_str=$(/opt/sa/analysis_engine/scripts/print_last_close_date.py)
+    use_date=$(echo ${use_date_str} | awk '{print $1}')
 fi
 
 for ticker in ${tickers}; do
