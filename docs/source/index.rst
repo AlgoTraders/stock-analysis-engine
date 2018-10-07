@@ -38,6 +38,7 @@ Table of Contents
    yahoo_api
    scrub_utils
    extract_utils
+   options_utils
    charts
    tasks
    mock_api

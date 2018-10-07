@@ -129,14 +129,19 @@ def last_close():
         month=today.month,
         day=today.day, hour=16)
 
-    if datetime.now().hour < 16:
-        close -= timedelta(days=1)
-        if close.weekday() == 5:  # saturday
-            return close - timedelta(days=1)
-        elif close.weekday() == 6:  # sunday
-            return close - timedelta(days=2)
+    if today.weekday() == 5:
+        return close - timedelta(days=1)
+    elif today.weekday() == 6:
+        return close - timedelta(days=2)
+    else:
+        if datetime.now().hour < 16:
+            close -= timedelta(days=1)
+            if close.weekday() == 5:  # saturday
+                return close - timedelta(days=1)
+            elif close.weekday() == 6:  # sunday
+                return close - timedelta(days=2)
+            return close
         return close
-    return close
 
 
 @lru_cache(1)
