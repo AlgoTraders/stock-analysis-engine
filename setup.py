@@ -63,14 +63,23 @@ setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
 <<<<<<< HEAD
+<<<<<<< HEAD
     version='1.0.59',
 =======
+=======
+>>>>>>> fix for data automation
 <<<<<<< HEAD
     version='1.0.57',
 =======
     version='1.0.43',
 >>>>>>> adding tools for looking up the current option cycle expiration date and the last business close date (not sure Friday holidays are perfect yet though...) these are now used by the distributed automated dataset collection tools to ensure the date on the keys are not Saturday or Sunday datasets (for now)
+<<<<<<< HEAD
 >>>>>>> adding tools for looking up the current option cycle expiration date and the last business close date (not sure Friday holidays are perfect yet though...) these are now used by the distributed automated dataset collection tools to ensure the date on the keys are not Saturday or Sunday datasets (for now)
+=======
+=======
+    version='1.0.44',
+>>>>>>> fix for data automation
+>>>>>>> fix for data automation
     description=(
         'Stock Analysis Engine - '
         'Use this to get pricing data for tickers '

@@ -31,7 +31,10 @@ if [[ ! -e /data ]]; then
     sudo mkdir -p -m 777 /data/minio/data
     sudo mkdir -p -m 777 /data/sa/notebooks
     sudo mkdir -p -m 777 /data/sa/notebooks/dev
+<<<<<<< HEAD
     cp -r ./compose/docker/notebooks/* /data/sa/notebooks
+=======
+>>>>>>> fix for data automation
 fi
 
 os_type=`uname -s`
