@@ -674,7 +674,10 @@ Linting and Other Tools
 Deploy Fork Feature Branch to Running Containers
 ================================================
 
-If you want to deploy your own fork to the containers use the command:
+When developing features that impact multiple containers, you can deploy your own feature branch without redownloading or manually building docker images. With the containers running., you can deploy your own fork's branch as a new image (which are automatically saved as new docker container images).
+
+Deploy a public or private fork into running containers
+-------------------------------------------------------
 
 ::
 
@@ -686,11 +689,23 @@ Example:
 
     ./tools/update-stack.sh https://github.com/jay-johnson/stock-analysis-engine.git timeseries-charts jay
 
-Restore the containers back to the master build from the https://github.com/AlgoTraders/stock-analysis-engine with:
+Restore the containers back to the Master
+-----------------------------------------
+
+Restore the container builds back to the ``master`` branch from https://github.com/AlgoTraders/stock-analysis-engine with:
 
 ::
 
     ./tools/update-stack.sh https://github.com/AlgoTraders/stock-analysis-engine.git master upstream
+
+Deploy Fork Alias
+-----------------
+
+Here's a bashrc alias for quickly building containers from a fork's feature branch:
+
+::
+
+    alias bd='pushd /opt/sa >> /dev/null && source /opt/venv/bin/activate && /opt/sa/tools/update-stack.sh https://github.com/jay-johnson/stock-analysis-engine.git timeseries-charts jay && popd >> /dev/null'
 
 License
 =======

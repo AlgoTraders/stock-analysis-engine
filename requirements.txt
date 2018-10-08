@@ -22,3 +22,4 @@ sphinx_rtd_theme
 spylunking
 trading_calendars
 unittest2
+ujson
