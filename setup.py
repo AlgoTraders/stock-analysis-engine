@@ -66,6 +66,7 @@ setup(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     version='1.0.59',
 =======
 =======
@@ -74,6 +75,8 @@ setup(
 >>>>>>> allow historical date string extraction for multi-day analysis
 =======
 >>>>>>> doc updates for the new deploy from public or private fork support
+=======
+>>>>>>> adding ujson to requirements
 <<<<<<< HEAD
     version='1.0.57',
 =======
@@ -97,7 +100,13 @@ setup(
 =======
     version='1.0.46',
 >>>>>>> doc updates for the new deploy from public or private fork support
+<<<<<<< HEAD
 >>>>>>> doc updates for the new deploy from public or private fork support
+=======
+=======
+    version='1.0.47',
+>>>>>>> adding ujson to requirements
+>>>>>>> adding ujson to requirements
     description=(
         'Stock Analysis Engine - '
         'Use this to get pricing data for tickers '
