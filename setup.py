@@ -67,6 +67,7 @@ setup(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     version='1.0.59',
 =======
 =======
@@ -77,6 +78,8 @@ setup(
 >>>>>>> doc updates for the new deploy from public or private fork support
 =======
 >>>>>>> adding ujson to requirements
+=======
+>>>>>>> bumping setup.py version
 <<<<<<< HEAD
     version='1.0.57',
 =======
@@ -106,7 +109,13 @@ setup(
 =======
     version='1.0.47',
 >>>>>>> adding ujson to requirements
+<<<<<<< HEAD
 >>>>>>> adding ujson to requirements
+=======
+=======
+    version='1.0.48',
+>>>>>>> bumping setup.py version
+>>>>>>> bumping setup.py version
     description=(
         'Stock Analysis Engine - '
         'Use this to get pricing data for tickers '
