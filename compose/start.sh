@@ -31,6 +31,7 @@ if [[ ! -e /data ]]; then
     sudo mkdir -p -m 777 /data/minio/data
     sudo mkdir -p -m 777 /data/sa/notebooks
     sudo mkdir -p -m 777 /data/sa/notebooks/dev
+    cp -r ./compose/docker/notebooks/* /data/sa/notebooks
 fi
 
 os_type=`uname -s`
@@ -72,6 +73,14 @@ do
     elif [[ "${i}" == "-j" ]]; then
         debug="1"
         compose="notebook-integration.yml"
+    # overriding notebooks
+    elif [[ "${i}" == "-jo" ]]; then
+        debug="1"
+        compose="notebook-integration.yml"
+        rm -rf /data/sa/notebooks/
+        sudo mkdir -p -m 777 /data/sa/notebooks
+        sudo mkdir -p -m 777 /data/sa/notebooks/dev
+        cp -r ./compose/docker/notebooks/* /data/sa/notebooks
     # automation - dataset collection
     elif [[ "${i}" == "-c" ]]; then
         debug="1"
