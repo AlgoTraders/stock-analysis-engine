@@ -25,6 +25,8 @@ from unittest.mock import MagicMock
 from recommonmark.parser import CommonMarkParser
 from pprint import pprint
 
+on_rtd = os.getenv("READTHEDOCS", "") != ""
+
 # Using working source code sphinx conf.py on read the docs:
 # https://github.com/mahmoud/boltons/blob/master/docs/conf.py#L20
 
@@ -35,6 +37,8 @@ CUR_PATH = os.path.dirname(os.path.abspath(__file__))
 PROJECT_PATH = os.path.abspath(CUR_PATH + '/../')
 CUR_PACKAGE_PATH = os.path.abspath(CUR_PATH + '/../')
 PACKAGE_PATH_FROM_DOCS = os.path.abspath('../')
+PACKAGE_SOURCE_PATH_FROM_DOCS = os.path.abspath(
+    PACKAGE_PATH_FROM_DOCS + '../../latest')
 sys.path.insert(0, PROJECT_PATH)
 
 source_code_dirs = [
@@ -46,44 +50,70 @@ source_code_dirs = [
 ]
 
 for source_code_dir_name in source_code_dirs:
-    sys.path.insert(0, '{}/{}'.format(
+    use_dir = '{}/{}'.format(
         CUR_PACKAGE_PATH,
-        source_code_dir_name))
-    sys.path.insert(0, '{}/../{}'.format(
+        source_code_dir_name)
+    if os.path.exists(use_dir):
+        sys.path.insert(0, use_dir)
+        if on_rtd:
+            os.system('ls -l {}'.format(
+                use_dir))
+    else:
+        if on_rtd:
+            print('did not find from current package dir: {}'.format(
+                use_dir))
+    use_dir = '{}/{}'.format(
         PACKAGE_PATH_FROM_DOCS,
-        source_code_dir_name))
+        source_code_dir_name)
+    if os.path.exists(use_dir):
+        sys.path.insert(0, use_dir)
+        if on_rtd:
+            os.system('ls -l {}'.format(
+                use_dir))
+    else:
+        if on_rtd:
+            print('did not find from package path dir: {}'.format(
+                use_dir))
+    use_dir = '{}/{}'.format(
+        PACKAGE_SOURCE_PATH_FROM_DOCS,
+        source_code_dir_name)
+    if os.path.exists(use_dir):
+        sys.path.insert(0, use_dir)
+        if on_rtd:
+            os.system('ls -l {}'.format(
+                use_dir))
+    else:
+        if on_rtd:
+            print('did not find from docs path dir: {}'.format(
+                use_dir))
 
-print('----------------------')
-print('environment variables:')
-pprint(os.environ)
-print('cur path: {}'.format(
-    CUR_PATH))
-print('paths:')
-pprint(sys.path)
-print('cur dir files:')
-os.system('ls -l {}'.format(
-    PACKAGE_PATH_FROM_DOCS))
-print('two dirs up:')
-os.system('ls -l .. {}'.format(
-    PACKAGE_PATH_FROM_DOCS))
-os.system('ls -l {}/../latest/'.format(
-    PACKAGE_PATH_FROM_DOCS))
-print('two dirs up:')
-os.system('ls -l {}/../..'.format(
-    PACKAGE_PATH_FROM_DOCS))
-print('two dirs up:')
-os.system('ls -l {}/../..'.format(
-    PACKAGE_PATH_FROM_DOCS))
-os.system('ls -l {}/../../latest/'.format(
-    PACKAGE_PATH_FROM_DOCS))
-print('----------------------')
+if on_rtd:
+    print('----------------------')
+    print('cur path: {}'.format(
+        CUR_PATH))
+    print('paths:')
+    pprint(sys.path)
+    os.system(
+        'echo "cur package dir '
+        'contents: " && ls -l {}'.format(
+            CUR_PACKAGE_PATH))
+    os.system(
+        'echo "package path from docs dir '
+        'contents: " && ls -l {}'.format(
+            PACKAGE_PATH_FROM_DOCS))
+    os.system(
+        'echo "source path from docs dir contents:'
+        'dirs: " && ls -l {}'.format(
+            PACKAGE_SOURCE_PATH_FROM_DOCS))
+    print('----------------------')
+# end of debugging pathing on read the docs
 
 project = 'Stock Analysis Engine'
 copyright = '2018, Jay Johnson'
 author = 'Jay Johnson'
 
 html_theme_options = {}
-if os.getenv("READTHEDOCS", "") != "":
+if on_rtd:
 
     class Mock(MagicMock):
         @classmethod
