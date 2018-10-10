@@ -4,8 +4,6 @@ Stock Analysis Engine
 Analyze information about publicly traded companies from `Yahoo <https://finance.yahoo.com/>`__ and `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__ (supported data includes: news, quotes, dividends, daily, intraday, statistics, financials, earnings, options, and more). Once collected the data is archived in s3 (using `minio <https://minio.io>`__) and automatically cached in redis.
 
 .. image:: https://i.imgur.com/pH368gy.png
-    :width: 200px
-    :height: 400px
 
 It uses `Celery workers to process all tasks <http://www.celeryproject.org/>`__ and is a horizontally scalable worker pool that works with many `transports and backends <https://github.com/celery/celery#transports-and-backends>`__
 
@@ -267,6 +265,10 @@ Run Publish from an Existing S3 Key to Redis
 
 View Archives in S3 - Minio
 ===========================
+
+Here's a screenshot showing the stock market dataset archives created while running on the `3-node Kubernetes cluster for distributed AI predictions <https://github.com/jay-johnson/deploy-to-kubernetes#deploying-a-distributed-ai-stack-to-kubernetes-on-centos>`__
+
+.. image:: https://imgur.com/wDyPKAp
 
 http://localhost:9000/minio/pricing/
 

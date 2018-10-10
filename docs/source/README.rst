@@ -266,6 +266,10 @@ Run Publish from an Existing S3 Key to Redis
 View Archives in S3 - Minio
 ===========================
 
+Here's a screenshot showing the stock market dataset archives created while running on the `3-node Kubernetes cluster for distributed AI predictions <https://github.com/jay-johnson/deploy-to-kubernetes#deploying-a-distributed-ai-stack-to-kubernetes-on-centos>`__
+
+.. image:: https://imgur.com/wDyPKAp
+
 http://localhost:9000/minio/pricing/
 
 Login
