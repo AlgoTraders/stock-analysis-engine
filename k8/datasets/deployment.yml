@@ -139,7 +139,11 @@ spec:
           value: SPY
         - name: DEFAULT_TICKERS
 <<<<<<< HEAD
+<<<<<<< HEAD
           value: SPY,TSLA,AMZN,NFLX
 =======
           value: SPY,XLF,XLE,XLI,XLK,XLU,XLRE,XLY,XLP,XLV,XLB,XLT,VXX,AMZN,WFC,C,BAC,JPM,MSFT,RHT,GOOG,TSLA,FB,NFLX,IBM,AMD,HCC,BKE,NRZ,AVAV,CYBR,MMM,TLRY,ARKK,ARKQ
 >>>>>>> works on a kubernetes 3-node CentOS 7 cluster https://deploy-to-kubernetes.readthedocs.io/en/latest/ and repo: https://github.com/jay-johnson/deploy-to-kubernetes for dataset collection and running the analysis engine with redis cluster and minio
+=======
+          value: SPY,TSLA,AMZN,NFLX
+>>>>>>> new version for the kubernetes support and screenshot image for docs

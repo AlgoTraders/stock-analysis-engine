@@ -74,6 +74,7 @@ setup(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     version='1.0.59',
 =======
 =======
@@ -98,6 +99,8 @@ setup(
 >>>>>>> updating scripts for container names and bumping setup.py version
 =======
 >>>>>>> adding these for testing with the new pyEX version in containers
+=======
+>>>>>>> new version for the kubernetes support and screenshot image for docs
 <<<<<<< HEAD
     version='1.0.57',
 =======
@@ -167,7 +170,13 @@ setup(
 =======
     version='1.0.59',
 >>>>>>> adding these for testing with the new pyEX version in containers
+<<<<<<< HEAD
 >>>>>>> adding these for testing with the new pyEX version in containers
+=======
+=======
+    version='1.0.49',
+>>>>>>> new version for the kubernetes support and screenshot image for docs
+>>>>>>> new version for the kubernetes support and screenshot image for docs
     description=(
         'Stock Analysis Engine - '
         'Use this to get pricing data for tickers '
