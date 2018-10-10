@@ -113,6 +113,7 @@ print('two dirs up:')
 os.system('ls -l .. {}'.format(
     PACKAGE_PATH_FROM_DOCS))
 os.system('ls -l {}/../latest/'.format(
+    PACKAGE_PATH_FROM_DOCS))
 print('two dirs up:')
 os.system('ls -l {}/../..'.format(
     PACKAGE_PATH_FROM_DOCS))
@@ -120,6 +121,7 @@ print('two dirs up:')
 os.system('ls -l {}/../..'.format(
     PACKAGE_PATH_FROM_DOCS))
 os.system('ls -l {}/../../latest/'.format(
+    PACKAGE_PATH_FROM_DOCS))
 print('----------------------')
 >>>>>>> trying new sphinx conf.py on read the docs
 
