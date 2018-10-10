@@ -28,7 +28,7 @@ These are testing utilities for mocking S3 functionality without having an s3 en
 .. automodule:: analysis_engine.mocks.mock_boto3_s3
    :members: MockBotoS3Bucket,MockBotoS3AllBuckets,MockBotoS3,build_boto3_resource,mock_s3_read_contents_from_key_ev,mock_publish_from_s3_to_redis,mock_publish_from_s3_to_redis_err,mock_publish_from_s3_exception
 
-Mock Yahoo Utilities
+Mock Redis Utilities
 ====================
 
 These are testing utilities for mocking Redis's functionality without having a Redis server running.
