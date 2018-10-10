@@ -33,8 +33,8 @@ from pprint import pprint
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 CUR_PATH = os.path.dirname(os.path.abspath(__file__))
 PROJECT_PATH = os.path.abspath(CUR_PATH + '/../')
-CUR_PACKAGE_PATH = os.path.abspath(CUR_PATH + '/../analysis_engine/')
-PACKAGE_PATH = os.path.abspath('/../../analysis_engine')
+CUR_PACKAGE_PATH = os.path.abspath(CUR_PATH + '/../')
+PACKAGE_PATH_FROM_DOCS = os.path.abspath('../')
 sys.path.insert(0, PROJECT_PATH)
 
 source_code_dirs = [
@@ -50,7 +50,7 @@ for source_code_dir_name in source_code_dirs:
         CUR_PACKAGE_PATH,
         source_code_dir_name))
     sys.path.insert(0, '{}/{}'.format(
-        PACKAGE_PATH,
+        PACKAGE_PATH_FROM_DOCS,
         source_code_dir_name))
 
 print('----------------------')
@@ -108,6 +108,8 @@ release = '1.0.0'
 #
 # needs_sphinx = '1.0'
 
+autosummary_generate = True
+
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
@@ -149,7 +151,10 @@ language = None
 exclude_patterns = []
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = None
+pygments_style = 'sphinx'
+
+# Example configuration for intersphinx: refer to the Python standard library.
+intersphinx_mapping = {'python': ('https://docs.python.org/2.7', None)}
 
 
 # -- Options for HTML output -------------------------------------------------
