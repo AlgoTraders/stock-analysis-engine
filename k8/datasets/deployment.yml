@@ -1,10 +1,15 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 apiVersion: batch/v1
 kind: Job
 =======
 apiVersion: extensions/v1beta1
 kind: Deployment
 >>>>>>> works on a kubernetes 3-node CentOS 7 cluster https://deploy-to-kubernetes.readthedocs.io/en/latest/ and repo: https://github.com/jay-johnson/deploy-to-kubernetes for dataset collection and running the analysis engine with redis cluster and minio
+=======
+apiVersion: batch/v1
+kind: Job
+>>>>>>> using kubernetes jobs instead of deployments. jobs support stopping on task-publish completion versus a deployment was restarting forever and spamming the engine to update the datasets everytime it finished.
 metadata:
   name: sa-dataset-collector
   annotations:
@@ -19,6 +24,7 @@ metadata:
     pubsub: publisher
 spec:
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   replicas: 1
   selector:
@@ -26,6 +32,8 @@ spec:
       app: sa-dataset-collector
       backend: enabled
 >>>>>>> works on a kubernetes 3-node CentOS 7 cluster https://deploy-to-kubernetes.readthedocs.io/en/latest/ and repo: https://github.com/jay-johnson/deploy-to-kubernetes for dataset collection and running the analysis engine with redis cluster and minio
+=======
+>>>>>>> using kubernetes jobs instead of deployments. jobs support stopping on task-publish completion versus a deployment was restarting forever and spamming the engine to update the datasets everytime it finished.
   template:
     metadata:
       labels:
@@ -37,6 +45,7 @@ spec:
         cache: redis
         pubsub: publisher
     spec:
+<<<<<<< HEAD
 <<<<<<< HEAD
       hostname: sa-dataset-collector
       restartPolicy: Never
@@ -53,11 +62,16 @@ spec:
       hostname: sa-dataset-collector
       restartPolicy: Always
 >>>>>>> works on a kubernetes 3-node CentOS 7 cluster https://deploy-to-kubernetes.readthedocs.io/en/latest/ and repo: https://github.com/jay-johnson/deploy-to-kubernetes for dataset collection and running the analysis engine with redis cluster and minio
+=======
+      hostname: sa-dataset-collector
+      restartPolicy: Never
+>>>>>>> using kubernetes jobs instead of deployments. jobs support stopping on task-publish completion versus a deployment was restarting forever and spamming the engine to update the datasets everytime it finished.
       containers:
       - image: jayjohnson/stock-analysis-engine:latest
         imagePullPolicy: Always
         name: sa-dataset-collector
         resources: {}
+<<<<<<< HEAD
 <<<<<<< HEAD
         command: ["/bin/bash", "-c", "cd /opt/sa/ && . /opt/venv/bin/activate && /opt/sa/tools/start-dataset-collection.sh"]
 =======
@@ -68,6 +82,9 @@ spec:
           . /opt/venv/bin/activate &&
           /opt/sa/tools/start-dataset-collection.sh
 >>>>>>> works on a kubernetes 3-node CentOS 7 cluster https://deploy-to-kubernetes.readthedocs.io/en/latest/ and repo: https://github.com/jay-johnson/deploy-to-kubernetes for dataset collection and running the analysis engine with redis cluster and minio
+=======
+        command: ["/bin/bash", "-c", "cd /opt/sa/ && . /opt/venv/bin/activate && /opt/sa/tools/start-dataset-collection.sh"]
+>>>>>>> using kubernetes jobs instead of deployments. jobs support stopping on task-publish completion versus a deployment was restarting forever and spamming the engine to update the datasets everytime it finished.
         env:
         - name: POSTGRES_USER
           valueFrom:

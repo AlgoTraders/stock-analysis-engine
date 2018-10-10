@@ -80,6 +80,7 @@ setup(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     version='1.0.59',
 =======
 =======
@@ -116,6 +117,8 @@ setup(
 >>>>>>> trying source code linking on read the docs - again
 =======
 >>>>>>> trying with package name - it looks like the paths to the source are working on read the docs
+=======
+>>>>>>> using kubernetes jobs instead of deployments. jobs support stopping on task-publish completion versus a deployment was restarting forever and spamming the engine to update the datasets everytime it finished.
 <<<<<<< HEAD
     version='1.0.57',
 =======
@@ -220,7 +223,13 @@ setup(
 =======
     version='1.0.54',
 >>>>>>> trying with package name - it looks like the paths to the source are working on read the docs
+<<<<<<< HEAD
 >>>>>>> trying with package name - it looks like the paths to the source are working on read the docs
+=======
+=======
+    version='1.0.55',
+>>>>>>> using kubernetes jobs instead of deployments. jobs support stopping on task-publish completion versus a deployment was restarting forever and spamming the engine to update the datasets everytime it finished.
+>>>>>>> using kubernetes jobs instead of deployments. jobs support stopping on task-publish completion versus a deployment was restarting forever and spamming the engine to update the datasets everytime it finished.
     description=(
         'Stock Analysis Engine - '
         'Use this to get pricing data for tickers '
