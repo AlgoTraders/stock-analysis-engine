@@ -39,6 +39,7 @@ on_rtd = os.getenv("READTHEDOCS", "") != ""
 CUR_PATH = os.path.dirname(os.path.abspath(__file__))
 PROJECT_PATH = os.path.abspath(CUR_PATH + '/../')
 <<<<<<< HEAD
+<<<<<<< HEAD
 PACKAGE_SOURCE_PATH_FROM_DOCS = os.path.abspath('../../')
 sys.path.insert(0, PROJECT_PATH)
 sys.path.insert(0, PACKAGE_SOURCE_PATH_FROM_DOCS)
@@ -48,6 +49,10 @@ source_code_dirs = [
 =======
 CUR_PACKAGE_PATH = os.path.abspath(CUR_PATH + '/../analysis_engine/')
 PACKAGE_PATH = os.path.abspath('/../../analysis_engine')
+=======
+CUR_PACKAGE_PATH = os.path.abspath(CUR_PATH + '/../')
+PACKAGE_PATH_FROM_DOCS = os.path.abspath('../')
+>>>>>>> trying with more flags and removing duplicate analysis_engine dir name
 sys.path.insert(0, PROJECT_PATH)
 
 source_code_dirs = [
@@ -91,7 +96,7 @@ if on_rtd:
         CUR_PACKAGE_PATH,
         source_code_dir_name))
     sys.path.insert(0, '{}/{}'.format(
-        PACKAGE_PATH,
+        PACKAGE_PATH_FROM_DOCS,
         source_code_dir_name))
 
 print('----------------------')
