@@ -26,10 +26,15 @@ from recommonmark.parser import CommonMarkParser
 from pprint import pprint
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 on_rtd = os.getenv("READTHEDOCS", "") != ""
 
 =======
 >>>>>>> trying new sphinx conf.py on read the docs
+=======
+on_rtd = os.getenv("READTHEDOCS", "") != ""
+
+>>>>>>> trying source code linking on read the docs
 # Using working source code sphinx conf.py on read the docs:
 # https://github.com/mahmoud/boltons/blob/master/docs/conf.py#L20
 
@@ -52,7 +57,12 @@ PACKAGE_PATH = os.path.abspath('/../../analysis_engine')
 =======
 CUR_PACKAGE_PATH = os.path.abspath(CUR_PATH + '/../')
 PACKAGE_PATH_FROM_DOCS = os.path.abspath('../')
+<<<<<<< HEAD
 >>>>>>> trying with more flags and removing duplicate analysis_engine dir name
+=======
+PACKAGE_SOURCE_PATH_FROM_DOCS = os.path.abspath(
+    PACKAGE_PATH_FROM_DOCS + '../../latest')
+>>>>>>> trying source code linking on read the docs
 sys.path.insert(0, PROJECT_PATH)
 
 source_code_dirs = [
@@ -65,6 +75,7 @@ source_code_dirs = [
 ]
 
 for source_code_dir_name in source_code_dirs:
+<<<<<<< HEAD
 <<<<<<< HEAD
     use_dir = '{}/{}'.format(
         PACKAGE_SOURCE_PATH_FROM_DOCS,
@@ -93,10 +104,28 @@ if on_rtd:
 # end of debugging pathing on read the docs
 =======
     sys.path.insert(0, '{}/{}'.format(
+=======
+    use_dir = '{}/{}'.format(
+>>>>>>> trying source code linking on read the docs
         CUR_PACKAGE_PATH,
+<<<<<<< HEAD
         source_code_dir_name))
     sys.path.insert(0, '{}/{}'.format(
+=======
+        source_code_dir_name)
+    if os.path.exists(use_dir):
+        sys.path.insert(0, use_dir)
+        if on_rtd:
+            os.system('ls -l {}'.format(
+                use_dir))
+    else:
+        if on_rtd:
+            print('did not find from current package dir: {}'.format(
+                use_dir))
+    use_dir = '{}/{}'.format(
+>>>>>>> trying source code linking on read the docs
         PACKAGE_PATH_FROM_DOCS,
+<<<<<<< HEAD
         source_code_dir_name))
 
 print('----------------------')
@@ -124,6 +153,51 @@ os.system('ls -l {}/../../latest/'.format(
     PACKAGE_PATH_FROM_DOCS))
 print('----------------------')
 >>>>>>> trying new sphinx conf.py on read the docs
+=======
+        source_code_dir_name)
+    if os.path.exists(use_dir):
+        sys.path.insert(0, use_dir)
+        if on_rtd:
+            os.system('ls -l {}'.format(
+                use_dir))
+    else:
+        if on_rtd:
+            print('did not find from package path dir: {}'.format(
+                use_dir))
+    use_dir = '{}/{}'.format(
+        PACKAGE_SOURCE_PATH_FROM_DOCS,
+        source_code_dir_name)
+    if os.path.exists(use_dir):
+        sys.path.insert(0, use_dir)
+        if on_rtd:
+            os.system('ls -l {}'.format(
+                use_dir))
+    else:
+        if on_rtd:
+            print('did not find from docs path dir: {}'.format(
+                use_dir))
+
+if on_rtd:
+    print('----------------------')
+    print('cur path: {}'.format(
+        CUR_PATH))
+    print('paths:')
+    pprint(sys.path)
+    os.system(
+        'echo "cur package dir '
+        'contents: " && ls -l {}'.format(
+            CUR_PACKAGE_PATH))
+    os.system(
+        'echo "package path from docs dir '
+        'contents: " && ls -l {}'.format(
+            PACKAGE_PATH_FROM_DOCS))
+    os.system(
+        'echo "source path from docs dir contents:'
+        'dirs: " && ls -l {}'.format(
+            PACKAGE_SOURCE_PATH_FROM_DOCS))
+    print('----------------------')
+# end of debugging pathing on read the docs
+>>>>>>> trying source code linking on read the docs
 
 project = 'Stock Analysis Engine'
 copyright = '2018, Jay Johnson'

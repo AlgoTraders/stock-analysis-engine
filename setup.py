@@ -76,6 +76,7 @@ setup(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     version='1.0.59',
 =======
 =======
@@ -104,6 +105,8 @@ setup(
 >>>>>>> new version for the kubernetes support and screenshot image for docs
 =======
 >>>>>>> trying new sphinx conf.py on read the docs
+=======
+>>>>>>> trying source code linking on read the docs
 <<<<<<< HEAD
     version='1.0.57',
 =======
@@ -185,7 +188,13 @@ setup(
 =======
     version='1.0.50',
 >>>>>>> trying new sphinx conf.py on read the docs
+<<<<<<< HEAD
 >>>>>>> trying new sphinx conf.py on read the docs
+=======
+=======
+    version='1.0.51',
+>>>>>>> trying source code linking on read the docs
+>>>>>>> trying source code linking on read the docs
     description=(
         'Stock Analysis Engine - '
         'Use this to get pricing data for tickers '
