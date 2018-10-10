@@ -56,6 +56,7 @@ CUR_PACKAGE_PATH = os.path.abspath(CUR_PATH + '/../analysis_engine/')
 PACKAGE_PATH = os.path.abspath('/../../analysis_engine')
 =======
 CUR_PACKAGE_PATH = os.path.abspath(CUR_PATH + '/../')
+<<<<<<< HEAD
 PACKAGE_PATH_FROM_DOCS = os.path.abspath('../')
 <<<<<<< HEAD
 >>>>>>> trying with more flags and removing duplicate analysis_engine dir name
@@ -63,6 +64,9 @@ PACKAGE_PATH_FROM_DOCS = os.path.abspath('../')
 PACKAGE_SOURCE_PATH_FROM_DOCS = os.path.abspath(
     PACKAGE_PATH_FROM_DOCS + '../../latest')
 >>>>>>> trying source code linking on read the docs
+=======
+PACKAGE_SOURCE_PATH_FROM_DOCS = os.path.abspath('../../latest')
+>>>>>>> trying source code linking on read the docs - again
 sys.path.insert(0, PROJECT_PATH)
 
 source_code_dirs = [
@@ -123,7 +127,11 @@ if on_rtd:
             print('did not find from current package dir: {}'.format(
                 use_dir))
     use_dir = '{}/{}'.format(
+<<<<<<< HEAD
 >>>>>>> trying source code linking on read the docs
+=======
+<<<<<<< HEAD
+>>>>>>> trying source code linking on read the docs - again
         PACKAGE_PATH_FROM_DOCS,
 <<<<<<< HEAD
         source_code_dir_name))
@@ -165,6 +173,8 @@ print('----------------------')
             print('did not find from package path dir: {}'.format(
                 use_dir))
     use_dir = '{}/{}'.format(
+=======
+>>>>>>> trying source code linking on read the docs - again
         PACKAGE_SOURCE_PATH_FROM_DOCS,
         source_code_dir_name)
     if os.path.exists(use_dir):
@@ -187,10 +197,6 @@ if on_rtd:
         'echo "cur package dir '
         'contents: " && ls -l {}'.format(
             CUR_PACKAGE_PATH))
-    os.system(
-        'echo "package path from docs dir '
-        'contents: " && ls -l {}'.format(
-            PACKAGE_PATH_FROM_DOCS))
     os.system(
         'echo "source path from docs dir contents:'
         'dirs: " && ls -l {}'.format(
