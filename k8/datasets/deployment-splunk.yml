@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 apiVersion: batch/v1
 kind: Job
+=======
+apiVersion: extensions/v1beta1
+kind: Deployment
+>>>>>>> works on a kubernetes 3-node CentOS 7 cluster https://deploy-to-kubernetes.readthedocs.io/en/latest/ and repo: https://github.com/jay-johnson/deploy-to-kubernetes for dataset collection and running the analysis engine with redis cluster and minio
 metadata:
   name: sa-dataset-collector
   annotations:
@@ -13,6 +18,14 @@ metadata:
     cache: redis
     pubsub: publisher
 spec:
+<<<<<<< HEAD
+=======
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sa-dataset-collector
+      backend: enabled
+>>>>>>> works on a kubernetes 3-node CentOS 7 cluster https://deploy-to-kubernetes.readthedocs.io/en/latest/ and repo: https://github.com/jay-johnson/deploy-to-kubernetes for dataset collection and running the analysis engine with redis cluster and minio
   template:
     metadata:
       labels:
@@ -24,14 +37,37 @@ spec:
         cache: redis
         pubsub: publisher
     spec:
+<<<<<<< HEAD
       hostname: sa-dataset-collector
       restartPolicy: Never
+=======
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: backend
+                operator: In
+                values:
+                - enabled
+      hostname: sa-dataset-collector
+      restartPolicy: Always
+>>>>>>> works on a kubernetes 3-node CentOS 7 cluster https://deploy-to-kubernetes.readthedocs.io/en/latest/ and repo: https://github.com/jay-johnson/deploy-to-kubernetes for dataset collection and running the analysis engine with redis cluster and minio
       containers:
       - image: jayjohnson/stock-analysis-engine:latest
         imagePullPolicy: Always
         name: sa-dataset-collector
         resources: {}
+<<<<<<< HEAD
         command: ["/bin/bash", "-c", "cd /opt/sa/ && . /opt/venv/bin/activate && /opt/sa/tools/start-dataset-collection.sh"]
+=======
+        command:
+        - /bin/bash
+        - -c
+        - cd /opt/sa/ &&
+          . /opt/venv/bin/activate &&
+          /opt/sa/tools/start-dataset-collection.sh
+>>>>>>> works on a kubernetes 3-node CentOS 7 cluster https://deploy-to-kubernetes.readthedocs.io/en/latest/ and repo: https://github.com/jay-johnson/deploy-to-kubernetes for dataset collection and running the analysis engine with redis cluster and minio
         env:
         - name: POSTGRES_USER
           valueFrom:
@@ -154,4 +190,8 @@ spec:
         - name: TICKER
           value: SPY
         - name: DEFAULT_TICKERS
+<<<<<<< HEAD
           value: SPY,TSLA,AMZN,NFLX
+=======
+          value: SPY,XLF,XLE,XLI,XLK,XLU,XLRE,XLY,XLP,XLV,XLB,XLT,VXX,AMZN,WFC,C,BAC,JPM,MSFT,RHT,GOOG,TSLA,FB,NFLX,IBM,AMD,HCC,BKE,NRZ,AVAV,CYBR,MMM,TLRY,ARKK,ARKQ
+>>>>>>> works on a kubernetes 3-node CentOS 7 cluster https://deploy-to-kubernetes.readthedocs.io/en/latest/ and repo: https://github.com/jay-johnson/deploy-to-kubernetes for dataset collection and running the analysis engine with redis cluster and minio
