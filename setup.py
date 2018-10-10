@@ -79,6 +79,7 @@ setup(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     version='1.0.59',
 =======
 =======
@@ -113,6 +114,8 @@ setup(
 >>>>>>> trying source code linking on read the docs - again
 =======
 >>>>>>> trying source code linking on read the docs - again
+=======
+>>>>>>> trying with package name - it looks like the paths to the source are working on read the docs
 <<<<<<< HEAD
     version='1.0.57',
 =======
@@ -211,7 +214,13 @@ setup(
 =======
     version='1.0.53',
 >>>>>>> trying source code linking on read the docs - again
+<<<<<<< HEAD
 >>>>>>> trying source code linking on read the docs - again
+=======
+=======
+    version='1.0.54',
+>>>>>>> trying with package name - it looks like the paths to the source are working on read the docs
+>>>>>>> trying with package name - it looks like the paths to the source are working on read the docs
     description=(
         'Stock Analysis Engine - '
         'Use this to get pricing data for tickers '

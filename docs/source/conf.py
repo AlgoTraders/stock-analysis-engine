@@ -45,6 +45,7 @@ CUR_PATH = os.path.dirname(os.path.abspath(__file__))
 PROJECT_PATH = os.path.abspath(CUR_PATH + '/../')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 PACKAGE_SOURCE_PATH_FROM_DOCS = os.path.abspath('../../')
 sys.path.insert(0, PROJECT_PATH)
 sys.path.insert(0, PACKAGE_SOURCE_PATH_FROM_DOCS)
@@ -69,12 +70,19 @@ PACKAGE_SOURCE_PATH_FROM_DOCS = os.path.abspath(
 PACKAGE_SOURCE_PATH_FROM_DOCS = os.path.abspath('../../latest')
 >>>>>>> trying source code linking on read the docs - again
 =======
+=======
+>>>>>>> trying with package name - it looks like the paths to the source are working on read the docs
 PACKAGE_SOURCE_PATH_FROM_DOCS = os.path.abspath('../../')
 >>>>>>> trying source code linking on read the docs - again
 sys.path.insert(0, PROJECT_PATH)
+sys.path.insert(0, PACKAGE_SOURCE_PATH_FROM_DOCS)
 
 source_code_dirs = [
+<<<<<<< HEAD
 >>>>>>> trying new sphinx conf.py on read the docs
+=======
+    'analysis_engine/',
+>>>>>>> trying with package name - it looks like the paths to the source are working on read the docs
     'analysis_engine/iex/',
     'analysis_engine/mocks/',
     'analysis_engine/scripts/',
@@ -86,6 +94,7 @@ for source_code_dir_name in source_code_dirs:
 <<<<<<< HEAD
 <<<<<<< HEAD
     use_dir = '{}/{}'.format(
+<<<<<<< HEAD
         PACKAGE_SOURCE_PATH_FROM_DOCS,
         source_code_dir_name)
     if os.path.exists(use_dir):
@@ -179,6 +188,8 @@ print('----------------------')
     use_dir = '{}/{}'.format(
 =======
 >>>>>>> trying source code linking on read the docs - again
+=======
+>>>>>>> trying with package name - it looks like the paths to the source are working on read the docs
         PACKAGE_SOURCE_PATH_FROM_DOCS,
         source_code_dir_name)
     if os.path.exists(use_dir):
@@ -197,10 +208,6 @@ if on_rtd:
         CUR_PATH))
     print('paths:')
     pprint(sys.path)
-    os.system(
-        'echo "cur package dir '
-        'contents: " && ls -l {}'.format(
-            CUR_PACKAGE_PATH))
     os.system(
         'echo "source path from docs dir contents:'
         'dirs: " && ls -l {}'.format(
