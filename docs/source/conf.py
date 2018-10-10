@@ -36,7 +36,7 @@ on_rtd = os.getenv("READTHEDOCS", "") != ""
 CUR_PATH = os.path.dirname(os.path.abspath(__file__))
 PROJECT_PATH = os.path.abspath(CUR_PATH + '/../')
 CUR_PACKAGE_PATH = os.path.abspath(CUR_PATH + '/../')
-PACKAGE_SOURCE_PATH_FROM_DOCS = os.path.abspath('../../latest')
+PACKAGE_SOURCE_PATH_FROM_DOCS = os.path.abspath('../../')
 sys.path.insert(0, PROJECT_PATH)
 
 source_code_dirs = [
