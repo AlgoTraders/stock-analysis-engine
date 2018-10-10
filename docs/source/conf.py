@@ -60,6 +60,18 @@ print('cur path: {}'.format(
     CUR_PATH))
 print('paths:')
 pprint(sys.path)
+print('cur dir files:')
+os.system('ls -l {}'.format(
+    PACKAGE_PATH_FROM_DOCS))
+print('two dirs up:')
+os.system('ls -l .. {}'.format(
+    PACKAGE_PATH_FROM_DOCS))
+print('two dirs up:')
+os.system('ls -l {}/../..'.format(
+    PACKAGE_PATH_FROM_DOCS))
+print('two dirs up:')
+os.system('ls -l {}/../..'.format(
+    PACKAGE_PATH_FROM_DOCS))
 print('----------------------')
 
 project = 'Stock Analysis Engine'
@@ -148,7 +160,7 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path .
-exclude_patterns = []
+exclude_patterns = ['_build']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
