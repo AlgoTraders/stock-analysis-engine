@@ -35,11 +35,12 @@ on_rtd = os.getenv("READTHEDOCS", "") != ""
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 CUR_PATH = os.path.dirname(os.path.abspath(__file__))
 PROJECT_PATH = os.path.abspath(CUR_PATH + '/../')
-CUR_PACKAGE_PATH = os.path.abspath(CUR_PATH + '/../')
 PACKAGE_SOURCE_PATH_FROM_DOCS = os.path.abspath('../../')
 sys.path.insert(0, PROJECT_PATH)
+sys.path.insert(0, PACKAGE_SOURCE_PATH_FROM_DOCS)
 
 source_code_dirs = [
+    'analysis_engine/',
     'analysis_engine/iex/',
     'analysis_engine/mocks/',
     'analysis_engine/scripts/',
@@ -48,18 +49,6 @@ source_code_dirs = [
 ]
 
 for source_code_dir_name in source_code_dirs:
-    use_dir = '{}/{}'.format(
-        CUR_PACKAGE_PATH,
-        source_code_dir_name)
-    if os.path.exists(use_dir):
-        sys.path.insert(0, use_dir)
-        if on_rtd:
-            os.system('ls -l {}'.format(
-                use_dir))
-    else:
-        if on_rtd:
-            print('did not find from current package dir: {}'.format(
-                use_dir))
     use_dir = '{}/{}'.format(
         PACKAGE_SOURCE_PATH_FROM_DOCS,
         source_code_dir_name)
@@ -79,10 +68,6 @@ if on_rtd:
         CUR_PATH))
     print('paths:')
     pprint(sys.path)
-    os.system(
-        'echo "cur package dir '
-        'contents: " && ls -l {}'.format(
-            CUR_PACKAGE_PATH))
     os.system(
         'echo "source path from docs dir contents:'
         'dirs: " && ls -l {}'.format(
