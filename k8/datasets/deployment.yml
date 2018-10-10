@@ -1,5 +1,5 @@
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: batch/v1
+kind: Job
 metadata:
   name: sa-dataset-collector
   annotations:
@@ -13,11 +13,6 @@ metadata:
     cache: redis
     pubsub: publisher
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: sa-dataset-collector
-      backend: enabled
   template:
     metadata:
       labels:
@@ -29,28 +24,14 @@ spec:
         cache: redis
         pubsub: publisher
     spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: backend
-                operator: In
-                values:
-                - enabled
       hostname: sa-dataset-collector
-      restartPolicy: Always
+      restartPolicy: Never
       containers:
       - image: jayjohnson/stock-analysis-engine:latest
         imagePullPolicy: Always
         name: sa-dataset-collector
         resources: {}
-        command:
-        - /bin/bash
-        - -c
-        - cd /opt/sa/ &&
-          . /opt/venv/bin/activate &&
-          /opt/sa/tools/start-dataset-collection.sh
+        command: ["/bin/bash", "-c", "cd /opt/sa/ && . /opt/venv/bin/activate && /opt/sa/tools/start-dataset-collection.sh"]
         env:
         - name: POSTGRES_USER
           valueFrom:
