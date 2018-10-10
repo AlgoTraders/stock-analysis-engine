@@ -23,14 +23,44 @@ import os
 import sys
 from unittest.mock import MagicMock
 from recommonmark.parser import CommonMarkParser
+from pprint import pprint
 
-sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(0, os.path.abspath('../'))
-sys.path.insert(0, os.path.abspath('../analysis_engine/'))
-sys.path.insert(0, os.path.abspath('../analysis_engine/iex/'))
-sys.path.insert(0, os.path.abspath('../analysis_engine/scripts/'))
-sys.path.insert(0, os.path.abspath('../analysis_engine/work_tasks/'))
-sys.path.insert(0, os.path.abspath('../analysis_engine/yahoo/'))
+# Using working source code sphinx conf.py on read the docs:
+# https://github.com/mahmoud/boltons/blob/master/docs/conf.py#L20
+
+# If extensions (or modules to document with autodoc) are in another directory,
+# add these directories to sys.path here. If the directory is relative to the
+# documentation root, use os.path.abspath to make it absolute, like shown here.
+CUR_PATH = os.path.dirname(os.path.abspath(__file__))
+PROJECT_PATH = os.path.abspath(CUR_PATH + '/../')
+CUR_PACKAGE_PATH = os.path.abspath(CUR_PATH + '/../analysis_engine/')
+PACKAGE_PATH = os.path.abspath('/../../analysis_engine')
+sys.path.insert(0, PROJECT_PATH)
+
+source_code_dirs = [
+    'analysis_engine/iex/',
+    'analysis_engine/mocks/',
+    'analysis_engine/scripts/',
+    'analysis_engine/work_tasks/',
+    'analysis_engine/yahoo/'
+]
+
+for source_code_dir_name in source_code_dirs:
+    sys.path.insert(0, '{}/{}'.format(
+        CUR_PACKAGE_PATH,
+        source_code_dir_name))
+    sys.path.insert(0, '{}/{}'.format(
+        PACKAGE_PATH,
+        source_code_dir_name))
+
+print('----------------------')
+print('environment variables:')
+pprint(os.environ)
+print('cur path: {}'.format(
+    CUR_PATH))
+print('paths:')
+pprint(sys.path)
+print('----------------------')
 
 project = 'Stock Analysis Engine'
 copyright = '2018, Jay Johnson'
@@ -83,6 +113,10 @@ release = '1.0.0'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
+    'sphinx.ext.doctest',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
     'celery.contrib.sphinx',
 ]
