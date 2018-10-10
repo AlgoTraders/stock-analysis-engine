@@ -78,6 +78,7 @@ setup(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     version='1.0.59',
 =======
 =======
@@ -108,6 +109,8 @@ setup(
 >>>>>>> trying new sphinx conf.py on read the docs
 =======
 >>>>>>> trying source code linking on read the docs
+=======
+>>>>>>> trying source code linking on read the docs - again
 =======
 >>>>>>> trying source code linking on read the docs - again
 <<<<<<< HEAD
@@ -202,6 +205,11 @@ setup(
 =======
 =======
     version='1.0.52',
+>>>>>>> trying source code linking on read the docs - again
+<<<<<<< HEAD
+=======
+=======
+    version='1.0.53',
 >>>>>>> trying source code linking on read the docs - again
 >>>>>>> trying source code linking on read the docs - again
     description=(

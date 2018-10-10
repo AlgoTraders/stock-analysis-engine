@@ -57,6 +57,7 @@ PACKAGE_PATH = os.path.abspath('/../../analysis_engine')
 =======
 CUR_PACKAGE_PATH = os.path.abspath(CUR_PATH + '/../')
 <<<<<<< HEAD
+<<<<<<< HEAD
 PACKAGE_PATH_FROM_DOCS = os.path.abspath('../')
 <<<<<<< HEAD
 >>>>>>> trying with more flags and removing duplicate analysis_engine dir name
@@ -66,6 +67,9 @@ PACKAGE_SOURCE_PATH_FROM_DOCS = os.path.abspath(
 >>>>>>> trying source code linking on read the docs
 =======
 PACKAGE_SOURCE_PATH_FROM_DOCS = os.path.abspath('../../latest')
+>>>>>>> trying source code linking on read the docs - again
+=======
+PACKAGE_SOURCE_PATH_FROM_DOCS = os.path.abspath('../../')
 >>>>>>> trying source code linking on read the docs - again
 sys.path.insert(0, PROJECT_PATH)
 
