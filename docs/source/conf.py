@@ -49,7 +49,7 @@ for source_code_dir_name in source_code_dirs:
     sys.path.insert(0, '{}/{}'.format(
         CUR_PACKAGE_PATH,
         source_code_dir_name))
-    sys.path.insert(0, '{}/{}'.format(
+    sys.path.insert(0, '{}/../{}'.format(
         PACKAGE_PATH_FROM_DOCS,
         source_code_dir_name))
 
