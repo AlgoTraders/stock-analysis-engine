@@ -75,6 +75,7 @@ setup(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     version='1.0.59',
 =======
 =======
@@ -101,6 +102,8 @@ setup(
 >>>>>>> adding these for testing with the new pyEX version in containers
 =======
 >>>>>>> new version for the kubernetes support and screenshot image for docs
+=======
+>>>>>>> trying new sphinx conf.py on read the docs
 <<<<<<< HEAD
     version='1.0.57',
 =======
@@ -176,7 +179,13 @@ setup(
 =======
     version='1.0.49',
 >>>>>>> new version for the kubernetes support and screenshot image for docs
+<<<<<<< HEAD
 >>>>>>> new version for the kubernetes support and screenshot image for docs
+=======
+=======
+    version='1.0.50',
+>>>>>>> trying new sphinx conf.py on read the docs
+>>>>>>> trying new sphinx conf.py on read the docs
     description=(
         'Stock Analysis Engine - '
         'Use this to get pricing data for tickers '

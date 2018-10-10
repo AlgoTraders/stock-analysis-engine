@@ -25,8 +25,11 @@ from unittest.mock import MagicMock
 from recommonmark.parser import CommonMarkParser
 from pprint import pprint
 
+<<<<<<< HEAD
 on_rtd = os.getenv("READTHEDOCS", "") != ""
 
+=======
+>>>>>>> trying new sphinx conf.py on read the docs
 # Using working source code sphinx conf.py on read the docs:
 # https://github.com/mahmoud/boltons/blob/master/docs/conf.py#L20
 
@@ -35,12 +38,20 @@ on_rtd = os.getenv("READTHEDOCS", "") != ""
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 CUR_PATH = os.path.dirname(os.path.abspath(__file__))
 PROJECT_PATH = os.path.abspath(CUR_PATH + '/../')
+<<<<<<< HEAD
 PACKAGE_SOURCE_PATH_FROM_DOCS = os.path.abspath('../../')
 sys.path.insert(0, PROJECT_PATH)
 sys.path.insert(0, PACKAGE_SOURCE_PATH_FROM_DOCS)
 
 source_code_dirs = [
     'analysis_engine/',
+=======
+CUR_PACKAGE_PATH = os.path.abspath(CUR_PATH + '/../analysis_engine/')
+PACKAGE_PATH = os.path.abspath('/../../analysis_engine')
+sys.path.insert(0, PROJECT_PATH)
+
+source_code_dirs = [
+>>>>>>> trying new sphinx conf.py on read the docs
     'analysis_engine/iex/',
     'analysis_engine/mocks/',
     'analysis_engine/scripts/',
@@ -49,6 +60,7 @@ source_code_dirs = [
 ]
 
 for source_code_dir_name in source_code_dirs:
+<<<<<<< HEAD
     use_dir = '{}/{}'.format(
         PACKAGE_SOURCE_PATH_FROM_DOCS,
         source_code_dir_name)
@@ -74,6 +86,23 @@ if on_rtd:
             PACKAGE_SOURCE_PATH_FROM_DOCS))
     print('----------------------')
 # end of debugging pathing on read the docs
+=======
+    sys.path.insert(0, '{}/{}'.format(
+        CUR_PACKAGE_PATH,
+        source_code_dir_name))
+    sys.path.insert(0, '{}/{}'.format(
+        PACKAGE_PATH,
+        source_code_dir_name))
+
+print('----------------------')
+print('environment variables:')
+pprint(os.environ)
+print('cur path: {}'.format(
+    CUR_PATH))
+print('paths:')
+pprint(sys.path)
+print('----------------------')
+>>>>>>> trying new sphinx conf.py on read the docs
 
 project = 'Stock Analysis Engine'
 copyright = '2018, Jay Johnson'
