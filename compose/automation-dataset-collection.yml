@@ -6,7 +6,7 @@ services:
   # Automation Dataset Collector
   sa-dataset-collection:
     container_name: "sa-dataset-collection-${USER}"
-    hostname: sa-dataset-collection-1
+    hostname: "sa-dataset-collection-1-${USER}"
     image: jayjohnson/stock-analysis-engine:latest
     tty: true
     env_file:
