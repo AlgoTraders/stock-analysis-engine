@@ -69,6 +69,7 @@ setup(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     version='1.0.59',
 =======
 =======
@@ -83,6 +84,8 @@ setup(
 >>>>>>> bumping setup.py version
 =======
 >>>>>>> adding integration test and pinning a minimum pyEX version
+=======
+>>>>>>> better doc example with source code
 <<<<<<< HEAD
     version='1.0.57',
 =======
@@ -124,7 +127,13 @@ setup(
 =======
     version='1.0.57',
 >>>>>>> adding integration test and pinning a minimum pyEX version
+<<<<<<< HEAD
 >>>>>>> adding integration test and pinning a minimum pyEX version
+=======
+=======
+    version='1.0.59',
+>>>>>>> better doc example with source code
+>>>>>>> better doc example with source code
     description=(
         'Stock Analysis Engine - '
         'Use this to get pricing data for tickers '
