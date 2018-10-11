@@ -4,7 +4,7 @@ services:
 
   # Redis
   redis:
-    container_name: "redis"
+    container_name: "redis-${USER}"
     hostname: redis
     image: redis:4.0.9-alpine
     ports:
@@ -12,7 +12,7 @@ services:
 
   # Minio
   minio:
-    container_name: "minio"
+    container_name: "minio-${USER}"
     hostname: minio
     image: minio/minio:latest
     environment:

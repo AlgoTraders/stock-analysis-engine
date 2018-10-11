@@ -4,7 +4,7 @@ services:
 
   # Redis
   redis:
-    container_name: "redis"
+    container_name: "redis-${USER}"
     hostname: redis
     image: redis:4.0.9-alpine
     ports:
@@ -12,7 +12,7 @@ services:
 
   # Minio
   minio:
-    container_name: "minio"
+    container_name: "minio-${USER}"
     hostname: minio
     image: minio/minio:latest
     env_file:
@@ -25,7 +25,7 @@ services:
 
   # Stock Analysis Engine
   sa-workers:
-    container_name: "sa-workers"
+    container_name: "sa-workers-${USER}"
     hostname: sa-workers
     image: jayjohnson/stock-analysis-engine:latest
     tty: true
@@ -39,7 +39,7 @@ services:
 
   # Jupyter notebooks, converted noteooks as presentation html slides, and tensorboard
   sa-jupyter:
-    container_name: "sa-jupyter"
+    container_name: "sa-jupyter-${USER}"
     hostname: sa-jupyter
     image: jayjohnson/stock-analysis-jupyter:latest
     tty: true
