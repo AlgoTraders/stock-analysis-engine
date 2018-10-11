@@ -72,6 +72,7 @@ setup(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     version='1.0.59',
 =======
 =======
@@ -88,6 +89,8 @@ setup(
 >>>>>>> adding integration test and pinning a minimum pyEX version
 =======
 >>>>>>> better doc example with source code
+=======
+>>>>>>> updating scripts for container names and bumping setup.py version
 =======
 >>>>>>> updating scripts for container names and bumping setup.py version
 =======
@@ -149,6 +152,11 @@ setup(
 =======
 =======
     version='1.0.59',
+>>>>>>> updating scripts for container names and bumping setup.py version
+<<<<<<< HEAD
+=======
+=======
+    version='1.0.58',
 >>>>>>> updating scripts for container names and bumping setup.py version
 >>>>>>> updating scripts for container names and bumping setup.py version
     description=(
