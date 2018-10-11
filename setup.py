@@ -73,6 +73,7 @@ setup(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     version='1.0.59',
 =======
 =======
@@ -95,6 +96,8 @@ setup(
 >>>>>>> updating scripts for container names and bumping setup.py version
 =======
 >>>>>>> updating scripts for container names and bumping setup.py version
+=======
+>>>>>>> adding these for testing with the new pyEX version in containers
 <<<<<<< HEAD
     version='1.0.57',
 =======
@@ -158,7 +161,13 @@ setup(
 =======
     version='1.0.58',
 >>>>>>> updating scripts for container names and bumping setup.py version
+<<<<<<< HEAD
 >>>>>>> updating scripts for container names and bumping setup.py version
+=======
+=======
+    version='1.0.59',
+>>>>>>> adding these for testing with the new pyEX version in containers
+>>>>>>> adding these for testing with the new pyEX version in containers
     description=(
         'Stock Analysis Engine - '
         'Use this to get pricing data for tickers '

@@ -495,6 +495,7 @@ class TestIEXFetchData(BaseTestCase):
             work['ticker'])
         work['celery_disabled'] = True
 <<<<<<< HEAD
+<<<<<<< HEAD
         dataset_results = get_new_pricing_data(
             work)
 
@@ -509,6 +510,15 @@ class TestIEXFetchData(BaseTestCase):
         self.assertIsNotNone(
             scrubbed_df)
 >>>>>>> adding integration test and pinning a minimum pyEX version
+=======
+        dataset_results = get_new_pricing_data(
+            work)
+
+        self.assertIsNotNone(
+            dataset_results)
+        self.assertIsNotNone(
+            len(dataset_results['data']) == 1)
+>>>>>>> adding these for testing with the new pyEX version in containers
     # end of test_integration_get_financials_helper
 
 # end of TestIEXFetchData
