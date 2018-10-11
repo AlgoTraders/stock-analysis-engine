@@ -86,7 +86,7 @@ def fetch_data(
     if use_fetch_name == 'daily' or fetch_type == FETCH_DAILY:
         return fetch_api.fetch_daily(
             work_dict=work_dict)
-    if use_fetch_name == 'minute' or fetch_type == FETCH_MINUTE:
+    elif use_fetch_name == 'minute' or fetch_type == FETCH_MINUTE:
         return fetch_api.fetch_minute(
             work_dict=work_dict)
     elif use_fetch_name == 'tick' or fetch_type == FETCH_TICK:

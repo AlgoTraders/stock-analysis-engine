@@ -163,11 +163,12 @@ def get_data_from_iex(
             rec['updated'] = datetime.datetime.utcnow().strftime(
                 '%Y-%m-%d %H:%M:%S')
         except Exception as f:
-            log.debug(
+            log.error(
                 '{} - ticker={} field={} failed fetch_data '
                 'with ex={}'.format(
                     label,
                     ticker,
+                    ft_type,
                     f))
         # end of try/ex
 
