@@ -51,6 +51,7 @@ case "$os_type" in
     Darwin*)
         inf "Setting up environment for MacOS"
         active_ports=`lsof -i -P -n | grep LISTEN`
+        # sed replace without the '' does seem to work on mac and linux the same
         mac="''"
         ;;
     *)
@@ -117,21 +118,30 @@ if [[ -z `cat envs/local.env | grep $USER` ]]; then
     sed -i $mac "s/minio:/minio-$USER:/" envs/local.env
 fi
 
-if [[ -z `docker ps -a | grep $USER` ]]; then
+# if containers for the current user are not running
+if [[ -z `docker ps -a | grep $USER | grep redis` ]]; then
     BASE_REDIS_PORT=6379
     while [[ ! -z `echo "$active_ports" | grep $BASE_REDIS_PORT` ]]
     do
         BASE_REDIS_PORT=$((BASE_REDIS_PORT+1))
     done
     sed -i $mac "s/6379/$BASE_REDIS_PORT/g" envs/local.env
+else
+    BASE_REDIS_PORT=`docker ps -a | grep $USER | grep redis | cut -f1 -d">" | sed -e 's/.*://' | cut -f1 -d"-"`
+fi
 
+if [[ -z `docker ps -a | grep $USER | grep minio` ]]; then
     BASE_MINIO_PORT=9000
     while [[ ! -z `echo "$active_ports" | grep $BASE_MINIO_PORT` ]]
     do
         BASE_MINIO_PORT=$((BASE_MINIO_PORT+1))
     done
     sed -i $mac "s/9000/$BASE_MINIO_PORT/g" envs/local.env
+else
+    BASE_MINIO_PORT=`docker ps -a | grep $USER | grep minio | cut -f1 -d">" | sed -e 's/.*://' | cut -f1 -d"-"`
+fi
 
+if [[ -z `docker ps -a | grep $USER | grep jupyter` ]]; then
     BASE_JUPYTER_PORT_1=8888
     BASE_JUPYTER_PORT_2=8889
     BASE_JUPYTER_PORT_3=8890
@@ -144,13 +154,12 @@ if [[ -z `docker ps -a | grep $USER` ]]; then
         BASE_JUPYTER_PORT_4=$((BASE_JUPYTER_PORT_4+1))
     done
 else
-    BASE_REDIS_PORT=`docker ps -a | grep $USER | grep redis | cut -f1 -d">" | sed -e 's/.*://' | cut -f1 -d"-"`
-    BASE_MINIO_PORT=`docker ps -a | grep $USER | grep minio | cut -f1 -d">" | sed -e 's/.*://' | cut -f1 -d"-"`
     BASE_JUPYTER_PORT_1=`docker ps -a | grep $USER | grep jupyter | sed -e 's/.*,//' | cut -f1 -d">" | sed -e 's/.*://' | cut -f1 -d"-"`
     BASE_JUPYTER_PORT_2=$((BASE_JUPYTER_PORT_1+1))
     BASE_JUPYTER_PORT_3=$((BASE_JUPYTER_PORT_2+1))
     BASE_JUPYTER_PORT_4=`docker ps -a | grep $USER | grep jupyter | cut -f1 -d">" | sed -e 's/.*://' | cut -f1 -d"-"`
 fi
+
 touch env.sh
 echo "export REDIS_PORT=$BASE_REDIS_PORT" >> env.sh
 echo "export MINIO_PORT=$BASE_MINIO_PORT" >> env.sh
