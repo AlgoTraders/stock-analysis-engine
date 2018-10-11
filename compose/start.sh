@@ -51,6 +51,7 @@ case "$os_type" in
     Darwin*)
         inf "Setting up environment for MacOS"
         active_ports=`lsof -i -P -n | grep LISTEN`
+        mac="''"
         ;;
     *)
         warn "Unsupported OS, exiting."
@@ -111,9 +112,9 @@ fi
 
 # start getting ports and setting vars for containers
 if [[ -z `cat envs/local.env | grep $USER` ]]; then
-    sed -i '' "s/redis:/redis-$USER:/g" envs/local.env
-    sed -i '' "s/-$USER:\/\//:\/\//" envs/local.env
-    sed -i '' "s/minio:/minio-$USER:/" envs/local.env
+    sed -i $mac "s/redis:/redis-$USER:/g" envs/local.env
+    sed -i $mac "s/-$USER:\/\//:\/\//" envs/local.env
+    sed -i $mac "s/minio:/minio-$USER:/" envs/local.env
 fi
 
 if [ -z "$REDIS_PORT" ]; then
@@ -126,7 +127,7 @@ if [ -z "$REDIS_PORT" ]; then
 else
     BASE_REDIS_PORT=$REDIS_PORT
 fi
-sed -i '' "s/6379/$BASE_REDIS_PORT/g" envs/local.env
+sed -i $mac "s/6379/$BASE_REDIS_PORT/g" envs/local.env
 
 if [ -z "$MINIO_PORT" ]; then
     BASE_MINIO_PORT=9000
@@ -138,7 +139,7 @@ if [ -z "$MINIO_PORT" ]; then
 else
     BASE_MINIO_PORT=$MINIO_PORT
 fi
-sed -i '' "s/9000/$BASE_MINIO_PORT/" envs/local.env
+sed -i $mac "s/9000/$BASE_MINIO_PORT/" envs/local.env
 
 if [ -z "$JUPYTER_PORT_1" ]; then
     BASE_JUPYTER_PORT_1=8888
