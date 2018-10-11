@@ -9,27 +9,40 @@ and more) from these sources:
 
 #.  IEX
 
-Sample work_dict request for this method
-----------------------------------------
-
-`analysis_engine.api_requests.build_get_new_pricing_request <https://
-github.com/AlgoTraders/stock-analysis-engine/blob/master/ana
-lysis_engine/api_requests.py#L49>`__
+Example Code for Getting New Pricing Data
+-----------------------------------------
 
 ::
 
-    work_request = {
-        'ticker': ticker,
-        'ticker_id': ticker_id,
-        's3_bucket': s3_bucket_name,
-        's3_key': s3_key,
-        'redis_key': redis_key,
-        'strike': use_strike,
-        'contract': contract_type,
-        'get_pricing': get_pricing,
-        'get_news': get_news,
-        'get_options': get_options
-    }
+    import datetime
+    from analysis_engine.api_requests \
+        import build_get_new_pricing_request
+    from analysis_engine.work_tasks.get_new_pricing_data \
+        import get_new_pricing_data
+
+    # store data
+    cur_date = datetime.datetime.now().strftime('%Y-%m-%d')
+    work = build_get_new_pricing_request(
+        label='get-pricing-{}'.format(cur_date))
+    work['ticker'] = 'TSLA'
+    work['s3_bucket'] = 'pricing'
+    work['s3_key'] = '{}-{}'.format(
+        work['ticker'],
+        cur_date)
+    work['redis_key'] = '{}-{}'.format(
+        work['ticker'],
+        cur_date)
+    work['celery_disabled'] = True
+    res = get_new_pricing_data(
+        work)
+    print('full result dictionary:')
+    print(res)
+    if res['data']:
+        print(
+            'named datasets returned as '
+            'json-serialized pandas DataFrames:')
+        for k in res['data']:
+            print(' - {}'.format(k))
 
 .. warning:: When fetching pricing data from sources like IEX,
              Please ensure the returned values are
@@ -44,6 +57,13 @@ lysis_engine/api_requests.py#L49>`__
     lgoTraders/stock-analysis-engine/blob/master/anal
     ysis_engine/work_tasks/custom_task.py>`__ for
     task event handling.
+
+Sample work_dict request for this method
+----------------------------------------
+
+`analysis_engine.api_requests.build_get_new_pricing_request <https://
+github.com/AlgoTraders/stock-analysis-engine/blob/master/ana
+lysis_engine/api_requests.py#L49>`__
 
 """
 
