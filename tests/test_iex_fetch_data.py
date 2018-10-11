@@ -494,11 +494,13 @@ class TestIEXFetchData(BaseTestCase):
         work['redis_key'] = 'testing_{}'.format(
             work['ticker'])
         work['celery_disabled'] = True
-        scrubbed_df = get_new_pricing_data(
+        dataset_results = get_new_pricing_data(
             work)
 
         self.assertIsNotNone(
-            scrubbed_df)
+            dataset_results)
+        self.assertIsNotNone(
+            len(dataset_results['data']) == 1)
     # end of test_integration_get_financials_helper
 
 # end of TestIEXFetchData
