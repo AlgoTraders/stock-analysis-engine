@@ -117,31 +117,23 @@ if [[ -z `cat envs/local.env | grep $USER` ]]; then
     sed -i $mac "s/minio:/minio-$USER:/" envs/local.env
 fi
 
-if [ -z "$REDIS_PORT" ]; then
+if [ -z `docker ps -a | grep $USER` ]; then
     BASE_REDIS_PORT=6379
     while [[ ! -z `echo "$active_ports" | grep $BASE_REDIS_PORT` ]]
     do
         BASE_REDIS_PORT=$((BASE_REDIS_PORT+1))
     done
+    sed -i $mac "s/6379/$BASE_REDIS_PORT/g" envs/local.env
     export REDIS_PORT=$BASE_REDIS_PORT
-else
-    BASE_REDIS_PORT=$REDIS_PORT
-fi
-sed -i $mac "s/6379/$BASE_REDIS_PORT/g" envs/local.env
 
-if [ -z "$MINIO_PORT" ]; then
     BASE_MINIO_PORT=9000
     while [[ ! -z `echo "$active_ports" | grep $BASE_MINIO_PORT` ]]
     do
         BASE_MINIO_PORT=$((BASE_MINIO_PORT+1))
     done
+    sed -i $mac "s/9000/$BASE_MINIO_PORT/" envs/local.env
     export MINIO_PORT=$BASE_MINIO_PORT
-else
-    BASE_MINIO_PORT=$MINIO_PORT
-fi
-sed -i $mac "s/9000/$BASE_MINIO_PORT/" envs/local.env
 
-if [ -z "$JUPYTER_PORT_1" ]; then
     BASE_JUPYTER_PORT_1=8888
     BASE_JUPYTER_PORT_2=8889
     BASE_JUPYTER_PORT_3=8890
