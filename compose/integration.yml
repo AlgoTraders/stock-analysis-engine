@@ -16,7 +16,7 @@ services:
     hostname: "minio-${USER}"
     image: minio/minio:latest
     env_file:
-      - ./envs/local.env
+      - ./envs/.env
     ports:
       - "${MINIO_PORT}:9000"
     volumes:
@@ -30,7 +30,7 @@ services:
     image: jayjohnson/stock-analysis-engine:latest
     tty: true
     env_file:
-      - ./envs/local.env
+      - ./envs/.env
     depends_on:
       - redis
       - minio
@@ -44,7 +44,7 @@ services:
     image: jayjohnson/stock-analysis-jupyter:latest
     tty: true
     env_file:
-      - ./envs/local.env
+      - ./envs/.env
     depends_on:
       - redis
       - minio

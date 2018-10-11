@@ -112,10 +112,10 @@ if [[ ! -e ./${compose} ]]; then
 fi
 
 # start getting ports and setting vars for containers
-if [[ -z `cat envs/local.env | grep $USER` ]]; then
-    sed -i $mac "s/redis:/redis-$USER:/g" envs/local.env
-    sed -i $mac "s/-$USER:\/\//:\/\//" envs/local.env
-    sed -i $mac "s/minio:/minio-$USER:/g" envs/local.env
+if [[ -z `cat envs/.env | grep $USER` ]]; then
+    sed -i $mac "s/redis:/redis-$USER:/g" envs/.env
+    sed -i $mac "s/-$USER:\/\//:\/\//" envs/.env
+    sed -i $mac "s/minio:/minio-$USER:/g" envs/.env
 fi
 
 # if containers for the current user are not running
@@ -125,7 +125,7 @@ if [[ -z `docker ps -a | grep $USER | grep redis` ]]; then
     do
         BASE_REDIS_PORT=$((BASE_REDIS_PORT+1))
     done
-    sed -i $mac "s/6379/$BASE_REDIS_PORT/g" envs/local.env
+    sed -i $mac "s/6379/$BASE_REDIS_PORT/g" envs/.env
 else
     BASE_REDIS_PORT=`docker ps -a | grep $USER | grep redis | cut -f1 -d">" | sed -e 's/.*://' | cut -f1 -d"-"`
 fi
@@ -136,7 +136,7 @@ if [[ -z `docker ps -a | grep $USER | grep minio` ]]; then
     do
         BASE_MINIO_PORT=$((BASE_MINIO_PORT+1))
     done
-    sed -i $mac "s/9000/$BASE_MINIO_PORT/g" envs/local.env
+    sed -i $mac "s/9000/$BASE_MINIO_PORT/g" envs/.env
 else
     BASE_MINIO_PORT=`docker ps -a | grep $USER | grep minio | cut -f1 -d">" | sed -e 's/.*://' | cut -f1 -d"-"`
 fi
