@@ -31,14 +31,7 @@ if [[ ! -e /data ]]; then
     sudo mkdir -p -m 777 /data/minio/data
     sudo mkdir -p -m 777 /data/sa/notebooks
     sudo mkdir -p -m 777 /data/sa/notebooks/dev
-<<<<<<< HEAD
-<<<<<<< HEAD
     cp -r ./compose/docker/notebooks/* /data/sa/notebooks
-=======
->>>>>>> fix for data automation
-=======
-    cp -r ./compose/docker/notebooks/* /data/sa/notebooks
->>>>>>> fixing jupyter notebooks not being loaded on start and added option for overriding notebooks on local with repo notebooks
 fi
 
 os_type=`uname -s`

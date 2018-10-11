@@ -81,6 +81,7 @@ setup(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     version='1.0.59',
 =======
 =======
@@ -230,6 +231,9 @@ setup(
     version='1.0.55',
 >>>>>>> using kubernetes jobs instead of deployments. jobs support stopping on task-publish completion versus a deployment was restarting forever and spamming the engine to update the datasets everytime it finished.
 >>>>>>> using kubernetes jobs instead of deployments. jobs support stopping on task-publish completion versus a deployment was restarting forever and spamming the engine to update the datasets everytime it finished.
+=======
+    version='1.0.59',
+>>>>>>> tryin merge conflicts resolution
     description=(
         'Stock Analysis Engine - '
         'Use this to get pricing data for tickers '

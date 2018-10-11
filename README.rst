@@ -268,15 +268,7 @@ View Archives in S3 - Minio
 
 Here's a screenshot showing the stock market dataset archives created while running on the `3-node Kubernetes cluster for distributed AI predictions <https://github.com/jay-johnson/deploy-to-kubernetes#deploying-a-distributed-ai-stack-to-kubernetes-on-centos>`__
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .. image:: https://i.imgur.com/wDyPKAp.png
-=======
-.. image:: https://imgur.com/wDyPKAp
->>>>>>> new version for the kubernetes support and screenshot image for docs
-=======
-.. image:: https://i.imgur.com/wDyPKAp.png
->>>>>>> fixing the image
 
 http://localhost:9000/minio/pricing/
 
