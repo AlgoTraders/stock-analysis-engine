@@ -49,8 +49,8 @@ services:
       - redis
       - minio
     ports:
-      - "8888:8888"
-      - "8889:8889"
-      - "8890:8890"
-      - "6006:6006"
+      - "${JUPYTER_PORT_1}:8888"
+      - "${JUPYTER_PORT_2}:8889"
+      - "${JUPYTER_PORT_3}:8890"
+      - "${JUPYTER_PORT_4}:6006"
     entrypoint: "/opt/sa/docker/jupyter/start-container.sh"

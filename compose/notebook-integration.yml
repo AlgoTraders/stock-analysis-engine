@@ -8,7 +8,7 @@ services:
     hostname: "redis-${USER}"
     image: redis:4.0.9-alpine
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT}:6379"
 
   # Minio
   minio:
@@ -18,7 +18,7 @@ services:
     env_file:
       - ./envs/local.env
     ports:
-      - "9000:9000"
+      - "${MINIO_PORT}:9000"
     volumes:
       - /data/minio/data:/data
     command: "server /data"
@@ -53,8 +53,8 @@ services:
       # base directory
       - /data/sa/notebooks:/opt/notebooks
     ports:
-      - "8888:8888"
-      - "8889:8889"
-      - "8890:8890"
-      - "6006:6006"
+      - "${JUPYTER_PORT_1}:8888"
+      - "${JUPYTER_PORT_2}:8889"
+      - "${JUPYTER_PORT_3}:8890"
+      - "${JUPYTER_PORT_4}:6006"
     entrypoint: "/opt/sa/docker/jupyter/start-container.sh"

@@ -46,9 +46,11 @@ case "$os_type" in
                 sudo apt-get install python3-distutils python3-tk
             fi
         fi
+        active_ports=`netstat -tulpn | grep LISTEN`
         ;;
     Darwin*)
         inf "Setting up environment for MacOS"
+        active_ports=`lsof -i -P -n | grep LISTEN`
         ;;
     *)
         warn "Unsupported OS, exiting."
@@ -106,6 +108,57 @@ if [[ ! -e ./${compose} ]]; then
     pushd compose >> /dev/null
     down_dir="1"
 fi
+
+# start getting ports and setting vars for containers
+if [[ -z `cat envs/local.env | grep $USER` ]]; then
+    sed -i '' "s/redis:/redis-$USER:/g" envs/local.env
+    sed -i '' "s/-$USER:\/\//:\/\//" envs/local.env
+    sed -i '' "s/minio:/minio-$USER:/" envs/local.env
+fi
+
+if [ -z "$REDIS_PORT" ]; then
+    BASE_REDIS_PORT=6379
+    while [[ ! -z `echo "$active_ports" | grep $BASE_REDIS_PORT` ]]
+    do
+        BASE_REDIS_PORT=$((BASE_REDIS_PORT+1))
+    done
+    export REDIS_PORT=$BASE_REDIS_PORT
+else
+    BASE_REDIS_PORT=$REDIS_PORT
+fi
+sed -i '' "s/6379/$BASE_REDIS_PORT/g" envs/local.env
+
+if [ -z "$MINIO_PORT" ]; then
+    BASE_MINIO_PORT=9000
+    while [[ ! -z `echo "$active_ports" | grep $BASE_MINIO_PORT` ]]
+    do
+        BASE_MINIO_PORT=$((BASE_MINIO_PORT+1))
+    done
+    export MINIO_PORT=$BASE_MINIO_PORT
+else
+    BASE_MINIO_PORT=$MINIO_PORT
+fi
+sed -i '' "s/9000/$BASE_MINIO_PORT/" envs/local.env
+
+if [ -z "$JUPYTER_PORT_1" ]; then
+    BASE_JUPYTER_PORT_1=8888
+    BASE_JUPYTER_PORT_2=8889
+    BASE_JUPYTER_PORT_3=8890
+    BASE_JUPYTER_PORT_4=6006
+    while [[ ! -z `echo "$active_ports" | grep $BASE_JUPYTER_PORT_1` ]]
+    do
+        BASE_JUPYTER_PORT_1=$((BASE_JUPYTER_PORT_1+3))
+        BASE_JUPYTER_PORT_2=$((BASE_JUPYTER_PORT_2+3))
+        BASE_JUPYTER_PORT_3=$((BASE_JUPYTER_PORT_3+3))
+        BASE_JUPYTER_PORT_4=$((BASE_JUPYTER_PORT_4+1))
+    done
+    export JUPYTER_PORT_1=$BASE_JUPYTER_PORT_1
+    export JUPYTER_PORT_2=$BASE_JUPYTER_PORT_2
+    export JUPYTER_PORT_3=$BASE_JUPYTER_PORT_3
+    export JUPYTER_PORT_4=$BASE_JUPYTER_PORT_4
+fi
+# end getting ports and setting vars for containers
+
 docker-compose -f ./${compose} up -d
 
 if [[ "${down_dir}" == "1" ]]; then
