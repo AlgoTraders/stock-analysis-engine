@@ -115,7 +115,7 @@ fi
 if [[ -z `cat envs/local.env | grep $USER` ]]; then
     sed -i $mac "s/redis:/redis-$USER:/g" envs/local.env
     sed -i $mac "s/-$USER:\/\//:\/\//" envs/local.env
-    sed -i $mac "s/minio:/minio-$USER:/" envs/local.env
+    sed -i $mac "s/minio:/minio-$USER:/g" envs/local.env
 fi
 
 # if containers for the current user are not running
