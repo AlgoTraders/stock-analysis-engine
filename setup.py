@@ -68,6 +68,7 @@ setup(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     version='1.0.59',
 =======
 =======
@@ -80,6 +81,8 @@ setup(
 >>>>>>> adding ujson to requirements
 =======
 >>>>>>> bumping setup.py version
+=======
+>>>>>>> adding integration test and pinning a minimum pyEX version
 <<<<<<< HEAD
     version='1.0.57',
 =======
@@ -115,7 +118,13 @@ setup(
 =======
     version='1.0.48',
 >>>>>>> bumping setup.py version
+<<<<<<< HEAD
 >>>>>>> bumping setup.py version
+=======
+=======
+    version='1.0.57',
+>>>>>>> adding integration test and pinning a minimum pyEX version
+>>>>>>> adding integration test and pinning a minimum pyEX version
     description=(
         'Stock Analysis Engine - '
         'Use this to get pricing data for tickers '
