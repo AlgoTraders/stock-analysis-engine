@@ -117,22 +117,21 @@ if [[ -z `cat envs/local.env | grep $USER` ]]; then
     sed -i $mac "s/minio:/minio-$USER:/" envs/local.env
 fi
 
-if [ -z `docker ps -a | grep $USER` ]; then
+docker_user=`docker ps -a | grep $USER`
+if [ -z "$docker_user" ]; then
     BASE_REDIS_PORT=6379
     while [[ ! -z `echo "$active_ports" | grep $BASE_REDIS_PORT` ]]
     do
         BASE_REDIS_PORT=$((BASE_REDIS_PORT+1))
     done
     sed -i $mac "s/6379/$BASE_REDIS_PORT/g" envs/local.env
-    export REDIS_PORT=$BASE_REDIS_PORT
 
     BASE_MINIO_PORT=9000
     while [[ ! -z `echo "$active_ports" | grep $BASE_MINIO_PORT` ]]
     do
         BASE_MINIO_PORT=$((BASE_MINIO_PORT+1))
     done
-    sed -i $mac "s/9000/$BASE_MINIO_PORT/" envs/local.env
-    export MINIO_PORT=$BASE_MINIO_PORT
+    sed -i $mac "s/9000/$BASE_MINIO_PORT/g" envs/local.env
 
     BASE_JUPYTER_PORT_1=8888
     BASE_JUPYTER_PORT_2=8889
@@ -145,6 +144,13 @@ if [ -z `docker ps -a | grep $USER` ]; then
         BASE_JUPYTER_PORT_3=$((BASE_JUPYTER_PORT_3+3))
         BASE_JUPYTER_PORT_4=$((BASE_JUPYTER_PORT_4+1))
     done
+    sed -i $mac "s/8888/$BASE_JUPYTER_PORT_1/g" envs/local.env
+    sed -i $mac "s/8889/$BASE_JUPYTER_PORT_2/g" envs/local.env
+    sed -i $mac "s/8890/$BASE_JUPYTER_PORT_3/g" envs/local.env
+    sed -i $mac "s/6006/$BASE_JUPYTER_PORT_4/g" envs/local.env
+
+    export REDIS_PORT=$BASE_REDIS_PORT
+    export MINIO_PORT=$BASE_MINIO_PORT
     export JUPYTER_PORT_1=$BASE_JUPYTER_PORT_1
     export JUPYTER_PORT_2=$BASE_JUPYTER_PORT_2
     export JUPYTER_PORT_3=$BASE_JUPYTER_PORT_3

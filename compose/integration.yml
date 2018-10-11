@@ -8,7 +8,7 @@ services:
     hostname: "redis-${USER}"
     image: redis:4.0.9-alpine
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT}:6379"
 
   # Minio
   minio:
@@ -18,7 +18,7 @@ services:
     env_file:
       - ./envs/local.env
     ports:
-      - "9000:9000"
+      - "${MINIO_PORT}:9000"
     volumes:
       - /data/minio/data:/data
     command: "server /data"
