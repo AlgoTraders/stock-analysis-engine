@@ -45,7 +45,7 @@ def get_data_from_iex(
 
     Get pricing from iex
 
-    :param work_dict: request dictionar
+    :param work_dict: request dictionary
     """
     label = 'get_data_from_iex'
 
