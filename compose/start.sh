@@ -117,8 +117,7 @@ if [[ -z `cat envs/local.env | grep $USER` ]]; then
     sed -i $mac "s/minio:/minio-$USER:/" envs/local.env
 fi
 
-docker_user=`docker ps -a | grep $USER`
-if [ -z "$docker_user" ]; then
+if [[ -z `docker ps -a | grep $USER` ]]; then
     BASE_REDIS_PORT=6379
     while [[ ! -z `echo "$active_ports" | grep $BASE_REDIS_PORT` ]]
     do
@@ -144,18 +143,23 @@ if [ -z "$docker_user" ]; then
         BASE_JUPYTER_PORT_3=$((BASE_JUPYTER_PORT_3+3))
         BASE_JUPYTER_PORT_4=$((BASE_JUPYTER_PORT_4+1))
     done
-    sed -i $mac "s/8888/$BASE_JUPYTER_PORT_1/g" envs/local.env
-    sed -i $mac "s/8889/$BASE_JUPYTER_PORT_2/g" envs/local.env
-    sed -i $mac "s/8890/$BASE_JUPYTER_PORT_3/g" envs/local.env
-    sed -i $mac "s/6006/$BASE_JUPYTER_PORT_4/g" envs/local.env
-
-    export REDIS_PORT=$BASE_REDIS_PORT
-    export MINIO_PORT=$BASE_MINIO_PORT
-    export JUPYTER_PORT_1=$BASE_JUPYTER_PORT_1
-    export JUPYTER_PORT_2=$BASE_JUPYTER_PORT_2
-    export JUPYTER_PORT_3=$BASE_JUPYTER_PORT_3
-    export JUPYTER_PORT_4=$BASE_JUPYTER_PORT_4
+else
+    BASE_REDIS_PORT=`docker ps -a | grep $USER | grep redis | cut -f1 -d">" | sed -e 's/.*://' | cut -f1 -d"-"`
+    BASE_MINIO_PORT=`docker ps -a | grep $USER | grep minio | cut -f1 -d">" | sed -e 's/.*://' | cut -f1 -d"-"`
+    BASE_JUPYTER_PORT_1=`docker ps -a | grep $USER | grep jupyter | sed -e 's/.*,//' | cut -f1 -d">" | sed -e 's/.*://' | cut -f1 -d"-"`
+    BASE_JUPYTER_PORT_2=$((BASE_JUPYTER_PORT_1+1))
+    BASE_JUPYTER_PORT_3=$((BASE_JUPYTER_PORT_2+1))
+    BASE_JUPYTER_PORT_4=`docker ps -a | grep $USER | grep jupyter | cut -f1 -d">" | sed -e 's/.*://' | cut -f1 -d"-"`
 fi
+touch env.sh
+echo "export REDIS_PORT=$BASE_REDIS_PORT" >> env.sh
+echo "export MINIO_PORT=$BASE_MINIO_PORT" >> env.sh
+echo "export JUPYTER_PORT_1=$BASE_JUPYTER_PORT_1" >> env.sh
+echo "export JUPYTER_PORT_2=$BASE_JUPYTER_PORT_2" >> env.sh
+echo "export JUPYTER_PORT_3=$BASE_JUPYTER_PORT_3" >> env.sh
+echo "export JUPYTER_PORT_4=$BASE_JUPYTER_PORT_4" >> env.sh
+source ./env.sh
+rm env.sh
 # end getting ports and setting vars for containers
 
 docker-compose -f ./${compose} up -d
