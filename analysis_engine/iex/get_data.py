@@ -120,18 +120,21 @@ def get_data_from_iex(
                 label=label)
         else:
             log.error(
-                '{} - unsupported ft_type={}'.format(
+                '{} - unsupported ft_type={} itkcer={}'.format(
                     label,
-                    ft_type))
+                    ft_type,
+                    ticker))
             raise NotImplemented
         # if supported fetch request type
+
+        iex_req['ticker'] = ticker
 
         if not iex_req:
             err = (
                 '{} - ticker={} did not build an IEX request '
                 'for work={}'.format(
                     label,
-                    ticker,
+                    iex_req['ticker'],
                     work_dict))
             log.error(err)
             res = build_result.build_result(
@@ -144,7 +147,7 @@ def get_data_from_iex(
                 '{} - ticker={} field={} '
                 'orient={} fetch'.format(
                     label,
-                    ticker,
+                    iex_req['ticker'],
                     field,
                     orient))
         # if invalid iex request
@@ -167,7 +170,7 @@ def get_data_from_iex(
                 '{} - ticker={} field={} failed fetch_data '
                 'with ex={}'.format(
                     label,
-                    ticker,
+                    iex_req['ticker'],
                     ft_type,
                     f))
         # end of try/ex
@@ -176,14 +179,14 @@ def get_data_from_iex(
             log.info(
                 '{} ticker={} field={} data={} to_json'.format(
                     label,
-                    ticker,
+                    iex_req['ticker'],
                     field,
                     rec['data']))
         else:
             log.info(
                 '{} ticker={} field={} to_json'.format(
                     label,
-                    ticker,
+                    iex_req['ticker'],
                     field))
         # end of if/else found data
 
@@ -233,7 +236,7 @@ def get_data_from_iex(
             log.info(
                 '{} - ticker={} no IEX data field={} to publish'.format(
                     label,
-                    ticker,
+                    iex_req['ticker'],
                     field))
         # end of if/else
 
