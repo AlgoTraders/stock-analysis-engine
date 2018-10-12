@@ -170,7 +170,7 @@ def get_new_pricing_data(
     try:
         ticker = work_dict.get(
             'ticker',
-            TICKER)
+            ticker)
         ticker_id = work_dict.get(
             'ticker_id',
             TICKER_ID)
@@ -249,6 +249,7 @@ def get_new_pricing_data(
                 get_iex_data))
 
         yahoo_rec = {
+            'ticker': ticker,
             'pricing': None,
             'options': None,
             'news': None,
@@ -274,9 +275,9 @@ def get_new_pricing_data(
                         ticker,
                         get_status(status=yahoo_res['status']),
                         yahoo_res['err']))
-                rec['pricing'] = yahoo_rec.get('pricing', None)
-                rec['news'] = yahoo_rec.get('news', None)
-                rec['options'] = yahoo_rec.get('options', None)
+                rec['pricing'] = yahoo_rec.get('pricing', '{}')
+                rec['news'] = yahoo_rec.get('news', '{}')
+                rec['options'] = yahoo_rec.get('options', '{}')
             else:
                 log.error(
                     '{} failed YAHOO ticker={} '
@@ -310,6 +311,7 @@ def get_new_pricing_data(
                 iex_req['label'] = iex_label
                 iex_req['ft_type'] = ft_type
                 iex_req['field'] = dataset_field
+                iex_req['ticker'] = ticker
                 iex_res = iex_data.get_data_from_iex(
                     work_dict=iex_req)
 

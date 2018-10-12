@@ -487,7 +487,7 @@ class TestIEXFetchData(BaseTestCase):
         work['iex_datasets'] = [
             FETCH_FINANCIALS
         ]
-        work['ticker'] = 'TSLA'
+        work['ticker'] = 'AAPL'
         work['s3_bucket'] = 'testing'
         work['s3_key'] = 'testing_{}'.format(
             work['ticker'])
@@ -500,7 +500,7 @@ class TestIEXFetchData(BaseTestCase):
         self.assertIsNotNone(
             dataset_results)
         self.assertIsNotNone(
-            len(dataset_results['data']) == 1)
+            len(dataset_results['rec']['financials']) >= 5)
     # end of test_integration_get_financials_helper
 
 # end of TestIEXFetchData
