@@ -500,7 +500,7 @@ class TestIEXFetchData(BaseTestCase):
         self.assertIsNotNone(
             dataset_results)
         self.assertIsNotNone(
-            len(dataset_results['data']) == 1)
+            len(dataset_results['rec']['financials']) >= 5)
     # end of test_integration_get_financials_helper
 
 # end of TestIEXFetchData
