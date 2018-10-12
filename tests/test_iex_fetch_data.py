@@ -7,6 +7,8 @@ import mock
 import analysis_engine.mocks.mock_iex as mock_iex
 from analysis_engine.mocks.base_test import BaseTestCase
 from analysis_engine.consts import ev
+from analysis_engine.iex.consts import FETCH_FINANCIALS
+from analysis_engine.consts import FETCH_MODE_IEX
 from analysis_engine.iex.fetch_data \
     import fetch_data
 from analysis_engine.api_requests \
@@ -29,6 +31,10 @@ from analysis_engine.api_requests \
     import build_iex_fetch_dividends_request
 from analysis_engine.api_requests \
     import build_iex_fetch_company_request
+from analysis_engine.api_requests \
+    import build_get_new_pricing_request
+from analysis_engine.work_tasks.get_new_pricing_data \
+    import get_new_pricing_data
 
 
 class TestIEXFetchData(BaseTestCase):
@@ -377,10 +383,12 @@ class TestIEXFetchData(BaseTestCase):
         if ev('INT_TESTS', '0') == '0':
             return
 
+        label = 'test_integration_fetch_financials'
+
         # store data
         work = build_iex_fetch_financials_request(
-            label='test_integration_fetch_financials')
-        work['ticker'] = 'AAPL'
+            label=label)
+        work['ticker'] = 'TSLA'
 
         res = fetch_data(
             work_dict=work)
@@ -438,5 +446,61 @@ class TestIEXFetchData(BaseTestCase):
             res)
         self.debug_df(df=res)
     # end of test_integration_fetch_company
+
+    def test_integration_get_financials_helper(self):
+        """test_integration_get_financials_helper
+
+        After running, there should be an updated timestamp on
+        the s3 key:
+
+        ::
+
+            testing_<TICKER>_financials
+
+        View the financials bucket:
+
+        ::
+
+            aws --endpoint-url http://localhost:9000 s3 ls s3://financials
+
+        View the redis cache using the redis-cli:
+
+        ::
+
+            redis-cli
+            127.0.0.1:6379> select 4
+            OK
+            127.0.0.1:6379[4]> keys testing_TSLA_financials
+            1) "testing_TSLA_financials"
+
+        """
+        if ev('INT_TESTS', '0') == '0':
+            return
+
+        label = 'test_integration_get_financials_helper'
+
+        # store data
+        work = build_get_new_pricing_request(
+            label=label)
+
+        work['fetch_mode'] = FETCH_MODE_IEX
+        work['iex_datasets'] = [
+            FETCH_FINANCIALS
+        ]
+        work['ticker'] = 'TSLA'
+        work['s3_bucket'] = 'testing'
+        work['s3_key'] = 'testing_{}'.format(
+            work['ticker'])
+        work['redis_key'] = 'testing_{}'.format(
+            work['ticker'])
+        work['celery_disabled'] = True
+        dataset_results = get_new_pricing_data(
+            work)
+
+        self.assertIsNotNone(
+            dataset_results)
+        self.assertIsNotNone(
+            len(dataset_results['data']) == 1)
+    # end of test_integration_get_financials_helper
 
 # end of TestIEXFetchData

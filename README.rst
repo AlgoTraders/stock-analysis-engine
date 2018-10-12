@@ -1,7 +1,7 @@
 Stock Analysis Engine
 =====================
 
-Analyze information about publicly traded companies from `Yahoo <https://finance.yahoo.com/>`__ and `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__ (supported data includes: news, quotes, dividends, daily, intraday, statistics, financials, earnings, options, and more). Once collected the data is archived in s3 (using `minio <https://minio.io>`__) and automatically cached in redis.
+Analyze information about publicly traded companies from `Yahoo <https://finance.yahoo.com/>`__ and `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__ (supported data includes: news, quotes, dividends, daily, intraday, statistics, financials, earnings, options, and more). Once collected the data is archived in s3 (using `minio <https://minio.io>`__) and automatically cached in redis. Deploys with `Kubernetes <https://github.com/AlgoTraders/stock-analysis-engine#running-on-kubernetes>`__ or docker compose.
 
 .. image:: https://i.imgur.com/pH368gy.png
 
@@ -418,6 +418,27 @@ After running the dataset collection container, the datasets should be auto-cach
     46) "SPY_2018-10-06_minute"
     47) "NFLX_2018-10-06_stats"
     48) "NFLX_2018-10-06_news1"
+
+Running on Kubernetes
+=====================
+
+Kubernetes Deployments - Engine
+-------------------------------
+
+Deploy the engine with:
+
+::
+
+    kubectl apply -f ./k8/engine/deployment.yml
+
+Kubernetes Job - Dataset Collection
+-----------------------------------
+
+Start the dataset collection job with:
+
+::
+
+    kubectl apply -f ./k8/datasets/job.yml
 
 Testing
 =======
