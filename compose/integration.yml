@@ -5,20 +5,20 @@ services:
   # Redis
   redis:
     container_name: "redis-${USER}"
-    hostname: redis
+    hostname: "redis-${USER}"
     image: redis:4.0.9-alpine
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT}:6379"
 
   # Minio
   minio:
     container_name: "minio-${USER}"
-    hostname: minio
+    hostname: "minio-${USER}"
     image: minio/minio:latest
     env_file:
-      - ./envs/local.env
+      - ./envs/.env
     ports:
-      - "9000:9000"
+      - "${MINIO_PORT}:9000"
     volumes:
       - /data/minio/data:/data
     command: "server /data"
@@ -26,11 +26,11 @@ services:
   # Stock Analysis Engine
   sa-workers:
     container_name: "sa-workers-${USER}"
-    hostname: sa-workers
+    hostname: "sa-workers-${USER}"
     image: jayjohnson/stock-analysis-engine:latest
     tty: true
     env_file:
-      - ./envs/local.env
+      - ./envs/.env
     depends_on:
       - redis
       - minio
@@ -40,17 +40,17 @@ services:
   # Jupyter notebooks, converted noteooks as presentation html slides, and tensorboard
   sa-jupyter:
     container_name: "sa-jupyter-${USER}"
-    hostname: sa-jupyter
+    hostname: "sa-jupyter-${USER}"
     image: jayjohnson/stock-analysis-jupyter:latest
     tty: true
     env_file:
-      - ./envs/local.env
+      - ./envs/.env
     depends_on:
       - redis
       - minio
     ports:
-      - "8888:8888"
-      - "8889:8889"
-      - "8890:8890"
-      - "6006:6006"
+      - "${JUPYTER_PORT_1}:8888"
+      - "${JUPYTER_PORT_2}:8889"
+      - "${JUPYTER_PORT_3}:8890"
+      - "${JUPYTER_PORT_4}:6006"
     entrypoint: "/opt/sa/docker/jupyter/start-container.sh"

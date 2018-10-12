@@ -6,11 +6,11 @@ services:
   # Automation Dataset Collector
   sa-dataset-collection:
     container_name: "sa-dataset-collection-${USER}"
-    hostname: sa-dataset-collection-1
+    hostname: "sa-dataset-collection-1-${USER}"
     image: jayjohnson/stock-analysis-engine:latest
     tty: true
     env_file:
-      - ./envs/local.env
+      - ./envs/.env
     entrypoint: "/bin/sh -c 'cd /opt/sa && 
                  . /opt/venv/bin/activate &&
                  /opt/sa/tools/start-dataset-collection.sh'"
