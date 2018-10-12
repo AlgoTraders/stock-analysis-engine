@@ -120,7 +120,7 @@ def get_data_from_iex(
                 label=label)
         else:
             log.error(
-                '{} - unsupported ft_type={} itkcer={}'.format(
+                '{} - unsupported ft_type={} ticker={}'.format(
                     label,
                     ft_type,
                     ticker))
