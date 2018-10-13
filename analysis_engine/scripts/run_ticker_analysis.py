@@ -375,10 +375,10 @@ def run_ticker_analysis():
 
     if not args.keyname:
         last_close_date = last_close()
-        work['s3_key'] = '{}-{}'.format(
+        work['s3_key'] = '{}_{}'.format(
             work['ticker'],
             last_close_date.strftime(COMMON_DATE_FORMAT))
-        work['redis_key'] = '{}-{}'.format(
+        work['redis_key'] = '{}_{}'.format(
             work['ticker'],
             last_close_date.strftime(COMMON_DATE_FORMAT))
 

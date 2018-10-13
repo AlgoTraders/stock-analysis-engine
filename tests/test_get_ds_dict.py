@@ -26,7 +26,7 @@ class TestBuildDatasetCacheDict(BaseTestCase):
     def test_get_ds_dict(self):
         """test_get_ds_dict"""
         test_name = 'test_build_dataset_cache_dict'
-        base_key = '{}-{}'.format(
+        base_key = '{}_{}'.format(
             self.ticker,
             self.last_close_str)
         cache_dict = get_ds_dict(

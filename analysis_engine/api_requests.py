@@ -77,7 +77,7 @@ def get_ds_dict(
 
     use_base_key = base_key
     if not use_base_key:
-        use_base_key = '{}-{}'.format(
+        use_base_key = '{}_{}'.format(
             ticker,
             get_last_close_str(fmt=COMMON_DATE_FORMAT))
 
