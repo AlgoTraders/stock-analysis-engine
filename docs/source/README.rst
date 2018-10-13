@@ -164,9 +164,49 @@ Run Ticker Analysis
 
 Run the ticker analysis using the `./analysis_engine/scripts/run_ticker_analysis.py <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/run_ticker_analysis.py>`__:
 
+Collect all datasets for a Ticker or Symbol
+-------------------------------------------
+
+Collect all datasets for the ticker **SPY**:
+
 ::
 
-    run_ticker_analysis.py -t SPY -g all -e 2018-10-19 -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -n SPY_demo -P 1 -N 1 -O 1 -U 1 -R 1
+    run_ticker_analysis.py -t SPY
+
+.. note:: This requires the following services are listening on:
+
+    - redis ``localhost:6379``
+    - minio ``localhost:9000``
+
+Running Inside Docker Containers
+--------------------------------
+
+If you are using an engine that is running inside a docker container, then ``localhost`` is probably not the correct network hostname for finding ``redis`` and ``minio``.
+
+Please set these values as needed to publish and archive the dataset artifacts if you are using the `integration <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/integration.yml>`__ or `notebook integration <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/notebook-integration.yml>`__ docker compose files for deploying the analysis engine stack:
+
+::
+
+    run_ticker_analysis.py -t SPY -a minio-${USER}:9000 -r redis-${USER}:6379
+
+Detailed Usage Example
+----------------------
+
+The `run_ticker_analysis.py script <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/run_ticker_analysis.py#L65>`__ supports many parameters. Here is how to set it up if you have custom ``redis`` and ``minio`` deployments like on kubernetes as `minio-service:9000 <https://github.com/AlgoTraders/stock-analysis-engine/blob/7323ad4007b44eaa511d448c8eb500cec9fe3848/k8/engine/deployment.yml#L80-L81>`__ and `redis-master:6379 <https://github.com/AlgoTraders/stock-analysis-engine/blob/7323ad4007b44eaa511d448c8eb500cec9fe3848/k8/engine/deployment.yml#L88-L89>`__:
+
+- S3 authentication (``-k`` and ``-s``)
+- S3 endpoint (``-a``)
+- Redis endoint (``-r``)
+- Custom S3 Key and Redis Key Name (``-n``)
+
+::
+
+    run_ticker_analysis.py -t SPY -g all -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -n SPY_demo -P 1 -N 1 -O 1 -U 1 -R 1
+
+Usage
+-----
+
+Please refer to the `run_ticker_analysis.py script <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/run_ticker_analysis.py#L65>`__ for the latest supported usage if some of these are out of date:
 
 ::
 
