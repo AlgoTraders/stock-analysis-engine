@@ -167,13 +167,15 @@ Run the ticker analysis using the `./analysis_engine/scripts/run_ticker_analysis
 Collect all datasets for a Ticker or Symbol
 -------------------------------------------
 
-Collect all datasets for the ticker ``SPY``:
+Collect all datasets for the ticker **SPY**:
 
 ::
 
     run_ticker_analysis.py -t SPY
 
-.. note:: This requires ``redis`` server listening on TCP port 6379, and a ``minio`` server listening on TCP port 9000.
+.. note:: This requires the following services are listening on:
+    - redis ``localhost:6379``
+    - minio ``localhost:9000``
 
 Running Inside Docker Containers
 --------------------------------
