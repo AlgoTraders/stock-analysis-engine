@@ -164,9 +164,46 @@ Run Ticker Analysis
 
 Run the ticker analysis using the `./analysis_engine/scripts/run_ticker_analysis.py <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/run_ticker_analysis.py>`__:
 
+Collect all datasets for a Ticker or Symbol
+-------------------------------------------
+
+Collect all datasets for the ticker ``SPY``:
+
 ::
 
-    run_ticker_analysis.py -t SPY -g all -e 2018-10-19 -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -n SPY_demo -P 1 -N 1 -O 1 -U 1 -R 1
+    run_ticker_analysis.py -t SPY
+
+.. note:: this assumes ``redis`` is running and listening on TCP port 6379, and that ``minio`` is running and listening on TCP port 9000.
+
+Running Inside Docker Containers
+--------------------------------
+
+If you are using the engine within a container then ``localhost`` is probably not the correct network hostname for finding ``redis`` and ``minio``.
+
+Please set these values as needed to publish and archive the dataset artifacts for if you are using the `integration <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/integration.yml>`__ or `notebook integration <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/notebook-integration.yml>`__ docker compose files for deploying the analysis engine stack:
+
+::
+
+    run_ticker_analysis.py -t SPY -a minio-${USER}:9000 -r redis-${USER}:6379
+
+Detailed Usage Example
+----------------------
+
+The `run_ticker_analysis.py script <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/run_ticker_analysis.py#L65>`__ supports many parameters. Here is a common one for setting up a job if you have custom ``redis`` and ``minio`` deployments like on `kubernetes <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/k8/engine/deployment.yml#L4>`__:
+
+- S3 authentication (``-k`` and ``-s``)
+- S3 endpoint (``-a``)
+- Redis endoint (``-r``)
+- Custom S3 Key and Redis Key Name (``-n``)
+
+::
+
+    run_ticker_analysis.py -t SPY -g all -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -n SPY_demo -P 1 -N 1 -O 1 -U 1 -R 1
+
+Usage
+-----
+
+Please refer to the `run_ticker_analysis.py script <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/run_ticker_analysis.py#L65>`__ for the latest supported usage if some of these are out of date:
 
 ::
 
