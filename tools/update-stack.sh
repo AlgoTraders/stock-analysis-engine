@@ -51,7 +51,7 @@ for c in ${containers_to_update}; do
         container_id=$(docker ps | grep ${c} | awk '{print $1}')
         echo "saving container changes to container: ${c} with id: ${container_id}"
         image_name="jayjohnson/stock-analysis-engine"
-        if [[ "${c}" == "sa-jupyter" ]]; then
+        if [[ "${c}" == "sa-jupyter-${USER}" ]]; then
             image_name="jayjohnson/stock-analysis-jupyter"
         fi
         echo "saving container changes as latest: container: ${c} container id: ${container_id} as image: ${image_name}"
