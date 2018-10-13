@@ -75,6 +75,7 @@ def run_ticker_analysis():
         run_ticker_analysis.py -t SPY
 
     .. note:: This requires the following services are listening on:
+
         - redis ``localhost:6379``
         - minio ``localhost:9000``
 
