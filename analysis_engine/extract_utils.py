@@ -61,6 +61,7 @@ def perform_extract(
     Helper for extracting from Redis or S3
 
     :param df_type: datafeed type enum
+    :param ds_str: dataset string name
     :param work_dict: incoming work request dictionary
     :param dataset_id_key: configurable dataset identifier
                            key for tracking scrubbing and

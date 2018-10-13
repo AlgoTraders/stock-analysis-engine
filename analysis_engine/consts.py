@@ -304,6 +304,7 @@ IEX_MINUTE_DATE_FORMAT = '%Y-%m-%d %I:%M:%S %p'
 IEX_TICK_DATE_FORMAT = '%Y-%m-%d %I:%M:%S %p'
 COMMON_DATE_FORMAT = '%Y-%m-%d'
 COMMON_TICK_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+CACHE_DICT_VERSION = 1
 
 
 ########################################
