@@ -42,6 +42,7 @@ Table of Contents
    charts
    tasks
    mock_api
+   utils
 
 Indices and tables
 ==================

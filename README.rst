@@ -648,6 +648,13 @@ IEX Test - Fetch Company
 
     python -m unittest tests.test_iex_fetch_data.TestIEXFetchData.test_integration_fetch_company
 
+IEX Test - Fetch Financials Helper
+----------------------------------
+
+::
+
+    python -m unittest tests.test_iex_fetch_data.TestIEXFetchData.test_integration_get_financials_helper
+
 Prepare a Dataset
 =================
 
