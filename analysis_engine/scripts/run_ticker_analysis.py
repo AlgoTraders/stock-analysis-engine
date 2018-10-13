@@ -24,6 +24,7 @@ from analysis_engine.api_requests import build_get_new_pricing_request
 from analysis_engine.consts import LOG_CONFIG_PATH
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import TICKER_ID
+from analysis_engine.consts import COMMON_DATE_FORMAT
 from analysis_engine.consts import NEXT_EXP_STR
 from analysis_engine.consts import WORKER_BROKER_URL
 from analysis_engine.consts import WORKER_BACKEND_URL
@@ -46,6 +47,7 @@ from analysis_engine.consts import REDIS_EXPIRE
 from analysis_engine.consts import ppj
 from analysis_engine.consts import is_celery_disabled
 from analysis_engine.consts import get_status
+from analysis_engine.utils import last_close
 
 
 # Disable celery log hijacking
@@ -277,7 +279,7 @@ def run_ticker_analysis():
     if args.ticker:
         ticker = args.ticker.upper()
     if args.ticker_id:
-        ticker = args.ticker_id
+        ticker_id = args.ticker_id
     if args.exp_date_str:
         exp_date_str = NEXT_EXP_STR
     if args.broker_url:
@@ -354,6 +356,15 @@ def run_ticker_analysis():
     work['debug'] = debug
     work['label'] = 'ticker={}'.format(
         ticker)
+
+    if not args.keyname:
+        last_close_date = last_close()
+        work['s3_key'] = '{}-{}'.format(
+            work['ticker'],
+            last_close_date.strftime(COMMON_DATE_FORMAT))
+        work['redis_key'] = '{}-{}'.format(
+            work['ticker'],
+            last_close_date.strftime(COMMON_DATE_FORMAT))
 
     path_to_tasks = 'analysis_engine.work_tasks'
     task_name = (

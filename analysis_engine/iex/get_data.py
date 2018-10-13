@@ -127,7 +127,21 @@ def get_data_from_iex(
             raise NotImplemented
         # if supported fetch request type
 
-        iex_req['ticker'] = ticker
+        clone_keys = [
+            'ticker',
+            's3_bucket',
+            's3_key',
+            'redis_address',
+            'redis_key'
+        ]
+
+        for k in clone_keys:
+            iex_req[k] = work_dict.get(
+                k,
+                '{}-missing-in-{}'.format(
+                    k,
+                    label))
+        # end of cloning keys
 
         if not iex_req:
             err = (
