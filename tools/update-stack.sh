@@ -2,7 +2,7 @@
 
 echo "starting updates"
 date -u +"%Y-%m-%d %H:%M:%S"
-containers_to_update="sa-workers sa-jupyter"
+containers_to_update="sa-workers-${USER} sa-jupyter-${USER}"
 
 use_fork="0"
 remote_uri="https://github.com/AlgoTraders/stock-analysis-engine.git"
