@@ -53,6 +53,7 @@ def extract_daily_dataset(
         # see if it's get dataset dictionary
         if 'daily' in work_dict:
             work_dict['redis_key'] = work_dict['daily']
+            work_dict['s3_key'] = work_dict['daily']
     # end of support for the get dataset dictionary
 
     log.info(
@@ -87,6 +88,7 @@ def extract_minute_dataset(
         # see if it's get dataset dictionary
         if 'minute' in work_dict:
             work_dict['redis_key'] = work_dict['minute']
+            work_dict['s3_key'] = work_dict['minute']
     # end of support for the get dataset dictionary
 
     log.info(
@@ -121,6 +123,7 @@ def extract_stats_dataset(
         # see if it's get dataset dictionary
         if 'stats' in work_dict:
             work_dict['redis_key'] = work_dict['stats']
+            work_dict['s3_key'] = work_dict['stats']
     # end of support for the get dataset dictionary
 
     log.info(
@@ -155,6 +158,7 @@ def extract_peers_dataset(
         # see if it's get dataset dictionary
         if 'peers' in work_dict:
             work_dict['redis_key'] = work_dict['peers']
+            work_dict['s3_key'] = work_dict['peers']
     # end of support for the get dataset dictionary
 
     log.info(
@@ -189,6 +193,7 @@ def extract_news_dataset(
         # see if it's get dataset dictionary
         if 'news1' in work_dict:
             work_dict['redis_key'] = work_dict['news1']
+            work_dict['s3_key'] = work_dict['news1']
     # end of support for the get dataset dictionary
 
     log.info(
@@ -223,6 +228,7 @@ def extract_financials_dataset(
         # see if it's get dataset dictionary
         if 'financials' in work_dict:
             work_dict['redis_key'] = work_dict['financials']
+            work_dict['s3_key'] = work_dict['financials']
     # end of support for the get dataset dictionary
 
     log.info(
@@ -257,6 +263,7 @@ def extract_earnings_dataset(
         # see if it's get dataset dictionary
         if 'earnings' in work_dict:
             work_dict['redis_key'] = work_dict['earnings']
+            work_dict['s3_key'] = work_dict['earnings']
     # end of support for the get dataset dictionary
 
     log.info(
@@ -291,6 +298,7 @@ def extract_dividends_dataset(
         # see if it's get dataset dictionary
         if 'dividends' in work_dict:
             work_dict['redis_key'] = work_dict['dividends']
+            work_dict['s3_key'] = work_dict['dividends']
     # end of support for the get dataset dictionary
 
     log.info(
@@ -325,6 +333,7 @@ def extract_company_dataset(
         # see if it's get dataset dictionary
         if 'company' in work_dict:
             work_dict['redis_key'] = work_dict['company']
+            work_dict['s3_key'] = work_dict['company']
     # end of support for the get dataset dictionary
 
     log.info(
