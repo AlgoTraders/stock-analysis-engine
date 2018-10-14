@@ -24,6 +24,74 @@ from analysis_engine.yahoo.extract_df_from_redis \
     import extract_option_puts_dataset
 
 
+def mock_extract_pricing_from_redis_success(
+        label,
+        host,
+        port,
+        db,
+        password,
+        key):
+    """mock_extract_pricing_from_redis_success
+
+    :param label: test label
+    :param address: test address
+    :param db: test db
+    :param key: test key
+    """
+    sample_record = build_cache_ready_pricing_dataset(
+        label=(
+            '{}.{}.{}.{}.{}.'
+            'mock_build_df_from_redis_success'.format(
+                label,
+                host,
+                port,
+                db,
+                key)))
+    rec = {
+        'data': sample_record['pricing']
+    }
+    res = build_result(
+        status=SUCCESS,
+        err=None,
+        rec=rec)
+    return res
+# end of mock_extract_pricing_from_redis_success
+
+
+def mock_extract_news_from_redis_success(
+        label,
+        host,
+        port,
+        db,
+        password,
+        key):
+    """mock_extract_news_from_redis_success
+
+    :param label: test label
+    :param address: test address
+    :param db: test db
+    :param key: test key
+    """
+    sample_record = build_cache_ready_pricing_dataset(
+        label=(
+            '{}.{}.{}.{}.{}.'
+            'mock_build_df_from_redis_success'.format(
+                label,
+                host,
+                port,
+                db,
+                key)))
+    rec = {
+        'data': sample_record['news']
+    }
+    res = build_result(
+        status=SUCCESS,
+        err=None,
+        rec=rec)
+    return res
+# end of mock_extract_news_from_redis_success
+
+
 def mock_extract_options_from_redis_success(
         label,
         host,
@@ -66,38 +134,57 @@ class TestYahooDatasetExtraction(BaseTestCase):
         self.ticker = TICKER
     # end of setUp
 
+    @mock.patch(
+        (
+            'analysis_engine.get_data_from_redis_key.'
+            'get_data_from_redis_key'),
+        new=mock_extract_pricing_from_redis_success)
     def test_extract_pricing_success(self):
         """test_extract_pricing_success"""
-        return
         test_name = 'test_extract_pricing_dataset_success'
         work = get_ds_dict(
             ticker=self.ticker,
             label=test_name)
 
-        res = extract_pricing_dataset(
+        status, df = extract_pricing_dataset(
             work_dict=work)
+        print(df)
         self.assertIsNotNone(
-            res)
+            df)
         self.assertEqual(
-            res['symbol'][0],
-            work['ticker'])
+            get_status(status=status),
+            'SUCCESS')
+        self.assertTrue(
+            len(df.index) == 1)
+        self.assertEqual(
+            df['strike'][0],
+            380)
     # end of test_extract_pricing_success
 
+    @mock.patch(
+        (
+            'analysis_engine.get_data_from_redis_key.'
+            'get_data_from_redis_key'),
+        new=mock_extract_news_from_redis_success)
     def test_extract_news_success(self):
         """test_extract_news_success"""
-        return
         test_name = 'test_extract_news_success'
         work = get_ds_dict(
             ticker=self.ticker,
             label=test_name)
 
-        res = extract_yahoo_news_dataset(
+        status, df = extract_yahoo_news_dataset(
             work_dict=work)
         self.assertIsNotNone(
-            res)
+            df)
         self.assertEqual(
-            res['symbol'][0],
-            work['ticker'])
+            get_status(status=status),
+            'SUCCESS')
+        self.assertTrue(
+            len(df.index) == 1)
+        self.assertEqual(
+            df['strike'][0],
+            380)
     # end of test_extract_news_success
 
     @mock.patch(
