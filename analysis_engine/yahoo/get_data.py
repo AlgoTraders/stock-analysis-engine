@@ -227,12 +227,6 @@ def get_data_from_yahoo(
                             orient))
 
                     num_news_rec = len(news_list)
-                    log.info(
-                        '{} ticker={} converting options to '
-                        'df orient={}'.format(
-                            label,
-                            ticker,
-                            orient))
 
                     news_df = pd.DataFrame(
                         news_list)
