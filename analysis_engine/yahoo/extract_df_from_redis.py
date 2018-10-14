@@ -41,7 +41,7 @@ def extract_pricing_dataset(
         scrub_mode='sort-by-date'):
     """extract_pricing_dataset
 
-    Fetch the Yahoo pricing data for a ticker and
+    Extract the Yahoo pricing data for a ticker and
     return it as a pandas Dataframe
 
     :param work_dict: dictionary of args
@@ -77,7 +77,7 @@ def extract_yahoo_news_dataset(
         scrub_mode='sort-by-date'):
     """extract_yahoo_news_dataset
 
-    Fetch the Yahoo news data for a ticker and
+    Extract the Yahoo news data for a ticker and
     return it as a pandas Dataframe
 
     :param work_dict: dictionary of args
@@ -113,7 +113,7 @@ def extract_option_calls_dataset(
         scrub_mode='sort-by-date'):
     """extract_option_calls_dataset
 
-    Fetch the Yahoo options calls for a ticker and
+    Extract the Yahoo options calls for a ticker and
     return it as a ``pandas.Dataframe``
 
     :param work_dict: dictionary of args
@@ -229,7 +229,7 @@ def extract_option_puts_dataset(
         scrub_mode='sort-by-date'):
     """extract_option_puts_dataset
 
-    Fetch the Yahoo options puts for a ticker and
+    Extract the Yahoo options puts for a ticker and
     return it as a ``pandas.Dataframe``
 
     :param work_dict: dictionary of args
