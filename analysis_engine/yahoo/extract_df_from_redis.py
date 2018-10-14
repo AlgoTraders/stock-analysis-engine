@@ -23,7 +23,7 @@ from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.yahoo.consts import DATAFEED_PRICING_YAHOO
 from analysis_engine.yahoo.consts import DATAFEED_OPTIONS_YAHOO
 from analysis_engine.yahoo.consts import DATAFEED_NEWS_YAHOO
-from analysis_engine.yahoo.consts import get_datafeed_str
+from analysis_engine.yahoo.consts import get_datafeed_str_yahoo
 
 log = build_colorized_logger(
     name=__name__)
@@ -42,7 +42,7 @@ def extract_pricing_dataset(
     """
     label = work_dict.get('label', 'extract')
     df_type = DATAFEED_PRICING_YAHOO
-    df_str = get_datafeed_str(df_type=df_type)
+    df_str = get_datafeed_str_yahoo(df_type=df_type)
     req = copy.deepcopy(work_dict)
 
     if 'redis_key' not in work_dict:
@@ -78,7 +78,7 @@ def extract_options_dataset(
     """
     label = work_dict.get('label', 'extract')
     df_type = DATAFEED_OPTIONS_YAHOO
-    df_str = get_datafeed_str(df_type=df_type)
+    df_str = get_datafeed_str_yahoo(df_type=df_type)
     req = copy.deepcopy(work_dict)
 
     if 'redis_key' not in work_dict:
@@ -114,7 +114,7 @@ def extract_yahoo_news_dataset(
     """
     label = work_dict.get('label', 'extract')
     df_type = DATAFEED_NEWS_YAHOO
-    df_str = get_datafeed_str(df_type=df_type)
+    df_str = get_datafeed_str_yahoo(df_type=df_type)
     req = copy.deepcopy(work_dict)
 
     if 'redis_key' not in work_dict:
