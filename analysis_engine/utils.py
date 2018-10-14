@@ -4,6 +4,8 @@ Date utils
 
 import datetime
 from functools import lru_cache
+from analysis_engine.consts import COMMON_DATE_FORMAT
+from analysis_engine.consts import COMMON_TICK_DATE_FORMAT
 
 
 @lru_cache(1)
@@ -39,3 +41,50 @@ def last_close():
         return close
     # if/else
 # end of last_close
+
+
+def get_last_close_str(
+        fmt=COMMON_DATE_FORMAT):
+    """get_last_close_str
+
+    Get the Last Trading Close Date as a string
+    with default formatting COMMON_DATE_FORMAT
+    (YYYY-MM-DD)
+
+    :param fmt: optional output format (default
+                COMMON_DATE_FORMAT)
+    """
+    return last_close().strftime(fmt)
+# end of get_last_close_str
+
+
+def utc_now_str(
+        fmt=COMMON_TICK_DATE_FORMAT):
+    """utc_now_str
+
+    Get the UTC now as a string
+    with default formatting COMMON_TICK_DATE_FORMAT
+    (YYYY-MM-DD HH:MM:SS)
+
+    :param fmt: optional output format (default
+                COMMON_TICK_DATE_FORMAT)
+    """
+    return datetime.datetime.utcnow().strftime(
+        fmt)
+# end of utc_now_str
+
+
+def utc_date_str(
+        fmt=COMMON_DATE_FORMAT):
+    """utc_date_str
+
+    Get the UTC date as a string
+    with default formatting COMMON_DATE_FORMAT
+    (YYYY-MM-DD)
+
+    :param fmt: optional output format (default
+                COMMON_DATE_FORMAT)
+    """
+    return datetime.datetime.utcnow().strftime(
+        fmt)
+# end of utc_date_str

@@ -12,6 +12,9 @@ import datetime
 import analysis_engine.iex.utils as iex_utils
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import TICKER_ID
+from analysis_engine.consts import COMMON_DATE_FORMAT
+from analysis_engine.consts import COMMON_TICK_DATE_FORMAT
+from analysis_engine.consts import CACHE_DICT_VERSION
 from analysis_engine.consts import DAILY_S3_BUCKET_NAME
 from analysis_engine.consts import MINUTE_S3_BUCKET_NAME
 from analysis_engine.consts import TICK_S3_BUCKET_NAME
@@ -24,6 +27,9 @@ from analysis_engine.consts import DIVIDENDS_S3_BUCKET_NAME
 from analysis_engine.consts import COMPANY_S3_BUCKET_NAME
 from analysis_engine.consts import PREPARE_S3_BUCKET_NAME
 from analysis_engine.consts import ANALYZE_S3_BUCKET_NAME
+from analysis_engine.utils import get_last_close_str
+from analysis_engine.utils import utc_date_str
+from analysis_engine.utils import utc_now_str
 from analysis_engine.iex.consts import FETCH_DAILY
 from analysis_engine.iex.consts import FETCH_MINUTE
 from analysis_engine.iex.consts import FETCH_TICK
@@ -44,6 +50,78 @@ from analysis_engine.iex.consts import DATAFEED_FINANCIALS
 from analysis_engine.iex.consts import DATAFEED_EARNINGS
 from analysis_engine.iex.consts import DATAFEED_DIVIDENDS
 from analysis_engine.iex.consts import DATAFEED_COMPANY
+
+
+def get_ds_dict(
+        ticker,
+        base_key=None,
+        ds_id=None,
+        label=None):
+    """get_ds_dict
+
+    Get a dictionary with all cache keys for a ticker and return
+    the dictionary. Use this method to decouple your apps
+    from the underlying cache key implementations (if you
+    do not need them).
+
+    :param ticker: ticker
+    :param base_key: optional - base key that is prepended
+                     in all cache keys
+    :param ds_id: optional - dataset id (useful for
+                  external database id)
+    :param label: optional - tracking label in the logs
+    """
+
+    if not ticker:
+        raise Exception('please pass in a ticker')
+
+    use_base_key = base_key
+    if not use_base_key:
+        use_base_key = '{}_{}'.format(
+            ticker,
+            get_last_close_str(fmt=COMMON_DATE_FORMAT))
+
+    date_str = utc_date_str(fmt=COMMON_DATE_FORMAT)
+    now_str = utc_now_str(fmt=COMMON_TICK_DATE_FORMAT)
+
+    daily_redis_key = '{}_daily'.format(use_base_key)
+    minute_redis_key = '{}_minute'.format(use_base_key)
+    tick_redis_key = '{}_tick'.format(use_base_key)
+    stats_redis_key = '{}_stats'.format(use_base_key)
+    peers_redis_key = '{}_peers'.format(use_base_key)
+    news_iex_redis_key = '{}_news1'.format(use_base_key)
+    financials_redis_key = '{}_financials'.format(use_base_key)
+    earnings_redis_key = '{}_earnings'.format(use_base_key)
+    dividends_redis_key = '{}_dividends'.format(use_base_key)
+    company_redis_key = '{}_company'.format(use_base_key)
+    options_yahoo_redis_key = '{}_options'.format(use_base_key)
+    pricing_yahoo_redis_key = '{}_pricing'.format(use_base_key)
+    news_yahoo_redis_key = '{}_news'.format(use_base_key)
+
+    ds_cache_dict = {
+        'daily': daily_redis_key,
+        'minute': minute_redis_key,
+        'tick': tick_redis_key,
+        'stats': stats_redis_key,
+        'peers': peers_redis_key,
+        'news1': news_iex_redis_key,
+        'financials': financials_redis_key,
+        'earnings': earnings_redis_key,
+        'dividends': dividends_redis_key,
+        'company': company_redis_key,
+        'options': options_yahoo_redis_key,
+        'pricing': pricing_yahoo_redis_key,
+        'news': news_yahoo_redis_key,
+        'ticker': ticker,
+        'ds_id': ds_id,
+        'label': label,
+        'created': now_str,
+        'date': date_str,
+        'version': CACHE_DICT_VERSION
+    }
+
+    return ds_cache_dict
+# end of get_ds_dict
 
 
 def build_get_new_pricing_request(
@@ -101,6 +179,20 @@ def build_cache_ready_pricing_dataset(
 
     :param label: log label to use
     """
+    calls_df_as_json = (
+        '[{\"ask\":106.0,\"bid\":105.36,\"change\":4.0899963,\"contractSi'
+        'ze\":\"REGULAR\",\"contractSymbol\":\"SPY181019P00380000\",\"cur'
+        'rency\":\"USD\",\"expiration\":1539907200,\"impliedVolatility\":'
+        '1.5991230981,\"inTheMoney\":true,\"lastPrice\":91.82,\"lastTrade'
+        'Date\":1539027901,\"openInterest\":0,\"percentChange\":4.4543633'
+        ',\"strike\":380.0,\"volume\":37}]')
+    puts_df_as_json = (
+        '[{\"ask\":106.0,\"bid\":105.36,\"change\":4.0899963,\"contractSi'
+        'ze\":\"REGULAR\",\"contractSymbol\":\"SPY181019P00380000\",\"cur'
+        'rency\":\"USD\",\"expiration\":1539907200,\"impliedVolatility\":'
+        '1.5991230981,\"inTheMoney\":true,\"lastPrice\":91.82,\"lastTrade'
+        'Date\":1539027901,\"openInterest\":0,\"percentChange\":4.4543633'
+        ',\"strike\":380.0,\"volume\":37}]')
     cache_data = {
         "news": [
             {
@@ -124,25 +216,12 @@ def build_cache_ready_pricing_dataset(
                 "usg": "key2"
             }
         ],
-        "options": [
-            {
-                "ask": 0.0,
-                "bid": 0.0,
-                "change": 0.0,
-                "contractSize": "REGULAR",
-                "contractSymbol": "SPY170505C00015000",
-                "currency": "USD",
-                "expiration": 1493942400,
-                "impliedVolatility": 0.2500075,
-                "inTheMoney": False,
-                "lastPrice": 0.28,
-                "lastTradeDate": 1493323145,
-                "openInterest": 0,
-                "percentChange": 0.0,
-                "strike": 286.0,
-                "volume": 1106
-            }
-        ],
+        "options": {
+            'exp_date': '2018-10-19',
+            'calls': calls_df_as_json,
+            'puts': puts_df_as_json,
+            'num_chains': 1
+        },
         "pricing": {
             "ask": 0.0,
             "askSize": 8,

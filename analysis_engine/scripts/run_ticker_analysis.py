@@ -6,7 +6,6 @@ Run buy and sell analysis on a stock to send alerts to subscribed
 users
 
 Steps:
-------
 
 1) Parse arguments
 2) Get pricing data as a Celery task
@@ -65,9 +64,6 @@ log = build_colorized_logger(
 def run_ticker_analysis():
     """run_ticker_analysis
 
-    Collect all datasets for a Ticker or Symbol
-    -------------------------------------------
-
     Collect all datasets for the ticker **SPY**:
 
     ::
@@ -79,53 +75,7 @@ def run_ticker_analysis():
         - redis ``localhost:6379``
         - minio ``localhost:9000``
 
-    Running Inside Docker Containers
-    --------------------------------
-
-    If you are using an engine that is running inside a docker container,
-    then ``localhost`` is probably not the correct network hostname for
-    finding ``redis`` and ``minio``.
-
-    Please set these values as needed to publish and archive the dataset
-    artifacts if you are using the `integration <https://github.com/Alg
-    oTraders/stock-analysis-engine/blob/master/compose/integratio
-    n.yml>`__ or `notebook integration <https://github.com/AlgoTrade
-    rs/stock-analysis-engine/blob/master/compose/notebook-integrat
-    ion.yml>`__ docker compose files for deploying the analysis
-    engine stack:
-
-    ::
-
-        run_ticker_analysis.py -t SPY -a minio-${USER}:9000
-        -r redis-${USER}:6379
-
-    Detailed Usage Example
-    ----------------------
-
-    The `run_ticker_analysis.py script <https://github.com/AlgoTraders/s
-    tock-analysis-engine/blob/master/analysis_engine/scripts/run_ticker_
-    analysis.py#L65>`__ supports many parameters. Here is how to set it
-    up if you have custom ``redis`` and ``minio`` deployments like on
-    kubernetes as `minio-service:9000 <https://github.com/AlgoTraders/st
-    ock-analysis-engine/blob/7323ad4007b44eaa511d448c8eb500cec9fe3848/k
-    8/engine/deployment.yml#L80-L81>`__ and `redis-master:6379 <http
-    s://github.com/AlgoTraders/stock-analysis-engine/blob/7323ad4007
-    b44eaa511d448c8eb500cec9fe3848/k8/engine/deployment.yml#L88-L89>`__:
-
-    - S3 authentication (``-k`` and ``-s``)
-    - S3 endpoint (``-a``)
-    - Redis endoint (``-r``)
-    - Custom S3 Key and Redis Key Name (``-n``)
-
-    ::
-
-        run_ticker_analysis.py -t SPY -g all -u pricing
-        -k trexaccesskey -s trex123321 -a localhost:9000
-        -r localhost:6379 -m 4 -n SPY_demo -P 1 -N 1
-        -O 1 -U 1 -R 1
-
-    Coming Soon
-    -----------
+    **Coming Soon**
 
     Run buy and sell analysis on a stock to send alerts to subscribed
     users
@@ -421,10 +371,10 @@ def run_ticker_analysis():
 
     if not args.keyname:
         last_close_date = last_close()
-        work['s3_key'] = '{}-{}'.format(
+        work['s3_key'] = '{}_{}'.format(
             work['ticker'],
             last_close_date.strftime(COMMON_DATE_FORMAT))
-        work['redis_key'] = '{}-{}'.format(
+        work['redis_key'] = '{}_{}'.format(
             work['ticker'],
             last_close_date.strftime(COMMON_DATE_FORMAT))
 

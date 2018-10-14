@@ -16,9 +16,11 @@ import json
 import urllib.request
 import urllib.error
 import urllib.parse
+import pandas as pd
 from random import randrange
 from spylunking.log.setup_logging import build_colorized_logger
-
+from analysis_engine.consts import COMMON_TICK_DATE_FORMAT
+from analysis_engine.utils import get_last_close_str
 
 log = build_colorized_logger(
     name=__name__)
@@ -187,7 +189,31 @@ def get_options(
             response=response,
             contract_type=contract_type,
             strike=strike)
-        return options_data
+        options_dict = {
+            'date': get_last_close_str(),
+            'exp_date': None,
+            'num_chains': None,
+            'calls': None,
+            'puts': None
+        }
+        if 'expirationDate' in options_data[0]:
+            epoch_exp = options_data[0]['expirationDate']
+            options_dict['exp_date'] = \
+                datetime.datetime.fromtimestamp(
+                    epoch_exp).strftime(
+                        COMMON_TICK_DATE_FORMAT)
+        calls_df = pd.DataFrame(
+            options_data[0]['calls'])
+        options_dict['calls'] = calls_df.to_json(
+            orient='records')
+        puts_df = pd.DataFrame(
+            options_data[0]['puts'])
+        options_dict['puts'] = puts_df.to_json(
+            orient='records')
+        options_dict['num_chains'] = len(
+            options_data[0]['calls'])
+
+        return options_dict
     except Exception as e:
         log.error(
             'failed get_options('

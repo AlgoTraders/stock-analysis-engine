@@ -111,11 +111,11 @@ class TestGetNewPricing(BaseTestCase):
         self.assertIsNotNone(
             res['rec']['news'])
         self.assertTrue(
-            len(res['rec']['news']) == 2)
+            len(res['rec']['news']) >= 1)
         self.assertTrue(
-            res['rec']['pricing']['close'] == 287.6)
+            len(res['rec']['pricing']) >= 1)
         self.assertTrue(
-            res['rec']['options'][0]['strike'] == 286.0)
+            len(res['rec']['options']) >= 1)
     # end of test_success_get_new_pricing
 
     @mock.patch(

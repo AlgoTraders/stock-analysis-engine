@@ -9,7 +9,7 @@ Example API Requests
 ====================
 
 .. automodule:: analysis_engine.api_requests
-   :members: build_get_new_pricing_request,build_publish_pricing_request,build_cache_ready_pricing_dataset,build_publish_from_s3_to_redis_request,build_prepare_dataset_request,build_analyze_dataset_request
+   :members: get_ds_dict,build_get_new_pricing_request,build_publish_pricing_request,build_cache_ready_pricing_dataset,build_publish_from_s3_to_redis_request,build_prepare_dataset_request,build_analyze_dataset_request
 
 Constants
 =========

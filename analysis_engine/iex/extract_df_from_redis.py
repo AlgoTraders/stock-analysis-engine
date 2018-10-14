@@ -17,6 +17,7 @@ Supported environment variables:
 
 """
 
+import copy
 import analysis_engine.extract_utils as extract_utils
 from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.iex.consts import DATAFEED_DAILY
@@ -48,6 +49,14 @@ def extract_daily_dataset(
     label = work_dict.get('label', 'extract')
     df_type = DATAFEED_DAILY
     df_str = get_datafeed_str(df_type=df_type)
+    req = copy.deepcopy(work_dict)
+
+    if 'redis_key' not in work_dict:
+        # see if it's get dataset dictionary
+        if 'daily' in req:
+            req['redis_key'] = req['daily']
+            req['s3_key'] = req['daily']
+    # end of support for the get dataset dictionary
 
     log.info(
         '{} - {} - start'.format(
@@ -57,7 +66,7 @@ def extract_daily_dataset(
     return extract_utils.perform_extract(
         df_type=df_type,
         df_str=df_str,
-        work_dict=work_dict,
+        work_dict=req,
         scrub_mode=scrub_mode)
 # end of extract_daily_dataset
 
@@ -76,6 +85,14 @@ def extract_minute_dataset(
     label = work_dict.get('label', 'extract')
     df_type = DATAFEED_MINUTE
     df_str = get_datafeed_str(df_type=df_type)
+    req = copy.deepcopy(work_dict)
+
+    if 'redis_key' not in work_dict:
+        # see if it's get dataset dictionary
+        if 'minute' in work_dict:
+            req['redis_key'] = req['minute']
+            req['s3_key'] = req['minute']
+    # end of support for the get dataset dictionary
 
     log.info(
         '{} - {} - start'.format(
@@ -85,7 +102,7 @@ def extract_minute_dataset(
     return extract_utils.perform_extract(
         df_type=df_type,
         df_str=df_str,
-        work_dict=work_dict,
+        work_dict=req,
         scrub_mode=scrub_mode)
 # end of extract_minute_dataset
 
@@ -104,6 +121,14 @@ def extract_stats_dataset(
     label = work_dict.get('label', 'extract')
     df_type = DATAFEED_STATS
     df_str = get_datafeed_str(df_type=df_type)
+    req = copy.deepcopy(work_dict)
+
+    if 'redis_key' not in work_dict:
+        # see if it's get dataset dictionary
+        if 'stats' in work_dict:
+            req['redis_key'] = req['stats']
+            req['s3_key'] = req['stats']
+    # end of support for the get dataset dictionary
 
     log.info(
         '{} - {} - start'.format(
@@ -113,7 +138,7 @@ def extract_stats_dataset(
     return extract_utils.perform_extract(
         df_type=df_type,
         df_str=df_str,
-        work_dict=work_dict,
+        work_dict=req,
         scrub_mode=scrub_mode)
 # end of extract_stats_dataset
 
@@ -132,6 +157,14 @@ def extract_peers_dataset(
     label = work_dict.get('label', 'extract')
     df_type = DATAFEED_PEERS
     df_str = get_datafeed_str(df_type=df_type)
+    req = copy.deepcopy(work_dict)
+
+    if 'redis_key' not in work_dict:
+        # see if it's get dataset dictionary
+        if 'peers' in work_dict:
+            req['redis_key'] = req['peers']
+            req['s3_key'] = req['peers']
+    # end of support for the get dataset dictionary
 
     log.info(
         '{} - {} - start'.format(
@@ -141,7 +174,7 @@ def extract_peers_dataset(
     return extract_utils.perform_extract(
         df_type=df_type,
         df_str=df_str,
-        work_dict=work_dict,
+        work_dict=req,
         scrub_mode=scrub_mode)
 # end of extract_peers_dataset
 
@@ -160,6 +193,14 @@ def extract_news_dataset(
     label = work_dict.get('label', 'extract')
     df_type = DATAFEED_NEWS
     df_str = get_datafeed_str(df_type=df_type)
+    req = copy.deepcopy(work_dict)
+
+    if 'redis_key' not in work_dict:
+        # see if it's get dataset dictionary
+        if 'news1' in work_dict:
+            req['redis_key'] = req['news1']
+            req['s3_key'] = req['news1']
+    # end of support for the get dataset dictionary
 
     log.info(
         '{} - {} - start'.format(
@@ -169,7 +210,7 @@ def extract_news_dataset(
     return extract_utils.perform_extract(
         df_type=df_type,
         df_str=df_str,
-        work_dict=work_dict,
+        work_dict=req,
         scrub_mode=scrub_mode)
 # end of extract_news_dataset
 
@@ -188,6 +229,14 @@ def extract_financials_dataset(
     label = work_dict.get('label', 'extract')
     df_type = DATAFEED_FINANCIALS
     df_str = get_datafeed_str(df_type=df_type)
+    req = copy.deepcopy(work_dict)
+
+    if 'redis_key' not in work_dict:
+        # see if it's get dataset dictionary
+        if 'financials' in work_dict:
+            req['redis_key'] = req['financials']
+            req['s3_key'] = req['financials']
+    # end of support for the get dataset dictionary
 
     log.info(
         '{} - {} - start'.format(
@@ -197,7 +246,7 @@ def extract_financials_dataset(
     return extract_utils.perform_extract(
         df_type=df_type,
         df_str=df_str,
-        work_dict=work_dict,
+        work_dict=req,
         scrub_mode=scrub_mode)
 # end of extract_financials_dataset
 
@@ -216,6 +265,14 @@ def extract_earnings_dataset(
     label = work_dict.get('label', 'extract')
     df_type = DATAFEED_EARNINGS
     df_str = get_datafeed_str(df_type=df_type)
+    req = copy.deepcopy(work_dict)
+
+    if 'redis_key' not in work_dict:
+        # see if it's get dataset dictionary
+        if 'earnings' in work_dict:
+            req['redis_key'] = req['earnings']
+            req['s3_key'] = req['earnings']
+    # end of support for the get dataset dictionary
 
     log.info(
         '{} - {} - start'.format(
@@ -225,7 +282,7 @@ def extract_earnings_dataset(
     return extract_utils.perform_extract(
         df_type=df_type,
         df_str=df_str,
-        work_dict=work_dict,
+        work_dict=req,
         scrub_mode=scrub_mode)
 # end of extract_earnings_dataset
 
@@ -244,6 +301,14 @@ def extract_dividends_dataset(
     label = work_dict.get('label', 'extract')
     df_type = DATAFEED_DIVIDENDS
     df_str = get_datafeed_str(df_type=df_type)
+    req = copy.deepcopy(work_dict)
+
+    if 'redis_key' not in work_dict:
+        # see if it's get dataset dictionary
+        if 'dividends' in work_dict:
+            req['redis_key'] = req['dividends']
+            req['s3_key'] = req['dividends']
+    # end of support for the get dataset dictionary
 
     log.info(
         '{} - {} - start'.format(
@@ -253,7 +318,7 @@ def extract_dividends_dataset(
     return extract_utils.perform_extract(
         df_type=df_type,
         df_str=df_str,
-        work_dict=work_dict,
+        work_dict=req,
         scrub_mode=scrub_mode)
 # end of extract_dividends_dataset
 
@@ -272,6 +337,14 @@ def extract_company_dataset(
     label = work_dict.get('label', 'extract')
     df_type = DATAFEED_COMPANY
     df_str = get_datafeed_str(df_type=df_type)
+    req = copy.deepcopy(work_dict)
+
+    if 'redis_key' not in work_dict:
+        # see if it's get dataset dictionary
+        if 'company' in work_dict:
+            req['redis_key'] = req['company']
+            req['s3_key'] = req['company']
+    # end of support for the get dataset dictionary
 
     log.info(
         '{} - {} - start'.format(
@@ -281,6 +354,6 @@ def extract_company_dataset(
     return extract_utils.perform_extract(
         df_type=df_type,
         df_str=df_str,
-        work_dict=work_dict,
+        work_dict=req,
         scrub_mode=scrub_mode)
 # end of extract_company_dataset
