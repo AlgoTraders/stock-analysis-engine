@@ -1,9 +1,5 @@
 """
-
-Dataset Scrubbing Utilities
-===========================
-
-Perform dataset scrubbing action
+Perform dataset scrubbing actions
 and return the scrubbed dataset as a ready-to-go
 data feed. This is an approach for normalizing
 an internal data feed.
@@ -203,24 +199,23 @@ def ingress_scrub_dataset(
 
     :param label: log label
     :param datafeed_type: ``analysis_engine.iex.consts.DATAFEED_*`` type
-                          or ``analysis_engine.yahoo.consts.DATAFEED_*```
-                          type
-            ::
+        or ``analysis_engine.yahoo.consts.DATAFEED_*```
+        type
+        ::
 
-                DATAFEED_DAILY = 900
-                DATAFEED_MINUTE = 901
-                DATAFEED_TICK = 902
-                DATAFEED_STATS = 903
-                DATAFEED_PEERS = 904
-                DATAFEED_NEWS = 905
-                DATAFEED_FINANCIALS = 906
-                DATAFEED_EARNINGS = 907
-                DATAFEED_DIVIDENDS = 908
-                DATAFEED_COMPANY = 909
-                DATAFEED_PRICING_YAHOO = 1100
-                DATAFEED_OPTIONS_YAHOO = 1101
-                DATAFEED_NEWS_YAHOO = 1102
-
+            DATAFEED_DAILY = 900
+            DATAFEED_MINUTE = 901
+            DATAFEED_TICK = 902
+            DATAFEED_STATS = 903
+            DATAFEED_PEERS = 904
+            DATAFEED_NEWS = 905
+            DATAFEED_FINANCIALS = 906
+            DATAFEED_EARNINGS = 907
+            DATAFEED_DIVIDENDS = 908
+            DATAFEED_COMPANY = 909
+            DATAFEED_PRICING_YAHOO = 1100
+            DATAFEED_OPTIONS_YAHOO = 1101
+            DATAFEED_NEWS_YAHOO = 1102
     :param df: ``pandas DataFrame``
     :param date_str: date string for simulating historical dates
                      or ``datetime.datetime.now()`` if not
@@ -490,24 +485,23 @@ def extract_scrub_dataset(
 
     :param label: log label
     :param datafeed_type: ``analysis_engine.iex.consts.DATAFEED_*`` type
-                          or ``analysis_engine.yahoo.consts.DATAFEED_*```
-                          type
-            ::
+        or ``analysis_engine.yahoo.consts.DATAFEED_*```
+        type
+        ::
 
-                DATAFEED_DAILY = 900
-                DATAFEED_MINUTE = 901
-                DATAFEED_TICK = 902
-                DATAFEED_STATS = 903
-                DATAFEED_PEERS = 904
-                DATAFEED_NEWS = 905
-                DATAFEED_FINANCIALS = 906
-                DATAFEED_EARNINGS = 907
-                DATAFEED_DIVIDENDS = 908
-                DATAFEED_COMPANY = 909
-                DATAFEED_PRICING_YAHOO = 1100
-                DATAFEED_OPTIONS_YAHOO = 1101
-                DATAFEED_NEWS_YAHOO = 1102
-
+            DATAFEED_DAILY = 900
+            DATAFEED_MINUTE = 901
+            DATAFEED_TICK = 902
+            DATAFEED_STATS = 903
+            DATAFEED_PEERS = 904
+            DATAFEED_NEWS = 905
+            DATAFEED_FINANCIALS = 906
+            DATAFEED_EARNINGS = 907
+            DATAFEED_DIVIDENDS = 908
+            DATAFEED_COMPANY = 909
+            DATAFEED_PRICING_YAHOO = 1100
+            DATAFEED_OPTIONS_YAHOO = 1101
+            DATAFEED_NEWS_YAHOO = 1102
     :param df: ``pandas DataFrame``
     :param date_str: date string for simulating historical dates
                      or ``datetime.datetime.now()`` if not

@@ -64,9 +64,6 @@ log = build_colorized_logger(
 def run_ticker_analysis():
     """run_ticker_analysis
 
-    Collect all datasets for a Ticker or Symbol
-    -------------------------------------------
-
     Collect all datasets for the ticker **SPY**:
 
     ::
@@ -78,8 +75,7 @@ def run_ticker_analysis():
         - redis ``localhost:6379``
         - minio ``localhost:9000``
 
-    Coming Soon
-    -----------
+    **Coming Soon**
 
     Run buy and sell analysis on a stock to send alerts to subscribed
     users
