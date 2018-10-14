@@ -167,8 +167,7 @@ def get_data_from_yahoo(
                     pricing_df = pd.DataFrame.from_dict(
                         pricing_dict,
                         orient='index')
-                    rec['pricing'] = pricing_df.to_json(
-                            orient=orient)
+                    rec['pricing'] = pricing_df.to_json()
                 except Exception as f:
                     rec['pricing'] = '{}'
                     log.info(

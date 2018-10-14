@@ -607,12 +607,12 @@ class TestPreparePricingDataset(BaseTestCase):
             res['rec'] is not None)
         self.assertEqual(
             res['rec']['initial_size'],
-            3105)
+            3365)
         self.assertTrue(
             res['rec']['initial_data'] is not None)
         self.assertEqual(
             res['rec']['prepared_size'],
-            3729)
+            3482)
         self.assertTrue(
             res['rec']['prepared_data'] is not None)
     # end of test_prepare_pricing_data_success
