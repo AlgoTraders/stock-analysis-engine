@@ -104,6 +104,17 @@ def get_data_from_yahoo(
                  date=exp_date)
             use_date = exp_date.strftime('%Y-%m-%d')
 
+        """
+        Debug control flags
+
+        Quickly turn specific fetches off:
+
+        get_news = False
+        get_pricing = False
+        get_options = False
+
+        """
+
         if get_pricing:
             log.info(
                 '{} getting ticker={} pricing'.format(
@@ -178,9 +189,10 @@ def get_data_from_yahoo(
 
             else:
                 log.error(
-                    '{} ticker={} missing quotes_data'.format(
+                    '{} ticker={} missing quotes_data={}'.format(
                         label,
-                        ticker))
+                        ticker,
+                        ticker_results.quotes_data))
             # end of if ticker_results.quotes_data
 
             log.info(
@@ -243,6 +255,12 @@ def get_data_from_yahoo(
                         label,
                         ticker,
                         orient))
+            else:
+                log.info(
+                    '{} ticker={} Yahoo NO news={}'.format(
+                        label,
+                        ticker,
+                        ticker_results.news_data))
             # end of if ticker_results.news_data
         else:
             log.info(

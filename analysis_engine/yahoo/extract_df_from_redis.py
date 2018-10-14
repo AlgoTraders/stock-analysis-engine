@@ -47,9 +47,9 @@ def extract_pricing_dataset(
 
     if 'redis_key' not in work_dict:
         # see if it's get dataset dictionary
-        if 'daily' in req:
-            req['redis_key'] = req['daily']
-            req['s3_key'] = req['daily']
+        if 'pricing' in req:
+            req['redis_key'] = req['pricing']
+            req['s3_key'] = req['pricing']
     # end of support for the get dataset dictionary
 
     log.info(
@@ -83,9 +83,9 @@ def extract_options_dataset(
 
     if 'redis_key' not in work_dict:
         # see if it's get dataset dictionary
-        if 'minute' in work_dict:
-            req['redis_key'] = req['minute']
-            req['s3_key'] = req['minute']
+        if 'options' in work_dict:
+            req['redis_key'] = req['options']
+            req['s3_key'] = req['options']
     # end of support for the get dataset dictionary
 
     log.info(
@@ -119,9 +119,9 @@ def extract_yahoo_news_dataset(
 
     if 'redis_key' not in work_dict:
         # see if it's get dataset dictionary
-        if 'stats' in work_dict:
-            req['redis_key'] = req['stats']
-            req['s3_key'] = req['stats']
+        if 'news' in work_dict:
+            req['redis_key'] = req['news']
+            req['s3_key'] = req['news']
     # end of support for the get dataset dictionary
 
     log.info(
