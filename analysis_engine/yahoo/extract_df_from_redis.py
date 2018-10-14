@@ -27,6 +27,8 @@ from analysis_engine.consts import SUCCESS
 from analysis_engine.consts import ERR
 from analysis_engine.consts import NOT_RUN
 from analysis_engine.consts import get_status
+from analysis_engine.consts import REDIS_ADDRESS
+from analysis_engine.consts import REDIS_DB
 from analysis_engine.yahoo.consts import DATAFEED_PRICING_YAHOO
 from analysis_engine.yahoo.consts import DATAFEED_OPTIONS_YAHOO
 from analysis_engine.yahoo.consts import DATAFEED_NEWS_YAHOO
@@ -129,9 +131,15 @@ def extract_option_calls_dataset(
     s3_key = work_dict.get(
         's3_key',
         work_dict.get('options', 'missing-s3-key'))
-    redis_host = work_dict['redis_host'],
-    redis_port = work_dict['redis_port'],
-    redis_db = work_dict['redis_db'],
+    redis_host = work_dict.get(
+        'redis_host',
+        None)
+    redis_port = work_dict.get(
+        'redis_port',
+        None)
+    redis_db = work_dict.get(
+        'redis_db',
+        REDIS_DB)
 
     log.info(
         '{} - {} - start - redis_key={} s3_key={}'.format(
@@ -139,6 +147,10 @@ def extract_option_calls_dataset(
             df_str,
             redis_key,
             s3_key))
+
+    if not redis_host and not redis_port:
+        redis_host = REDIS_ADDRESS.split(':')[0]
+        redis_port = REDIS_ADDRESS.split(':')[1]
 
     exp_date_str = None
     calls_df = None
@@ -245,9 +257,15 @@ def extract_option_puts_dataset(
     s3_key = work_dict.get(
         's3_key',
         work_dict.get('options', 'missing-s3-key'))
-    redis_host = work_dict['redis_host'],
-    redis_port = work_dict['redis_port'],
-    redis_db = work_dict['redis_db'],
+    redis_host = work_dict.get(
+        'redis_host',
+        None)
+    redis_port = work_dict.get(
+        'redis_port',
+        None)
+    redis_db = work_dict.get(
+        'redis_db',
+        REDIS_DB)
 
     log.info(
         '{} - {} - start - redis_key={} s3_key={}'.format(
@@ -255,6 +273,10 @@ def extract_option_puts_dataset(
             df_str,
             redis_key,
             s3_key))
+
+    if not redis_host and not redis_port:
+        redis_host = REDIS_ADDRESS.split(':')[0]
+        redis_port = REDIS_ADDRESS.split(':')[1]
 
     exp_date_str = None
     puts_df = None
