@@ -35,6 +35,9 @@ of the following data feed and returned as a
     DATAFEED_EARNINGS = 907
     DATAFEED_DIVIDENDS = 908
     DATAFEED_COMPANY = 909
+    DATAFEED_PRICING_YAHOO = 1100
+    DATAFEED_OPTIONS_YAHOO = 1101
+    DATAFEED_NEWS_YAHOO = 1102
 
 """
 
@@ -58,6 +61,10 @@ from analysis_engine.iex.consts import DATAFEED_EARNINGS
 from analysis_engine.iex.consts import DATAFEED_DIVIDENDS
 from analysis_engine.iex.consts import DATAFEED_COMPANY
 from analysis_engine.iex.consts import get_datafeed_str
+from analysis_engine.yahoo.consts import DATAFEED_PRICING_YAHOO
+from analysis_engine.yahoo.consts import DATAFEED_OPTIONS_YAHOO
+from analysis_engine.yahoo.consts import DATAFEED_NEWS_YAHOO
+from analysis_engine.yahoo.consts import get_datafeed_str_yahoo
 
 log = build_colorized_logger(
     name=__name__)
@@ -82,14 +89,24 @@ def debug_msg(
 
     msg = msg_format.format('_', date_str)
 
+    dft_msg = ''
+    if (
+            datafeed_type == DATAFEED_PRICING_YAHOO or
+            datafeed_type == DATAFEED_OPTIONS_YAHOO or
+            datafeed_type == DATAFEED_NEWS_YAHOO):
+        dft_msg = get_datafeed_str_yahoo(
+            df_type=datafeed_type)
+    else:
+        dft_msg = get_datafeed_str(
+            df_type=datafeed_type)
+
     if ev('DEBUG_FETCH', '0') == '1':
         if 'START' in msg:
             log.info(
                 '{} - {} -------------------------'
                 '------------------------------------'.format(
                     label,
-                    get_datafeed_str(
-                        df_type=datafeed_type)))
+                    dft_msg))
         msg = msg_format.format(
             df,
             date_str),
@@ -98,8 +115,7 @@ def debug_msg(
                 '{} - {} - {} found df={} '
                 'columns={}'.format(
                     label,
-                    get_datafeed_str(
-                        df_type=datafeed_type),
+                    dft_msg,
                     msg,
                     df,
                     df.columns.values))
@@ -107,8 +123,7 @@ def debug_msg(
             log.info(
                 '{} - {} - {} not df={}'.format(
                     label,
-                    get_datafeed_str(
-                        df_type=datafeed_type),
+                    dft_msg,
                     msg,
                     df))
 
@@ -117,14 +132,12 @@ def debug_msg(
                 '{} - {} -------------------------'
                 '------------------------------------'.format(
                     label,
-                    get_datafeed_str(
-                        df_type=datafeed_type)))
+                    dft_msg))
     else:
         log.info(
             '{} - {} - {}'.format(
                 label,
-                get_datafeed_str(
-                    df_type=datafeed_type),
+                dft_msg,
                 msg))
     # end of debug pre-scrub logging
 
@@ -190,6 +203,8 @@ def ingress_scrub_dataset(
 
     :param label: log label
     :param datafeed_type: ``analysis_engine.iex.consts.DATAFEED_*`` type
+                          or ``analysis_engine.yahoo.consts.DATAFEED_*```
+                          type
             ::
 
                 DATAFEED_DAILY = 900
@@ -202,6 +217,10 @@ def ingress_scrub_dataset(
                 DATAFEED_EARNINGS = 907
                 DATAFEED_DIVIDENDS = 908
                 DATAFEED_COMPANY = 909
+                DATAFEED_PRICING_YAHOO = 1100
+                DATAFEED_OPTIONS_YAHOO = 1101
+                DATAFEED_NEWS_YAHOO = 1102
+
     :param df: ``pandas DataFrame``
     :param date_str: date string for simulating historical dates
                      or ``datetime.datetime.now()`` if not
@@ -383,6 +402,39 @@ def ingress_scrub_dataset(
                     out_df['date'] = pd.to_datetime(
                         df['label'],
                         format=daily_date_format)
+            elif datafeed_type == DATAFEED_PRICING_YAHOO:
+                log.info(
+                    '{} - {} - no scrub_mode={} '
+                    'support'.format(
+                        label,
+                        datafeed_type,
+                        scrub_mode))
+                if 'date' in df:
+                    out_df['date'] = pd.to_datetime(
+                        df['date'],
+                        format=daily_date_format)
+            elif datafeed_type == DATAFEED_OPTIONS_YAHOO:
+                log.info(
+                    '{} - {} - no scrub_mode={} '
+                    'support'.format(
+                        label,
+                        datafeed_type,
+                        scrub_mode))
+                if 'date' in df:
+                    out_df['date'] = pd.to_datetime(
+                        df['date'],
+                        format=daily_date_format)
+            elif datafeed_type == DATAFEED_NEWS_YAHOO:
+                log.info(
+                    '{} - {} - no scrub_mode={} '
+                    'support'.format(
+                        label,
+                        datafeed_type,
+                        scrub_mode))
+                if 'date' in df:
+                    out_df['date'] = pd.to_datetime(
+                        df['date'],
+                        format=daily_date_format)
             else:
                 log.info(
                     '{} - {} - no scrub_mode={} '
@@ -438,6 +490,8 @@ def extract_scrub_dataset(
 
     :param label: log label
     :param datafeed_type: ``analysis_engine.iex.consts.DATAFEED_*`` type
+                          or ``analysis_engine.yahoo.consts.DATAFEED_*```
+                          type
             ::
 
                 DATAFEED_DAILY = 900
@@ -450,6 +504,10 @@ def extract_scrub_dataset(
                 DATAFEED_EARNINGS = 907
                 DATAFEED_DIVIDENDS = 908
                 DATAFEED_COMPANY = 909
+                DATAFEED_PRICING_YAHOO = 1100
+                DATAFEED_OPTIONS_YAHOO = 1101
+                DATAFEED_NEWS_YAHOO = 1102
+
     :param df: ``pandas DataFrame``
     :param date_str: date string for simulating historical dates
                      or ``datetime.datetime.now()`` if not

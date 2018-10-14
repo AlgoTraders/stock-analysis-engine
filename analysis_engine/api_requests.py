@@ -179,6 +179,20 @@ def build_cache_ready_pricing_dataset(
 
     :param label: log label to use
     """
+    calls_df_as_json = (
+        '[{\"ask\":106.0,\"bid\":105.36,\"change\":4.0899963,\"contractSi'
+        'ze\":\"REGULAR\",\"contractSymbol\":\"SPY181019P00380000\",\"cur'
+        'rency\":\"USD\",\"expiration\":1539907200,\"impliedVolatility\":'
+        '1.5991230981,\"inTheMoney\":true,\"lastPrice\":91.82,\"lastTrade'
+        'Date\":1539027901,\"openInterest\":0,\"percentChange\":4.4543633'
+        ',\"strike\":380.0,\"volume\":37}]')
+    puts_df_as_json = (
+        '[{\"ask\":106.0,\"bid\":105.36,\"change\":4.0899963,\"contractSi'
+        'ze\":\"REGULAR\",\"contractSymbol\":\"SPY181019P00380000\",\"cur'
+        'rency\":\"USD\",\"expiration\":1539907200,\"impliedVolatility\":'
+        '1.5991230981,\"inTheMoney\":true,\"lastPrice\":91.82,\"lastTrade'
+        'Date\":1539027901,\"openInterest\":0,\"percentChange\":4.4543633'
+        ',\"strike\":380.0,\"volume\":37}]')
     cache_data = {
         "news": [
             {
@@ -202,25 +216,12 @@ def build_cache_ready_pricing_dataset(
                 "usg": "key2"
             }
         ],
-        "options": [
-            {
-                "ask": 0.0,
-                "bid": 0.0,
-                "change": 0.0,
-                "contractSize": "REGULAR",
-                "contractSymbol": "SPY170505C00015000",
-                "currency": "USD",
-                "expiration": 1493942400,
-                "impliedVolatility": 0.2500075,
-                "inTheMoney": False,
-                "lastPrice": 0.28,
-                "lastTradeDate": 1493323145,
-                "openInterest": 0,
-                "percentChange": 0.0,
-                "strike": 286.0,
-                "volume": 1106
-            }
-        ],
+        "options": {
+            'exp_date': '2018-10-19',
+            'calls': calls_df_as_json,
+            'puts': puts_df_as_json,
+            'num_chains': 1
+        },
         "pricing": {
             "ask": 0.0,
             "askSize": 8,

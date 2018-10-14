@@ -3,6 +3,8 @@ Parse data from yahoo
 """
 
 import copy
+import datetime
+import pandas as pd
 import pinance
 import analysis_engine.options_dates
 import analysis_engine.get_pricing
@@ -15,7 +17,10 @@ from analysis_engine.consts import SUCCESS
 from analysis_engine.consts import NOT_RUN
 from analysis_engine.consts import ERR
 from analysis_engine.consts import NOT_SET
+from analysis_engine.consts import COMMON_TICK_DATE_FORMAT
 from analysis_engine.consts import get_status
+from analysis_engine.consts import ppj
+from analysis_engine.utils import get_last_close_str
 
 log = build_colorized_logger(
     name=__name__)
@@ -83,11 +88,15 @@ def get_data_from_yahoo(
         get_options = work_dict.get(
             'get_options',
             True)
+        orient = work_dict.get(
+            'orient',
+            'records')
         label = work_dict.get(
             'label',
             label)
 
         ticker_results = pinance.Pinance(ticker)
+        num_news_rec = 0
 
         use_date = exp_date
         if not exp_date:
@@ -102,28 +111,71 @@ def get_data_from_yahoo(
                     ticker))
             ticker_results.get_quotes()
             if ticker_results.quotes_data:
-                rec['pricing'] = ticker_results.quotes_data
+                pricing_dict = ticker_results.quotes_data
 
-                cur_high = rec['pricing'].get(
+                cur_high = pricing_dict.get(
                     'regularMarketDayHigh',
                     None)
-                cur_low = rec['pricing'].get(
+                cur_low = pricing_dict.get(
                     'regularMarketDayLow',
                     None)
-                cur_open = rec['pricing'].get(
+                cur_open = pricing_dict.get(
                     'regularMarketOpen',
                     None)
-                cur_close = rec['pricing'].get(
+                cur_close = pricing_dict.get(
                     'regularMarketPreviousClose',
                     None)
-                cur_volume = rec['pricing'].get(
+                cur_volume = pricing_dict.get(
                     'regularMarketVolume',
                     None)
-                rec['pricing']['high'] = cur_high
-                rec['pricing']['low'] = cur_low
-                rec['pricing']['open'] = cur_open
-                rec['pricing']['close'] = cur_close
-                rec['pricing']['volume'] = cur_volume
+                pricing_dict['high'] = cur_high
+                pricing_dict['low'] = cur_low
+                pricing_dict['open'] = cur_open
+                pricing_dict['close'] = cur_close
+                pricing_dict['volume'] = cur_volume
+                pricing_dict['date'] = get_last_close_str()
+                if 'regularMarketTime' in pricing_dict:
+                    pricing_dict['market_time'] = \
+                        datetime.datetime.fromtimestamp(
+                            pricing_dict['regularMarketTime']).strftime(
+                                COMMON_TICK_DATE_FORMAT)
+                if 'postMarketTime' in pricing_dict:
+                    pricing_dict['post_market_time'] = \
+                        datetime.datetime.fromtimestamp(
+                            pricing_dict['postMarketTime']).strftime(
+                                COMMON_TICK_DATE_FORMAT)
+
+                log.info(
+                    '{} ticker={} converting pricing to '
+                    'df orient={}'.format(
+                        label,
+                        ticker,
+                        orient))
+
+                try:
+                    pricing_df = pd.DataFrame.from_dict(
+                        pricing_dict,
+                        orient='index')
+                    rec['pricing'] = pricing_df.to_json(
+                            orient=orient)
+                except Exception as f:
+                    rec['pricing'] = '{}'
+                    log.info(
+                        '{} ticker={} failed converting pricing '
+                        'data={} to df ex={}'.format(
+                            label,
+                            ticker,
+                            ppj(pricing_dict),
+                            f))
+                # try/ex
+
+                log.info(
+                    '{} ticker={} done converting pricing to '
+                    'df orient={}'.format(
+                        label,
+                        ticker,
+                        orient))
+
             else:
                 log.error(
                     '{} ticker={} missing quotes_data'.format(
@@ -152,7 +204,45 @@ def get_data_from_yahoo(
                     ticker))
             ticker_results.get_news()
             if ticker_results.news_data:
-                rec['news'] = ticker_results.news_data
+                news_list = None
+                try:
+                    news_list = ticker_results.news_data
+                    log.info(
+                        '{} ticker={} converting news to '
+                        'df orient={}'.format(
+                            label,
+                            ticker,
+                            orient))
+
+                    num_news_rec = len(news_list)
+                    log.info(
+                        '{} ticker={} converting options to '
+                        'df orient={}'.format(
+                            label,
+                            ticker,
+                            orient))
+
+                    news_df = pd.DataFrame(
+                        news_list)
+                    rec['news'] = news_df.to_json(
+                            orient=orient)
+                except Exception as f:
+                    rec['news'] = '{}'
+                    log.info(
+                        '{} ticker={} failed converting news '
+                        'data={} to df ex={}'.format(
+                            label,
+                            ticker,
+                            news_list,
+                            f))
+                # try/ex
+
+                log.info(
+                    '{} ticker={} done converting news to '
+                    'df orient={}'.format(
+                        label,
+                        ticker,
+                        orient))
             # end of if ticker_results.news_data
         else:
             log.info(
@@ -162,14 +252,16 @@ def get_data_from_yahoo(
         # end if get_news
 
         if get_options:
-            if cur_close:
-                cur_strike = int(cur_close)
-            if not cur_strike:
-                cur_strike = 287
 
-            num_news_rec = 0
-            if rec['news']:
-                num_news_rec = len(rec['news'])
+            get_all_strikes = True
+            if get_all_strikes:
+                cur_strike = None
+            else:
+                if cur_close:
+                    cur_strike = int(cur_close)
+                if not cur_strike:
+                    cur_strike = 287
+
             log.info(
                 '{} ticker={} num_news={} get options close={} '
                 'exp_date={} contract={} strike={}'.format(
@@ -181,14 +273,59 @@ def get_data_from_yahoo(
                     contract_type,
                     cur_strike))
 
-            rec['options'] = \
+            options_dict = \
                 analysis_engine.get_pricing.get_options(
                     ticker=ticker,
                     exp_date_str=use_date,
                     contract_type=contract_type,
                     strike=cur_strike)
 
-            num_options_chains = len(rec['options'])
+            rec['options'] = '{}'
+
+            try:
+                log.info(
+                    '{} ticker={} converting options to '
+                    'df orient={}'.format(
+                        label,
+                        ticker,
+                        orient))
+
+                rec['options'] = {
+                    'exp_date': options_dict.get(
+                        'exp_date',
+                        None),
+                    'calls': options_dict.get(
+                        'calls',
+                        None),
+                    'puts': options_dict.get(
+                        'puts',
+                        None),
+                    'num_chains': options_dict.get(
+                        'num_chains',
+                        None)
+                }
+                num_options_chains = options_dict.get(
+                    'num_chains',
+                    None)
+            except Exception as f:
+                rec['options'] = '{}'
+                log.info(
+                    '{} ticker={} failed converting options '
+                    'data={} to df ex={}'.format(
+                        label,
+                        ticker,
+                        options_dict,
+                        f))
+            # try/ex
+
+            log.info(
+                '{} ticker={} done converting options to '
+                'df orient={} num_options={}'.format(
+                    label,
+                    ticker,
+                    orient,
+                    num_options_chains))
+
         else:
             log.info(
                 '{} skip - getting ticker={} options'.format(
@@ -268,7 +405,6 @@ def get_data_from_yahoo(
             status=SUCCESS,
             err=None,
             rec=rec)
-
     except Exception as e:
         res = build_result.build_result(
             status=ERR,
