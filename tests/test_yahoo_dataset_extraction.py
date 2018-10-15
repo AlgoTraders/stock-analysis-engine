@@ -286,7 +286,7 @@ class TestYahooDatasetExtraction(BaseTestCase):
         if ev('INT_TESTS', '0') == '0':
             return
 
-        # store data
+        # build dataset cache dictionary
         work = get_ds_dict(
             ticker='NFLX',
             label='test_integration_extract_pricing')
@@ -310,7 +310,7 @@ class TestYahooDatasetExtraction(BaseTestCase):
         if ev('INT_TESTS', '0') == '0':
             return
 
-        # store data
+        # build dataset cache dictionary
         work = get_ds_dict(
             ticker='NFLX',
             label='test_integration_extract_news')
@@ -334,7 +334,7 @@ class TestYahooDatasetExtraction(BaseTestCase):
         if ev('INT_TESTS', '0') == '0':
             return
 
-        # store data
+        # build dataset cache dictionary
         work = get_ds_dict(
             ticker='NFLX',
             label='test_integration_extract_option_calls')
@@ -358,7 +358,7 @@ class TestYahooDatasetExtraction(BaseTestCase):
         if ev('INT_TESTS', '0') == '0':
             return
 
-        # store data
+        # build dataset cache dictionary
         work = get_ds_dict(
             ticker='NFLX',
             label='test_integration_extract_option_puts')

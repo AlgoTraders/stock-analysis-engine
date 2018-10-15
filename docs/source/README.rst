@@ -5,7 +5,19 @@ Analyze information about publicly traded companies from `Yahoo <https://finance
 
 .. image:: https://i.imgur.com/pH368gy.png
 
-It uses `Celery workers to process all tasks <http://www.celeryproject.org/>`__ and is a horizontally scalable worker pool that works with many `transports and backends <https://github.com/celery/celery#transports-and-backends>`__
+The engine provides an automated, horizontally scalable stock data collection and archive pipeline with a simple extraction interface above a redis datastore.
+
+Once collected and cached, you can quickly extract datasets with:
+
+.. code-block:: python
+
+    from analysis_engine.api_requests import get_ds_dict
+    from analysis_engine.yahoo.extract_df_from_redis import extract_option_calls_dataset
+    dataset_req = get_ds_dict(ticker='NFLX', label='nflx-test')
+    extract_status, netflix_call_options_df = extract_option_calls_dataset(dataset_req)
+    print(netflix_call_options_df)
+
+Please refer to the `Stock Analysis Intro Extracting Datasets Jupyter Notebook <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro-Extracting-Datasets.ipynb>`__ for the latest usage examples.
 
 .. list-table::
    :header-rows: 1
@@ -22,9 +34,9 @@ It uses `Celery workers to process all tasks <http://www.celeryproject.org/>`__ 
 Getting Started
 ===============
 
-For additional details, please refer to this intro Jupyter notebook:
+The engine uses `Celery workers to process all tasks <http://www.celeryproject.org/>`__ and is a horizontally scalable worker pool that `natively plugs into many transports and backends <https://github.com/celery/celery#transports-and-backends>`__
 
-- `Stock Analysis Intro <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro.ipynb>`__
+If your stack is already running, please refer to the `Intro Stock Analysis using Jupyter Notebook <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro.ipynb>`__ for getting started.
 
 #.  Clone
 
@@ -177,6 +189,13 @@ Collect all datasets for the ticker **SPY**:
 
     - redis ``localhost:6379``
     - minio ``localhost:9000``
+
+View the Engine Worker Logs
+---------------------------
+
+::
+
+    docker logs sa-workers-${USER}
 
 Running Inside Docker Containers
 --------------------------------
@@ -694,6 +713,69 @@ IEX Test - Fetch Financials Helper
 ::
 
     python -m unittest tests.test_iex_fetch_data.TestIEXFetchData.test_integration_get_financials_helper
+
+IEX Test - Extract Daily Dataset
+--------------------------------
+
+::
+
+    python -m unittest tests.test_iex_dataset_extraction.TestIEXDatasetExtraction.test_integration_extract_daily_dataset
+
+IEX Test - Extract Minute Dataset
+---------------------------------
+
+::
+
+    python -m unittest tests.test_iex_dataset_extraction.TestIEXDatasetExtraction.test_integration_extract_minute_dataset
+
+IEX Test - Extract Stats Dataset
+--------------------------------
+
+::
+
+    python -m unittest tests.test_iex_dataset_extraction.TestIEXDatasetExtraction.test_integration_extract_stats_dataset
+
+IEX Test - Extract Peers Dataset
+--------------------------------
+
+::
+
+    python -m unittest tests.test_iex_dataset_extraction.TestIEXDatasetExtraction.test_integration_extract_peers_dataset
+
+IEX Test - Extract News Dataset
+-------------------------------
+
+::
+
+    python -m unittest tests.test_iex_dataset_extraction.TestIEXDatasetExtraction.test_integration_extract_news_dataset
+
+IEX Test - Extract Financials Dataset
+-------------------------------------
+
+::
+
+    python -m unittest tests.test_iex_dataset_extraction.TestIEXDatasetExtraction.test_integration_extract_financials_dataset
+
+IEX Test - Extract Earnings Dataset
+-----------------------------------
+
+::
+
+    python -m unittest tests.test_iex_dataset_extraction.TestIEXDatasetExtraction.test_integration_extract_earnings_dataset
+
+IEX Test - Extract Dividends Dataset
+------------------------------------
+
+::
+
+    python -m unittest tests.test_iex_dataset_extraction.TestIEXDatasetExtraction.test_integration_extract_dividends_dataset
+
+IEX Test - Extract Company Dataset
+----------------------------------
+
+::
+
+    python -m unittest tests.test_iex_dataset_extraction.TestIEXDatasetExtraction.test_integration_extract_company_dataset
 
 Yahoo Test - Extract Pricing
 ----------------------------
