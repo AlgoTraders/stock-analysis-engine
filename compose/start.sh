@@ -170,7 +170,11 @@ else
 fi
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 echo "export REDIS_PORT=$BASE_REDIS_PORT" >> env.sh
+=======
+echo "export REDIS_PORT=$BASE_REDIS_PORT" > env.sh
+>>>>>>> mac needs these in an env.sh file to export correctly. also using overwrite instead of append to clean up stale files instead of touch
 echo "export MINIO_PORT=$BASE_MINIO_PORT" >> env.sh
 echo "export JUPYTER_PORT_1=$BASE_JUPYTER_PORT_1" >> env.sh
 echo "export JUPYTER_PORT_2=$BASE_JUPYTER_PORT_2" >> env.sh
@@ -178,6 +182,7 @@ echo "export JUPYTER_PORT_3=$BASE_JUPYTER_PORT_3" >> env.sh
 echo "export JUPYTER_PORT_4=$BASE_JUPYTER_PORT_4" >> env.sh
 source ./env.sh
 rm env.sh
+<<<<<<< HEAD
 =======
 export REDIS_PORT=$BASE_REDIS_PORT
 export MINIO_PORT=$BASE_MINIO_PORT
@@ -186,6 +191,8 @@ export JUPYTER_PORT_2=$BASE_JUPYTER_PORT_2
 export JUPYTER_PORT_3=$BASE_JUPYTER_PORT_3
 export JUPYTER_PORT_4=$BASE_JUPYTER_PORT_4
 >>>>>>> fixes for vm reboot and containers are left stale and unstarted
+=======
+>>>>>>> mac needs these in an env.sh file to export correctly. also using overwrite instead of append to clean up stale files instead of touch
 
 docker-compose -f ./${compose} up -d
 
