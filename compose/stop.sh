@@ -140,6 +140,7 @@ echo "export JUPYTER_PORT_3=$BASE_JUPYTER_PORT_3" >> env.sh
 echo "export JUPYTER_PORT_4=$BASE_JUPYTER_PORT_4" >> env.sh
 source ./env.sh
 rm env.sh
+# end getting ports and setting vars for containers
 
 docker-compose -f ./${compose} down
 
