@@ -111,6 +111,15 @@ if [[ ! -e ./${compose} ]]; then
     down_dir="1"
 fi
 
+# handle reboot of a vm where containers are not auto-restarted
+container_names="sa-jupyter-${USER} sa-workers-${USER} redis-${USER} minio-${USER}"
+for c in $container_names; do
+    container_is_stopped=$(docker ps -a | grep "${c}" | grep 'Exited ' | wc -l)
+    if [[ "${container_is_stopped}" != "0" ]]; then
+        docker rm ${c}
+    fi
+done
+
 # start getting ports and setting vars for containers
 if [[ -z `cat envs/.env | grep $USER` ]]; then
     sed -i $mac "s/redis:/redis-$USER:/g" envs/.env
@@ -168,7 +177,6 @@ echo "export JUPYTER_PORT_3=$BASE_JUPYTER_PORT_3" >> env.sh
 echo "export JUPYTER_PORT_4=$BASE_JUPYTER_PORT_4" >> env.sh
 source ./env.sh
 rm env.sh
-# end getting ports and setting vars for containers
 
 docker-compose -f ./${compose} up -d
 
