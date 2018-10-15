@@ -173,7 +173,6 @@ def extract_option_calls_dataset(
                 get_status(status=status)))
 
         if status == SUCCESS:
-            print(redis_rec['rec']['data'])
             exp_date_str = redis_rec['rec']['data']['exp_date']
             calls_json = redis_rec['rec']['data']['calls']
             log.info(
@@ -299,7 +298,6 @@ def extract_option_puts_dataset(
                 get_status(status=status)))
 
         if status == SUCCESS:
-            print(redis_rec['rec']['data'])
             exp_date_str = redis_rec['rec']['data']['exp_date']
             puts_json = redis_rec['rec']['data']['puts']
             log.info(

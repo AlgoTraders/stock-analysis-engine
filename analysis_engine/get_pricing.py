@@ -192,7 +192,8 @@ def get_options(
         options_dict = {
             'date': get_last_close_str(),
             'exp_date': None,
-            'num_chains': None,
+            'num_calls': None,
+            'num_puts': None,
             'calls': None,
             'puts': None
         }
@@ -204,14 +205,16 @@ def get_options(
                         COMMON_TICK_DATE_FORMAT)
         calls_df = pd.DataFrame(
             options_data[0]['calls'])
+        options_dict['num_calls'] = len(
+            options_data[0]['calls'])
         options_dict['calls'] = calls_df.to_json(
             orient='records')
         puts_df = pd.DataFrame(
             options_data[0]['puts'])
+        options_dict['num_puts'] = len(
+            options_data[0]['puts'])
         options_dict['puts'] = puts_df.to_json(
             orient='records')
-        options_dict['num_chains'] = len(
-            options_data[0]['calls'])
 
         return options_dict
     except Exception as e:

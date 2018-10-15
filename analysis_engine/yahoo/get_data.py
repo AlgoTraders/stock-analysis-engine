@@ -43,7 +43,8 @@ def get_data_from_yahoo(
             work_dict))
 
     num_news_rec = 0
-    num_options_chains = 0
+    num_option_calls = 0
+    num_option_puts = 0
     cur_high = -1
     cur_low = -1
     cur_open = -1
@@ -114,7 +115,6 @@ def get_data_from_yahoo(
         get_options = False
 
         """
-
         if get_pricing:
             log.info(
                 '{} getting ticker={} pricing'.format(
@@ -169,7 +169,7 @@ def get_data_from_yahoo(
                         orient='index')
                     rec['pricing'] = pricing_df.to_json()
                 except Exception as f:
-                    rec['pricing'] = '{}'
+                    rec['pricing'] = '[]'
                     log.info(
                         '{} ticker={} failed converting pricing '
                         'data={} to df ex={}'.format(
@@ -232,7 +232,7 @@ def get_data_from_yahoo(
                     rec['news'] = news_df.to_json(
                             orient=orient)
                 except Exception as f:
-                    rec['news'] = '{}'
+                    rec['news'] = '[]'
                     log.info(
                         '{} ticker={} failed converting news '
                         'data={} to df ex={}'.format(
@@ -291,7 +291,7 @@ def get_data_from_yahoo(
                     contract_type=contract_type,
                     strike=cur_strike)
 
-            rec['options'] = '{}'
+            rec['options'] = '[]'
 
             try:
                 log.info(
@@ -301,6 +301,12 @@ def get_data_from_yahoo(
                         ticker,
                         orient))
 
+                num_option_calls = options_dict.get(
+                    'num_calls',
+                    None)
+                num_option_puts = options_dict.get(
+                    'num_puts',
+                    None)
                 rec['options'] = {
                     'exp_date': options_dict.get(
                         'exp_date',
@@ -311,15 +317,11 @@ def get_data_from_yahoo(
                     'puts': options_dict.get(
                         'puts',
                         None),
-                    'num_chains': options_dict.get(
-                        'num_chains',
-                        None)
+                    'num_calls': num_option_calls,
+                    'num_puts': num_option_puts
                 }
-                num_options_chains = options_dict.get(
-                    'num_chains',
-                    None)
             except Exception as f:
-                rec['options'] = '{}'
+                rec['options'] = '[]'
                 log.info(
                     '{} ticker={} failed converting options '
                     'data={} to df ex={}'.format(
@@ -331,11 +333,12 @@ def get_data_from_yahoo(
 
             log.info(
                 '{} ticker={} done converting options to '
-                'df orient={} num_options={}'.format(
+                'df orient={} num_calls={} num_puts={}'.format(
                     label,
                     ticker,
                     orient,
-                    num_options_chains))
+                    num_option_calls,
+                    num_option_puts))
 
         else:
             log.info(
@@ -346,11 +349,12 @@ def get_data_from_yahoo(
 
         log.info(
             '{} yahoo pricing for ticker={} close={} '
-            'options={} news={}'.format(
+            'num_calls={} num_puts={} news={}'.format(
                 label,
                 ticker,
                 cur_close,
-                num_options_chains,
+                num_option_calls,
+                num_option_puts,
                 num_news_rec))
 
         fields_to_upload = [
@@ -364,7 +368,7 @@ def get_data_from_yahoo(
             upload_and_cache_req['celery_disabled'] = True
             upload_and_cache_req['data'] = rec[field_name]
             if not upload_and_cache_req['data']:
-                upload_and_cache_req['data'] = '{}'
+                upload_and_cache_req['data'] = '[]'
 
             if 'redis_key' in work_dict:
                 upload_and_cache_req['redis_key'] = '{}_{}'.format(
