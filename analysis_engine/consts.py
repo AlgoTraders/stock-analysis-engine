@@ -174,6 +174,7 @@ NOT_RUN = 4
 INVALID = 5
 NOT_DONE = 6
 NOT_SET = 7
+EMPTY = 8
 
 SA_MODE_PREPARE = 100
 SA_MODE_ANALYZE = 101
@@ -387,6 +388,8 @@ def get_status(
         return 'NOT_DONE'
     elif status == NOT_SET:
         return 'NOT_SET'
+    elif status == EMPTY:
+        return 'EMPTY'
     elif status == SA_MODE_PREPARE:
         return 'SA_MODE_PREPARE'
     elif status == SA_MODE_ANALYZE:

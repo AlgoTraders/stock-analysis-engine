@@ -22,6 +22,10 @@ from analysis_engine.yahoo.extract_df_from_redis \
     import extract_option_calls_dataset
 from analysis_engine.yahoo.extract_df_from_redis \
     import extract_option_puts_dataset
+from spylunking.log.setup_logging import build_colorized_logger
+
+log = build_colorized_logger(
+    name=__name__)
 
 
 def mock_extract_pricing_from_redis_success(
@@ -277,6 +281,54 @@ class TestYahooDatasetExtraction(BaseTestCase):
         print('-----------------------------------')
     # end of debug_df
 
+    def test_integration_extract_pricing(self):
+        """test_integration_extract_pricing"""
+        if ev('INT_TESTS', '0') == '0':
+            return
+
+        # store data
+        work = get_ds_dict(
+            ticker='NFLX',
+            label='test_integration_extract_pricing')
+
+        status, df = extract_pricing_dataset(
+            work_dict=work)
+        if status == SUCCESS:
+            self.assertIsNotNone(
+                df)
+            self.debug_df(df=df)
+        else:
+            log.critical(
+                'Yahoo Option Puts are missing in redis '
+                'for ticker={} status={}'.format(
+                    work['ticker'],
+                    get_status(status=status)))
+    # end of test_integration_extract_pricing
+
+    def test_integration_extract_yahoo_news(self):
+        """test_integration_extract_yahoo_news"""
+        if ev('INT_TESTS', '0') == '0':
+            return
+
+        # store data
+        work = get_ds_dict(
+            ticker='NFLX',
+            label='test_integration_extract_news')
+
+        status, df = extract_yahoo_news_dataset(
+            work_dict=work)
+        if status == SUCCESS:
+            self.assertIsNotNone(
+                df)
+            self.debug_df(df=df)
+        else:
+            log.critical(
+                'Yahoo Option Puts are missing in redis '
+                'for ticker={} status={}'.format(
+                    work['ticker'],
+                    get_status(status=status)))
+    # end of test_integration_extract_yahoo_news
+
     def test_integration_extract_option_calls(self):
         """test_integration_extract_option_calls"""
         if ev('INT_TESTS', '0') == '0':
@@ -284,14 +336,21 @@ class TestYahooDatasetExtraction(BaseTestCase):
 
         # store data
         work = get_ds_dict(
-            ticker=self.ticker,
+            ticker='NFLX',
             label='test_integration_extract_option_calls')
 
         status, df = extract_option_calls_dataset(
             work_dict=work)
-        self.assertIsNotNone(
-            df)
-        self.debug_df(df=df)
+        if status == SUCCESS:
+            self.assertIsNotNone(
+                df)
+            self.debug_df(df=df)
+        else:
+            log.critical(
+                'Yahoo Option Calls are missing in redis '
+                'for ticker={} status={}'.format(
+                    work['ticker'],
+                    get_status(status=status)))
     # end of test_integration_extract_option_calls
 
     def test_integration_extract_option_puts(self):
@@ -301,14 +360,21 @@ class TestYahooDatasetExtraction(BaseTestCase):
 
         # store data
         work = get_ds_dict(
-            ticker=self.ticker,
+            ticker='NFLX',
             label='test_integration_extract_option_puts')
 
         status, df = extract_option_puts_dataset(
             work_dict=work)
-        self.assertIsNotNone(
-            df)
-        self.debug_df(df=df)
+        if status == SUCCESS:
+            self.assertIsNotNone(
+                df)
+            self.debug_df(df=df)
+        else:
+            log.critical(
+                'Yahoo Option Puts are missing in redis '
+                'for ticker={} status={}'.format(
+                    work['ticker'],
+                    get_status(status=status)))
     # end of test_integration_extract_option_puts
 
 # end of TestYahooDatasetExtraction

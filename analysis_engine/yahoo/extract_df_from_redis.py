@@ -24,6 +24,7 @@ from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.consts import SUCCESS
 from analysis_engine.consts import ERR
 from analysis_engine.consts import NOT_RUN
+from analysis_engine.consts import EMPTY
 from analysis_engine.consts import get_status
 from analysis_engine.consts import REDIS_ADDRESS
 from analysis_engine.consts import REDIS_DB
@@ -107,9 +108,19 @@ def extract_pricing_dataset(
                 '{} - {} redis convert pricing to df'.format(
                     label,
                     df_str))
-            df = pd.DataFrame(
-                cached_dict,
-                index=[0])
+            try:
+                df = pd.DataFrame(
+                    cached_dict,
+                    index=[0])
+            except Exception as f:
+                log.info(
+                    '{} - {} redis_key={} '
+                    'no pricing df found'.format(
+                        label,
+                        df_str,
+                        redis_key))
+                return EMPTY, None
+            # end of try/ex to convert to df
             log.info(
                 '{} - {} redis_key={} done convert pricing to df'.format(
                     label,
@@ -125,7 +136,6 @@ def extract_pricing_dataset(
                     get_status(status=status)))
 
     except Exception as e:
-        status = ERR
         log.error(
             '{} - {} - ds_id={} failed getting pricing from '
             'redis={}:{}@{} key={} ex={}'.format(
@@ -137,7 +147,7 @@ def extract_pricing_dataset(
                 redis_db,
                 redis_key,
                 e))
-        return status, None
+        return ERR, None
     # end of try/ex extract from redis
 
     log.info(
@@ -228,8 +238,18 @@ def extract_yahoo_news_dataset(
                 '{} - {} redis convert news to df'.format(
                     label,
                     df_str))
-            df = pd.DataFrame(
-                cached_dict)
+            try:
+                df = pd.DataFrame(
+                    cached_dict)
+            except Exception as f:
+                log.info(
+                    '{} - {} redis_key={} '
+                    'no news df found'.format(
+                        label,
+                        df_str,
+                        redis_key))
+                return EMPTY, None
+            # end of try/ex to convert to df
             log.info(
                 '{} - {} redis_key={} done convert news to df'.format(
                     label,
@@ -245,7 +265,6 @@ def extract_yahoo_news_dataset(
                     get_status(status=status)))
 
     except Exception as e:
-        status = ERR
         log.error(
             '{} - {} - ds_id={} failed getting news calls from '
             'redis={}:{}@{} key={} ex={}'.format(
@@ -257,7 +276,7 @@ def extract_yahoo_news_dataset(
                 redis_db,
                 redis_key,
                 e))
-        return status, None
+        return ERR, None
     # end of try/ex extract from redis
 
     log.info(
@@ -350,9 +369,19 @@ def extract_option_calls_dataset(
                 '{} - {} redis convert calls to df'.format(
                     label,
                     df_str))
-            calls_df = pd.read_json(
-                calls_json,
-                orient='records')
+            try:
+                calls_df = pd.read_json(
+                    calls_json,
+                    orient='records')
+            except Exception as f:
+                log.info(
+                    '{} - {} redis_key={} '
+                    'no calls df found'.format(
+                        label,
+                        df_str,
+                        redis_key))
+                return EMPTY, None
+            # end of try/ex to convert to df
             log.info(
                 '{} - {} redis_key={} calls={} exp_date={}'.format(
                     label,
@@ -370,7 +399,6 @@ def extract_option_calls_dataset(
                     get_status(status=status)))
 
     except Exception as e:
-        status = ERR
         log.error(
             '{} - {} - ds_id={} failed getting option calls from '
             'redis={}:{}@{} key={} ex={}'.format(
@@ -382,7 +410,7 @@ def extract_option_calls_dataset(
                 redis_db,
                 redis_key,
                 e))
-        return status, None
+        return ERR, None
     # end of try/ex extract from redis
 
     log.info(
@@ -475,9 +503,19 @@ def extract_option_puts_dataset(
                 '{} - {} redis convert puts to df'.format(
                     label,
                     df_str))
-            puts_df = pd.read_json(
-                puts_json,
-                orient='records')
+            try:
+                puts_df = pd.read_json(
+                    puts_json,
+                    orient='records')
+            except Exception as f:
+                log.info(
+                    '{} - {} redis_key={} '
+                    'no puts df found'.format(
+                        label,
+                        df_str,
+                        redis_key))
+                return EMPTY, None
+            # end of try/ex to convert to df
             log.info(
                 '{} - {} redis_key={} puts={} exp_date={}'.format(
                     label,
@@ -495,7 +533,6 @@ def extract_option_puts_dataset(
                     get_status(status=status)))
 
     except Exception as e:
-        status = ERR
         log.error(
             '{} - {} - ds_id={} failed getting option puts from '
             'redis={}:{}@{} key={} ex={}'.format(
@@ -507,7 +544,7 @@ def extract_option_puts_dataset(
                 redis_db,
                 redis_key,
                 e))
-        return status, None
+        return ERR, None
     # end of try/ex extract from redis
 
     log.info(

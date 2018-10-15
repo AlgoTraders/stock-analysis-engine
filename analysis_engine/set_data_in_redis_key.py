@@ -9,6 +9,7 @@ Debug redis calls with:
 
 """
 import json
+import redis
 import analysis_engine.build_result as build_result
 from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.consts import SUCCESS
@@ -99,12 +100,29 @@ def set_data_in_redis_key(
                         log_id,
                         key,
                         encoded_data))
+
+            use_client = client
+            if not use_client:
+                log.info(
+                    '{} set key={} new client={}:{}@{}'.format(
+                        log_id,
+                        key,
+                        host,
+                        port,
+                        db))
+                use_client = redis.Redis(
+                    host=host,
+                    port=port,
+                    password=password,
+                    db=db)
             else:
                 log.info(
-                    '{} set - key={}'.format(
+                    '{} set key={} client'.format(
                         log_id,
                         key))
-            client.set(
+            # create Redis client if not set
+
+            use_client.set(
                 name=key,
                 value=encoded_data,
                 ex=expire,

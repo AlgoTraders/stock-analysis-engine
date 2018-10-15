@@ -8,7 +8,9 @@ Debug redis calls with:
     export DEBUG_REDIS=1
 
 """
+
 import json
+import redis
 import analysis_engine.build_result as build_result
 from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.consts import SUCCESS
@@ -61,13 +63,30 @@ def get_data_from_redis_key(
     log_id = label if label else 'get-data'
 
     try:
-        log.info(
-            '{} get key={}'.format(
-                log_id,
-                key))
+
+        use_client = client
+        if not use_client:
+            log.info(
+                '{} get key={} new client={}:{}@{}'.format(
+                    log_id,
+                    key,
+                    host,
+                    port,
+                    db))
+            use_client = redis.Redis(
+                host=host,
+                port=port,
+                password=password,
+                db=db)
+        else:
+            log.info(
+                '{} get key={} client'.format(
+                    log_id,
+                    key))
+        # create Redis client if not set
 
         # https://redis-py.readthedocs.io/en/latest/index.html#redis.StrictRedis.get  # noqa
-        raw_data = client.get(
+        raw_data = use_client.get(
             name=key)
 
         if raw_data:
