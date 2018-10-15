@@ -4,7 +4,6 @@ Parse data from yahoo
 
 import copy
 import datetime
-import pandas as pd
 import pinance
 import analysis_engine.options_dates
 import analysis_engine.get_pricing
@@ -164,12 +163,9 @@ def get_data_from_yahoo(
                         orient))
 
                 try:
-                    pricing_df = pd.DataFrame.from_dict(
-                        pricing_dict,
-                        orient='index')
-                    rec['pricing'] = pricing_df.to_json()
+                    rec['pricing'] = pricing_dict
                 except Exception as f:
-                    rec['pricing'] = '[]'
+                    rec['pricing'] = '{}'
                     log.info(
                         '{} ticker={} failed converting pricing '
                         'data={} to df ex={}'.format(
@@ -227,12 +223,9 @@ def get_data_from_yahoo(
 
                     num_news_rec = len(news_list)
 
-                    news_df = pd.DataFrame(
-                        news_list)
-                    rec['news'] = news_df.to_json(
-                            orient=orient)
+                    rec['news'] = news_list
                 except Exception as f:
-                    rec['news'] = '[]'
+                    rec['news'] = '{}'
                     log.info(
                         '{} ticker={} failed converting news '
                         'data={} to df ex={}'.format(
@@ -291,7 +284,7 @@ def get_data_from_yahoo(
                     contract_type=contract_type,
                     strike=cur_strike)
 
-            rec['options'] = '[]'
+            rec['options'] = '{}'
 
             try:
                 log.info(
@@ -321,7 +314,7 @@ def get_data_from_yahoo(
                     'num_puts': num_option_puts
                 }
             except Exception as f:
-                rec['options'] = '[]'
+                rec['options'] = '{}'
                 log.info(
                     '{} ticker={} failed converting options '
                     'data={} to df ex={}'.format(
@@ -368,7 +361,7 @@ def get_data_from_yahoo(
             upload_and_cache_req['celery_disabled'] = True
             upload_and_cache_req['data'] = rec[field_name]
             if not upload_and_cache_req['data']:
-                upload_and_cache_req['data'] = '[]'
+                upload_and_cache_req['data'] = '{}'
 
             if 'redis_key' in work_dict:
                 upload_and_cache_req['redis_key'] = '{}_{}'.format(

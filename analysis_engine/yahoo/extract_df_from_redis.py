@@ -17,9 +17,7 @@ Supported environment variables:
 
 """
 
-import copy
 import pandas as pd
-import analysis_engine.extract_utils as extract_utils
 import analysis_engine.dataset_scrub_utils as scrub_utils
 import analysis_engine.get_data_from_redis_key as redis_get
 from spylunking.log.setup_logging import build_colorized_logger
@@ -50,27 +48,116 @@ def extract_pricing_dataset(
     :param scrub_mode: type of scrubbing handler to run
     """
     label = work_dict.get('label', 'extract')
+    ds_id = work_dict.get('ticker')
     df_type = DATAFEED_PRICING_YAHOO
     df_str = get_datafeed_str_yahoo(df_type=df_type)
-    req = copy.deepcopy(work_dict)
-
-    if 'redis_key' not in work_dict:
-        # see if it's get dataset dictionary
-        if 'pricing' in req:
-            req['redis_key'] = req['pricing']
-            req['s3_key'] = req['pricing']
-    # end of support for the get dataset dictionary
+    redis_key = work_dict.get(
+        'redis_key',
+        work_dict.get('pricing', 'missing-redis-key'))
+    s3_key = work_dict.get(
+        's3_key',
+        work_dict.get('pricing', 'missing-s3-key'))
+    redis_host = work_dict.get(
+        'redis_host',
+        None)
+    redis_port = work_dict.get(
+        'redis_port',
+        None)
+    redis_db = work_dict.get(
+        'redis_db',
+        REDIS_DB)
 
     log.info(
-        '{} - {} - start'.format(
+        '{} - {} - start - redis_key={} s3_key={}'.format(
             label,
-            df_str))
+            df_str,
+            redis_key,
+            s3_key))
 
-    return extract_utils.perform_extract(
-        df_type=df_type,
-        df_str=df_str,
-        work_dict=req,
-        scrub_mode=scrub_mode)
+    if not redis_host and not redis_port:
+        redis_host = REDIS_ADDRESS.split(':')[0]
+        redis_port = REDIS_ADDRESS.split(':')[1]
+
+    df = None
+    status = NOT_RUN
+    try:
+        redis_rec = redis_get.get_data_from_redis_key(
+            label=label,
+            host=redis_host,
+            port=redis_port,
+            db=redis_db,
+            password=work_dict.get('password', None),
+            key=redis_key)
+
+        status = redis_rec['status']
+        log.info(
+            '{} - {} redis get data key={} status={}'.format(
+                label,
+                df_str,
+                redis_key,
+                get_status(status=status)))
+
+        if status == SUCCESS:
+            log.info(
+                '{} - {} redis convert pricing to json'.format(
+                    label,
+                    df_str))
+            cached_dict = redis_rec['rec']['data']
+            log.info(
+                '{} - {} redis convert pricing to df'.format(
+                    label,
+                    df_str))
+            df = pd.DataFrame(
+                cached_dict,
+                index=[0])
+            log.info(
+                '{} - {} redis_key={} done convert pricing to df'.format(
+                    label,
+                    df_str,
+                    redis_key))
+        else:
+            log.info(
+                '{} - {} did not find valid redis pricing '
+                'in redis_key={} status={}'.format(
+                    label,
+                    df_str,
+                    redis_key,
+                    get_status(status=status)))
+
+    except Exception as e:
+        status = ERR
+        log.error(
+            '{} - {} - ds_id={} failed getting pricing from '
+            'redis={}:{}@{} key={} ex={}'.format(
+                label,
+                df_str,
+                ds_id,
+                redis_host,
+                redis_port,
+                redis_db,
+                redis_key,
+                e))
+        return status, None
+    # end of try/ex extract from redis
+
+    log.info(
+        '{} - {} ds_id={} extract scrub={}'.format(
+            label,
+            df_str,
+            ds_id,
+            scrub_mode))
+
+    scrubbed_df = scrub_utils.extract_scrub_dataset(
+        label=label,
+        scrub_mode=scrub_mode,
+        datafeed_type=df_type,
+        msg_format='df={} date_str={}',
+        ds_id=ds_id,
+        df=df)
+
+    status = SUCCESS
+
+    return status, scrubbed_df
 # end of extract_pricing_dataset
 
 
@@ -86,27 +173,111 @@ def extract_yahoo_news_dataset(
     :param scrub_mode: type of scrubbing handler to run
     """
     label = work_dict.get('label', 'extract')
+    ds_id = work_dict.get('ticker')
     df_type = DATAFEED_NEWS_YAHOO
     df_str = get_datafeed_str_yahoo(df_type=df_type)
-    req = copy.deepcopy(work_dict)
-
-    if 'redis_key' not in work_dict:
-        # see if it's get dataset dictionary
-        if 'news' in work_dict:
-            req['redis_key'] = req['news']
-            req['s3_key'] = req['news']
-    # end of support for the get dataset dictionary
+    redis_key = work_dict.get(
+        'redis_key',
+        work_dict.get('news', 'missing-redis-key'))
+    s3_key = work_dict.get(
+        's3_key',
+        work_dict.get('news', 'missing-s3-key'))
+    redis_host = work_dict.get(
+        'redis_host',
+        None)
+    redis_port = work_dict.get(
+        'redis_port',
+        None)
+    redis_db = work_dict.get(
+        'redis_db',
+        REDIS_DB)
 
     log.info(
-        '{} - {} - start'.format(
+        '{} - {} - start - redis_key={} s3_key={}'.format(
             label,
-            df_str))
+            df_str,
+            redis_key,
+            s3_key))
 
-    return extract_utils.perform_extract(
-        df_type=df_type,
-        df_str=df_str,
-        work_dict=req,
-        scrub_mode=scrub_mode)
+    if not redis_host and not redis_port:
+        redis_host = REDIS_ADDRESS.split(':')[0]
+        redis_port = REDIS_ADDRESS.split(':')[1]
+
+    df = None
+    status = NOT_RUN
+    try:
+        redis_rec = redis_get.get_data_from_redis_key(
+            label=label,
+            host=redis_host,
+            port=redis_port,
+            db=redis_db,
+            password=work_dict.get('password', None),
+            key=redis_key)
+
+        status = redis_rec['status']
+        log.info(
+            '{} - {} redis get data key={} status={}'.format(
+                label,
+                df_str,
+                redis_key,
+                get_status(status=status)))
+
+        if status == SUCCESS:
+            cached_dict = redis_rec['rec']['data']
+            log.info(
+                '{} - {} redis convert news to df'.format(
+                    label,
+                    df_str))
+            df = pd.DataFrame(
+                cached_dict)
+            log.info(
+                '{} - {} redis_key={} done convert news to df'.format(
+                    label,
+                    df_str,
+                    redis_key))
+        else:
+            log.info(
+                '{} - {} did not find valid redis news calls '
+                'in redis_key={} status={}'.format(
+                    label,
+                    df_str,
+                    redis_key,
+                    get_status(status=status)))
+
+    except Exception as e:
+        status = ERR
+        log.error(
+            '{} - {} - ds_id={} failed getting news calls from '
+            'redis={}:{}@{} key={} ex={}'.format(
+                label,
+                df_str,
+                ds_id,
+                redis_host,
+                redis_port,
+                redis_db,
+                redis_key,
+                e))
+        return status, None
+    # end of try/ex extract from redis
+
+    log.info(
+        '{} - {} ds_id={} extract scrub={}'.format(
+            label,
+            df_str,
+            ds_id,
+            scrub_mode))
+
+    scrubbed_df = scrub_utils.extract_scrub_dataset(
+        label=label,
+        scrub_mode=scrub_mode,
+        datafeed_type=df_type,
+        msg_format='df={} date_str={}',
+        ds_id=ds_id,
+        df=df)
+
+    status = SUCCESS
+
+    return status, scrubbed_df
 # end of extract_yahoo_news_dataset
 
 

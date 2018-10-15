@@ -4,7 +4,6 @@ Yahoo Extract Data
 """
 
 import mock
-import json
 from analysis_engine.mocks.base_test import BaseTestCase
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import SUCCESS
@@ -51,7 +50,7 @@ def mock_extract_pricing_from_redis_success(
                 db,
                 key)))
     rec = {
-        'data': json.loads(sample_record['pricing'])
+        'data': sample_record['pricing']
     }
     res = build_result(
         status=SUCCESS,
@@ -87,7 +86,7 @@ def mock_extract_news_from_redis_success(
                 db,
                 key)))
     rec = {
-        'data': json.loads(sample_record['news'])
+        'data': sample_record['news']
     }
     res = build_result(
         status=SUCCESS,
@@ -149,7 +148,6 @@ class TestYahooDatasetExtraction(BaseTestCase):
         new=mock_extract_pricing_from_redis_success)
     def test_extract_pricing_success(self):
         """test_extract_pricing_success"""
-        return
         test_name = 'test_extract_pricing_dataset_success'
         work = get_ds_dict(
             ticker=self.ticker,
@@ -176,7 +174,6 @@ class TestYahooDatasetExtraction(BaseTestCase):
         new=mock_extract_news_from_redis_success)
     def test_extract_news_success(self):
         """test_extract_news_success"""
-        return
         test_name = 'test_extract_news_success'
         work = get_ds_dict(
             ticker=self.ticker,
@@ -190,10 +187,13 @@ class TestYahooDatasetExtraction(BaseTestCase):
             get_status(status=status),
             'SUCCESS')
         self.assertTrue(
-            len(df.index) == 1)
+            len(df.index) == 2)
         self.assertEqual(
-            df['strike'][0],
-            380)
+            df['u'][1],
+            'http://finance.yahoo.com/news/url2')
+        self.assertEqual(
+            df['tt'][1],
+            '1493311950')
     # end of test_extract_news_success
 
     @mock.patch(
@@ -287,11 +287,11 @@ class TestYahooDatasetExtraction(BaseTestCase):
             ticker=self.ticker,
             label='test_integration_extract_option_calls')
 
-        res = extract_option_calls_dataset(
+        status, df = extract_option_calls_dataset(
             work_dict=work)
         self.assertIsNotNone(
-            res)
-        self.debug_df(df=res)
+            df)
+        self.debug_df(df=df)
     # end of test_integration_extract_option_calls
 
     def test_integration_extract_option_puts(self):
@@ -304,11 +304,11 @@ class TestYahooDatasetExtraction(BaseTestCase):
             ticker=self.ticker,
             label='test_integration_extract_option_puts')
 
-        res = extract_option_puts_dataset(
+        status, df = extract_option_puts_dataset(
             work_dict=work)
         self.assertIsNotNone(
-            res)
-        self.debug_df(df=res)
+            df)
+        self.debug_df(df=df)
     # end of test_integration_extract_option_puts
 
 # end of TestYahooDatasetExtraction

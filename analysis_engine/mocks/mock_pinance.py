@@ -3,7 +3,6 @@ Mock Pinance Object for unittests
 """
 
 import os
-import json
 from analysis_engine.api_requests \
     import build_cache_ready_pricing_dataset
 
@@ -46,15 +45,9 @@ class MockPinance:
         mock_cache_data = build_cache_ready_pricing_dataset(
             label='ticker')
         self.symbol = symbol
-        self.quotes_data = json.loads(mock_cache_data['pricing'])
-        self.news_data = json.loads(mock_cache_data['news'])
-        self.options_data = {
-            'exp_date': mock_cache_data['options']['exp_date'],
-            'calls': json.loads(mock_cache_data['options']['calls']),
-            'puts': json.loads(mock_cache_data['options']['puts'])
-        }
-        self.options_data['num_calls'] = len(self.options_data['calls'])
-        self.options_data['num_puts'] = len(self.options_data['puts'])
+        self.quotes_data = mock_cache_data['pricing']
+        self.news_data = mock_cache_data['news']
+        self.options_data = mock_cache_data['options']
     # end of __init__
 
     def get_quotes(
