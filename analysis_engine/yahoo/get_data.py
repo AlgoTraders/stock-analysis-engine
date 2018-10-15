@@ -4,7 +4,6 @@ Parse data from yahoo
 
 import copy
 import datetime
-import pandas as pd
 import pinance
 import analysis_engine.options_dates
 import analysis_engine.get_pricing
@@ -43,7 +42,8 @@ def get_data_from_yahoo(
             work_dict))
 
     num_news_rec = 0
-    num_options_chains = 0
+    num_option_calls = 0
+    num_option_puts = 0
     cur_high = -1
     cur_low = -1
     cur_open = -1
@@ -114,7 +114,6 @@ def get_data_from_yahoo(
         get_options = False
 
         """
-
         if get_pricing:
             log.info(
                 '{} getting ticker={} pricing'.format(
@@ -164,11 +163,7 @@ def get_data_from_yahoo(
                         orient))
 
                 try:
-                    pricing_df = pd.DataFrame.from_dict(
-                        pricing_dict,
-                        orient='index')
-                    rec['pricing'] = pricing_df.to_json(
-                            orient=orient)
+                    rec['pricing'] = pricing_dict
                 except Exception as f:
                     rec['pricing'] = '{}'
                     log.info(
@@ -227,17 +222,8 @@ def get_data_from_yahoo(
                             orient))
 
                     num_news_rec = len(news_list)
-                    log.info(
-                        '{} ticker={} converting options to '
-                        'df orient={}'.format(
-                            label,
-                            ticker,
-                            orient))
 
-                    news_df = pd.DataFrame(
-                        news_list)
-                    rec['news'] = news_df.to_json(
-                            orient=orient)
+                    rec['news'] = news_list
                 except Exception as f:
                     rec['news'] = '{}'
                     log.info(
@@ -308,6 +294,12 @@ def get_data_from_yahoo(
                         ticker,
                         orient))
 
+                num_option_calls = options_dict.get(
+                    'num_calls',
+                    None)
+                num_option_puts = options_dict.get(
+                    'num_puts',
+                    None)
                 rec['options'] = {
                     'exp_date': options_dict.get(
                         'exp_date',
@@ -318,13 +310,9 @@ def get_data_from_yahoo(
                     'puts': options_dict.get(
                         'puts',
                         None),
-                    'num_chains': options_dict.get(
-                        'num_chains',
-                        None)
+                    'num_calls': num_option_calls,
+                    'num_puts': num_option_puts
                 }
-                num_options_chains = options_dict.get(
-                    'num_chains',
-                    None)
             except Exception as f:
                 rec['options'] = '{}'
                 log.info(
@@ -338,11 +326,12 @@ def get_data_from_yahoo(
 
             log.info(
                 '{} ticker={} done converting options to '
-                'df orient={} num_options={}'.format(
+                'df orient={} num_calls={} num_puts={}'.format(
                     label,
                     ticker,
                     orient,
-                    num_options_chains))
+                    num_option_calls,
+                    num_option_puts))
 
         else:
             log.info(
@@ -353,11 +342,12 @@ def get_data_from_yahoo(
 
         log.info(
             '{} yahoo pricing for ticker={} close={} '
-            'options={} news={}'.format(
+            'num_calls={} num_puts={} news={}'.format(
                 label,
                 ticker,
                 cur_close,
-                num_options_chains,
+                num_option_calls,
+                num_option_puts,
                 num_news_rec))
 
         fields_to_upload = [

@@ -695,6 +695,34 @@ IEX Test - Fetch Financials Helper
 
     python -m unittest tests.test_iex_fetch_data.TestIEXFetchData.test_integration_get_financials_helper
 
+Yahoo Test - Extract Pricing
+----------------------------
+
+::
+
+    python -m unittest tests.test_yahoo_dataset_extraction.TestYahooDatasetExtraction.test_integration_extract_pricing
+
+Yahoo Test - Extract News
+-------------------------
+
+::
+
+    python -m unittest tests.test_yahoo_dataset_extraction.TestYahooDatasetExtraction.test_integration_extract_yahoo_news
+
+Yahoo Test - Extract Option Calls
+---------------------------------
+
+::
+
+    python -m unittest tests.test_yahoo_dataset_extraction.TestYahooDatasetExtraction.test_integration_extract_option_calls
+
+Yahoo Test - Extract Option Puts
+--------------------------------
+
+::
+
+    python -m unittest tests.test_yahoo_dataset_extraction.TestYahooDatasetExtraction.test_integration_extract_option_puts
+
 Prepare a Dataset
 =================
 
@@ -801,4 +829,3 @@ If you redistribute our API data:
 - Cite IEX using the following text and link: "Data provided for free by IEX."
 - Provide a link to https://iextrading.com/api-exhibit-a in your terms of service.
 - Additionally, if you display our TOPS price data, cite "IEX Real-Time Price" near the price.
-

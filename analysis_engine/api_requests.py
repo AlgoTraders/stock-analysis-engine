@@ -10,6 +10,8 @@ Task supports:
 
 import datetime
 import analysis_engine.iex.utils as iex_utils
+import pandas as pd
+from functools import lru_cache
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import TICKER_ID
 from analysis_engine.consts import COMMON_DATE_FORMAT
@@ -170,6 +172,7 @@ def build_get_new_pricing_request(
 # end of build_get_new_pricing_request
 
 
+@lru_cache(1)
 def build_cache_ready_pricing_dataset(
         label=None):
     """build_cache_ready_pricing_dataset
@@ -179,116 +182,145 @@ def build_cache_ready_pricing_dataset(
 
     :param label: log label to use
     """
-    calls_df_as_json = (
-        '[{\"ask\":106.0,\"bid\":105.36,\"change\":4.0899963,\"contractSi'
-        'ze\":\"REGULAR\",\"contractSymbol\":\"SPY181019P00380000\",\"cur'
-        'rency\":\"USD\",\"expiration\":1539907200,\"impliedVolatility\":'
-        '1.5991230981,\"inTheMoney\":true,\"lastPrice\":91.82,\"lastTrade'
-        'Date\":1539027901,\"openInterest\":0,\"percentChange\":4.4543633'
-        ',\"strike\":380.0,\"volume\":37}]')
-    puts_df_as_json = (
-        '[{\"ask\":106.0,\"bid\":105.36,\"change\":4.0899963,\"contractSi'
-        'ze\":\"REGULAR\",\"contractSymbol\":\"SPY181019P00380000\",\"cur'
-        'rency\":\"USD\",\"expiration\":1539907200,\"impliedVolatility\":'
-        '1.5991230981,\"inTheMoney\":true,\"lastPrice\":91.82,\"lastTrade'
-        'Date\":1539027901,\"openInterest\":0,\"percentChange\":4.4543633'
-        ',\"strike\":380.0,\"volume\":37}]')
-    cache_data = {
-        "news": [
-            {
-                "d": "16 hours ago",
-                "s": "Yahoo Finance",
-                "sp": "Some Title 1",
-                "sru": "http://news.google.com/news/url?values",
-                "t": "Some Title 1",
-                "tt": "1493311950",
-                "u": "http://finance.yahoo.com/news/url1",
-                "usg": "ke1"
-            },
-            {
-                "d": "18 hours ago",
-                "s": "Yahoo Finance",
-                "sp": "Some Title 2",
-                "sru": "http://news.google.com/news/url?values",
-                "t": "Some Title 2",
-                "tt": "1493311950",
-                "u": "http://finance.yahoo.com/news/url2",
-                "usg": "key2"
-            }
-        ],
-        "options": {
-            'exp_date': '2018-10-19',
-            'calls': calls_df_as_json,
-            'puts': puts_df_as_json,
-            'num_chains': 1
+
+    pricing_dict = {
+        'ask': 0.0,
+        'askSize': 8,
+        'averageDailyVolume10Day': 67116380,
+        'averageDailyVolume3Month': 64572187,
+        'bid': 0.0,
+        'bidSize': 10,
+        'close': 287.6,
+        'currency': 'USD',
+        'esgPopulated': False,
+        'exchange': 'PCX',
+        'exchangeDataDelayedBy': 0,
+        'exchangeTimezoneName': 'America/New_York',
+        'exchangeTimezoneShortName': 'EDT',
+        'fiftyDayAverage': 285.21735,
+        'fiftyDayAverageChange': 2.8726501,
+        'fiftyDayAverageChangePercent': 0.010071794,
+        'fiftyTwoWeekHigh': 291.74,
+        'fiftyTwoWeekHighChange': -3.649994,
+        'fiftyTwoWeekHighChangePercent': -0.012511119,
+        'fiftyTwoWeekLow': 248.02,
+        'fiftyTwoWeekLowChange': 40.069992,
+        'fiftyTwoWeekLowChangePercent': 0.16155952,
+        'fiftyTwoWeekRange': '248.02 - 291.74',
+        'financialCurrency': 'USD',
+        'fullExchangeName': 'NYSEArca',
+        'gmtOffSetMilliseconds': -14400000,
+        'high': 289.03,
+        'language': 'en-US',
+        'longName': 'SPDR S&amp;P 500 ETF',
+        'low': 287.88,
+        'market': 'us_market',
+        'marketCap': 272023797760,
+        'marketState': 'POSTPOST',
+        'messageBoardId': 'finmb_6160262',
+        'open': 288.74,
+        'postMarketChange': 0.19998169,
+        'postMarketChangePercent': 0.06941398,
+        'postMarketPrice': 288.3,
+        'postMarketTime': 1536623987,
+        'priceHint': 2,
+        'quoteSourceName': 'Delayed Quote',
+        'quoteType': 'ETF',
+        'region': 'US',
+        'regularMarketChange': 0.48999023,
+        'regularMarketChangePercent': 0.17037213,
+        'regularMarketDayHigh': 289.03,
+        'regularMarketDayLow': 287.88,
+        'regularMarketDayRange': '287.88 - 289.03',
+        'regularMarketOpen': 288.74,
+        'regularMarketPreviousClose': 287.6,
+        'regularMarketPrice': 288.09,
+        'regularMarketTime': 1536609602,
+        'regularMarketVolume': 50210903,
+        'sharesOutstanding': 944232000,
+        'shortName': 'SPDR S&P 500',
+        'sourceInterval': 15,
+        'symbol': 'SPY',
+        'tradeable': True,
+        'trailingThreeMonthNavReturns': 7.71,
+        'trailingThreeMonthReturns': 7.63,
+        'twoHundredDayAverage': 274.66153,
+        'twoHundredDayAverageChange': 13.428467,
+        'twoHundredDayAverageChangePercent': 0.048890963,
+        'volume': 50210903,
+        'ytdReturn': 9.84
+    }
+    calls_df_as_json = pd.DataFrame([{
+        'ask': 106,
+        'bid': 105.36,
+        'change': 4.0899963,
+        'contractSize': 'REGULAR',
+        'contractSymbol': 'SPY181019P00380000',
+        'currency': 'USD',
+        'expiration': 1539907200,
+        'impliedVolatility': 1.5991230981,
+        'inTheMoney': True,
+        'lastPrice': 91.82,
+        'lastTradeDate': 1539027901,
+        'openInterest': 0,
+        'percentChange': 4.4543633,
+        'strike': 380,
+        'volume': 37
+    }]).to_json(
+        orient='records')
+    puts_df_as_json = pd.DataFrame([{
+        'ask': 106,
+        'bid': 105.36,
+        'change': 4.0899963,
+        'contractSize': 'REGULAR',
+        'contractSymbol': 'SPY181019P00380000',
+        'currency': 'USD',
+        'expiration': 1539907200,
+        'impliedVolatility': 1.5991230981,
+        'inTheMoney': True,
+        'lastPrice': 91.82,
+        'lastTradeDate': 1539027901,
+        'openInterest': 0,
+        'percentChange': 4.4543633,
+        'strike': 380,
+        'volume': 37
+    }]).to_json(
+        orient='records')
+    news_list = [
+        {
+            'd': '16 hours ago',
+            's': 'Yahoo Finance',
+            'sp': 'Some Title 1',
+            'sru': 'http://news.google.com/news/url?values',
+            't': 'Some Title 1',
+            'tt': '1493311950',
+            'u': 'http://finance.yahoo.com/news/url1',
+            'usg': 'ke1'
         },
-        "pricing": {
-            "ask": 0.0,
-            "askSize": 8,
-            "averageDailyVolume10Day": 67116380,
-            "averageDailyVolume3Month": 64572187,
-            "bid": 0.0,
-            "bidSize": 10,
-            "close": 287.6,
-            "currency": "USD",
-            "esgPopulated": False,
-            "exchange": "PCX",
-            "exchangeDataDelayedBy": 0,
-            "exchangeTimezoneName": "America/New_York",
-            "exchangeTimezoneShortName": "EDT",
-            "fiftyDayAverage": 285.21735,
-            "fiftyDayAverageChange": 2.8726501,
-            "fiftyDayAverageChangePercent": 0.010071794,
-            "fiftyTwoWeekHigh": 291.74,
-            "fiftyTwoWeekHighChange": -3.649994,
-            "fiftyTwoWeekHighChangePercent": -0.012511119,
-            "fiftyTwoWeekLow": 248.02,
-            "fiftyTwoWeekLowChange": 40.069992,
-            "fiftyTwoWeekLowChangePercent": 0.16155952,
-            "fiftyTwoWeekRange": "248.02 - 291.74",
-            "financialCurrency": "USD",
-            "fullExchangeName": "NYSEArca",
-            "gmtOffSetMilliseconds": -14400000,
-            "high": 289.03,
-            "language": "en-US",
-            "longName": "SPDR S&amp;P 500 ETF",
-            "low": 287.88,
-            "market": "us_market",
-            "marketCap": 272023797760,
-            "marketState": "POSTPOST",
-            "messageBoardId": "finmb_6160262",
-            "open": 288.74,
-            "postMarketChange": 0.19998169,
-            "postMarketChangePercent": 0.06941398,
-            "postMarketPrice": 288.3,
-            "postMarketTime": 1536623987,
-            "priceHint": 2,
-            "quoteSourceName": "Delayed Quote",
-            "quoteType": "ETF",
-            "region": "US",
-            "regularMarketChange": 0.48999023,
-            "regularMarketChangePercent": 0.17037213,
-            "regularMarketDayHigh": 289.03,
-            "regularMarketDayLow": 287.88,
-            "regularMarketDayRange": "287.88 - 289.03",
-            "regularMarketOpen": 288.74,
-            "regularMarketPreviousClose": 287.6,
-            "regularMarketPrice": 288.09,
-            "regularMarketTime": 1536609602,
-            "regularMarketVolume": 50210903,
-            "sharesOutstanding": 944232000,
-            "shortName": "SPDR S&P 500",
-            "sourceInterval": 15,
-            "symbol": "SPY",
-            "tradeable": True,
-            "trailingThreeMonthNavReturns": 7.71,
-            "trailingThreeMonthReturns": 7.63,
-            "twoHundredDayAverage": 274.66153,
-            "twoHundredDayAverageChange": 13.428467,
-            "twoHundredDayAverageChangePercent": 0.048890963,
-            "volume": 50210903,
-            "ytdReturn": 9.84
+        {
+            'd': '18 hours ago',
+            's': 'Yahoo Finance',
+            'sp': 'Some Title 2',
+            'sru': 'http://news.google.com/news/url?values',
+            't': 'Some Title 2',
+            'tt': '1493311950',
+            'u': 'http://finance.yahoo.com/news/url2',
+            'usg': 'key2'
         }
+    ]
+
+    options_dict = {
+        'exp_date': '2018-10-19',
+        'calls': calls_df_as_json,
+        'puts': puts_df_as_json,
+        'num_calls': 1,
+        'num_puts': 1
+    }
+
+    cache_data = {
+        'news': news_list,
+        'options': options_dict,
+        'pricing': pricing_dict
     }
     return cache_data
 # end of build_cache_ready_pricing_dataset
