@@ -137,3 +137,4 @@ run-s3-test.txt
 compose/docker/notebooks/.ipynb_checkpoints
 compose/docker/notebooks/.gitignore
 compose/envs/*.env
+compose/envs/*.env*
