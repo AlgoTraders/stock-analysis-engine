@@ -35,7 +35,7 @@ Celery Environment Variables
 
     SLACK_WEBHOOK = ev(
         'SLACK_WEBHOOK',
-        '')
+        None)
     SSL_OPTIONS = {}
     TRANSPORT_OPTIONS = {}
     WORKER_BROKER_URL = ev(
