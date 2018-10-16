@@ -62,6 +62,7 @@ do
     elif [[ "${i}" == "-c" ]]; then
         debug="1"
         compose="automation-dataset-collection.yml"
+        ps auwwx | grep $USER | grep python3 | grep start_worker | awk '{print $2}' | xargs kill -9
     fi
 done
 
