@@ -91,7 +91,7 @@ def post(attachment):
                           attachment,
                           SLACK_WEBHOOK))
             r = requests.post(SLACK_WEBHOOK, data=json.dumps(attachment))
-            if str(r.status_code) is "200":
+            if str(r.status_code) == "200":
                 log.info(('Successful post of attachment={} '
                           'to slack_webhook={}').format(
                             attachment,
