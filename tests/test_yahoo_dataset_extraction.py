@@ -299,7 +299,7 @@ class TestYahooDatasetExtraction(BaseTestCase):
             self.debug_df(df=df)
         else:
             log.critical(
-                'Yahoo Option Puts are missing in redis '
+                'Yahoo Pricing are missing in redis '
                 'for ticker={} status={}'.format(
                     work['ticker'],
                     get_status(status=status)))
@@ -323,7 +323,7 @@ class TestYahooDatasetExtraction(BaseTestCase):
             self.debug_df(df=df)
         else:
             log.critical(
-                'Yahoo Option Puts are missing in redis '
+                'Yahoo News is missing in redis '
                 'for ticker={} status={}'.format(
                     work['ticker'],
                     get_status(status=status)))
