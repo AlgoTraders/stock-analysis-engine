@@ -208,6 +208,8 @@ Please set these values as needed to publish and archive the dataset artifacts i
 
     run_ticker_analysis.py -t SPY -a minio-${USER}:9000 -r redis-${USER}:6379
 
+.. warning:: It is not recommended sharing the same Redis server with multiple engine workers from inside docker containers and outside docker. This is because the ``REDIS_ADDRESS`` and ``S3_ADDRESS`` can only be one string value at the moment. So if a job is picked up by the wrong engine (which cannot connect to the correct Redis and Minio), then it can lead to data not being cached or archived correctly and show up as connectivity failures.
+
 Detailed Usage Example
 ----------------------
 
@@ -313,7 +315,7 @@ Run Publish from an Existing S3 Key to Redis
         4) "integration-test-v1"
         5) "SPY_demo_stats"
         6) "SPY_demo"
-        7) "SPY_demo_tick"
+        7) "SPY_demo_quote"
         8) "SPY_demo_peers"
         9) "SPY_demo_dividends"
         10) "SPY_demo_news1"
@@ -363,7 +365,7 @@ https://docs.minio.io/docs/aws-cli-with-minio.html
         2018-10-02 22:24:04 peers
         2018-10-02 22:24:06 pricing
         2018-10-02 22:24:04 stats
-        2018-10-02 22:24:04 tick
+        2018-10-02 22:24:04 quote
 
 #.  List Pricing Bucket Contents
 
@@ -436,21 +438,21 @@ After running the dataset collection container, the datasets should be auto-cach
     5) "SPY_2018-10-06_dividends"
     6) "NFLX_2018-10-06_minute"
     7) "TSLA_2018-10-06_news"
-    8) "SPY_2018-10-06_tick"
+    8) "SPY_2018-10-06_quote"
     9) "AMZN_2018-10-06_company"
     10) "TSLA_2018-10-06"
     11) "TSLA_2018-10-06_pricing"
     12) "SPY_2018-10-06_company"
     13) "SPY_2018-10-06_stats"
     14) "NFLX_2018-10-06_peers"
-    15) "NFLX_2018-10-06_tick"
+    15) "NFLX_2018-10-06_quote"
     16) "SPY_2018-10-06_news1"
     17) "AMZN_2018-10-06_stats"
     18) "TSLA_2018-10-06_news1"
     19) "AMZN_2018-10-06_news"
     20) "TSLA_2018-10-06_company"
     21) "AMZN_2018-10-06_minute"
-    22) "AMZN_2018-10-06_tick"
+    22) "AMZN_2018-10-06_quote"
     23) "NFLX_2018-10-06_dividends"
     24) "NFLX_2018-10-06_options"
     25) "TSLA_2018-10-06_daily"
@@ -470,7 +472,7 @@ After running the dataset collection container, the datasets should be auto-cach
     39) "NFLX_2018-10-06_news"
     40) "SPY_2018-10-06_pricing"
     41) "SPY_2018-10-06_daily"
-    42) "TSLA_2018-10-06_tick"
+    42) "TSLA_2018-10-06_quote"
     43) "AMZN_2018-10-06_news1"
     44) "AMZN_2018-10-06_daily"
     45) "TSLA_2018-10-06_peers"
@@ -727,6 +729,13 @@ IEX Test - Extract Minute Dataset
 ::
 
     python -m unittest tests.test_iex_dataset_extraction.TestIEXDatasetExtraction.test_integration_extract_minute_dataset
+
+IEX Test - Extract Quote Dataset
+--------------------------------
+
+::
+
+    python -m unittest tests.test_iex_dataset_extraction.TestIEXDatasetExtraction.test_integration_extract_quote_dataset
 
 IEX Test - Extract Stats Dataset
 --------------------------------

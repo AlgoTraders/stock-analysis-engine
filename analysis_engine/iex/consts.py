@@ -5,8 +5,8 @@ Supported environment variables:
 
 ::
 
-    export DEFAULT_FETCH_DATASETS="daily,minute,tick,stats,
-peers,news,financials,earnings,dividends,company"
+    export DEFAULT_FETCH_DATASETS="daily,minute,quote,stats,
+    peers,news,financials,earnings,dividends,company"
 
 """
 
@@ -19,7 +19,7 @@ log = build_colorized_logger(
 
 FETCH_DAILY = 800
 FETCH_MINUTE = 801
-FETCH_TICK = 802
+FETCH_QUOTE = 802
 FETCH_STATS = 803
 FETCH_PEERS = 804
 FETCH_NEWS = 805
@@ -30,7 +30,7 @@ FETCH_COMPANY = 809
 
 DATAFEED_DAILY = 900
 DATAFEED_MINUTE = 901
-DATAFEED_TICK = 902
+DATAFEED_QUOTE = 902
 DATAFEED_STATS = 903
 DATAFEED_PEERS = 904
 DATAFEED_NEWS = 905
@@ -42,7 +42,7 @@ DATAFEED_COMPANY = 909
 DEFAULT_FETCH_DATASETS = [
     FETCH_DAILY,
     FETCH_MINUTE,
-    FETCH_TICK,
+    FETCH_QUOTE,
     FETCH_STATS,
     FETCH_PEERS,
     FETCH_NEWS,
@@ -53,8 +53,15 @@ DEFAULT_FETCH_DATASETS = [
 ]
 TIMESENSITIVE_DATASETS = [
     FETCH_MINUTE,
-    FETCH_TICK,
+    FETCH_QUOTE,
     FETCH_NEWS
+]
+FUNDAMENTAL_DATASETS = [
+    FETCH_QUOTE,
+    FETCH_FINANCIALS,
+    FETCH_EARNINGS,
+    FETCH_DIVIDENDS,
+    FETCH_STATS
 ]
 
 ENV_FETCH_DATASETS = os.getenv(
@@ -76,8 +83,8 @@ def get_ft_str(
         return 'daily'
     elif ft_type == FETCH_MINUTE:
         return 'minute'
-    elif ft_type == FETCH_TICK:
-        return 'tick'
+    elif ft_type == FETCH_QUOTE:
+        return 'quote'
     elif ft_type == FETCH_STATS:
         return 'stats'
     elif ft_type == FETCH_PEERS:
@@ -109,8 +116,8 @@ def get_datafeed_str(
         return 'daily'
     elif df_type == DATAFEED_MINUTE:
         return 'minute'
-    elif df_type == DATAFEED_TICK:
-        return 'tick'
+    elif df_type == DATAFEED_QUOTE:
+        return 'quote'
     elif df_type == DATAFEED_STATS:
         return 'stats'
     elif df_type == DATAFEED_PEERS:

@@ -91,9 +91,9 @@ Supported S3 Environment Variables
     MINUTE_S3_BUCKET_NAME = ev(
         'MINUTE_S3_BUCKET_NAME',
         'minute')
-    TICK_S3_BUCKET_NAME = ev(
-        'TICK_S3_BUCKET_NAME',
-        'tick')
+    QUOTE_S3_BUCKET_NAME = ev(
+        'QUOTE_S3_BUCKET_NAME',
+        'quote')
     STATS_S3_BUCKET_NAME = ev(
         'STATS_S3_BUCKET_NAME',
         'stats')
@@ -243,9 +243,9 @@ DAILY_S3_BUCKET_NAME = ev(
 MINUTE_S3_BUCKET_NAME = ev(
     'MINUTE_S3_BUCKET_NAME',
     'minute')
-TICK_S3_BUCKET_NAME = ev(
-    'TICK_S3_BUCKET_NAME',
-    'tick')
+QUOTE_S3_BUCKET_NAME = ev(
+    'QUOTE_S3_BUCKET_NAME',
+    'quote')
 STATS_S3_BUCKET_NAME = ev(
     'STATS_S3_BUCKET_NAME',
     'stats')
@@ -306,6 +306,7 @@ PLOT_COLORS = {
 IEX_DAILY_DATE_FORMAT = '%Y-%b-%d'
 IEX_MINUTE_DATE_FORMAT = '%Y-%m-%d %I:%M:%S %p'
 IEX_TICK_DATE_FORMAT = '%Y-%m-%d %I:%M:%S %p'
+IEX_QUOTE_DATE_FORMAT = '%B %d, %Y'
 COMMON_DATE_FORMAT = '%Y-%m-%d'
 COMMON_TICK_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 CACHE_DICT_VERSION = 1

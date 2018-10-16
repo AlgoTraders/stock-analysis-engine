@@ -19,7 +19,7 @@ from analysis_engine.consts import COMMON_TICK_DATE_FORMAT
 from analysis_engine.consts import CACHE_DICT_VERSION
 from analysis_engine.consts import DAILY_S3_BUCKET_NAME
 from analysis_engine.consts import MINUTE_S3_BUCKET_NAME
-from analysis_engine.consts import TICK_S3_BUCKET_NAME
+from analysis_engine.consts import QUOTE_S3_BUCKET_NAME
 from analysis_engine.consts import STATS_S3_BUCKET_NAME
 from analysis_engine.consts import PEERS_S3_BUCKET_NAME
 from analysis_engine.consts import NEWS_S3_BUCKET_NAME
@@ -34,7 +34,7 @@ from analysis_engine.utils import utc_date_str
 from analysis_engine.utils import utc_now_str
 from analysis_engine.iex.consts import FETCH_DAILY
 from analysis_engine.iex.consts import FETCH_MINUTE
-from analysis_engine.iex.consts import FETCH_TICK
+from analysis_engine.iex.consts import FETCH_QUOTE
 from analysis_engine.iex.consts import FETCH_STATS
 from analysis_engine.iex.consts import FETCH_PEERS
 from analysis_engine.iex.consts import FETCH_NEWS
@@ -44,7 +44,7 @@ from analysis_engine.iex.consts import FETCH_DIVIDENDS
 from analysis_engine.iex.consts import FETCH_COMPANY
 from analysis_engine.iex.consts import DATAFEED_DAILY
 from analysis_engine.iex.consts import DATAFEED_MINUTE
-from analysis_engine.iex.consts import DATAFEED_TICK
+from analysis_engine.iex.consts import DATAFEED_QUOTE
 from analysis_engine.iex.consts import DATAFEED_STATS
 from analysis_engine.iex.consts import DATAFEED_PEERS
 from analysis_engine.iex.consts import DATAFEED_NEWS
@@ -88,7 +88,7 @@ def get_ds_dict(
 
     daily_redis_key = '{}_daily'.format(use_base_key)
     minute_redis_key = '{}_minute'.format(use_base_key)
-    tick_redis_key = '{}_tick'.format(use_base_key)
+    quote_redis_key = '{}_quote'.format(use_base_key)
     stats_redis_key = '{}_stats'.format(use_base_key)
     peers_redis_key = '{}_peers'.format(use_base_key)
     news_iex_redis_key = '{}_news1'.format(use_base_key)
@@ -103,7 +103,7 @@ def get_ds_dict(
     ds_cache_dict = {
         'daily': daily_redis_key,
         'minute': minute_redis_key,
-        'tick': tick_redis_key,
+        'quote': quote_redis_key,
         'stats': stats_redis_key,
         'peers': peers_redis_key,
         'news1': news_iex_redis_key,
@@ -555,7 +555,8 @@ def build_iex_fetch_minute_request(
         label=None):
     """build_iex_fetch_minute_request
 
-    Fetch minute data from IEX
+    Fetch `minute data <https://iextrading.com/developer/docs/#chart>`__
+    from IEX
 
     :param label: log label to use
     """
@@ -592,33 +593,30 @@ def build_iex_fetch_minute_request(
 # end of build_iex_fetch_minute_request
 
 
-def build_iex_fetch_tick_request(
+def build_iex_fetch_quote_request(
         label=None):
-    """build_iex_fetch_tick_request
+    """build_iex_fetch_quote_request
 
-    Fetch tick data from IEX
+    Fetch `quote data <https://iextrading.com/developer/docs/#quote>`__
+    from IEX
 
     :param label: log label to use
     """
     ticker = TICKER
-    base_key = '{}_tick_{}'.format(
+    base_key = '{}_quote_{}'.format(
         ticker,
         datetime.datetime.utcnow().strftime(
             '%Y_%m_%d_%H_%M_%S'))
-    s3_bucket_name = TICK_S3_BUCKET_NAME
+    s3_bucket_name = QUOTE_S3_BUCKET_NAME
     s3_key = base_key
     redis_key = base_key
     s3_enabled = True
     redis_enabled = True
 
     work = {
-        'ft_type': FETCH_TICK,
-        'fd_type': DATAFEED_TICK,
+        'ft_type': FETCH_QUOTE,
+        'fd_type': DATAFEED_QUOTE,
         'ticker': ticker,
-        'timeframe': '1d',
-        'from': iex_utils.last_month().strftime(
-            '%Y-%m-%d %H:%M:%S'),
-        'last_close': None,
         's3_bucket': s3_bucket_name,
         's3_key': s3_key,
         'redis_key': redis_key,
@@ -630,7 +628,7 @@ def build_iex_fetch_tick_request(
         work['label'] = label
 
     return work
-# end of build_iex_fetch_tick_request
+# end of build_iex_fetch_quote_request
 
 
 def build_iex_fetch_stats_request(
