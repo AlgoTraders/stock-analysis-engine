@@ -30,15 +30,11 @@ def post_success(msg):
 
     :param msg: A string, list, or dict to send to slack
     """
-    print(msg)
     if msg:
         attachment = {"attachments": [{"color": "good", "title": "SUCCESS"}]}
-        print(attachment)
         fields = parse_msg(msg)
-        print(fields)
         if fields:
             attachment["attachments"][0]["fields"] = fields
-            print(attachment)
             post(attachment)
     
     
@@ -102,13 +98,18 @@ def post(attachment):
                             SLACK_WEBHOOK))
             else:
                 log.error(('Failed to post attachment={} '
-                           'to slack_webhook={} with status_code={}')).format(
+                           'to slack_webhook={} with status_code={}').format(
                                attachment,
                                SLACK_WEBHOOK,
-                               r.status_code)
+                               r.status_code))
         except Exception as e:
             log.error(('Failed to post attachment={} '
                        'to slack_webhook={} with ex={}').format(
                            attachment,
                            SLACK_WEBHOOK,
                            e))
+    else:
+        log.info(('Skipping post to slack due to missing '
+                  'attachment={} or SLACK_WEBHOOK={}').format(
+                      attachment,
+                      SLACK_WEBHOOK))
