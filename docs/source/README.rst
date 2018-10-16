@@ -208,6 +208,8 @@ Please set these values as needed to publish and archive the dataset artifacts i
 
     run_ticker_analysis.py -t SPY -a minio-${USER}:9000 -r redis-${USER}:6379
 
+.. warning:: It is not recommended sharing the same Redis server with multiple engine workers from inside docker containers and outside docker. This is because the ``REDIS_ADDRESS`` and ``S3_ADDRESS`` can only be one string value at the momment. So if a job is picked up by the wrong engine (which cannot connect to the correct Redis and Minio), then it can lead to data not being cached or archived correctly and show up as connectivity failures.
+
 Detailed Usage Example
 ----------------------
 
