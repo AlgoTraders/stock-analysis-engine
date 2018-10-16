@@ -160,7 +160,7 @@ else
     BASE_JUPYTER_PORT_4=`docker ps | grep $USER | grep jupyter | cut -f1 -d">" | sed -e 's/.*://' | cut -f1 -d"-"`
 fi
 
-echo "export REDIS_PORT=$BASE_REDIS_PORT" >> env.sh
+echo "export REDIS_PORT=$BASE_REDIS_PORT" > env.sh
 echo "export MINIO_PORT=$BASE_MINIO_PORT" >> env.sh
 echo "export JUPYTER_PORT_1=$BASE_JUPYTER_PORT_1" >> env.sh
 echo "export JUPYTER_PORT_2=$BASE_JUPYTER_PORT_2" >> env.sh

@@ -10,7 +10,19 @@ Analyze information about publicly traded companies from `Yahoo <https://finance
 
 .. image:: https://i.imgur.com/pH368gy.png
 
-It uses `Celery workers to process all tasks <http://www.celeryproject.org/>`__ and is a horizontally scalable worker pool that works with many `transports and backends <https://github.com/celery/celery#transports-and-backends>`__
+The engine provides an automated, horizontally scalable stock data collection and archive pipeline with a simple extraction interface above a redis datastore.
+
+Once collected and cached, you can quickly extract datasets with:
+
+.. code-block:: python
+
+    from analysis_engine.api_requests import get_ds_dict
+    from analysis_engine.yahoo.extract_df_from_redis import extract_option_calls_dataset
+    dataset_req = get_ds_dict(ticker='NFLX', label='nflx-test')
+    extract_status, netflix_call_options_df = extract_option_calls_dataset(dataset_req)
+    print(netflix_call_options_df)
+
+Please refer to the `Stock Analysis Intro Extracting Datasets Jupyter Notebook <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro-Extracting-Datasets.ipynb>`__ for the latest usage examples.
 
 .. list-table::
    :header-rows: 1

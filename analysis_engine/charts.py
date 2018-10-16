@@ -186,7 +186,8 @@ def plot_overlay_pricing_and_volume(
         close_color=PLOT_COLORS['blue'],
         volume_color=PLOT_COLORS['green'],
         date_format=IEX_MINUTE_DATE_FORMAT,
-        show_plot=True):
+        show_plot=True,
+        dropna_for_all=True):
     """plot_overlay_pricing_and_volume
 
     Plot pricing (high, low, open, close) and volume as
@@ -212,6 +213,9 @@ def plot_overlay_pricing_and_volume(
                         that would work with:
                         ``datetime.datetime.stftime(date_format)``
     :param show_plot: optional - bool to show the plot
+    :param dropna_for_all: optional - bool to toggle keep None's in
+                           the plot ``df`` (default is drop them
+                           for display purposes)
     """
 
     rec = {
@@ -234,17 +238,27 @@ def plot_overlay_pricing_and_volume(
 
         set_common_seaborn_fonts()
 
+        use_df = df
+        if dropna_for_all:
+            log.info(
+                '{} - '
+                'plot_overlay_pricing_and_volume'
+                ' - dropna_for_all'.format(
+                    log_label))
+            use_df = df.dropna(axis=0, how='any')
+        # end of pre-plot dataframe scrubbing
+
         fig, ax = plt.subplots(
             sharex=True,
             sharey=True,
             figsize=(15.0, 10.0))
         ax.plot(
-            df['date'],
-            df['close'],
+            use_df['date'],
+            use_df['close'],
             color=close_color)
         ax.plot(
-            df['date'],
-            df['high'],
+            use_df['date'],
+            use_df['high'],
             color=high_color)
 
         # use a second axis to display the
@@ -253,15 +267,15 @@ def plot_overlay_pricing_and_volume(
         # volume's y values as well
         ax2 = ax.twinx()
         ax2.plot(
-            df['date'],
-            df['volume'],
+            use_df['date'],
+            use_df['volume'],
             linestyle='-',
             color=volume_color,
             alpha=0.6)
         ax2.fill_between(
-            df['date'].values,
+            use_df['date'].values,
             0,
-            df['volume'].values,
+            use_df['volume'].values,
             color=volume_color,
             alpha=0.5)
         # setup the second plot for volume
@@ -282,12 +296,12 @@ def plot_overlay_pricing_and_volume(
         start_date = ''
         end_date = ''
         try:
-            start_date = str(df.iloc[0]['date'].strftime(date_format))
-            end_date = str(df.iloc[-1]['date'].strftime(date_format))
+            start_date = str(use_df.iloc[0]['date'].strftime(date_format))
+            end_date = str(use_df.iloc[-1]['date'].strftime(date_format))
         except Exception as f:
             date_format = '%Y-%m-%d'
-            start_date = str(df.iloc[0]['date'].strftime(date_format))
-            end_date = str(df.iloc[-1]['date'].strftime(date_format))
+            start_date = str(use_df.iloc[0]['date'].strftime(date_format))
+            end_date = str(use_df.iloc[-1]['date'].strftime(date_format))
 
         use_title = (
             '{} Pricing from: {} to {}'.format(
@@ -367,7 +381,8 @@ def plot_hloc_pricing(
         ticker,
         df,
         title,
-        show_plot=True):
+        show_plot=True,
+        dropna_for_all=True):
     """plot_hloc_pricing
 
     Plot the high, low, open and close columns together on a chart
@@ -377,6 +392,9 @@ def plot_hloc_pricing(
     :param df: initialized ``pandas.DataFrame``
     :param title: title for the chart
     :param show_plot: bool to show the plot
+    :param dropna_for_all: optional - bool to toggle keep None's in
+                           the plot ``df`` (default is drop them
+                           for display purposes)
     """
 
     rec = {
@@ -401,27 +419,37 @@ def plot_hloc_pricing(
         fig, ax = plt.subplots(
             figsize=(15.0, 10.0))
 
+        use_df = df
+        if dropna_for_all:
+            log.info(
+                '{} - '
+                'plot_hloc_pricing'
+                ' - dropna_for_all'.format(
+                    log_label))
+            use_df = df.dropna(axis=0, how='any')
+        # end of pre-plot dataframe scrubbing
+
         plt.plot(
-            df['date'],
-            df['high'],
+            use_df['date'],
+            use_df['high'],
             label='High',
             color=PLOT_COLORS['high'],
             alpha=0.4)
         plt.plot(
-            df['date'],
-            df['low'],
+            use_df['date'],
+            use_df['low'],
             label='Low',
             color=PLOT_COLORS['low'],
             alpha=0.4)
         plt.plot(
-            df['date'],
-            df['close'],
+            use_df['date'],
+            use_df['close'],
             label='Close',
             color=PLOT_COLORS['close'],
             alpha=0.4)
         plt.plot(
-            df['date'],
-            df['open'],
+            use_df['date'],
+            use_df['open'],
             label='Open',
             color=PLOT_COLORS['open'],
             alpha=0.4)
@@ -434,8 +462,8 @@ def plot_hloc_pricing(
         plt.ylabel(ylabel)
 
         # Build a date vs Close DataFrame
-        start_date = str(df.iloc[0]['date'].strftime('%Y-%m-%d'))
-        end_date = str(df.iloc[-1]['date'].strftime('%Y-%m-%d'))
+        start_date = str(use_df.iloc[0]['date'].strftime('%Y-%m-%d'))
+        end_date = str(use_df.iloc[-1]['date'].strftime('%Y-%m-%d'))
         if not title:
             title = (
                 '{} Pricing from: {} to {}'.format(
@@ -503,7 +531,8 @@ def plot_df(
         ylabel='Pricing',
         linestyle='-',
         color='blue',
-        show_plot=True):
+        show_plot=True,
+        dropna_for_all=True):
     """plot_df
 
     :param log_label: log identifier
@@ -516,6 +545,9 @@ def plot_df(
     :param linestyle: style of the plot line
     :param color: color to use
     :param show_plot: bool to show the plot
+    :param dropna_for_all: optional - bool to toggle keep None's in
+                           the plot ``df`` (default is drop them
+                           for display purposes)
     """
 
     rec = {
@@ -535,20 +567,30 @@ def plot_df(
             ' - start'.format(
                 log_label))
 
+        use_df = df
+        if dropna_for_all:
+            log.info(
+                '{} - '
+                'plot_df'
+                ' - dropna_for_all'.format(
+                    log_label))
+            use_df = df.dropna(axis=0, how='any')
+        # end of pre-plot dataframe scrubbing
+
         set_common_seaborn_fonts()
 
         hex_color = PLOT_COLORS['blue']
         fig, ax = plt.subplots(figsize=(15.0, 10.0))
 
         if linestyle == '-':
-            df[column_list].plot(
+            use_df[column_list].plot(
                 x=xcol,
                 linestyle=linestyle,
                 ax=ax,
                 color=hex_color,
                 rot=0)
         else:
-            df[column_list].plot(
+            use_df[column_list].plot(
                 kind='bar',
                 x=xcol,
                 ax=ax,
@@ -557,8 +599,8 @@ def plot_df(
 
         if 'date' in str(xcol).lower():
             # plot the column
-            min_date = df.iloc[0][xcol]
-            max_date = df.iloc[-1][xcol]
+            min_date = use_df.iloc[0][xcol]
+            max_date = use_df.iloc[-1][xcol]
 
             # give a bit of space at each end of the plot - aesthetics
             span = max_date - min_date
@@ -624,7 +666,8 @@ def dist_plot(
         style='default',
         xlabel='',
         ylabel='',
-        show_plot=True):
+        show_plot=True,
+        dropna_for_all=True):
     """dist_plot
 
     Show a distribution plot for the passed in dataframe: ``df``
@@ -637,6 +680,9 @@ def dist_plot(
     :param xlabel: x-axis label
     :param ylabel: y-axis label
     :param show_plot: bool to show plot or not
+    :param dropna_for_all: optional - bool to toggle keep None's in
+                           the plot ``df`` (default is drop them
+                           for display purposes)
     """
 
     rec = {}
@@ -662,8 +708,18 @@ def dist_plot(
             sns.set_context('poster')
             sns.axes_style('darkgrid')
 
+        use_df = df
+        if dropna_for_all:
+            log.info(
+                '{} - '
+                'dist_plot'
+                ' - dropna_for_all'.format(
+                    log_label))
+            use_df = df.dropna(axis=0, how='any')
+        # end of pre-plot dataframe scrubbing
+
         sns.distplot(
-            df,
+            use_df,
             color=PLOT_COLORS['blue'],
             ax=ax)
 
