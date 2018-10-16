@@ -80,7 +80,7 @@ def parse_msg(msg):
 
 def post(attachment):
     """Send a created attachment to slack
-    
+
     :param attachment: Values to post to slack
     """
     if attachment and SLACK_WEBHOOK:
