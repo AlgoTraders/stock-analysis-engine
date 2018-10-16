@@ -728,6 +728,13 @@ IEX Test - Extract Minute Dataset
 
     python -m unittest tests.test_iex_dataset_extraction.TestIEXDatasetExtraction.test_integration_extract_minute_dataset
 
+IEX Test - Extract Quote Dataset
+--------------------------------
+
+::
+
+    python -m unittest tests.test_iex_dataset_extraction.TestIEXDatasetExtraction.test_integration_extract_quote_dataset
+
 IEX Test - Extract Stats Dataset
 --------------------------------
 
