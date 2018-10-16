@@ -312,7 +312,7 @@ CACHE_DICT_VERSION = 1
 
 SLACK_WEBHOOK = ev(
     'SLACK_WEBHOOK',
-    '')
+    None)
 
 
 ########################################
