@@ -26,7 +26,7 @@ from analysis_engine.consts import get_status
 from analysis_engine.consts import ev
 from analysis_engine.iex.consts import FETCH_DAILY
 from analysis_engine.iex.consts import FETCH_MINUTE
-from analysis_engine.iex.consts import FETCH_TICK
+from analysis_engine.iex.consts import FETCH_QUOTE
 from analysis_engine.iex.consts import FETCH_STATS
 from analysis_engine.iex.consts import FETCH_PEERS
 from analysis_engine.iex.consts import FETCH_NEWS
@@ -94,8 +94,8 @@ def get_data_from_iex(
         elif ft_type == FETCH_MINUTE:
             iex_req = api_requests.build_iex_fetch_minute_request(
                 label=label)
-        elif ft_type == FETCH_TICK:
-            iex_req = api_requests.build_iex_fetch_tick_request(
+        elif ft_type == FETCH_QUOTE:
+            iex_req = api_requests.build_iex_fetch_quote_request(
                 label=label)
         elif ft_type == FETCH_STATS:
             iex_req = api_requests.build_iex_fetch_stats_request(

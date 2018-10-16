@@ -148,7 +148,7 @@ def get_new_pricing_data(
         'news': None,
         'daily': None,
         'minute': None,
-        'tick': None,
+        'quote': None,
         'stats': None,
         'peers': None,
         'iex_news': None,

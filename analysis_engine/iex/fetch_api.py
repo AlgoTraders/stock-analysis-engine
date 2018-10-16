@@ -16,6 +16,7 @@ import analysis_engine.dataset_scrub_utils as scrub_utils
 from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.iex.consts import DATAFEED_DAILY
 from analysis_engine.iex.consts import DATAFEED_MINUTE
+from analysis_engine.iex.consts import DATAFEED_QUOTE
 from analysis_engine.iex.consts import DATAFEED_STATS
 from analysis_engine.iex.consts import DATAFEED_PEERS
 from analysis_engine.iex.consts import DATAFEED_NEWS
@@ -34,7 +35,7 @@ def fetch_daily(
     """fetch_daily
 
     Fetch the IEX daily data for a ticker and
-    return it as a pandas Dataframe
+    return it as a ``pandas.DataFrame``.
 
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
@@ -86,7 +87,7 @@ def fetch_minute(
     """fetch_minute
 
     Fetch the IEX minute intraday data for a ticker and
-    return it as a pandas Dataframe
+    return it as a ``pandas.DataFrame``.
 
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
@@ -145,13 +146,57 @@ def fetch_minute(
 # end of fetch_minute
 
 
+def fetch_quote(
+        work_dict,
+        scrub_mode='sort-by-date'):
+    """fetch_quote
+
+    Fetch the IEX quote data for a ticker and
+    return as a ``pandas.DataFrame``.
+
+    :param work_dict: dictionary of args
+    :param scrub_mode: type of scrubbing handler to run
+    """
+    datafeed_type = DATAFEED_QUOTE
+    ticker = work_dict.get(
+        'ticker',
+        None)
+    label = work_dict.get(
+        'label',
+        None)
+    use_date = work_dict.get(
+        'use_date',
+        None)
+
+    log.info(
+        '{} - quote - args={} ticker={}'.format(
+            label,
+            work_dict,
+            ticker))
+
+    res = pyex_stocks.quoteDF(
+        symbol=ticker)
+
+    scrubbed_df = scrub_utils.ingress_scrub_dataset(
+        label=label,
+        scrub_mode=scrub_mode,
+        datafeed_type=datafeed_type,
+        msg_format='df={} date_str={}',
+        ds_id=ticker,
+        date_str=use_date,
+        df=res)
+
+    return scrubbed_df
+# end of fetch_quote
+
+
 def fetch_stats(
         work_dict,
         scrub_mode='sort-by-date'):
     """fetch_stats
 
     Fetch the IEX statistics data for a ticker and
-    return it as a pandas Dataframe
+    return it as a ``pandas.DataFrame``.
 
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
@@ -195,7 +240,7 @@ def fetch_peers(
     """fetch_peers
 
     Fetch the IEX peers data for a ticker and
-    return it as a pandas Dataframe
+    return it as a ``pandas.DataFrame``.
 
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
@@ -239,7 +284,7 @@ def fetch_news(
     """fetch_news
 
     Fetch the IEX news data for a ticker and
-    return it as a pandas Dataframe
+    return it as a ``pandas.DataFrame``.
 
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
@@ -283,7 +328,7 @@ def fetch_financials(
     """fetch_financials
 
     Fetch the IEX financial data for a ticker and
-    return it as a pandas Dataframe
+    return it as a ``pandas.DataFrame``.
 
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
@@ -327,7 +372,7 @@ def fetch_earnings(
     """fetch_earnings
 
     Fetch the IEX earnings data for a ticker and
-    return it as a pandas Dataframe
+    return it as a ``pandas.DataFrame``.
 
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
@@ -371,7 +416,7 @@ def fetch_dividends(
     """fetch_dividends
 
     Fetch the IEX dividends data for a ticker and
-    return it as a pandas Dataframe
+    return it as a ``pandas.DataFrame``.
 
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
@@ -421,7 +466,7 @@ def fetch_company(
     """fetch_company
 
     Fetch the IEX company data for a ticker and
-    return it as a pandas Dataframe
+    return it as a ``pandas.DataFrame``.
 
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run

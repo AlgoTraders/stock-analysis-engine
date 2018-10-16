@@ -47,8 +47,8 @@ class TestBuildDatasetCacheDict(BaseTestCase):
             '{}_minute'.format(
                 base_key))
         self.assertEqual(
-            cache_dict['tick'],
-            '{}_tick'.format(
+            cache_dict['quote'],
+            '{}_quote'.format(
                 base_key))
         self.assertEqual(
             cache_dict['stats'],

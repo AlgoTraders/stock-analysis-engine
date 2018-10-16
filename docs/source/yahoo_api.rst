@@ -10,7 +10,7 @@ Fetch Data from Yahoo
 Yahoo Dataset Extraction API
 ============================
 
-Here is the extractin api for returning a ``pandas.DataFrame`` from cached or archived Yahoo datasets (pricing, options and news).
+Here is the extraction API for returning a ``pandas.DataFrame`` from cached or archived Yahoo datasets (pricing, options and news).
 
 .. automodule:: analysis_engine.yahoo.extract_df_from_redis
-   :members: extract_pricing_dataset,extract_options_dataset,extract_yahoo_news_dataset
+   :members: extract_pricing_dataset,extract_option_calls_dataset,extract_option_puts_dataset,extract_yahoo_news_dataset

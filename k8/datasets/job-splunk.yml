@@ -129,8 +129,8 @@ spec:
           value: daily
         - name: MINUTE_S3_BUCKET_NAME
           value: minute
-        - name: TICK_S3_BUCKET_NAME
-          value: tick
+        - name: QUOTE_S3_BUCKET_NAME
+          value: quote
         - name: STATS_S3_BUCKET_NAME
           value: stats
         - name: PEERS_S3_BUCKET_NAME

@@ -16,7 +16,7 @@ from analysis_engine.api_requests \
 from analysis_engine.api_requests \
     import build_iex_fetch_daily_request
 from analysis_engine.api_requests \
-    import build_iex_fetch_tick_request
+    import build_iex_fetch_quote_request
 from analysis_engine.api_requests \
     import build_iex_fetch_stats_request
 from analysis_engine.api_requests \
@@ -91,15 +91,14 @@ class TestIEXFetchData(BaseTestCase):
     # end of test_fetch_minute
 
     @mock.patch(
-        ('pyEX.stocks.chartDF'),
-        new=mock_iex.chartDF)
-    def test_fetch_tick(self):
-        """test_fetch_tick"""
-        work = build_iex_fetch_tick_request(
-            label='test_fetch_tick')
+        ('pyEX.stocks.quoteDF'),
+        new=mock_iex.quoteDF)
+    def test_fetch_quote(self):
+        """test_fetch_quote"""
+        work = build_iex_fetch_quote_request(
+            label='test_fetch_quote')
 
-        work['ticker'] = 'test_fetch_tick'
-        work['timeframe'] = 'test_fetch_tick'
+        work['ticker'] = 'test_fetch_quote'
 
         res = fetch_data(
             work_dict=work)
@@ -109,9 +108,9 @@ class TestIEXFetchData(BaseTestCase):
             res['symbol'][0],
             work['ticker'])
         self.assertEqual(
-            res['timeframe'][0],
-            work['timeframe'])
-    # end of test_fetch_tick
+            res['testcase'][0],
+            'mock-quoteDF')
+    # end of test_fetch_quote
 
     @mock.patch(
         ('pyEX.stocks.stockStatsDF'),
@@ -314,21 +313,21 @@ class TestIEXFetchData(BaseTestCase):
         self.debug_df(df=res)
     # end of test_integration_fetch_minute
 
-    def test_integration_fetch_tick(self):
-        """test_integration_fetch_tick"""
+    def test_integration_fetch_quote(self):
+        """test_integration_fetch_quote"""
         if ev('INT_TESTS', '0') == '0':
             return
 
         # store data
-        work = build_iex_fetch_tick_request(
-            label='test_integration_fetch_tick')
+        work = build_iex_fetch_quote_request(
+            label='test_integration_fetch_quote')
 
         res = fetch_data(
             work_dict=work)
         self.assertIsNotNone(
             res)
         self.debug_df(df=res)
-    # end of test_integration_fetch_tick
+    # end of test_integration_fetch_quote
 
     def test_integration_fetch_stats(self):
         """test_integration_fetch_stats"""

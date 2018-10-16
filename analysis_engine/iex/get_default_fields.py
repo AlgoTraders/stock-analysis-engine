@@ -2,7 +2,7 @@
 Get defaults fields for supported teyps of data
 """
 from analysis_engine.iex.consts import DATAFEED_DAILY
-from analysis_engine.iex.consts import DATAFEED_TICK
+from analysis_engine.iex.consts import DATAFEED_QUOTE
 from analysis_engine.iex.consts import DATAFEED_STATS
 from analysis_engine.iex.consts import DATAFEED_PEERS
 from analysis_engine.iex.consts import DATAFEED_NEWS
@@ -25,7 +25,7 @@ def get_default_fields(
     use_field = str(field).lower()
     if use_field == 'daily' or field == DATAFEED_DAILY:
         return ['KEY', 'date']
-    elif use_field == 'tick' or field == DATAFEED_TICK:
+    elif use_field == 'quote' or field == DATAFEED_QUOTE:
         return ['KEY', 'date', 'minute']
     elif use_field == 'stats' or field == DATAFEED_STATS:
         return ['KEY']

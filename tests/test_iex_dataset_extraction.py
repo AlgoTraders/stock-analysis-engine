@@ -15,6 +15,8 @@ from analysis_engine.iex.extract_df_from_redis \
 from analysis_engine.iex.extract_df_from_redis \
     import extract_minute_dataset
 from analysis_engine.iex.extract_df_from_redis \
+    import extract_quote_dataset
+from analysis_engine.iex.extract_df_from_redis \
     import extract_stats_dataset
 from analysis_engine.iex.extract_df_from_redis \
     import extract_peers_dataset
@@ -122,6 +124,32 @@ class TestIEXDatasetExtraction(BaseTestCase):
                     work['ticker'],
                     get_status(status=status)))
     # end of test_integration_extract_minute_dataset
+
+    def test_integration_extract_quote_dataset(self):
+        """test_integration_extract_quote_dataset"""
+        if ev('INT_TESTS', '0') == '0':
+            return
+        ticker = 'NFLX'
+        label = 'IEX quote dataset'
+        # build dataset cache dictionary
+        work = get_ds_dict(
+            ticker=ticker,
+            label=label)
+
+        status, df = extract_quote_dataset(
+            work_dict=work)
+        if status == SUCCESS:
+            self.assertIsNotNone(
+                df)
+            self.debug_df(df=df)
+        else:
+            log.critical(
+                '{} is missing in redis '
+                'for ticker={} status={}'.format(
+                    label,
+                    work['ticker'],
+                    get_status(status=status)))
+    # end of test_integration_extract_quote_dataset
 
     def test_integration_extract_stats_dataset(self):
         """test_integration_extract_stats_dataset"""
