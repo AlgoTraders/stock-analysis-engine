@@ -299,8 +299,6 @@ def ingress_scrub_dataset(
                         format='%Y-%m-%d %H:%M:%S')
                 # end if label is in df
             elif datafeed_type == DATAFEED_QUOTE:
-                print('FETCH quote: ')
-                print(out_df)
                 columns_list = out_df.columns.values
                 if 'latestTime' in columns_list:
                     out_df['date'] = pd.to_datetime(
@@ -327,8 +325,6 @@ def ingress_scrub_dataset(
                         out_df['closeTime'],
                         unit='ns')
                 # end if label is in df
-                print('DONE FETCH quote: ')
-                print(out_df)
             elif datafeed_type == DATAFEED_STATS:
                 log.info(
                     '{} - {} - no scrub_mode={} '
