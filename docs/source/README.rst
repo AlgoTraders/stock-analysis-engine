@@ -313,7 +313,7 @@ Run Publish from an Existing S3 Key to Redis
         4) "integration-test-v1"
         5) "SPY_demo_stats"
         6) "SPY_demo"
-        7) "SPY_demo_tick"
+        7) "SPY_demo_quote"
         8) "SPY_demo_peers"
         9) "SPY_demo_dividends"
         10) "SPY_demo_news1"
@@ -363,7 +363,7 @@ https://docs.minio.io/docs/aws-cli-with-minio.html
         2018-10-02 22:24:04 peers
         2018-10-02 22:24:06 pricing
         2018-10-02 22:24:04 stats
-        2018-10-02 22:24:04 tick
+        2018-10-02 22:24:04 quote
 
 #.  List Pricing Bucket Contents
 
@@ -436,21 +436,21 @@ After running the dataset collection container, the datasets should be auto-cach
     5) "SPY_2018-10-06_dividends"
     6) "NFLX_2018-10-06_minute"
     7) "TSLA_2018-10-06_news"
-    8) "SPY_2018-10-06_tick"
+    8) "SPY_2018-10-06_quote"
     9) "AMZN_2018-10-06_company"
     10) "TSLA_2018-10-06"
     11) "TSLA_2018-10-06_pricing"
     12) "SPY_2018-10-06_company"
     13) "SPY_2018-10-06_stats"
     14) "NFLX_2018-10-06_peers"
-    15) "NFLX_2018-10-06_tick"
+    15) "NFLX_2018-10-06_quote"
     16) "SPY_2018-10-06_news1"
     17) "AMZN_2018-10-06_stats"
     18) "TSLA_2018-10-06_news1"
     19) "AMZN_2018-10-06_news"
     20) "TSLA_2018-10-06_company"
     21) "AMZN_2018-10-06_minute"
-    22) "AMZN_2018-10-06_tick"
+    22) "AMZN_2018-10-06_quote"
     23) "NFLX_2018-10-06_dividends"
     24) "NFLX_2018-10-06_options"
     25) "TSLA_2018-10-06_daily"
@@ -470,7 +470,7 @@ After running the dataset collection container, the datasets should be auto-cach
     39) "NFLX_2018-10-06_news"
     40) "SPY_2018-10-06_pricing"
     41) "SPY_2018-10-06_daily"
-    42) "TSLA_2018-10-06_tick"
+    42) "TSLA_2018-10-06_quote"
     43) "AMZN_2018-10-06_news1"
     44) "AMZN_2018-10-06_daily"
     45) "TSLA_2018-10-06_peers"

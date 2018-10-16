@@ -11,7 +11,8 @@ def chartDF(
         date):
     """chartDF
 
-    mock pyEX chartDF
+    Code for: `mock pyEX chartDF <https://github.com/timkpaine/pyEX/b
+    lob/7cc6d56f7cfb950ed3098ac1191fb204fbf22790/pyEX/stocks.py#L171>`__
 
     :param symbol: ticker symbol
     :param timeframe: timeframe argument
@@ -21,12 +22,33 @@ def chartDF(
     val = {
         'symbol': [symbol],
         'timeframe': [timeframe],
-        'date': [date]
+        'date': [date],
+        'testcase': ['mock-chartDF']
     }
     df = pd.DataFrame(
         val)
     return df
 # end of chartDF
+
+
+def quoteDF(
+        symbol):
+    """quoteDF
+
+    Code for: `mock pyEX quoteDF <https://github.com/timkpaine/pyEX/blob/7
+    cc6d56f7cfb950ed3098ac1191fb204fbf22790/pyEX/stocks.py#L681>`__
+
+    :param symbol: ticker symbol
+    """
+
+    val = {
+        'symbol': [symbol],
+        'testcase': ['mock-quoteDF']
+    }
+    df = pd.DataFrame(
+        val)
+    return df
+# end of quoteDF
 
 
 def stockStatsDF(

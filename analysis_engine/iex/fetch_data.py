@@ -10,7 +10,7 @@ import analysis_engine.iex.fetch_api as fetch_api
 from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.iex.consts import FETCH_DAILY
 from analysis_engine.iex.consts import FETCH_MINUTE
-from analysis_engine.iex.consts import FETCH_TICK
+from analysis_engine.iex.consts import FETCH_QUOTE
 from analysis_engine.iex.consts import FETCH_STATS
 from analysis_engine.iex.consts import FETCH_PEERS
 from analysis_engine.iex.consts import FETCH_NEWS
@@ -40,7 +40,7 @@ def fetch_data(
 
         fetch_type = FETCH_DAILY
         fetch_type = FETCH_MINUTE
-        fetch_type = FETCH_TICK
+        fetch_type = FETCH_QUOTE
         fetch_type = FETCH_STATS
         fetch_type = FETCH_PEERS
         fetch_type = FETCH_NEWS
@@ -55,7 +55,7 @@ def fetch_data(
 
         work_dict['ft_type'] = 'daily'
         work_dict['ft_type'] = 'minute'
-        work_dict['ft_type'] = 'tick'
+        work_dict['ft_type'] = 'quote'
         work_dict['ft_type'] = 'stats'
         work_dict['ft_type'] = 'peers'
         work_dict['ft_type'] = 'news'
@@ -89,8 +89,8 @@ def fetch_data(
     elif use_fetch_name == 'minute' or fetch_type == FETCH_MINUTE:
         return fetch_api.fetch_minute(
             work_dict=work_dict)
-    elif use_fetch_name == 'tick' or fetch_type == FETCH_TICK:
-        return fetch_api.fetch_minute(
+    elif use_fetch_name == 'quote' or fetch_type == FETCH_QUOTE:
+        return fetch_api.fetch_quote(
             work_dict=work_dict)
     elif use_fetch_name == 'stats' or fetch_type == FETCH_STATS:
         return fetch_api.fetch_stats(

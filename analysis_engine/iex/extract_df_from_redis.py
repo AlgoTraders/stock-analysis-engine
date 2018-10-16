@@ -22,6 +22,7 @@ import analysis_engine.extract_utils as extract_utils
 from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.iex.consts import DATAFEED_DAILY
 from analysis_engine.iex.consts import DATAFEED_MINUTE
+from analysis_engine.iex.consts import DATAFEED_QUOTE
 from analysis_engine.iex.consts import DATAFEED_STATS
 from analysis_engine.iex.consts import DATAFEED_PEERS
 from analysis_engine.iex.consts import DATAFEED_NEWS
@@ -105,6 +106,42 @@ def extract_minute_dataset(
         work_dict=req,
         scrub_mode=scrub_mode)
 # end of extract_minute_dataset
+
+
+def extract_quote_dataset(
+        work_dict,
+        scrub_mode='sort-by-date'):
+    """extract_quote_dataset
+
+    Fetch the IEX quote data for a ticker and
+    return it as a pandas Dataframe
+
+    :param work_dict: dictionary of args
+    :param scrub_mode: type of scrubbing handler to run
+    """
+    label = work_dict.get('label', 'extract')
+    df_type = DATAFEED_QUOTE
+    df_str = get_datafeed_str(df_type=df_type)
+    req = copy.deepcopy(work_dict)
+
+    if 'redis_key' not in work_dict:
+        # see if it's get dataset dictionary
+        if 'quote' in work_dict:
+            req['redis_key'] = req['quote']
+            req['s3_key'] = req['quote']
+    # end of support for the get dataset dictionary
+
+    log.info(
+        '{} - {} - start'.format(
+            label,
+            df_str))
+
+    return extract_utils.perform_extract(
+        df_type=df_type,
+        df_str=df_str,
+        work_dict=req,
+        scrub_mode=scrub_mode)
+# end of extract_quote_dataset
 
 
 def extract_stats_dataset(

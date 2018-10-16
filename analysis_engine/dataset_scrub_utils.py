@@ -23,7 +23,7 @@ of the following data feed and returned as a
 
     DATAFEED_DAILY = 900
     DATAFEED_MINUTE = 901
-    DATAFEED_TICK = 902
+    DATAFEED_QUOTE = 902
     DATAFEED_STATS = 903
     DATAFEED_PEERS = 904
     DATAFEED_NEWS = 905
@@ -44,11 +44,11 @@ from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.consts import ev
 from analysis_engine.consts import IEX_DAILY_DATE_FORMAT
 from analysis_engine.consts import IEX_MINUTE_DATE_FORMAT
-from analysis_engine.consts import IEX_TICK_DATE_FORMAT
 from analysis_engine.consts import COMMON_TICK_DATE_FORMAT
+from analysis_engine.consts import IEX_QUOTE_DATE_FORMAT
 from analysis_engine.iex.consts import DATAFEED_DAILY
 from analysis_engine.iex.consts import DATAFEED_MINUTE
-from analysis_engine.iex.consts import DATAFEED_TICK
+from analysis_engine.iex.consts import DATAFEED_QUOTE
 from analysis_engine.iex.consts import DATAFEED_STATS
 from analysis_engine.iex.consts import DATAFEED_PEERS
 from analysis_engine.iex.consts import DATAFEED_NEWS
@@ -205,7 +205,7 @@ def ingress_scrub_dataset(
 
             DATAFEED_DAILY = 900
             DATAFEED_MINUTE = 901
-            DATAFEED_TICK = 902
+            DATAFEED_QUOTE = 902
             DATAFEED_STATS = 903
             DATAFEED_PEERS = 904
             DATAFEED_NEWS = 905
@@ -237,7 +237,6 @@ def ingress_scrub_dataset(
 
     daily_date_format = '%I:%M %p'
     minute_date_format = '%I:%M %p'
-    tick_date_format = '%I:%M %p'
 
     use_msg_format = msg_format
     if not msg_format:
@@ -253,7 +252,6 @@ def ingress_scrub_dataset(
 
     daily_date_format = IEX_DAILY_DATE_FORMAT
     minute_date_format = IEX_MINUTE_DATE_FORMAT
-    tick_date_format = IEX_TICK_DATE_FORMAT
 
     debug_msg(
         label=label,
@@ -300,26 +298,37 @@ def ingress_scrub_dataset(
                         new_dates,
                         format='%Y-%m-%d %H:%M:%S')
                 # end if label is in df
-            elif datafeed_type == DATAFEED_TICK:
-                new_dates = []
-                if 'label' in df:
-                    for idx, i in enumerate(out_df['label']):
-                        new_str = ''
-                        if ':' not in i:
-                            new_str = '{} {}:00 {}'.format(
-                                use_date_str,
-                                i.split(' ')[0],
-                                i.split(' ')[1])
-                        else:
-                            new_str = '{} {} {}'.format(
-                                use_date_str,
-                                i.split(' ')[0],
-                                i.split(' ')[1])
-                    # end for all rows
+            elif datafeed_type == DATAFEED_QUOTE:
+                print('FETCH quote: ')
+                print(out_df)
+                columns_list = out_df.columns.values
+                if 'latestTime' in columns_list:
                     out_df['date'] = pd.to_datetime(
-                        new_dates,
-                        format=tick_date_format)
+                        out_df['latestTime'],
+                        format=IEX_QUOTE_DATE_FORMAT)
+                if 'latestUpdate' in columns_list:
+                    out_df['latest_update'] = pd.to_datetime(
+                        out_df['latestUpdate'],
+                        unit='ns')
+                if 'extendedPriceTime' in columns_list:
+                    out_df['extended_price_time'] = pd.to_datetime(
+                        out_df['extendedPriceTime'],
+                        unit='ns')
+                if 'iexLastUpdated' in columns_list:
+                    out_df['iex_last_update'] = pd.to_datetime(
+                        out_df['iexLastUpdated'],
+                        unit='ns')
+                if 'openTime' in columns_list:
+                    out_df['open_time'] = pd.to_datetime(
+                        out_df['openTime'],
+                        unit='ns')
+                if 'closeTime' in columns_list:
+                    out_df['close_time'] = pd.to_datetime(
+                        out_df['closeTime'],
+                        unit='ns')
                 # end if label is in df
+                print('DONE FETCH quote: ')
+                print(out_df)
             elif datafeed_type == DATAFEED_STATS:
                 log.info(
                     '{} - {} - no scrub_mode={} '
@@ -491,7 +500,7 @@ def extract_scrub_dataset(
 
             DATAFEED_DAILY = 900
             DATAFEED_MINUTE = 901
-            DATAFEED_TICK = 902
+            DATAFEED_QUOTE = 902
             DATAFEED_STATS = 903
             DATAFEED_PEERS = 904
             DATAFEED_NEWS = 905
