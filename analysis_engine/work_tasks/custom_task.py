@@ -17,8 +17,8 @@ Debug values with the environment variable:
 import celery
 from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.consts import ev
-from analysis_engine.scripts.send_to_slack import post_failure
-from analysis_engine.scripts.send_to_slack import post_success
+from analysis_engine.send_to_slack import post_failure
+from analysis_engine.send_to_slack import post_success
 
 log = build_colorized_logger(
     name=__name__)
