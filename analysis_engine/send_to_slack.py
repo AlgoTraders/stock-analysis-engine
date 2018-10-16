@@ -10,7 +10,7 @@ Supported environment variables:
 
 ::
 
-    # slack webhook 
+    # slack webhook
     export SLACK_WEBHOOK=https://hooks.slack.com/services/
 
 """
@@ -36,8 +36,7 @@ def post_success(msg):
         if fields:
             attachment["attachments"][0]["fields"] = fields
             post(attachment)
-    
-    
+
 
 def post_failure(msg):
     """Post a FAILURE message to slack
@@ -67,7 +66,7 @@ def post_message(msg):
 
 def parse_msg(msg):
     """Create an array of fields for slack from the msg type
-    
+
     :param msg: A string, list, or dict to massage for sending to slack
     """
     if type(msg) is str:
