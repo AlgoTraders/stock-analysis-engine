@@ -90,7 +90,7 @@ def parse_msg(msg, block=False):
     elif type(msg) is dict:
         if block:
             string_dict = ''.join(
-                "{}: {}\n".format(str(k), str(v)) for k, v in msg.item())
+                "{}: {}\n".format(str(k), str(v)) for k, v in msg.items())
             return [{"value": "```{}```".format(string_dict)}]
         return [{"value": "{}: {}".format(
             str(k), str(v))} for k, v in msg.items()]
