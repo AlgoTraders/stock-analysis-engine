@@ -28,7 +28,10 @@ log = build_colorized_logger(
     name=__name__)
 
 
-def post_success(msg, jupyter=False, block=False):
+def post_success(msg,
+                 jupyter=False,
+                 block=False,
+                 full_width=False):
     """Post a SUCCESS message to slack
 
     :param msg: A string, list, or dict to send to slack
@@ -38,13 +41,18 @@ def post_success(msg, jupyter=False, block=False):
         attachment = {"attachments": [{"color": "good", "title": "SUCCESS"}]}
         fields = parse_msg(msg, block=block)
         if fields:
-            attachment["attachments"][0]["{}".format(
-                "text" if block else "fields")] = fields
+            if full_width:
+                attachment["text"] = fields[0].pop("value")
+            else:
+                attachment["attachments"][0]["fields"] = fields
             result = post(attachment, jupyter=jupyter)
     return result
 
 
-def post_failure(msg, jupyter=False, block=False):
+def post_failure(msg,
+                 jupyter=False,
+                 block=False,
+                 full_width=False):
     """Post a FAILURE message to slack
 
     :param msg: A string, list, or dict to send to slack
@@ -54,13 +62,18 @@ def post_failure(msg, jupyter=False, block=False):
         attachment = {"attachments": [{"color": "danger", "title": "FAILED"}]}
         fields = parse_msg(msg, block=block)
         if fields:
-            attachment["attachments"][0]["{}".format(
-                "text" if block else "fields")] = fields
+            if full_width:
+                attachment["text"] = fields[0].pop("value")
+            else:
+                attachment["attachments"][0]["fields"] = fields
             result = post(attachment, jupyter=jupyter)
     return result
 
 
-def post_message(msg, jupyter=False, block=False):
+def post_message(msg,
+                 jupyter=False,
+                 block=False,
+                 full_width=False):
     """Post any message to slack
 
     :param msg: A string, list, or dict to send to slack
@@ -70,8 +83,10 @@ def post_message(msg, jupyter=False, block=False):
         attachment = {"attachments": [{"title": "MESSAGE"}]}
         fields = parse_msg(msg, block=block)
         if fields:
-            attachment["attachments"][0]["{}".format(
-                "text" if block else "fields")] = fields
+            if full_width:
+                attachment["text"] = fields[0].pop("value")
+            else:
+                attachment["attachments"][0]["fields"] = fields
             result = post(attachment, jupyter=jupyter)
     return result
 
@@ -83,18 +98,18 @@ def parse_msg(msg, block=False):
     """
     if type(msg) is str:
         if block:
-            return "```{}```".format(msg)
+            return [{"value": "```{}```".format(msg)}]
         return [{"value": msg}]
     elif type(msg) is list:
         if block:
-            string_list = ''.join("{}\n".format(str(x)) for x in msg)
-            return "```{}```".format(string_list)
+            string_list = '\n'.join("{}".format(str(x)) for x in msg)
+            return [{"value": "```{}```".format(string_list)}]
         return [{"value": str(x)} for x in msg]
     elif type(msg) is dict:
         if block:
-            string_dict = ''.join(
-                "{}: {}\n".format(str(k), str(v)) for k, v in msg.items())
-            return "```{}```".format(string_dict)
+            string_dict = '\n'.join(
+                "{}: {}".format(str(k), str(v)) for k, v in msg.items())
+            return [{"value": "```{}```".format(string_dict)}]
         return [{"value": "{}: {}".format(
             str(k), str(v))} for k, v in msg.items()]
     return None
