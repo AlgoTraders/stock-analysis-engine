@@ -15,10 +15,10 @@ Example Code for Getting New Pricing Data
 ::
 
     import datetime
-    from analysis_engine.api_requests \
-        import build_get_new_pricing_request
-    from analysis_engine.work_tasks.get_new_pricing_data \
-        import get_new_pricing_data
+    from analysis_engine.api_requests
+    import build_get_new_pricing_request
+    from analysis_engine.work_tasks.get_new_pricing_data
+    import get_new_pricing_data
 
     # store data
     cur_date = datetime.datetime.now().strftime('%Y-%m-%d')
@@ -75,6 +75,9 @@ import analysis_engine.work_tasks.custom_task
 import analysis_engine.options_dates
 import analysis_engine.work_tasks.publish_pricing_update as \
     publisher
+import analysis_engine.yahoo.get_data as yahoo_data
+import analysis_engine.iex.get_data as iex_data
+import analysis_engine.send_to_slack as slack_utils
 from celery.task import task
 from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.consts import SUCCESS
@@ -106,8 +109,6 @@ from analysis_engine.consts import FETCH_MODE_YHO
 from analysis_engine.consts import FETCH_MODE_IEX
 from analysis_engine.iex.consts import DEFAULT_FETCH_DATASETS
 from analysis_engine.iex.consts import get_ft_str
-import analysis_engine.yahoo.get_data as yahoo_data
-import analysis_engine.iex.get_data as iex_data
 
 
 log = build_colorized_logger(
@@ -427,6 +428,7 @@ def get_new_pricing_data(
                 err=err,
                 rec=rec)
         # end of trying to publish results to connected services
+
     except Exception as e:
         res = build_result.build_result(
             status=ERR,
@@ -441,6 +443,33 @@ def get_new_pricing_data(
                 label,
                 res['err']))
     # end of try/ex
+
+    if ev('DATASET_COLLECTION_SLACK_ALERTS', '0') == '1':
+        done_msg = (
+            'Dataset collected ticker={} redis_key={} '
+            's3_key={} label={} iex={} yahoo={}'.format(
+                ticker,
+                redis_key,
+                s3_key,
+                label,
+                get_iex_data,
+                get_yahoo_data))
+        log.debug(
+            '{} sending slack msg={}'.format(
+                label,
+                done_msg))
+        if res['status'] == SUCCESS:
+            slack_utils.post_success(
+                msg=done_msg,
+                block=False,
+                jupyter=True)
+        else:
+            slack_utils.post_failure(
+                msg=done_msg,
+                block=False,
+                jupyter=True)
+        # end of if/else success
+    # end of publishing to slack
 
     log.info(
         'task - get_new_pricing_data done - '
