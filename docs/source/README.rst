@@ -1,7 +1,7 @@
 Stock Analysis Engine
 =====================
 
-Analyze information about publicly traded companies from `Yahoo <https://finance.yahoo.com/>`__ and `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__ (supported data includes: news, quotes, dividends, daily, intraday, statistics, financials, earnings, options, and more). Once collected the data is archived in s3 (using `minio <https://minio.io>`__) and automatically cached in redis. Deploys with `Kubernetes <https://github.com/AlgoTraders/stock-analysis-engine#running-on-kubernetes>`__ or docker compose.
+Analyze information about publicly traded companies from `Yahoo <https://finance.yahoo.com/>`__, `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__ and `FinViz <https://finviz.com>`__ (datafeeds supported: news, screeners, quotes, dividends, daily, intraday, statistics, financials, earnings, options, and more). Once collected the data is archived in s3 (using `minio <https://minio.io>`__) and automatically cached in redis. Deploys with `Kubernetes <https://github.com/AlgoTraders/stock-analysis-engine#running-on-kubernetes>`__ or docker compose.
 
 .. image:: https://i.imgur.com/pH368gy.png
 
@@ -405,6 +405,13 @@ You can run the Jupyter notebooks by starting the `notebook-integration.yml stac
 With the included Jupyter container running, you can access the `Stock Analysis Intro notebook <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro.ipynb>`__ at the url (default login password is ``admin``):
 
 http://localhost:8888/notebooks/Stock-Analysis-Intro.ipynb
+
+Jupyter Presentations with RISE
+===============================
+
+The docker container comes with `RISE installed <https://github.com/damianavila/RISE>`__ for running notebook presentations from a browser. Here's the button on the notebook for starting the web presentation:
+
+.. image:: https://i.imgur.com/IDMW2Oc.png
 
 Distributed Automation with Docker
 ==================================
@@ -817,10 +824,16 @@ Yahoo Test - Extract Option Puts
 FinViz Test - Fetch Tickers from Screener URL
 ---------------------------------------------
 
+::
+
+    python -m unittest tests.test_finviz_fetch_api.TestFinVizFetchAPI.test_integration_test_fetch_tickers_from_screener
+
+or with code:
+
 .. code-block:: python
 
     import analysis_engine.finviz.fetch_api as fv
-    url = ('https://finviz.com/screener.ashx?v=111&f=exch_nyse&ft=4&r=41')
+    url = 'https://finviz.com/screener.ashx?v=111&f=exch_nyse&ft=4&r=41'
     res = fv.fetch_tickers_from_screener(url=url)
     print(res)
 

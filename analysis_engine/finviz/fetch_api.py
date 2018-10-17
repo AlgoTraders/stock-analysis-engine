@@ -15,6 +15,7 @@ from analysis_engine.utils import get_last_close_str
 from analysis_engine.consts import NOT_RUN
 from analysis_engine.consts import SUCCESS
 from analysis_engine.consts import ERR
+from analysis_engine.consts import EX
 from analysis_engine.finviz.consts import DEFAULT_FINVIZ_COLUMNS
 
 log = build_colorized_logger(
@@ -25,6 +26,7 @@ def fetch_tickers_from_screener(
         url,
         columns=DEFAULT_FINVIZ_COLUMNS,
         as_json=False,
+        soup_selector='td.screener-body-table-nw',
         label='fz-screen-converter'):
     """fetch_tickers_from_screener
 
@@ -55,6 +57,9 @@ def fetch_tickers_from_screener(
     :param columns: ordered header column as a list of strings
                     and corresponds to the header row from the
                     FinViz screener table
+    :param soup_selector: ``bs4.BeautifulSoup.selector`` string
+                          for pulling selected html data
+                          (by default ``td.screener-body-table-nw``)
     :param as_json: FinViz screener url
     :param label: log tracking label string
     """
@@ -77,10 +82,26 @@ def fetch_tickers_from_screener(
                 url))
 
         response = requests.get(url)
+
+        if response.status_code != requests.codes.ok:
+            err = (
+                '{} finviz returned non-ok HTTP (200) '
+                'status_code={} with text={} for url={}'.format(
+                    label,
+                    response.status_code,
+                    response.text,
+                    url))
+            log.error(err)
+            return req_utils.build_result(
+                status=ERR,
+                err=err,
+                rec=rec)
+        # end of checking for a good HTTP response status code
+
         soup = bs4.BeautifulSoup(
             response.text,
             features='html.parser')
-        selected = soup.select('td.screener-body-table-nw')
+        selected = soup.select(soup_selector)
 
         log.debug(
             '{} found={} url={}'.format(
@@ -105,16 +126,7 @@ def fetch_tickers_from_screener(
 
             if column_name != 'ignore' and (
                     test_text != 'save as portfolio'
-                    and test_text != 'export'
-                    and test_text != '1'
-                    and test_text != '2'
-                    and test_text != '3'
-                    and test_text != '4'
-                    and test_text != '5'
-                    and test_text != '6'
-                    and test_text != '7'
-                    and test_text != '8'
-                    and test_text != '9'):
+                    and test_text != 'export'):
 
                 cur_text = str(node.text).strip()
 
@@ -176,7 +188,7 @@ def fetch_tickers_from_screener(
                 e))
         log.error(err)
         res = req_utils.build_result(
-            status=ERR,
+            status=EX,
             err=err,
             rec=rec)
     # end of try/ex
