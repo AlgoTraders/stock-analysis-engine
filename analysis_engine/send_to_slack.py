@@ -38,7 +38,8 @@ def post_success(msg, jupyter=False, block=False):
         attachment = {"attachments": [{"color": "good", "title": "SUCCESS"}]}
         fields = parse_msg(msg, block=block)
         if fields:
-            attachment["attachments"][0]["fields"] = fields
+            attachment["attachments"][0]["{}".format(
+                "text" if block else "fields")] = fields
             result = post(attachment, jupyter=jupyter)
     return result
 
@@ -53,7 +54,8 @@ def post_failure(msg, jupyter=False, block=False):
         attachment = {"attachments": [{"color": "danger", "title": "FAILED"}]}
         fields = parse_msg(msg, block=block)
         if fields:
-            attachment["attachments"][0]["fields"] = fields
+            attachment["attachments"][0]["{}".format(
+                "text" if block else "fields")] = fields
             result = post(attachment, jupyter=jupyter)
     return result
 
@@ -68,7 +70,8 @@ def post_message(msg, jupyter=False, block=False):
         attachment = {"attachments": [{"title": "MESSAGE"}]}
         fields = parse_msg(msg, block=block)
         if fields:
-            attachment["attachments"][0]["fields"] = fields
+            attachment["attachments"][0]["{}".format(
+                "text" if block else "fields")] = fields
             result = post(attachment, jupyter=jupyter)
     return result
 
