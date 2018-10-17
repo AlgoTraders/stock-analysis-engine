@@ -102,28 +102,29 @@ def post(attachment, jupyter=False):
                           'to slack_webhook exists').format(attachment))
             r = requests.post(SLACK_WEBHOOK, data=json.dumps(attachment))
             if str(r.status_code) == "200":
-                if not jupyter:
-                    log.info(('Successful post of attachment={} '
-                              'to slack_webhook exists').format(attachment))
+                log.info(('Successful post of attachment={} '
+                          'to slack_webhook exists').format(
+                              attachment if not jupyter else
+                              True if attachment else False))
                 result['status'] = SUCCESS
             else:
-                if not jupyter:
-                    log.error(('Failed to post attachment={} '
-                               'with status_code={}').format(
-                                   attachment,
-                                   r.status_code))
-        except Exception as e:
-            if not jupyter:
                 log.error(('Failed to post attachment={} '
-                           'with ex={}').format(
-                               attachment,
-                               e))
+                           'with status_code={}').format(
+                               attachment if not jupyter else
+                               True if attachment else False,
+                               r.status_code))
+        except Exception as e:
+            log.error(('Failed to post attachment={} '
+                       'with ex={}').format(
+                           attachment if not jupyter else
+                           True if attachment else False,
+                           e))
             result['status'] = ERR
             result['err'] = e
     else:
-        if not jupyter:
-            log.info(('Skipping post to slack due to missing '
-                      'attachment={} or SLACK_WEBHOOK exists={}').format(
-                          attachment,
-                          True if SLACK_WEBHOOK else False))
+        log.info(('Skipping post to slack due to missing '
+                  'attachment={} or SLACK_WEBHOOK exists={}').format(
+                      attachment if not jupyter else
+                      True if attachment else False,
+                      True if SLACK_WEBHOOK else False))
     return result
