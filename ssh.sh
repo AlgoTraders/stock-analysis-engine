@@ -2,4 +2,4 @@
 
 echo ""
 echo "sshing"
-docker exec -it sa-workers bash
+docker exec -it sa-workers-$USER bash

@@ -33,6 +33,9 @@ Celery Environment Variables
 
 ::
 
+    SLACK_WEBHOOK = ev(
+        'SLACK_WEBHOOK',
+        None)
     SSL_OPTIONS = {}
     TRANSPORT_OPTIONS = {}
     WORKER_BROKER_URL = ev(
@@ -307,6 +310,10 @@ IEX_QUOTE_DATE_FORMAT = '%B %d, %Y'
 COMMON_DATE_FORMAT = '%Y-%m-%d'
 COMMON_TICK_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 CACHE_DICT_VERSION = 1
+
+SLACK_WEBHOOK = ev(
+    'SLACK_WEBHOOK',
+    None)
 
 
 ########################################
