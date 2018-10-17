@@ -36,6 +36,9 @@ Celery Environment Variables
     SLACK_WEBHOOK = ev(
         'SLACK_WEBHOOK',
         None)
+    PROD_SLACK_ALERTS = ev(
+        'PROD_SLACK_ALERTS',
+        '0')
     SSL_OPTIONS = {}
     TRANSPORT_OPTIONS = {}
     WORKER_BROKER_URL = ev(
@@ -314,6 +317,9 @@ CACHE_DICT_VERSION = 1
 SLACK_WEBHOOK = ev(
     'SLACK_WEBHOOK',
     None)
+PROD_SLACK_ALERTS = ev(
+    'PROD_SLACK_ALERTS',
+    '0')
 
 
 ########################################
