@@ -52,7 +52,7 @@ case "$os_type" in
         inf "Setting up environment for MacOS"
         active_ports=`lsof -i -P -n | grep LISTEN`
         # sed replace without the '' does seem to work on mac and linux the same
-        mac="''"
+        mac=".bak"
         ;;
     *)
         warn "Unsupported OS, exiting."
@@ -171,6 +171,11 @@ rm env.sh
 # end getting ports and setting vars for containers
 
 docker-compose -f ./${compose} up -d
+
+# MacOS specific, remove the backup file that is created by sed -i 
+if [[ -n $mac && -f envs/.env$mac ]]; then
+    rm envs/.env$mac
+fi
 
 if [[ "${down_dir}" == "1" ]]; then
     popd >> /dev/null
