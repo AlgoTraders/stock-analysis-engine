@@ -76,6 +76,7 @@ setup(
     packages=[
         'analysis_engine',
         'analysis_engine.iex',
+        'analysis_engine.finviz',
         'analysis_engine.mocks',
         'analysis_engine.log',
         'analysis_engine.scripts',
