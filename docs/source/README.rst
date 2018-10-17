@@ -406,6 +406,13 @@ With the included Jupyter container running, you can access the `Stock Analysis 
 
 http://localhost:8888/notebooks/Stock-Analysis-Intro.ipynb
 
+Jupyter Presentations with RISE
+===============================
+
+The docker container comes with `RISE installed <https://github.com/damianavila/RISE>`__ for running notebook presentations from a browser. Here's the button on the notebook for starting the web presentation:
+
+.. image:: https://i.imgur.com/IDMW2Oc.png
+
 Distributed Automation with Docker
 ==================================
 
