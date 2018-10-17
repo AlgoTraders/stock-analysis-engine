@@ -814,6 +814,16 @@ Yahoo Test - Extract Option Puts
 
     python -m unittest tests.test_yahoo_dataset_extraction.TestYahooDatasetExtraction.test_integration_extract_option_puts
 
+FinViz Test - Fetch Tickers from Screener URL
+---------------------------------------------
+
+.. code-block:: python
+
+    import analysis_engine.finviz.fetch_api as fv
+    url = ('https://finviz.com/screener.ashx?v=111&f=exch_nyse&ft=4&r=41')
+    res = fv.fetch_tickers_from_screener(url=url)
+    print(res)
+
 Prepare a Dataset
 =================
 

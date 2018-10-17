@@ -48,6 +48,7 @@ Table of Contents
    api_reference
    iex_api
    yahoo_api
+   finviz_api
    scrub_utils
    extract_utils
    options_utils
