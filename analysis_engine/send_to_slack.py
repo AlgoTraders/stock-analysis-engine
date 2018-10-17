@@ -28,6 +28,29 @@ log = build_colorized_logger(
     name=__name__)
 
 
+def post_block(msg):
+    """post_block
+
+    Post a code block message to slack
+
+    Formatting will look like this equivalent in reStructuredText (rst)
+
+    ```
+    msg
+    ```
+
+    :param msg: A string, list, or dict to send to slack
+    """
+    result = {'status': FAILED}
+    if msg:
+        attachment = {"attachments": [{"color": "good", "title": "SUCCESS"}]}
+        fields = parse_msg('```{}```'.format(msg))
+        if fields:
+            attachment["attachments"][0]["fields"] = fields
+            result = post(attachment)
+    return result
+
+
 def post_success(msg):
     """Post a SUCCESS message to slack
 
