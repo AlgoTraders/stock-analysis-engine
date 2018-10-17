@@ -21,6 +21,7 @@ sphinx
 sphinx-autobuild
 sphinx_rtd_theme
 spylunking
+tabulate
 trading_calendars
 unittest2
 ujson
