@@ -42,6 +42,7 @@ sys.path.insert(0, PACKAGE_SOURCE_PATH_FROM_DOCS)
 source_code_dirs = [
     'analysis_engine/',
     'analysis_engine/iex/',
+    'analysis_engine/finviz/',
     'analysis_engine/mocks/',
     'analysis_engine/scripts/',
     'analysis_engine/work_tasks/',
