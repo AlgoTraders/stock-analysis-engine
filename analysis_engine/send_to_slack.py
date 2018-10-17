@@ -38,7 +38,8 @@ def post_success(msg,
     """
     result = {'status': FAILED}
     if msg:
-        attachments = [{"attachments": [{"color": "good", "title": "SUCCESS"}]}]
+        attachments = [{"attachments":
+                       [{"color": "good", "title": "SUCCESS"}]}]
         fields = parse_msg(msg, block=block)
         if fields:
             if full_width:
@@ -59,7 +60,8 @@ def post_failure(msg,
     """
     result = {'status': FAILED}
     if msg:
-        attachments = [{"attachments": [{"color": "danger", "title": "FAILED"}]}]
+        attachments = [{"attachments":
+                       [{"color": "danger", "title": "FAILED"}]}]
         fields = parse_msg(msg, block=block)
         if fields:
             if full_width:
