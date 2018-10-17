@@ -49,7 +49,7 @@ def fetch_tickers_from_screener(
             'f=cap_midunder,exch_nyse,fa_div_o5,idx_sp500'
             '&ft=4')
         res = fv.fetch_tickers_from_screener(url=url)
-        print(res['tickers'])
+        print(res)
 
     :param url: FinViz screener url
     :param columns: ordered header column as a list of strings
@@ -134,8 +134,8 @@ def fetch_tickers_from_screener(
                     new_row = {}
                     col_idx = 0
                 # end of if valid row
-            # end of for all columns in the pandas.DataFrame
-        # end of walking through all tickers in the screen
+            # end if column is valid
+        # end of walking through all matched html data on the screener
 
         log.debug(
             '{} done convert url={} to tickers={} '
