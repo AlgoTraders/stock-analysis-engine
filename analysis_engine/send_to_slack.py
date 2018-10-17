@@ -80,18 +80,18 @@ def parse_msg(msg, block=False):
     """
     if type(msg) is str:
         if block:
-            return [{"value": "```{}```".format(msg)}]
+            return "```{}```".format(msg)
         return [{"value": msg}]
     elif type(msg) is list:
         if block:
             string_list = ''.join("{}\n".format(str(x)) for x in msg)
-            return [{"value": "```{}```".format(string_list)}]
+            return "```{}```".format(string_list)
         return [{"value": str(x)} for x in msg]
     elif type(msg) is dict:
         if block:
             string_dict = ''.join(
                 "{}: {}\n".format(str(k), str(v)) for k, v in msg.items())
-            return [{"value": "```{}```".format(string_dict)}]
+            return "```{}```".format(string_dict)
         return [{"value": "{}: {}".format(
             str(k), str(v))} for k, v in msg.items()]
     return None
