@@ -41,10 +41,12 @@ def post_success(msg,
         attachment = {"attachments": [{"color": "good", "title": "SUCCESS"}]}
         fields = parse_msg(msg, block=block)
         if fields:
-            if full_width:
-                attachment["text"] = fields[0].pop("value")
-            else:
-                attachment["attachments"][0]["fields"] = fields
+            # if full_width:
+            #     attachment["text"] = fields[0].pop("value")
+            # else:
+            #     attachment["attachments"][0]["fields"] = fields
+            attachment["attachments"][0]["{}".format(
+                "text" if full_width else "fields")] = fields
             result = post(attachment, jupyter=jupyter)
     return result
 
@@ -62,10 +64,12 @@ def post_failure(msg,
         attachment = {"attachments": [{"color": "danger", "title": "FAILED"}]}
         fields = parse_msg(msg, block=block)
         if fields:
-            if full_width:
-                attachment["text"] = fields[0].pop("value")
-            else:
-                attachment["attachments"][0]["fields"] = fields
+            # if full_width:
+            #     attachment["text"] = fields[0].pop("value")
+            # else:
+            #     attachment["attachments"][0]["fields"] = fields
+            attachment["attachments"][0]["{}".format(
+                "text" if full_width else "fields")] = fields
             result = post(attachment, jupyter=jupyter)
     return result
 
@@ -83,10 +87,12 @@ def post_message(msg,
         attachment = {"attachments": [{"title": "MESSAGE"}]}
         fields = parse_msg(msg, block=block)
         if fields:
-            if full_width:
-                attachment["text"] = fields[0].pop("value")
-            else:
-                attachment["attachments"][0]["fields"] = fields
+            # if full_width:
+            #     attachment["text"] = fields[0].pop("value")
+            # else:
+            #     attachment["attachments"][0]["fields"] = fields
+            attachment["attachments"][0]["{}".format(
+                "text" if full_width else "fields")] = fields
             result = post(attachment, jupyter=jupyter)
     return result
 
@@ -98,18 +104,21 @@ def parse_msg(msg, block=False):
     """
     if type(msg) is str:
         if block:
-            return [{"value": "```{}```".format(msg)}]
+            return "```{}```".format(msg)
+            # return [{"value": "```{}```".format(msg)}]
         return [{"value": msg}]
     elif type(msg) is list:
         if block:
             string_list = '\n'.join("{}".format(str(x)) for x in msg)
-            return [{"value": "```{}```".format(string_list)}]
+            return "```{}```".format(string_list)
+            # return [{"value": "```{}```".format(string_list)}]
         return [{"value": str(x)} for x in msg]
     elif type(msg) is dict:
         if block:
             string_dict = '\n'.join(
                 "{}: {}".format(str(k), str(v)) for k, v in msg.items())
-            return [{"value": "```{}```".format(string_dict)}]
+            return "```{}```".format(string_dict)
+            # return [{"value": "```{}```".format(string_dict)}]
         return [{"value": "{}: {}".format(
             str(k), str(v))} for k, v in msg.items()]
     return None
