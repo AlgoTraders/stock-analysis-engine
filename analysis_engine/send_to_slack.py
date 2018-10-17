@@ -103,7 +103,7 @@ def post(attachment, jupyter=False):
             r = requests.post(SLACK_WEBHOOK, data=json.dumps(attachment))
             if str(r.status_code) == "200":
                 log.info(('Successful post of attachment={} '
-                          'to slack_webhook exists').format(
+                          'to slack_webhook').format(
                               attachment if not jupyter else
                               True if attachment else False))
                 result['status'] = SUCCESS
@@ -123,8 +123,8 @@ def post(attachment, jupyter=False):
             result['err'] = e
     else:
         log.info(('Skipping post to slack due to missing '
-                  'attachment={} or SLACK_WEBHOOK exists={}').format(
+                  'attachment={} or SLACK_WEBHOOK missing={}').format(
                       attachment if not jupyter else
                       True if attachment else False,
-                      True if SLACK_WEBHOOK else False))
+                      False if SLACK_WEBHOOK else True))
     return result
