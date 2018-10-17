@@ -18,7 +18,6 @@ import celery
 from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.consts import ev
 from analysis_engine.send_to_slack import post_failure
-from analysis_engine.send_to_slack import post_success
 
 log = build_colorized_logger(
     name=__name__)
@@ -77,18 +76,11 @@ class CustomTask(celery.Task):
                     task_id,
                     args,
                     kwargs))
-            post_success(['on_success {}'.format(self.log_label),
-                          'retval={}'.format(retval),
-                          'task_id={}'.format(task_id),
-                          'args={}'.format(args),
-                          'kwargs={}'.format(kwargs)])
         else:
             log.info(
                 'on_success {} - task_id={}'.format(
                     self.log_label,
                     task_id))
-            post_success(['on_success {}'.format(self.log_label),
-                          'task_id={}'.format(task_id)])
     # end of on_success
 
     def on_failure(
@@ -126,15 +118,12 @@ class CustomTask(celery.Task):
                     use_exc,
                     args,
                     kwargs))
-            post_failure(['on_failure {}'.format(self.log_label),
-                          'exc={}'.format(use_exc),
-                          'args={}'.format(args),
-                          'kwargs={}'.format(kwargs)])
         else:
             log.error(
                 'on_failure {} - exc={} '.format(
                     self.log_label,
                     use_exc))
+        if ev('PROD_SLACK_ALERTS', '0') == '1':
             post_failure(['on_failure {}'.format(self.log_label),
                           'exc={}'.format(use_exc)])
     # end of on_failure
