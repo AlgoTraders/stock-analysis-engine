@@ -259,9 +259,9 @@ def post_cb(
         tablefmt='github'):
     """post_cb
 
-    Post a ``pandas.DataFrame`` to Slack
+    Post a text messsage as a code block to Slack
 
-    :param msg: ``pandas.DataFrame`` object
+    :param msg: text message (pre-formatting is not necessary)
     :param block: bool for
                   post as a Slack-formatted block ```like this```
                   (``True`` by default)
