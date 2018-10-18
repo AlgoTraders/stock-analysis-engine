@@ -76,7 +76,7 @@ def mock_request_get(
             '<td class="screener-body-table-nw">-7.33%</td>'
             '<td class="screener-body-table-nw">53,700,383</td>'
             '</tr>'
-            '<tbody>'
+            '</tbody>'
             '</table>'
             '</body>'
             '</html>')

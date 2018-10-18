@@ -1,7 +1,7 @@
 Stock Analysis Engine
 =====================
 
-Analyze information about publicly traded companies from `Yahoo <https://finance.yahoo.com/>`__, `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__ and `FinViz <https://finviz.com>`__ (datafeeds supported: news, screeners, quotes, dividends, daily, intraday, statistics, financials, earnings, options, and more). Once collected the data is archived in s3 (using `minio <https://minio.io>`__) and automatically cached in redis. Deploys with `Kubernetes <https://github.com/AlgoTraders/stock-analysis-engine#running-on-kubernetes>`__ or docker compose.
+Analyze information about publicly traded companies from `Yahoo <https://finance.yahoo.com/>`__, `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__ and `FinViz <https://finviz.com>`__ (datafeeds supported: news, screeners, quotes, dividends, daily, intraday, statistics, financials, earnings, options, and more). Once collected the data is archived in s3 (using `minio <https://minio.io>`__) and automatically cached in redis. Deploys with `Kubernetes <https://github.com/AlgoTraders/stock-analysis-engine#running-on-kubernetes>`__ or docker compose with `support for publishing alerts to Slack <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro-Publishing-to-Slack.ipynb>`__.
 
 .. image:: https://i.imgur.com/pH368gy.png
 
@@ -486,6 +486,30 @@ After running the dataset collection container, the datasets should be auto-cach
     46) "SPY_2018-10-06_minute"
     47) "NFLX_2018-10-06_stats"
     48) "NFLX_2018-10-06_news1"
+
+Publishing to Slack
+===================
+
+Please refer to the `Publish Stock Alerts to Slack Jupyter Notebook <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro-Publishing-to-Slack.ipynb>`__ for the latest usage examples.
+
+Publish FinViz Screener Tickers to Slack
+----------------------------------------
+
+Here is sample code for trying out the Slack integration.
+
+.. code-block:: python
+
+    import analysis_engine.finviz.fetch_api as fv
+    from analysis_engine.send_to_slack import post_df
+    # simple NYSE Dow Jones Index Financials with a P/E above 5 screener url
+    url = 'https://finviz.com/screener.ashx?v=111&f=exch_nyse,fa_pe_o5,idx_dji,sec_financial&ft=4'
+    res = fv.fetch_tickers_from_screener(url=url)
+    df = res['rec']['data']
+
+    # please make sure the SLACK_WEBHOOK environment variable is set correctly:
+    post_df(
+        df=df[SLACK_FINVIZ_COLUMNS],
+        columns=SLACK_FINVIZ_COLUMNS)
 
 Running on Kubernetes
 =====================

@@ -15,8 +15,10 @@ Supported environment variables:
 
 """
 
+import os
 import json
 import requests
+import tabulate as tb
 from analysis_engine.consts import ev
 from analysis_engine.consts import SUCCESS
 from analysis_engine.consts import FAILED
@@ -37,6 +39,11 @@ def post_success(msg,
     :param msg: A string, list, or dict to send to slack
     """
     result = {'status': FAILED}
+    if not os.getenv('SLACK_WEBHOOK', False):
+        log.info(
+            'post_success - please add a SLACK_WEBHOOK environment '
+            'variable to publish messages')
+        return result
     if msg:
         attachments = [{"attachments":
                        [{"color": "good", "title": "SUCCESS"}]}]
@@ -59,6 +66,11 @@ def post_failure(msg,
     :param msg: A string, list, or dict to send to slack
     """
     result = {'status': FAILED}
+    if not os.getenv('SLACK_WEBHOOK', False):
+        log.info(
+            'post_failure - please add a SLACK_WEBHOOK environment '
+            'variable to publish messages')
+        return result
     if msg:
         attachments = [{"attachments":
                        [{"color": "danger", "title": "FAILED"}]}]
@@ -81,6 +93,16 @@ def post_message(msg,
     :param msg: A string, list, or dict to send to slack
     """
     result = {'status': FAILED}
+    if not os.getenv('SLACK_WEBHOOK', False):
+        log.info(
+            'post_message - please add a SLACK_WEBHOOK environment '
+            'variable to publish messages')
+        return result
+    if not os.getenv('SLACK_WEBHOOK', False):
+        log.info(
+            'post_message - please add a SLACK_WEBHOOK environment '
+            'variable for to work')
+        return result
     if msg:
         attachments = [{"attachments": [{"title": "MESSAGE"}]}]
         fields = parse_msg(msg, block=block)
@@ -124,6 +146,11 @@ def post(attachments, jupyter=False):
     """
     SLACK_WEBHOOK = ev('SLACK_WEBHOOK', None)
     result = {'status': FAILED}
+    if not os.getenv('SLACK_WEBHOOK', False):
+        log.info(
+            'post - please add a SLACK_WEBHOOK environment '
+            'variable to publish messages')
+        return result
     if attachments and SLACK_WEBHOOK:
         try:
             if not jupyter:
@@ -160,3 +187,110 @@ def post(attachments, jupyter=False):
                       True if attachments else False,
                       False if SLACK_WEBHOOK else True))
     return result
+
+
+def post_df(
+        df,
+        columns=None,
+        block=True,
+        jupyter=True,
+        full_width=True,
+        tablefmt='github'):
+    """post_df
+
+    Post a ``pandas.DataFrame`` to Slack
+
+    :param df: ``pandas.DataFrame`` object
+    :param columns: ordered list of columns to for the table
+                    header row
+                    (``None`` by default)
+    :param block: bool for
+                  post as a Slack-formatted block ```like this```
+                  (``True`` by default)
+    :param jupyter: bool for
+                    jupyter attachment handling
+                    (``True`` by default)
+    :param full_width: bool to ensure the width is preserved
+                       the Slack message  (``True`` by default)
+    :param tablefmt: string for table format (``github`` by default).
+                     Additional format values can be found on:
+                     https://bitbucket.org/astanin/python-tabulate
+    """
+
+    if not os.getenv('SLACK_WEBHOOK', False):
+        log.info(
+            'post_df - please add a SLACK_WEBHOOK environment '
+            'variable to publish messages')
+        return
+    if not hasattr(df, 'index'):
+        log.debug('post_df - no df ')
+        return
+
+    log.debug('post_df - df.index={} columns={} fmt={}'.format(
+        len(df.index),
+        columns,
+        tablefmt))
+
+    msg = None
+    if columns:
+        msg = tb.tabulate(
+            df[columns],
+            headers=columns,
+            tablefmt=tablefmt)
+    else:
+        msg = tb.tabulate(
+            df,
+            tablefmt=tablefmt)
+    # end of if/else
+
+    post_success(
+        msg=msg,
+        block=block,
+        jupyter=jupyter,
+        full_width=full_width)
+# end of post_df
+
+
+def post_cb(
+        msg,
+        block=True,
+        jupyter=True,
+        full_width=True,
+        tablefmt='github'):
+    """post_cb
+
+    Post a text messsage as a code block to Slack
+
+    :param msg: text message (pre-formatting is not necessary)
+    :param block: bool for
+                  post as a Slack-formatted block ```like this```
+                  (``True`` by default)
+    :param jupyter: bool for
+                    jupyter attachment handling
+                    (``True`` by default)
+    :param full_width: bool to ensure the width is preserved
+                       the Slack message  (``True`` by default)
+    :param tablefmt: string for table format (``github`` by default).
+                     Additional format values can be found on:
+                     https://bitbucket.org/astanin/python-tabulate
+    """
+
+    if not os.getenv('SLACK_WEBHOOK', False):
+        log.info(
+            'post_cb - please add a SLACK_WEBHOOK environment '
+            'variable to publish messages')
+        return
+    if not msg:
+        log.debug('post_cb - no msg')
+        return
+
+    log.debug('post_cb - msg={} fmt={}'.format(
+        len(msg),
+        tablefmt))
+
+    post_success(
+        msg=msg,
+        block=block,
+        jupyter=jupyter,
+        full_width=full_width)
+# end of post_cb

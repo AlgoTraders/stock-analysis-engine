@@ -320,6 +320,29 @@ SLACK_WEBHOOK = ev(
 PROD_SLACK_ALERTS = ev(
     'PROD_SLACK_ALERTS',
     '0')
+DATASET_COLLECTION_SLACK_ALERTS = ev(
+    'DATASET_COLLECTION_SLACK_ALERTS',
+    '0')
+SLACK_FINVIZ_ALL_COLUMNS = [
+    'ticker',
+    'price',
+    'volume',
+    'change',
+    'pe',
+    'market_cap',
+    'company',
+    'industry',
+    'sector',
+    'country'
+]
+SLACK_FINVIZ_COLUMNS = [
+    'ticker',
+    'price',
+    'volume',
+    'change',
+    'pe',
+    'market_cap'
+]
 
 
 ########################################
