@@ -140,3 +140,13 @@ spec:
             secretKeyRef:
               name: splunk.log
               key: debug
+        # set to your Slack webhook url:
+        - name: SLACK_WEBHOOK
+          value: https://hooks.slack.com/services/YOUR_WEBHOOK_HERE
+        # set to "1" to enable publishing to slack when
+        # each ticker's job completes
+        - name: DATASET_COLLECTION_SLACK_ALERTS
+          value: "0"
+        # set to "1" to publish Celery task failures to Slack
+        - name: PROD_SLACK_ALERTS
+          value: "0"
