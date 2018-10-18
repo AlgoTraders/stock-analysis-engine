@@ -89,7 +89,7 @@ do
     elif [[ "${i}" == "-c" ]]; then
         debug="1"
         compose="automation-dataset-collection.yml"
-        workers=`ps auwwx | grep $USER | grep python3 | grep start_worker | awk '{print $2}'`
+        workers=`ps auwwx | grep $USER | grep -i python | grep start_worker | awk '{print $2}'`
         if [[ ! -z "$workers" ]]; then
             echo $workers | xargs kill -9
         fi
