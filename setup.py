@@ -29,12 +29,38 @@ requires_that_fail_on_rtd = [
     'awscli'
 ]
 
-install_requires = []
+install_requires = [
+    'antinex-client',
+    'bs4',
+    'celery',
+    'celery[redis]',
+    'celery-connectors',
+    'colorlog',
+    'coverage',
+    'flake8<=3.4.1',
+    'future',
+    'mock',
+    'pandas',
+    'pep8>=1.7.1',
+    'pinance',
+    'pypandoc',
+    'pycodestyle<=2.3.1',
+    'pylint',
+    'pyEX>=0.1.5',
+    'recommonmark',
+    'redis',
+    'sphinx',
+    'sphinx-autobuild',
+    'sphinx_rtd_theme',
+    'spylunking',
+    'tabulate',
+    'trading_calendars',
+    'unittest2',
+    'urllib3==1.23',
+    'ujson'
+]
 
 cur_dir = os.path.abspath(os.path.dirname(__file__))
-with open(os.path.join(
-        cur_dir, 'requirements.txt'), encoding='utf-8') as f:
-    install_requires = f.read().split()
 
 # if not on readthedocs.io get all the pips:
 if os.getenv("READTHEDOCS", "") == "":
@@ -62,7 +88,7 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.1.10',
+    version='1.1.11',
     description=(
         'Stock Analysis Engine - '
         'Use this to get pricing data for tickers '
