@@ -446,8 +446,8 @@ def get_new_pricing_data(
 
     if ev('DATASET_COLLECTION_SLACK_ALERTS', '0') == '1':
         done_msg = (
-            'Dataset collected ticker={} redis_key={} '
-            's3_key={} label={} iex={} yahoo={}'.format(
+            'Dataset collected ticker=*{}* redis_key={} '
+            's3_key={} iex={} yahoo={}'.format(
                 ticker,
                 redis_key,
                 s3_key,
