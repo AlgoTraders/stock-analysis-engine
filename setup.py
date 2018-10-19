@@ -33,7 +33,6 @@ install_requires = [
     'antinex-client',
     'bs4',
     'celery',
-    'celery[redis]',
     'celery-connectors',
     'colorlog',
     'coverage',
@@ -88,7 +87,7 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.1.11',
+    version='1.1.12',
     description=(
         'Stock Analysis Engine - '
         'Use this to get pricing data for tickers '
