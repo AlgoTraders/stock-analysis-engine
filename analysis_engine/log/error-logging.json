@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "disable_existing_loggers": false,
+  "formatters": {
+    "colors": {
+      "()": "colorlog.ColoredFormatter",
+      "format": "%(log_color)s%(asctime)s - %(name)s - %(levelname)s - %(message)s%(reset)s"
+    },
+    "no_date_colors": {
+      "()": "colorlog.ColoredFormatter",
+      "format": "%(log_color)s%(name)s - %(levelname)s - %(message)s%(reset)s"
+    },
+    "jupyter": {
+      "()": "colorlog.ColoredFormatter",
+      "format": "%(log_color)s%(levelname)s - %(message)s%(reset)s"
+    },
+    "simple": {
+      "()": "colorlog.ColoredFormatter",
+      "format": "%(log_color)s%(message)s%(reset)s"
+    }
+  },
+  "handlers": {
+    "console": {
+      "class": "logging.StreamHandler",
+      "level": "ERROR",
+      "formatter": "colors",
+      "stream": "ext://sys.stdout"
+    },
+    "no_date_colors": {
+      "class": "logging.StreamHandler",
+      "level": "ERROR",
+      "formatter": "no_date_colors",
+      "stream": "ext://sys.stdout"
+    },
+    "jupyter": {
+      "class": "logging.StreamHandler",
+      "level": "ERROR",
+      "formatter": "jupyter",
+      "stream": "ext://sys.stdout"
+    },
+    "simple": {
+      "class": "logging.StreamHandler",
+      "level": "ERROR",
+      "formatter": "simple",
+      "stream": "ext://sys.stdout"
+    }
+  },
+  "loggers": {
+    "": {
+      "level": "ERROR",
+      "propagate": true
+    }
+  },
+  "root": {
+    "level": "ERROR",
+    "propagate": true,
+    "handlers": []
+  }
+}
