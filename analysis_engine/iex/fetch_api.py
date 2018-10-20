@@ -307,7 +307,8 @@ def fetch_news(
             ticker))
 
     res = pyex_stocks.newsDF(
-        symbol=ticker)
+        symbol=ticker,
+        count=50)
 
     scrubbed_df = scrub_utils.ingress_scrub_dataset(
         label=label,
