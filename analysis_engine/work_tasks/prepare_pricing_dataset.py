@@ -1,6 +1,5 @@
 """
-Prepare Pricing Dataset
-=======================
+**Prepare Pricing Dataset**
 
 Prepare dataset for analysis. This task collapses
 nested json dictionaries into a
@@ -11,8 +10,7 @@ file in s3 and redis automatically.
 - prepare dataset from redis key
 - the dataset will be stored as a dictionary with a pandas dataframe
 
-Sample work_dict request for this method
-----------------------------------------
+**Sample work_dict request for this method**
 
 `analysis_engine.api_requests.build_prepare_dataset_request <https://
 github.com/AlgoTraders/stock-analysis-engine/blob/master/ana
@@ -34,17 +32,18 @@ lysis_engine/api_requests.py#L300>`__
         'redis_enabled': redis_enabled
     }
 
-Debug environment variables
-
-::
-
-    export DEBUG_PREPARE=1
-
 .. tip:: This task uses the `analysis_engine.work_tasks.
     custom_task.CustomTask class <https://github.com/A
     lgoTraders/stock-analysis-engine/blob/master/anal
     ysis_engine/work_tasks/custom_task.py>`__ for
     task event handling.
+
+**Supported Environment Variables**
+
+::
+
+    export DEBUG_PREPARE=1
+    export DEBUG_RESULTS=1
 
 """
 
@@ -599,14 +598,16 @@ def run_prepare_pricing_dataset(
             response = task_res.get(
                 'result',
                 task_res)
-            response_details = response
-            try:
-                response_details = ppj(response)
-            except Exception:
+            if ev('DEBUG_RESULTS', '0') == '1':
                 response_details = response
-            log.info(
-                'getting task result={}'.format(
-                    response_details))
+                try:
+                    response_details = ppj(response)
+                except Exception:
+                    response_details = response
+                log.info(
+                    '{} task result={}'.format(
+                        label,
+                        response_details))
         else:
             log.error(
                 '{} celery was disabled but the task={} '
@@ -627,13 +628,21 @@ def run_prepare_pricing_dataset(
     # if celery enabled
 
     if response:
-        log.info(
-            'run_prepare_pricing_dataset - {} - done '
-            'status={} err={} rec={}'.format(
-                label,
-                get_status(response['status']),
-                response['err'],
-                response['rec']))
+        if ev('DEBUG_RESULTS', '0') == '1':
+            log.info(
+                'run_prepare_pricing_dataset - {} - done '
+                'status={} err={} rec={}'.format(
+                    label,
+                    get_status(response['status']),
+                    response['err'],
+                    response['rec']))
+        else:
+            log.info(
+                'run_prepare_pricing_dataset - {} - done '
+                'status={} err={}'.format(
+                    label,
+                    get_status(response['status']),
+                    response['err']))
     else:
         log.info(
             'run_prepare_pricing_dataset - {} - done '

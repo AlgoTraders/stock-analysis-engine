@@ -427,15 +427,15 @@ def run_publish_pricing_update(
             response = task_res.get(
                 'result',
                 task_res)
-            response_details = response
-            try:
-                response_details = ppj(response)
-            except Exception:
-                response_details = response
-
             if ev('DEBUG_RESULTS', '0') == '1':
+                response_details = response
+                try:
+                    response_details = ppj(response)
+                except Exception:
+                    response_details = response
                 log.info(
-                    'getting task result={}'.format(
+                    '{} task result={}'.format(
+                        label,
                         response_details))
         else:
             log.error(
@@ -457,13 +457,21 @@ def run_publish_pricing_update(
     # if celery enabled
 
     if response:
-        log.info(
-            'run_publish_pricing_update - {} - done '
-            'status={} err={} rec={}'.format(
-                label,
-                get_status(response['status']),
-                response['err'],
-                response['rec']))
+        if ev('DEBUG_RESULTS', '0') == '1':
+            log.info(
+                'run_publish_pricing_update - {} - done '
+                'status={} err={} rec={}'.format(
+                    label,
+                    get_status(response['status']),
+                    response['err'],
+                    response['rec']))
+        else:
+            log.info(
+                'run_publish_pricing_update - {} - done '
+                'status={} err={}'.format(
+                    label,
+                    get_status(response['status']),
+                    response['err']))
     else:
         log.info(
             'run_publish_pricing_update - {} - done '

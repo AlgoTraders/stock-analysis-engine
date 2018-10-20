@@ -1,6 +1,5 @@
 """
-Get New Pricing Data Task
-=========================
+**Get New Pricing Data Task**
 
 This will fetch data (pricing, financials, earnings, dividends, options,
 and more) from these sources:
@@ -9,8 +8,7 @@ and more) from these sources:
 
 #.  IEX
 
-Example Code for Getting New Pricing Data
------------------------------------------
+**Detailed example for getting new pricing data**
 
 ::
 
@@ -58,8 +56,7 @@ Example Code for Getting New Pricing Data
     ysis_engine/work_tasks/custom_task.py>`__ for
     task event handling.
 
-Sample work_dict request for this method
-----------------------------------------
+**Sample work_dict request for this method**
 
 `analysis_engine.api_requests.build_get_new_pricing_request <https://
 github.com/AlgoTraders/stock-analysis-engine/blob/master/ana
@@ -414,10 +411,9 @@ def get_new_pricing_data(
                         ppj(update_res)))
             else:
                 log.info(
-                    '{} update_res status={} data={}'.format(
+                    '{} run_publish_pricing_update status={}'.format(
                         label,
-                        get_status(status=update_status),
-                        update_res))
+                        get_status(status=update_status)))
             # end of if/else
 
             rec['publish_pricing_update'] = update_res
@@ -454,10 +450,14 @@ def get_new_pricing_data(
     # end of try/ex
 
     if ev('DATASET_COLLECTION_SLACK_ALERTS', '0') == '1':
+        env_name = 'DEV'
+        if ev('PROD_SLACK_ALERTS', '1') == '1':
+            env_name = 'PROD'
         done_msg = (
-            'Dataset collected ticker=*{}* redis_key={} '
-            's3_key={} iex={} yahoo={}'.format(
+            'Dataset collected ticker=*{}* on env={} '
+            'redis_key={} s3_key={} iex={} yahoo={}'.format(
                 ticker,
+                env_name,
                 redis_key,
                 s3_key,
                 label,
@@ -525,15 +525,16 @@ def run_get_new_pricing_data(
             response = task_res.get(
                 'result',
                 task_res)
-            response_details = response
-            try:
-                response_details = ppj(response)
-            except Exception:
+            if ev('DEBUG_RESULTS', '0') == '1':
                 response_details = response
+                try:
+                    response_details = ppj(response)
+                except Exception:
+                    response_details = response
 
-            if ev('DEBUG_GET_PRICING', '0') == '1':
                 log.info(
-                    'getting task result={}'.format(
+                    '{} task result={}'.format(
+                        label,
                         response_details))
         else:
             log.error(
@@ -555,13 +556,21 @@ def run_get_new_pricing_data(
     # if celery enabled
 
     if response:
-        log.info(
-            'run_get_new_pricing_data - {} - done '
-            'status={} err={} rec={}'.format(
-                label,
-                get_status(response['status']),
-                response['err'],
-                response['rec']))
+        if ev('DEBUG_RESULTS', '0') == '1':
+            log.info(
+                'run_get_new_pricing_data - {} - done '
+                'status={} err={} rec={}'.format(
+                    label,
+                    get_status(response['status']),
+                    response['err'],
+                    response['rec']))
+        else:
+            log.info(
+                'run_get_new_pricing_data - {} - done '
+                'status={} err={}'.format(
+                    label,
+                    get_status(response['status']),
+                    response['err']))
     else:
         log.info(
             'run_get_new_pricing_data - {} - done '

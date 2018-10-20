@@ -1,6 +1,5 @@
 """
-Publish Data from S3 to Redis Task
-==================================
+**Publish Data from S3 to Redis Task**
 
 Publish S3 key with stock data to redis
 and s3 (if either of them are running and enabled)
@@ -8,8 +7,7 @@ and s3 (if either of them are running and enabled)
 - redis - using `redis-py <https://github.com/andymccurdy/redis-py>`__
 - s3 - using boto3
 
-Sample work_dict request for this method
-----------------------------------------
+**Sample work_dict request for this method**
 
 `analysis_engine.api_requests.build_publish_from_s3_to_redis_request <https://
 github.com/AlgoTraders/stock-analysis-engine/blob/master/ana
@@ -33,6 +31,12 @@ lysis_engine/api_requests.py#L260>`__
     lgoTraders/stock-analysis-engine/blob/master/anal
     ysis_engine/work_tasks/custom_task.py>`__ for
     task event handling.
+
+**Supported Environment Variables**
+
+::
+
+    export DEBUG_RESULTS=1
 
 """
 
@@ -446,14 +450,16 @@ def run_publish_from_s3_to_redis(
             response = task_res.get(
                 'result',
                 task_res)
-            response_details = response
-            try:
-                response_details = ppj(response)
-            except Exception:
+            if ev('DEBUG_RESULTS', '0') == '1':
                 response_details = response
-            log.info(
-                'getting task result={}'.format(
-                    response_details))
+                try:
+                    response_details = ppj(response)
+                except Exception:
+                    response_details = response
+                log.info(
+                    '{} task result={}'.format(
+                        label,
+                        response_details))
         else:
             log.error(
                 '{} celery was disabled but the task={} '
@@ -474,13 +480,21 @@ def run_publish_from_s3_to_redis(
     # if celery enabled
 
     if response:
-        log.info(
-            'run_publish_from_s3_to_redis - {} - done '
-            'status={} err={} rec={}'.format(
-                label,
-                get_status(response['status']),
-                response['err'],
-                response['rec']))
+        if ev('DEBUG_RESULTS', '0') == '1':
+            log.info(
+                'run_publish_from_s3_to_redis - {} - done '
+                'status={} err={} rec={}'.format(
+                    label,
+                    get_status(response['status']),
+                    response['err'],
+                    response['rec']))
+        else:
+            log.info(
+                'run_publish_from_s3_to_redis - {} - done '
+                'status={} err={}'.format(
+                    label,
+                    get_status(response['status']),
+                    response['err']))
     else:
         log.info(
             'run_publish_from_s3_to_redis - {} - done '
