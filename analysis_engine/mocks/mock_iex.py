@@ -90,16 +90,19 @@ def peersDF(
 
 
 def newsDF(
-        symbol):
+        symbol,
+        count):
     """newsDF
 
     mock pyEX newsDF
 
     :param symbol: ticker symbol
+    :param count: number of new items
     """
 
     val = {
         'symbol': [symbol],
+        'count': [count],
         'testcase': ['mock-newsDF']
     }
     df = pd.DataFrame(

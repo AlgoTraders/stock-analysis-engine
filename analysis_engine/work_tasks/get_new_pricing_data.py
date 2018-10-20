@@ -107,6 +107,8 @@ from analysis_engine.consts import is_celery_disabled
 from analysis_engine.consts import FETCH_MODE_ALL
 from analysis_engine.consts import FETCH_MODE_YHO
 from analysis_engine.consts import FETCH_MODE_IEX
+from analysis_engine.consts import DATASET_COLLECTION_VERSION
+from analysis_engine.utils import utc_now_str
 from analysis_engine.iex.consts import DEFAULT_FETCH_DATASETS
 from analysis_engine.iex.consts import get_ft_str
 
@@ -159,8 +161,9 @@ def get_new_pricing_data(
         'company': None,
         'exp_date': None,
         'publish_pricing_update': None,
-        'date': None,
-        'updated': None
+        'date': utc_now_str(),
+        'updated': None,
+        'version': DATASET_COLLECTION_VERSION
     }
     res = {
         'status': NOT_RUN,
@@ -380,9 +383,9 @@ def get_new_pricing_data(
         update_req['redis_password'] = work_dict.get(
             'redis_password',
             REDIS_PASSWORD)
-        update_req['redis_db'] = work_dict.get(
+        update_req['redis_db'] = int(work_dict.get(
             'redis_db',
-            REDIS_DB)
+            REDIS_DB))
         update_req['redis_expire'] = work_dict.get(
             'redis_expire',
             REDIS_EXPIRE)

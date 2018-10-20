@@ -79,25 +79,26 @@ def get_ft_str(
     :param ft_type: enum fetch type value to return
                     as a string
     """
-    if ft_type == FETCH_DAILY:
+    ft_str = str(ft_type).lower()
+    if ft_type == FETCH_DAILY or ft_str == 'daily':
         return 'daily'
-    elif ft_type == FETCH_MINUTE:
+    elif ft_type == FETCH_MINUTE or ft_str == 'minute':
         return 'minute'
-    elif ft_type == FETCH_QUOTE:
+    elif ft_type == FETCH_QUOTE or ft_str == 'quote':
         return 'quote'
-    elif ft_type == FETCH_STATS:
+    elif ft_type == FETCH_STATS or ft_str == 'stats':
         return 'stats'
-    elif ft_type == FETCH_PEERS:
+    elif ft_type == FETCH_PEERS or ft_str == 'peers':
         return 'peers'
-    elif ft_type == FETCH_NEWS:
+    elif ft_type == FETCH_NEWS or ft_str == 'news':
         return 'news'
-    elif ft_type == FETCH_FINANCIALS:
+    elif ft_type == FETCH_FINANCIALS or ft_str == 'financials':
         return 'financials'
-    elif ft_type == FETCH_EARNINGS:
+    elif ft_type == FETCH_EARNINGS or ft_str == 'earnings':
         return 'earnings'
-    elif ft_type == FETCH_DIVIDENDS:
+    elif ft_type == FETCH_DIVIDENDS or ft_str == 'dividends':
         return 'dividends'
-    elif ft_type == FETCH_COMPANY:
+    elif ft_type == FETCH_COMPANY or ft_str == 'company':
         return 'company'
     else:
         return 'unsupported ft_type={}'.format(

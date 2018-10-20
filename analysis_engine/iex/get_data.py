@@ -80,6 +80,7 @@ def get_data_from_iex(
         ft_type = work_dict.get(
             'ft_type',
             None)
+        ft_str = str(ft_type).lower()
         label = work_dict.get(
             'label',
             label)
@@ -88,50 +89,64 @@ def get_data_from_iex(
             'records')
 
         iex_req = None
-        if ft_type == FETCH_DAILY:
+        if ft_type == FETCH_DAILY or ft_str == 'daily':
+            ft_type == FETCH_DAILY
             iex_req = api_requests.build_iex_fetch_daily_request(
                 label=label)
-        elif ft_type == FETCH_MINUTE:
+        elif ft_type == FETCH_MINUTE or ft_str == 'minute':
+            ft_type == FETCH_MINUTE
             iex_req = api_requests.build_iex_fetch_minute_request(
                 label=label)
-        elif ft_type == FETCH_QUOTE:
+        elif ft_type == FETCH_QUOTE or ft_str == 'quote':
+            ft_type == FETCH_QUOTE
             iex_req = api_requests.build_iex_fetch_quote_request(
                 label=label)
-        elif ft_type == FETCH_STATS:
+        elif ft_type == FETCH_STATS or ft_str == 'stats':
+            ft_type == FETCH_STATS
             iex_req = api_requests.build_iex_fetch_stats_request(
                 label=label)
-        elif ft_type == FETCH_PEERS:
+        elif ft_type == FETCH_PEERS or ft_str == 'peers':
+            ft_type == FETCH_PEERS
             iex_req = api_requests.build_iex_fetch_peers_request(
                 label=label)
-        elif ft_type == FETCH_NEWS:
+        elif ft_type == FETCH_NEWS or ft_str == 'news':
+            ft_type == FETCH_NEWS
             iex_req = api_requests.build_iex_fetch_news_request(
                 label=label)
-        elif ft_type == FETCH_FINANCIALS:
+        elif ft_type == FETCH_FINANCIALS or ft_str == 'financials':
+            ft_type == FETCH_FINANCIALS
             iex_req = api_requests.build_iex_fetch_financials_request(
                 label=label)
-        elif ft_type == FETCH_EARNINGS:
+        elif ft_type == FETCH_EARNINGS or ft_str == 'earnings':
+            ft_type == FETCH_EARNINGS
             iex_req = api_requests.build_iex_fetch_earnings_request(
                 label=label)
-        elif ft_type == FETCH_DIVIDENDS:
+        elif ft_type == FETCH_DIVIDENDS or ft_str == 'dividends':
+            ft_type == FETCH_DIVIDENDS
             iex_req = api_requests.build_iex_fetch_dividends_request(
                 label=label)
-        elif ft_type == FETCH_COMPANY:
+        elif ft_type == FETCH_COMPANY or ft_str == 'company':
+            ft_type == FETCH_COMPANY
             iex_req = api_requests.build_iex_fetch_company_request(
                 label=label)
         else:
             log.error(
-                '{} - unsupported ft_type={} ticker={}'.format(
+                '{} - unsupported ft_type={} ft_str={} ticker={}'.format(
                     label,
                     ft_type,
+                    ft_str,
                     ticker))
             raise NotImplemented
         # if supported fetch request type
 
         clone_keys = [
             'ticker',
+            's3_address',
             's3_bucket',
             's3_key',
             'redis_address',
+            'redis_db',
+            'redis_password',
             'redis_key'
         ]
 
@@ -176,7 +191,8 @@ def get_data_from_iex(
                 work_dict=iex_req,
                 fetch_type=ft_type)
             rec['data'] = df.to_json(
-                orient=orient)
+                orient=orient,
+                date_format='iso')
             rec['updated'] = datetime.datetime.utcnow().strftime(
                 '%Y-%m-%d %H:%M:%S')
         except Exception as f:
@@ -224,6 +240,7 @@ def get_data_from_iex(
                     's3_key',
                     iex_req['s3_key']),
                 use_field)
+
         try:
             update_res = publisher.run_publish_pricing_update(
                 work_dict=upload_and_cache_req)

@@ -12,7 +12,23 @@ Analyze information about publicly traded companies from `Yahoo <https://finance
 
 The engine provides an automated, horizontally scalable stock data collection and archive pipeline with a simple extraction interface above a redis datastore.
 
-Once collected and cached, you can quickly extract datasets with:
+Fetch
+-----
+
+With the containers running, you can fetch, cache, archive and return all of the newest datasets for tickers:
+
+.. code-block:: python
+
+    from analysis_engine.fetch import fetch
+    d = fetch(ticker='NFLX')
+    print(d)
+    for k in d['rec']['ticker_dict']['NFLX']:
+        print('dataset key: {}'.format(k))
+
+Extract
+-------
+
+Once collected and cached, you can quickly extract datasets from redis with:
 
 .. code-block:: python
 

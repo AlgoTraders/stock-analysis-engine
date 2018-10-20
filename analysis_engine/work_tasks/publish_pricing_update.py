@@ -270,9 +270,7 @@ def publish_pricing_update(
                 REDIS_PASSWORD)
             redis_db = work_dict.get(
                 'redis_db',
-                None)
-            if not redis_db:
-                redis_db = REDIS_DB
+                REDIS_DB)
             redis_expire = None
             if 'redis_expire' in work_dict:
                 redis_expire = work_dict.get(
@@ -284,8 +282,28 @@ def publish_pricing_update(
                     redis_address,
                     redis_db,
                     redis_key))
-            redis_host = redis_address.split(':')[0]
-            redis_port = redis_address.split(':')[1]
+            redis_host = None
+            redis_port = None
+            try:
+                redis_host = redis_address.split(':')[0]
+                redis_port = redis_address.split(':')[1]
+            except Exception as c:
+                err = (
+                    '{} failed parsing redis_address={} '
+                    'with ex={} '
+                    'please set one with the format: '
+                    '<hostname>:<port>'.format(
+                        label,
+                        redis_address,
+                        c))
+                log.critical(err)
+                res = build_result.build_result(
+                    status=ERR,
+                    err=err,
+                    rec=rec)
+                return res
+            # end of checking that redis_address is valid
+
             try:
                 log.info(
                     '{} publishing redis={}:{} '

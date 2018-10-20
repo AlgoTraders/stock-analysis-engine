@@ -320,6 +320,7 @@ SLACK_WEBHOOK = ev(
 PROD_SLACK_ALERTS = ev(
     'PROD_SLACK_ALERTS',
     '0')
+DATASET_COLLECTION_VERSION = 1
 DATASET_COLLECTION_SLACK_ALERTS = ev(
     'DATASET_COLLECTION_SLACK_ALERTS',
     '0')
@@ -398,6 +399,26 @@ REDIS_DB = int(ev(
 REDIS_EXPIRE = ev(
     'REDIS_EXPIRE',
     None)
+
+# copy these values over
+# when calling child tasks from a
+# parent where the engine is
+# running inside a fully-dockerized
+# environment like kubernetes
+# or docker-compose
+SERVICE_VALS = [
+    'ticker',
+    's3_address',
+    's3_access_key',
+    's3_secret_key',
+    's3_bucket',
+    's3_secure',
+    's3_region_name',
+    'redis_address',
+    'redis_db',
+    'redis_password',
+    'redis_expire'
+]
 
 
 def get_status(
