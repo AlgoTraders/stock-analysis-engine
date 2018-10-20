@@ -1,6 +1,5 @@
 """
-Handle Pricing Update Task
-==========================
+**Handle Pricing Update Task**
 
 Get the latest stock news, quotes and options chains for a
 ticker and publish the values to redis and S3 for downstream analysis.
@@ -8,8 +7,7 @@ ticker and publish the values to redis and S3 for downstream analysis.
 Writes pricing updates to S3 and Redis by
 building a list of publishing sub-task:
 
-Sample work_dict request for this method
-----------------------------------------
+**Sample work_dict request for this method**
 
 `analysis_engine.api_requests.publish_pricing_update <https://
 github.com/AlgoTraders/stock-analysis-engine/blob/master/ana
@@ -36,6 +34,13 @@ lysis_engine/api_requests.py#L218>`__
     lgoTraders/stock-analysis-engine/blob/master/anal
     ysis_engine/work_tasks/custom_task.py>`__ for
     task event handling.
+
+**Supported Environment Variables**
+
+::
+
+    export DEBUG_RESULTS=1
+
 """
 
 import datetime
@@ -55,6 +60,7 @@ from analysis_engine.consts import TICKER
 from analysis_engine.consts import get_status
 from analysis_engine.consts import is_celery_disabled
 from analysis_engine.consts import ppj
+from analysis_engine.consts import ev
 
 log = build_colorized_logger(
     name=__name__)
@@ -329,14 +335,17 @@ def run_handle_pricing_update_task(
             response = task_res.get(
                 'result',
                 task_res)
-            response_details = response
-            try:
-                response_details = ppj(response)
-            except Exception:
+            if ev('DEBUG_RESULTS', '0') == '1':
                 response_details = response
-            log.info(
-                'getting task result={}'.format(
-                    response_details))
+                try:
+                    response_details = ppj(response)
+                except Exception:
+                    response_details = response
+                log.info(
+                    '{} handle_pricing_update_task '
+                    'task result={}'.format(
+                        label,
+                        response_details))
         else:
             log.error(
                 '{} celery was disabled but the task={} '
@@ -357,13 +366,21 @@ def run_handle_pricing_update_task(
     # if celery enabled
 
     if response:
-        log.info(
-            'run_handle_pricing_update_task - {} - done '
-            'status={} err={} rec={}'.format(
-                label,
-                get_status(response['status']),
-                response['err'],
-                response['rec']))
+        if ev('DEBUG_RESULTS', '0') == '1':
+            log.info(
+                'run_handle_pricing_update_task - {} - done '
+                'status={} err={} rec={}'.format(
+                    label,
+                    get_status(response['status']),
+                    response['err'],
+                    response['rec']))
+        else:
+            log.info(
+                'run_handle_pricing_update_task - {} - done '
+                'status={} err={}'.format(
+                    label,
+                    get_status(response['status']),
+                    response['err']))
     else:
         log.info(
             'run_handle_pricing_update_task - {} - done '

@@ -1,18 +1,15 @@
 """
-Dataset Fetch API
+Dataset Extraction API
 """
 
 import os
 import json
-import analysis_engine.work_tasks.get_new_pricing_data as price_utils
 import analysis_engine.iex.extract_df_from_redis as iex_extract_utils
 import analysis_engine.yahoo.extract_df_from_redis as yahoo_extract_utils
-from analysis_engine.consts import get_status
 from analysis_engine.consts import SUCCESS
 from analysis_engine.consts import FAILED
 from analysis_engine.utils import get_last_close_str
 from analysis_engine.api_requests import get_ds_dict
-from analysis_engine.api_requests import build_get_new_pricing_request
 from spylunking.log.setup_logging import build_colorized_logger
 
 
@@ -20,10 +17,11 @@ log = build_colorized_logger(
     name=__name__)
 
 
-def fetch(
+def extract(
         ticker=None,
         tickers=None,
-        fetch_mode=None,
+        use_key=None,
+        extract_mode='all',
         iex_datasets=None,
         redis_enabled=True,
         redis_address=None,
@@ -41,29 +39,25 @@ def fetch(
         broker_url=None,
         result_backend=None,
         label=None):
-    """fetch
+    """extract
 
-    Fetch all supported datasets for a stock ``ticker`` or
-    a list of ``tickers`` and returns a dictionary. Once
-    run, the datasets will all be cached in Redis and archived
-    in Minio (S3) by default.
+    Extract all cached datasets for a stock ``ticker`` or
+    a list of ``tickers`` and returns a dictionary. Please
+    make sure the datasets are already cached in Redis
+    before running this method. If not please refer to
+    the ``analysis_engine.fetch.fetch`` function
+    to prepare the datasets on your environment.
 
     Python example:
 
     .. code-block:: python
 
-        from analysis_engine.fetch import fetch
-        d = fetch(ticker='NFLX')
+        from analysis_engine.extract import extract
+        d = extract(ticker='NFLX')
         print(d)
         for k in d['NFLX']:
             print('dataset key: {}'.format(k))
 
-    By default, it synchronously automates:
-
-        - fetching all datasets
-        - caching all datasets in Redis
-        - archiving all datasets in Minio (S3)
-        - returns all datasets in a single dictionary
 
     This was created for reducing the amount of typying in
     Jupyter notebooks. It can be set up for use with a
@@ -73,15 +67,15 @@ def fetch(
     .. note:: Please ensure Redis and Minio are running
               before trying to extract tickers
 
-    **Stock tickers to fetch**
+    **Stock tickers to extract**
 
-    :param ticker: single stock ticker/symbol/ETF to fetch
-    :param tickers: optional - list of tickers to fetch
+    :param ticker: single stock ticker/symbol/ETF to extract
+    :param tickers: optional - list of tickers to extract
+    :param use_key: optional - extract historical key from Redis
+        usually formatted ``<TICKER>_<date formatted YYYY-MM-DD>``
 
     **(Optional) Data sources, datafeeds and datasets to gather**
 
-    :param fetch_mode: data sources - default is ``all`` (both IEX
-        and Yahoo), ``iex`` for only IEX, ``yahoo`` for only Yahoo.
     :param iex_datasets: list of strings for gathering specific `IEX
         datasets <https://iextrading.com/developer/docs/#stocks>`__
         which are set as consts: ``analysis_engine.iex.consts.FETCH_*``.
@@ -148,8 +142,7 @@ def fetch(
     """
 
     rec = {}
-
-    extract_records = []
+    extract_requests = []
 
     use_tickers = tickers
     if ticker:
@@ -173,8 +166,6 @@ def fetch(
 
     if not iex_datasets:
         iex_datasets = default_iex_datasets
-    if not fetch_mode:
-        fetch_mode = 'all'
 
     if redis_enabled:
         if not redis_address:
@@ -246,66 +237,44 @@ def fetch(
                 label,
                 num_tickers))
 
-    for ticker in use_tickers:
-
+    ticker_key = use_key
+    if not ticker_key:
         ticker_key = '{}_{}'.format(
             ticker,
             last_close_str)
 
-        fetch_req = build_get_new_pricing_request()
-        fetch_req['base_key'] = ticker_key
-        fetch_req['celery_disabled'] = celery_disabled
-        fetch_req['ticker'] = ticker
-        fetch_req['label'] = label
-        fetch_req['fetch_mode'] = fetch_mode
-        fetch_req['iex_datasets'] = iex_datasets
-        fetch_req['s3_enabled'] = s3_enabled
-        fetch_req['s3_bucket'] = s3_bucket
-        fetch_req['s3_address'] = s3_address
-        fetch_req['s3_secure'] = s3_secure
-        fetch_req['s3_region_name'] = s3_region_name
-        fetch_req['s3_access_key'] = s3_access_key
-        fetch_req['s3_secret_key'] = s3_secret_key
-        fetch_req['s3_key'] = ticker_key
-        fetch_req['redis_enabled'] = redis_enabled
-        fetch_req['redis_address'] = redis_address
-        fetch_req['redis_password'] = redis_password
-        fetch_req['redis_db'] = redis_db
-        fetch_req['redis_key'] = ticker_key
-        fetch_req['redis_expire'] = redis_expire
+    common_vals = {}
+    common_vals['base_key'] = ticker_key
+    common_vals['celery_disabled'] = celery_disabled
+    common_vals['ticker'] = ticker
+    common_vals['label'] = label
+    common_vals['iex_datasets'] = iex_datasets
+    common_vals['s3_enabled'] = s3_enabled
+    common_vals['s3_bucket'] = s3_bucket
+    common_vals['s3_address'] = s3_address
+    common_vals['s3_secure'] = s3_secure
+    common_vals['s3_region_name'] = s3_region_name
+    common_vals['s3_access_key'] = s3_access_key
+    common_vals['s3_secret_key'] = s3_secret_key
+    common_vals['s3_key'] = ticker_key
+    common_vals['redis_enabled'] = redis_enabled
+    common_vals['redis_address'] = redis_address
+    common_vals['redis_password'] = redis_password
+    common_vals['redis_db'] = redis_db
+    common_vals['redis_key'] = ticker_key
+    common_vals['redis_expire'] = redis_expire
 
-        fetch_req['redis_address'] = redis_address
-        fetch_req['s3_address'] = s3_address
+    common_vals['redis_address'] = redis_address
+    common_vals['s3_address'] = s3_address
 
-        log.info(
-            '{} - fetching ticker={} last_close={} '
-            'redis_address={} s3_address={}'.format(
-                label,
-                ticker,
-                last_close_str,
-                fetch_req['redis_address'],
-                fetch_req['s3_address']))
-
-        fetch_res = price_utils.run_get_new_pricing_data(
-            work_dict=fetch_req)
-        if fetch_res['status'] == SUCCESS:
-            log.info(
-                '{} - fetched ticker={} '
-                'preparing for extraction'.format(
-                    label,
-                    ticker))
-            extract_req = fetch_req
-            extract_records.append(extract_req)
-        else:
-            log.warning(
-                '{} - failed getting ticker={} data '
-                'status={} err={}'.format(
-                    label,
-                    ticker,
-                    get_status(status=fetch_res['status']),
-                    fetch_res['err']))
-        # end of if worked or not
-    # end for all tickers to fetch
+    log.info(
+        '{} - extract ticker={} last_close={} '
+        'redis_address={} s3_address={}'.format(
+            label,
+            ticker,
+            last_close_str,
+            common_vals['redis_address'],
+            common_vals['s3_address']))
 
     """
     Extract Datasets
@@ -340,94 +309,97 @@ def fetch(
     yahoo_pricing_df = None
     yahoo_news_df = None
 
+    for ticker in tickers:
+        base_key = '{}_{}'.format(
+            ticker,
+            last_close_str)
+        req = get_ds_dict(
+            ticker=ticker,
+            base_key=base_key,
+            ds_id=label,
+            service_dict=common_vals)
+        extract_requests.append(req)
+    # end of for all ticker in tickers
+
     extract_iex = True
-    if fetch_mode not in ['all', 'iex']:
+    if extract_mode not in ['all', 'iex']:
         extract_iex = False
 
     extract_yahoo = True
-    if fetch_mode not in ['all', 'yahoo']:
+    if extract_mode not in ['all', 'yahoo']:
         extract_yahoo = False
 
-    for service_dict in extract_records:
-        ticker_data = {}
-        ticker = service_dict['ticker']
-
-        extract_req = get_ds_dict(
-            ticker=ticker,
-            base_key=service_dict.get('base_key', None),
-            ds_id=label,
-            service_dict=service_dict)
-
+    for extract_req in extract_requests:
         if 'daily' in iex_datasets or extract_iex:
             iex_daily_status, iex_daily_df = \
                 iex_extract_utils.extract_daily_dataset(
                     extract_req)
             if iex_daily_status != SUCCESS:
                 log.warning(
-                    'unable to fetch iex_daily={}'.format(ticker))
+                    'unable to extract iex_daily={}'.format(ticker))
         if 'minute' in iex_datasets or extract_iex:
             iex_minute_status, iex_minute_df = \
                 iex_extract_utils.extract_minute_dataset(
                     extract_req)
             if iex_minute_status != SUCCESS:
                 log.warning(
-                    'unable to fetch iex_minute={}'.format(ticker))
+                    'unable to extract iex_minute={}'.format(ticker))
         if 'quote' in iex_datasets or extract_iex:
             iex_quote_status, iex_quote_df = \
                 iex_extract_utils.extract_quote_dataset(
                     extract_req)
             if iex_quote_status != SUCCESS:
                 log.warning(
-                    'unable to fetch iex_quote={}'.format(ticker))
+                    'unable to extract iex_quote={}'.format(ticker))
         if 'stats' in iex_datasets or extract_iex:
             iex_stats_df, iex_stats_df = \
                 iex_extract_utils.extract_stats_dataset(
                     extract_req)
             if iex_stats_status != SUCCESS:
                 log.warning(
-                    'unable to fetch iex_stats={}'.format(ticker))
+                    'unable to extract iex_stats={}'.format(ticker))
         if 'peers' in iex_datasets or extract_iex:
             iex_peers_df, iex_peers_df = \
                 iex_extract_utils.extract_peers_dataset(
                     extract_req)
             if iex_peers_status != SUCCESS:
                 log.warning(
-                    'unable to fetch iex_peers={}'.format(ticker))
+                    'unable to extract iex_peers={}'.format(ticker))
         if 'news' in iex_datasets or extract_iex:
             iex_news_status, iex_news_df = \
                 iex_extract_utils.extract_news_dataset(
                     extract_req)
             if iex_news_status != SUCCESS:
                 log.warning(
-                    'unable to fetch iex_news={}'.format(ticker))
+                    'unable to extract iex_news={}'.format(ticker))
         if 'financials' in iex_datasets or extract_iex:
             iex_financials_status, iex_financials_df = \
                 iex_extract_utils.extract_financials_dataset(
                     extract_req)
             if iex_financials_status != SUCCESS:
                 log.warning(
-                    'unable to fetch iex_financials={}'.format(ticker))
+                    'unable to extract iex_financials={}'.format(ticker))
         if 'earnings' in iex_datasets or extract_iex:
             iex_earnings_status, iex_earnings_df = \
                 iex_extract_utils.extract_dividends_dataset(
                     extract_req)
             if iex_earnings_status != SUCCESS:
                 log.warning(
-                    'unable to fetch iex_earnings={}'.format(ticker))
+                    'unable to extracextract iex_earnings={}'.format(ticker))
         if 'dividends' in iex_datasets or extract_iex:
             iex_dividends_status, iex_dividends_df = \
                 iex_extract_utils.extract_dividends_dataset(
                     extract_req)
             if iex_dividends_status != SUCCESS:
                 log.warning(
-                    'unable to fetch iex_dividends={}'.format(ticker))
+                    'unable to extract iex_dividends={}'.format(ticker))
         if 'company' in iex_datasets or extract_iex:
             iex_company_status, iex_company_df = \
                 iex_extract_utils.extract_dividends_dataset(
                     extract_req)
             if iex_company_status != SUCCESS:
                 log.warning(
-                    'unable to fetch iex_company={}'.format(ticker))
+                    'unable to extract iex_company={}'.format(ticker))
         # end of iex extracts
 
         if extract_yahoo:
@@ -439,21 +411,22 @@ def fetch(
                     extract_req)
             if yahoo_options_status != SUCCESS:
                 log.warning(
-                    'unable to fetch yahoo_options={}'.format(ticker))
+                    'unable to extract yahoo_options={}'.format(ticker))
             yahoo_pricing_status, yahoo_pricing_df = \
                 yahoo_extract_utils.extract_pricing_dataset(
                     extract_req)
             if yahoo_pricing_status != SUCCESS:
                 log.warning(
-                    'unable to fetch yahoo_pricing={}'.format(ticker))
+                    'unable to extract yahoo_pricing={}'.format(ticker))
             yahoo_news_status, yahoo_news_df = \
                 yahoo_extract_utils.extract_yahoo_news_dataset(
                     extract_req)
             if yahoo_news_status != SUCCESS:
                 log.warning(
-                    'unable to fetch yahoo_news={}'.format(ticker))
+                    'unable to extract yahoo_news={}'.format(ticker))
         # end of yahoo extracts
 
+        ticker_data = {}
         ticker_data['daily'] = iex_daily_df
         ticker_data['minute'] = iex_minute_df
         ticker_data['quote'] = iex_quote_df
@@ -470,7 +443,7 @@ def fetch(
         ticker_data['news'] = yahoo_news_df
 
         rec[ticker] = ticker_data
-    # end of for service_dict in extract_records
+    # end of for service_dict in extract_requests
 
     return rec
-# end of fetch
+# end of extract
