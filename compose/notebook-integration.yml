@@ -43,6 +43,9 @@ services:
     hostname: "sa-jupyter-${USER}"
     image: jayjohnson/stock-analysis-jupyter:latest
     tty: true
+    environment:
+      # reduce the logs printed to notebooks by loading a custom log config
+      - SHARED_LOG_CFG=/opt/sa/analysis_engine/log/error-logging.json
     env_file:
       - ./envs/.env
     depends_on:
