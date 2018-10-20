@@ -309,7 +309,7 @@ def extract(
     yahoo_pricing_df = None
     yahoo_news_df = None
 
-    for ticker in tickers:
+    for ticker in use_tickers:
         base_key = '{}_{}'.format(
             ticker,
             last_close_str)
@@ -319,7 +319,7 @@ def extract(
             ds_id=label,
             service_dict=common_vals)
         extract_requests.append(req)
-    # end of for all ticker in tickers
+    # end of for all ticker in use_tickers
 
     extract_iex = True
     if extract_mode not in ['all', 'iex']:
