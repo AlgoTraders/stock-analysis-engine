@@ -88,7 +88,7 @@ def fetch(
     :param redis_address: Redis connection string format: ``host:port``
         (default is ``localhost:6379``)
     :param redis_db: Redis db to use
-        (default is ``0`` by default)
+        (default is ``4`` by default)
     :param redis_password: optional - Redis password
         (default is ``None``)
     :param redis_expire: optional - Redis expire value
@@ -187,7 +187,7 @@ def fetch(
         if not redis_db:
             redis_db = int(os.getenv(
                 'REDIS_DB',
-                '0'))
+                '4'))
         if not redis_expire:
             redis_expire = os.getenv(
                 'REDIS_EXPIRE',
