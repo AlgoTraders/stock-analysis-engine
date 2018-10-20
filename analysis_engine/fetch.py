@@ -1,6 +1,5 @@
 """
-Fetch all data for a ticker using all datafeeds
-and cache it in Redis and S3 (Minio).
+Fetch datasets for stock ``tickers``
 """
 
 import os
@@ -23,7 +22,8 @@ log = build_colorized_logger(
     name=__name__)
 
 
-def run(ticker=None,
+def fetch(
+        ticker=None,
         tickers=None,
         fetch_mode=None,
         iex_datasets=None,
@@ -43,28 +43,102 @@ def run(ticker=None,
         broker_url=None,
         result_backend=None,
         label=None):
-    """run
+    """fetch
 
-    :param ticker:
-    :param tickers:
-    :param fetch_mode:
-    :param iex_datasets:
-    :param redis_enabled:
-    :param redis_address:
-    :param redis_db:
-    :param redis_password:
-    :param redis_expire:
-    :param s3_enabled:
-    :param s3_address:
-    :param s3_bucket:
-    :param s3_access_key:
-    :param s3_secret_key:
-    :param s3_region_name:
-    :param s3_secure:
-    :param celery_disabled:
-    :param broker_url:
-    :param result_backend:
-    :param label:
+    Python example:
+
+    .. code-block:: python
+
+        from analysis_engine.fetch import fetch
+        d = fetch(ticker='NFLX')
+        print(d)
+        for k in d['rec']['ticker_dict']['NFLX']:
+            print('dataset key: {}'.format(k))
+
+    By default, it synchronously automates:
+
+        - fetching all datasets
+        - caching all datasets in Redis
+        - archiving all datasets in Minio (S3)
+        - returns all datasets in a single dictionary
+
+    This was created for reducing the amount of typying in
+    Jupyter notebooks. It can be set up for use with a
+    distributed engine as well with the optional arguments
+    depending on your connectitivty requirements.
+
+    **Stock tickers to fetch**
+
+    :param ticker: single stock ticker/symbol/ETF to fetch
+    :param tickers: optional - list of tickers to fetch
+
+    **(Optional) Data sources, datafeeds and datasets to gather**
+
+    :param fetch_mode: data sources - default is ``all`` (both IEX
+        and Yahoo), ``iex`` for only IEX, ``yahoo`` for only Yahoo.
+    :param iex_datasets: list of strings for gathering specific `IEX
+        datasets <https://iextrading.com/developer/docs/#stocks>`__
+        which are set as consts: ``analysis_engine.iex.consts.FETCH_*``.
+
+    **(Optional) Redis connectivity arguments**
+
+    :param redis_enabled: bool - toggle for auto-caching all
+        datasets in Redis
+        (default is ``True``)
+    :param redis_address: Redis connection string format: ``host:port``
+        (default is ``localhost:6379``)
+    :param redis_db: Redis db to use
+        (default is ``0`` by default)
+    :param redis_password: optional - Redis password
+        (default is ``None``)
+    :param redis_expire: optional - Redis expire value
+        (default is ``None``)
+
+    **(Optional) Minio (S3) connectivity arguments**
+
+    :param s3_enabled: bool - toggle for auto-archiving on Minio (S3)
+        (default is ``True``)
+    :param s3_address: Minio S3 connection string format: ``host:port``
+        (default is ``localhost:9000``)
+    :param s3_bucket: S3 Bucket for storing the artifacts
+        (default is ``dev``) which should be viewable on a browser:
+        http://localhost:9000/minio/dev/
+    :param s3_access_key: S3 Access key
+        (default is ``trexaccesskey``)
+    :param s3_secret_key: S3 Secret key
+        (default is ``trex123321``)
+    :param s3_region_name: S3 region name
+        (default is ``us-east-1``)
+    :param s3_secure: Transmit using tls encryption
+        (default is ``False``)
+
+    **(Optional) Celery worker broker connectivity arguments**
+
+    :param celery_disabled: bool - toggle synchronous mode or publish
+        to an engine connected to the `Celery broker and backend
+        <https://github.com/celery/celery#transports-and-backends>`__
+        (default is ``True`` - synchronous mode without an engine
+        or need for a broker or backend for Celery)
+    :param broker_url: Celery broker url
+        (default is ``redis://0.0.0.0:6379/13``)
+    :param result_backend: Celery backend url
+        (default is ``redis://0.0.0.0:6379/14``)
+    :param label: tracking log label
+
+    **Supported environment variables**
+
+    ::
+
+        export REDIS_ADDRESS="localhost:6379"
+        export REDIS_DB="0"
+        export S3_ADDRESS="localhost:9000"
+        export S3_BUCKET="dev"
+        export AWS_ACCESS_KEY_ID="trexaccesskey"
+        export AWS_SECRET_ACCESS_KEY="trex123321"
+        export AWS_DEFAULT_REGION="us-east-1"
+        export S3_SECURE="0"
+        export WORKER_BROKER_URL="redis://0.0.0.0:6379/13"
+        export WORKER_BACKEND_URL="redis://0.0.0.0:6379/14"
     """
 
     err = None
@@ -222,7 +296,7 @@ def run(ticker=None,
             extract_req = fetch_req
             extract_records.append(extract_req)
         else:
-            log.error(
+            log.warning(
                 '{} - failed getting ticker={} data '
                 'status={} err={}'.format(
                     label,
@@ -287,71 +361,71 @@ def run(ticker=None,
                 iex_extract_utils.extract_daily_dataset(
                     extract_req)
             if iex_daily_status != SUCCESS:
-                log.error(
-                    'failed extracting iex_daily={}'.format(ticker))
+                log.warning(
+                    'unable to fetch iex_daily={}'.format(ticker))
         if 'minute' in iex_datasets:
             iex_minute_status, iex_minute_df = \
                 iex_extract_utils.extract_minute_dataset(
                     extract_req)
             if iex_minute_status != SUCCESS:
-                log.error(
-                    'failed extracting iex_minute={}'.format(ticker))
+                log.warning(
+                    'unable to fetch iex_minute={}'.format(ticker))
         if 'quote' in iex_datasets:
             iex_quote_status, iex_quote_df = \
                 iex_extract_utils.extract_quote_dataset(
                     extract_req)
             if iex_quote_status != SUCCESS:
-                log.error(
-                    'failed extracting iex_quote={}'.format(ticker))
+                log.warning(
+                    'unable to fetch iex_quote={}'.format(ticker))
         if 'stats' in iex_datasets:
             iex_stats_df, iex_stats_df = \
                 iex_extract_utils.extract_stats_dataset(
                     extract_req)
             if iex_stats_status != SUCCESS:
-                log.error(
-                    'failed extracting iex_stats={}'.format(ticker))
+                log.warning(
+                    'unable to fetch iex_stats={}'.format(ticker))
         if 'peers' in iex_datasets:
             iex_peers_df, iex_peers_df = \
                 iex_extract_utils.extract_peers_dataset(
                     extract_req)
             if iex_peers_status != SUCCESS:
-                log.error(
-                    'failed extracting iex_peers={}'.format(ticker))
+                log.warning(
+                    'unable to fetch iex_peers={}'.format(ticker))
         if 'news' in iex_datasets:
             iex_news_status, iex_news_df = \
                 iex_extract_utils.extract_news_dataset(
                     extract_req)
             if iex_news_status != SUCCESS:
-                log.error(
-                    'failed extracting iex_news={}'.format(ticker))
+                log.warning(
+                    'unable to fetch iex_news={}'.format(ticker))
         if 'financials' in iex_datasets:
             iex_financials_status, iex_financials_df = \
                 iex_extract_utils.extract_financials_dataset(
                     extract_req)
             if iex_financials_status != SUCCESS:
-                log.error(
-                    'failed extracting iex_financials={}'.format(ticker))
+                log.warning(
+                    'unable to fetch iex_financials={}'.format(ticker))
         if 'earnings' in iex_datasets:
             iex_earnings_status, iex_earnings_df = \
                 iex_extract_utils.extract_dividends_dataset(
                     extract_req)
             if iex_earnings_status != SUCCESS:
-                log.error(
-                    'failed extracting iex_earnings={}'.format(ticker))
+                log.warning(
+                    'unable to fetch iex_earnings={}'.format(ticker))
         if 'dividends' in iex_datasets:
             iex_dividends_status, iex_dividends_df = \
                 iex_extract_utils.extract_dividends_dataset(
                     extract_req)
             if iex_dividends_status != SUCCESS:
-                log.error(
-                    'failed extracting iex_dividends={}'.format(ticker))
+                log.warning(
+                    'unable to fetch iex_dividends={}'.format(ticker))
         if 'company' in iex_datasets:
             iex_company_status, iex_company_df = \
                 iex_extract_utils.extract_dividends_dataset(
                     extract_req)
             if iex_company_status != SUCCESS:
-                log.error(
-                    'failed extracting iex_company={}'.format(ticker))
+                log.warning(
+                    'unable to fetch iex_company={}'.format(ticker))
         # end of iex extracts
 
         if fetch_mode in ['all', 'yahoo']:
@@ -362,20 +436,20 @@ def run(ticker=None,
                 yahoo_extract_utils.extract_option_puts_dataset(
                     extract_req)
             if yahoo_options_status != SUCCESS:
-                log.error(
-                    'failed extracting yahoo_options={}'.format(ticker))
+                log.warning(
+                    'unable to fetch yahoo_options={}'.format(ticker))
             yahoo_pricing_status, yahoo_pricing_df = \
                 yahoo_extract_utils.extract_pricing_dataset(
                     extract_req)
             if yahoo_pricing_status != SUCCESS:
-                log.error(
-                    'failed extracting yahoo_pricing={}'.format(ticker))
+                log.warning(
+                    'unable to fetch yahoo_pricing={}'.format(ticker))
             yahoo_news_status, yahoo_news_df = \
                 yahoo_extract_utils.extract_yahoo_news_dataset(
                     extract_req)
             if yahoo_news_status != SUCCESS:
-                log.error(
-                    'failed extracting yahoo_news={}'.format(ticker))
+                log.warning(
+                    'unable to fetch yahoo_news={}'.format(ticker))
         # end of yahoo extracts
 
         ticker_data['daily'] = iex_daily_df
@@ -396,113 +470,10 @@ def run(ticker=None,
         rec['ticker_dict'][ticker] = ticker_data
     # end of for service_dict in extract_records
 
-    """
-    Start Analysis
-    """
-
-    log.info(
-        '{} - analyzing tickers={}'.format(
-            label,
-            len(rec['ticker_dict'])))
-
-    for ticker in rec['ticker_dict']:
-        log.info(ticker)
-        ticker_data = rec['ticker_dict'][ticker]
-        print(ticker_data)
-
     res = build_result.build_result(
         status=SUCCESS,
         err=err,
         rec=rec)
 
     return res
-# end of run
-
-
-def start():
-    """start"""
-    label = 'run'
-    log.info(
-        '{} - start'.format(
-            label))
-
-    """
-    Input - Set up dataset sources to collect
-    """
-
-    # fetch from: 'all', 'iex' or 'yahoo'
-    fetch_mode = 'iex'
-    iex_datasets = [
-        # 'daily',
-        # 'minute',
-        # 'quote',
-        # 'stats',
-        # 'peers',
-        # 'news',
-        'financials',
-        # 'earnings',
-        # 'dividends'
-        # 'company'
-    ]
-
-    """
-    Input - Set up required urls for building buckets
-    """
-    fv_urls = []
-
-    """
-    Output - Where is data getting cached and archived?
-    """
-
-    """
-    Pull Tickers from Screens
-    """
-
-    uniq_tickers = {
-        'NFLX': True
-    }
-    tickers = []
-    num_urls = len(fv_urls)
-
-    log.info(
-        '{} - pulling finviz tickers from urls={}'.format(
-            label,
-            num_urls))
-
-    log.info(
-        '{} - found finviz uniq_tickers={} from urls={}'.format(
-            label,
-            len(uniq_tickers),
-            num_urls))
-
-    for t in uniq_tickers:
-        tickers.append(t)
-
-    """
-    Pull Ticker Data Feeds
-    """
-
-    run(tickers=tickers,
-        fetch_mode=fetch_mode,
-        iex_datasets=iex_datasets)
-
-    """
-    Determine Sell Conditions
-    """
-
-    """
-    Determine Buy Conditions
-    """
-
-    """
-    Send Alerts
-    """
-
-    log.info(
-        '{} - done'.format(
-            label))
-# end of start
-
-
-if __name__ == '__main__':
-    start()
+# end of fetch
