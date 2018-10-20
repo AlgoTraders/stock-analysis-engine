@@ -5,6 +5,12 @@ These are documents for developing and understanding how the Stock Analysis Engi
 
 https://github.com/AlgoTraders/stock-analysis-engine/
 
+Fetch All Data for a Ticker
+===========================
+
+.. automodule:: analysis_engine.fetch
+   :members: run
+
 Example API Requests
 ====================
 

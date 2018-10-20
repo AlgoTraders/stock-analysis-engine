@@ -29,6 +29,7 @@ from analysis_engine.consts import DIVIDENDS_S3_BUCKET_NAME
 from analysis_engine.consts import COMPANY_S3_BUCKET_NAME
 from analysis_engine.consts import PREPARE_S3_BUCKET_NAME
 from analysis_engine.consts import ANALYZE_S3_BUCKET_NAME
+from analysis_engine.consts import SERVICE_VALS
 from analysis_engine.utils import get_last_close_str
 from analysis_engine.utils import utc_date_str
 from analysis_engine.utils import utc_now_str
@@ -58,7 +59,8 @@ def get_ds_dict(
         ticker,
         base_key=None,
         ds_id=None,
-        label=None):
+        label=None,
+        service_dict=None):
     """get_ds_dict
 
     Get a dictionary with all cache keys for a ticker and return
@@ -72,6 +74,12 @@ def get_ds_dict(
     :param ds_id: optional - dataset id (useful for
                   external database id)
     :param label: optional - tracking label in the logs
+    :param service_dict: optional - parent call functions and Celery
+                         tasks can use this dictionary to seed the
+                         common service routes and endpoints. Refer
+                         to ``analysis_engine.consts.SERVICE_VALS``
+                         for automatically-copied over keys by this
+                         helper.
     """
 
     if not ticker:
@@ -121,6 +129,13 @@ def get_ds_dict(
         'date': date_str,
         'version': CACHE_DICT_VERSION
     }
+
+    # set keys/values for redis/minio from the
+    # service_dict - helper method for
+    # launching job chains
+    if service_dict:
+        for k in SERVICE_VALS:
+            ds_cache_dict[k] = service_dict[k]
 
     return ds_cache_dict
 # end of get_ds_dict
