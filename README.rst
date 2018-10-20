@@ -16,22 +16,20 @@ With the containers running, you can fetch, cache, archive and return all of the
 
     from analysis_engine.fetch import fetch
     d = fetch(ticker='NFLX')
-    print(d)
-    for k in d['rec']['ticker_dict']['NFLX']:
-        print('dataset key: {}'.format(k))
+    for k in d['NFLX']:
+        print('dataset key: {}\nvalue {}\n'.format(k, d['NFLX'][k]))
 
 Extract
 -------
 
-Once collected and cached, you can quickly extract datasets from redis with:
+Once collected and cached, you can extract datasets:
 
 .. code-block:: python
 
-    from analysis_engine.api_requests import get_ds_dict
-    from analysis_engine.yahoo.extract_df_from_redis import extract_option_calls_dataset
-    dataset_req = get_ds_dict(ticker='NFLX', label='nflx-test')
-    extract_status, netflix_call_options_df = extract_option_calls_dataset(dataset_req)
-    print(netflix_call_options_df)
+    from analysis_engine.extract import extract
+    d = extract(ticker='NFLX')
+    for k in d['NFLX']:
+        print('dataset key: {}\nvalue {}\n'.format(k, d['NFLX'][k]))
 
 Please refer to the `Stock Analysis Intro Extracting Datasets Jupyter Notebook <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro-Extracting-Datasets.ipynb>`__ for the latest usage examples.
 

@@ -1,6 +1,5 @@
 """
-Publish Pricing Data Task
-=========================
+**Publish Pricing Data Task**
 
 Publish new stock data to external services and systems
 (redis and s3) provided the system(s) are running and enabled.
@@ -8,8 +7,7 @@ Publish new stock data to external services and systems
 - redis - using `redis-py <https://github.com/andymccurdy/redis-py>`__
 - s3 - using boto3
 
-Sample work_dict request for this method
-----------------------------------------
+**Sample work_dict request for this method**
 
 `analysis_engine.api_requests.publish_pricing_update <https://
 github.com/AlgoTraders/stock-analysis-engine/blob/master/ana
@@ -33,6 +31,12 @@ lysis_engine/api_requests.py#L218>`__
     lgoTraders/stock-analysis-engine/blob/master/anal
     ysis_engine/work_tasks/custom_task.py>`__ for
     task event handling.
+
+**Supported Environment Variables**
+
+::
+
+    export DEBUG_RESULTS=1
 
 """
 
@@ -67,6 +71,7 @@ from analysis_engine.consts import REDIS_EXPIRE
 from analysis_engine.consts import get_status
 from analysis_engine.consts import is_celery_disabled
 from analysis_engine.consts import ppj
+from analysis_engine.consts import ev
 
 log = build_colorized_logger(
     name=__name__)
@@ -427,9 +432,11 @@ def run_publish_pricing_update(
                 response_details = ppj(response)
             except Exception:
                 response_details = response
-            log.info(
-                'getting task result={}'.format(
-                    response_details))
+
+            if ev('DEBUG_RESULTS', '0') == '1':
+                log.info(
+                    'getting task result={}'.format(
+                        response_details))
         else:
             log.error(
                 '{} celery was disabled but the task={} '

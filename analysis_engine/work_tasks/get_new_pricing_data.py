@@ -65,6 +65,12 @@ Sample work_dict request for this method
 github.com/AlgoTraders/stock-analysis-engine/blob/master/ana
 lysis_engine/api_requests.py#L49>`__
 
+**Supported Environment Variables**
+
+::
+
+    export DEBUG_RESULTS=1
+
 """
 
 import datetime
@@ -400,7 +406,7 @@ def get_new_pricing_data(
             update_status = update_res.get(
                 'status',
                 NOT_SET)
-            if ev('DEBUG_GET_PRICING', '0') == '1':
+            if ev('DEBUG_RESULTS', '0') == '1':
                 log.info(
                     '{} update_res status={} data={}'.format(
                         label,
@@ -524,9 +530,11 @@ def run_get_new_pricing_data(
                 response_details = ppj(response)
             except Exception:
                 response_details = response
-            log.info(
-                'getting task result={}'.format(
-                    response_details))
+
+            if ev('DEBUG_GET_PRICING', '0') == '1':
+                log.info(
+                    'getting task result={}'.format(
+                        response_details))
         else:
             log.error(
                 '{} celery was disabled but the task={} '
