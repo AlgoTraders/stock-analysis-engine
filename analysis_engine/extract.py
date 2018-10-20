@@ -20,6 +20,7 @@ log = build_colorized_logger(
 def extract(
         ticker=None,
         tickers=None,
+        use_key=None,
         extract_mode='all',
         iex_datasets=None,
         redis_enabled=True,
@@ -70,6 +71,8 @@ def extract(
 
     :param ticker: single stock ticker/symbol/ETF to extract
     :param tickers: optional - list of tickers to extract
+    :param use_key: optional - extract historical key from Redis
+        usually formatted ``<TICKER>_<date formatted YYYY-MM-DD>``
 
     **(Optional) Data sources, datafeeds and datasets to gather**
 
@@ -234,9 +237,11 @@ def extract(
                 label,
                 num_tickers))
 
-    ticker_key = '{}_{}'.format(
-        ticker,
-        last_close_str)
+    ticker_key = use_key
+    if not ticker_key:
+        ticker_key = '{}_{}'.format(
+            ticker,
+            last_close_str)
 
     common_vals = {}
     common_vals['base_key'] = ticker_key
