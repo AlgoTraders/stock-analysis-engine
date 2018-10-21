@@ -46,7 +46,7 @@ case "$os_type" in
                 sudo apt-get install python3-distutils python3-tk
             fi
         fi
-        active_ports=`netstat -tulpn | grep LISTEN`
+        active_ports=`netstat -tulpn 2>> /dev/null | grep LISTEN`
         ;;
     Darwin*)
         inf "Setting up environment for MacOS"
