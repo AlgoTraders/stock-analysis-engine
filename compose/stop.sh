@@ -27,7 +27,7 @@ os_type=`uname -s`
 case "$os_type" in
     Linux*)
         inf "Stopping environment for Linux"
-        active_ports=`netstat -tulpn | grep LISTEN`
+        active_ports=`netstat -tulpn 2>> /dev/null | grep LISTEN`
         ;;
     Darwin*)
         inf "Stopping environment for MacOS"
