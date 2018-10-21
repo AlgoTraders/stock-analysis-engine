@@ -3,13 +3,16 @@ Work in progress - screener-driven analysis task
 """
 
 import os
-import analysis_engine.get_task_results
+import analysis_engine.api_requests as api_requests
+import analysis_engine.get_task_results as task_utils
 import analysis_engine.fetch as fetch_utils
 import analysis_engine.build_result as build_result
+import analysis_engine.finviz.fetch_api as finviz_utils
 from analysis_engine.consts import SUCCESS
 from analysis_engine.consts import NOT_RUN
 from analysis_engine.consts import ERR
 from analysis_engine.consts import IEX_DATASETS_DEFAULT
+from analysis_engine.consts import get_status
 from spylunking.log.setup_logging import build_colorized_logger
 
 
@@ -108,6 +111,9 @@ def run_screener_analysis(
         # stop if something errored out with the
         # celery helper for turning off celery to debug
         # without an engine running
+
+        res['err'] = 'stopping for now'
+
         if res['err']:
             log.error(
                 '{} - tickers={} fetch={} iex_datasets={} '
@@ -118,10 +124,43 @@ def run_screener_analysis(
                     iex_datasets,
                     res['err']))
 
-            return analysis_engine.get_task_results.get_task_results(
+            return task_utils.get_task_results(
                 work_dict=work_dict,
                 result=res)
         # end of input validation checks
+
+        num_urls = len(fv_urls)
+        log.info(
+            '{} - running urls={}'.format(
+                label,
+                fv_urls))
+
+        fv_dfs = []
+        for uidx, url in enumerate(fv_urls):
+            log.info(
+                '{} - url={}/{} url={}'.format(
+                    label,
+                    uidx,
+                    num_urls,
+                    url))
+            fv_res = finviz_utils.fetch_tickers_from_screener(
+                url=url)
+            if fv_res['status'] == SUCCESS:
+                fv_dfs.append(fv_res['rec']['data'])
+                for ft_tick in fv_res['rec']['tickers']:
+                    upper_ft_ticker = ft_tick.upper()
+                    if upper_ft_ticker not in tickers:
+                        tickers.append(upper_ft_ticker)
+                # end of for all found tickers
+            else:
+                log.error(
+                    '{} - failed url={}/{} url={}'.format(
+                        label,
+                        uidx,
+                        num_urls,
+                        url))
+            # if success vs log thereror
+        # end of urls to get pandas.DataFrame and unique tickers
 
         """
         Output - Where is data getting cached and archived?
@@ -132,21 +171,11 @@ def run_screener_analysis(
         """
 
         num_tickers = len(tickers)
-        num_urls = len(fv_urls)
 
         log.info(
-            '{} - pulling tickers={} from urls={}'.format(
+            '{} - fetching tickers={} from urls={}'.format(
                 label,
-                num_urls))
-
-        found_tickers = []
-        for fidx, url in enumerate(fv_urls):
-
-
-        log.info(
-            '{} - found uniq_tickers={} from urls={}'.format(
-                label,
-                len(uniq_tickers),
+                num_tickers,
                 num_urls))
 
         """
@@ -196,11 +225,27 @@ def run_screener_analysis(
             rec=rec)
     # end of try/ex
 
-    return analysis_engine.get_task_results.get_task_results(
+    return task_utils.get_task_results(
         work_dict=work_dict,
         result=res)
 # end of run_screener_analysis
 
 
 if __name__ == '__main__':
-    run_screener_analysis()
+
+    label = 'test'
+    ticker = 'NFLX'
+    url = (
+        'https://finviz.com/screener.ashx?v=111&'
+        'f=cap_midunder,exch_nyse,fa_div_o5,idx_sp500&ft=4')
+    fv_urls = [
+        url
+    ]
+
+    req = api_requests.build_screener_analysis_request(
+        ticker=ticker,
+        fv_urls=fv_urls,
+        label=label)
+
+    run_screener_analysis(
+        work_dict=req)
