@@ -15,7 +15,7 @@ The engine provides an automated, horizontally scalable stock data collection an
 Fetch
 -----
 
-With the containers running, you can fetch, cache, archive and return all of the newest datasets for tickers:
+With redis and minio running (``./compose/start.sh``), you can fetch, cache, archive and return all of the newest datasets for tickers:
 
 .. code-block:: python
 
