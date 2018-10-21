@@ -454,7 +454,7 @@ def get_new_pricing_data(
         if ev('PROD_SLACK_ALERTS', '1') == '1':
             env_name = 'PROD'
         done_msg = (
-            'Dataset collected ticker=*{}* on env={} '
+            'Dataset collected ticker=*{}* on env=*{}* '
             'redis_key={} s3_key={} iex={} yahoo={}'.format(
                 ticker,
                 env_name,
