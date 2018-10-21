@@ -12,7 +12,6 @@ from analysis_engine.consts import SUCCESS
 from analysis_engine.consts import NOT_RUN
 from analysis_engine.consts import ERR
 from analysis_engine.consts import IEX_DATASETS_DEFAULT
-from analysis_engine.consts import get_status
 from spylunking.log.setup_logging import build_colorized_logger
 
 
@@ -111,9 +110,6 @@ def run_screener_analysis(
         # stop if something errored out with the
         # celery helper for turning off celery to debug
         # without an engine running
-
-        res['err'] = 'stopping for now'
-
         if res['err']:
             log.error(
                 '{} - tickers={} fetch={} iex_datasets={} '
@@ -182,13 +178,13 @@ def run_screener_analysis(
         pull ticker data
         """
 
-        fetch_res = fetch_utils.fetch(
+        fetch_recs = fetch_utils.fetch(
             tickers=tickers,
             fetch_mode=fetch_mode,
             iex_datasets=iex_datasets)
 
-        if fetch_res['status'] == SUCCESS:
-            rec = fetch_res['rec']
+        if fetch_recs:
+            rec = fetch_recs
             res = build_result.build_result(
                 status=SUCCESS,
                 err=None,
@@ -196,13 +192,11 @@ def run_screener_analysis(
         else:
             err = (
                 '{} - tickers={} failed fetch={} '
-                'iex_datasets={} status={} err={}'.format(
+                'iex_datasets={}'.format(
                     label,
                     tickers,
                     fetch_mode,
-                    iex_datasets,
-                    get_status(status=fetch_res['status']),
-                    fetch_res['err']))
+                    iex_datasets))
             res = build_result.build_result(
                 status=ERR,
                 err=err,

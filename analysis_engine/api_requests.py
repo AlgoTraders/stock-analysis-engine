@@ -983,7 +983,7 @@ def build_screener_analysis_request(
 
     req = {
         'tickers': use_tickers,
-        'fv_urls': use_urls,
+        'urls': use_urls,
         'fetch_mode': fetch_mode,
         'iex_datasets': iex_datasets,
         's3_bucket': s3_bucket_name,
