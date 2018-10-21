@@ -318,7 +318,7 @@ Run Publish from an Existing S3 Key to Redis
 
     ::
 
-        redis-cli
+        ./tools/redis-cli.sh
         127.0.0.1:6379> select 4
         OK
         127.0.0.1:6379[4]> keys *
@@ -399,7 +399,7 @@ View Caches in Redis
 
 ::
 
-    redis-cli
+    ./tools/redis-cli.sh
     127.0.0.1:6379> select 4
     OK
     127.0.0.1:6379[4]> keys *
@@ -448,7 +448,7 @@ After running the dataset collection container, the datasets should be auto-cach
 
 ::
 
-    redis-cli
+    ./tools/redis-cli.sh
     127.0.0.1:6379> select 4
     OK
     127.0.0.1:6379[4]> keys *

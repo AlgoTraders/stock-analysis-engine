@@ -129,7 +129,6 @@ if [[ -z `docker ps | grep $USER | grep redis` ]]; then
     do
         BASE_REDIS_PORT=$((BASE_REDIS_PORT+1))
     done
-    sed -i $mac "s/6379/$BASE_REDIS_PORT/g" envs/.env
 else
     BASE_REDIS_PORT=`docker ps | grep $USER | grep redis | cut -f1 -d">" | sed -e 's/.*://' | cut -f1 -d"-"`
 fi
@@ -140,7 +139,6 @@ if [[ -z `docker ps | grep $USER | grep minio` ]]; then
     do
         BASE_MINIO_PORT=$((BASE_MINIO_PORT+1))
     done
-    sed -i $mac "s/9000/$BASE_MINIO_PORT/g" envs/.env
 else
     BASE_MINIO_PORT=`docker ps | grep $USER | grep minio | cut -f1 -d">" | sed -e 's/.*://' | cut -f1 -d"-"`
 fi
@@ -174,7 +172,7 @@ source ./env.sh
 rm env.sh
 # end getting ports and setting vars for containers
 
-docker-compose -f ./${compose} up -d
+docker-compose -f ./${compose} -p $USER up -d
 
 # MacOS specific, remove the backup file that is created by sed -i 
 if [[ -n $mac && -f envs/.env$mac ]]; then
