@@ -1,7 +1,7 @@
 """
 
-Test file for - publish ticker aggregate from s3 to redis
-=========================================================
+Test file for - publish ticker aggregate from s3
+================================================
 
 Integration Tests
 -----------------
