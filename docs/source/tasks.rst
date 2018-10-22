@@ -17,6 +17,9 @@ Celery tasks are automatically processed by the workers. You can turn off celery
 .. automodule:: analysis_engine.work_tasks.publish_from_s3_to_redis
     :members: run_publish_from_s3_to_redis,publish_from_s3_to_redis
 
+.. automodule:: analysis_engine.work_tasks.task_screener_analysis
+    :members: run_screener_analysis,task_screener_analysis
+
 .. automodule:: analysis_engine.work_tasks.prepare_pricing_dataset
     :members: run_prepare_pricing_dataset,prepare_pricing_dataset
 
