@@ -92,11 +92,12 @@ Running on Ubuntu and CentOS
 
         sudo apt-get install make cmake gcc python3-distutils python3-tk python3 python3-apport python3-certifi python3-dev python3-pip python3-venv python3.6 redis-tools
 
-    CentOS
+    CentOS 7
 
     ::
 
-        sudo yum install build-essential tkinter curl-devel make cmake python-devel python-setuptools python-pip python-virtualenv redis
+        sudo yum install cmake gcc make tkinter curl-devel make cmake python-devel python-setuptools python-pip python-virtualenv redis python36u-libs python36u-devel python36u-pip python36u-tkinter python36u-setuptools python36u
+
 
 #.  Create and Load Python 3 Virtual Environment
 
@@ -245,7 +246,7 @@ Please refer to the `run_ticker_analysis.py script <https://github.com/AlgoTrade
 
 ::
 
-    usage: run_ticker_analysis.py [-h] -t TICKER [-g FETCH_MODE] [-i TICKER_ID]
+    usage: run_ticker_analysis.py [-h] [-t TICKER] [-g FETCH_MODE] [-i TICKER_ID]
                               [-e EXP_DATE_STR] [-l LOG_CONFIG_PATH]
                               [-b BROKER_URL] [-B BACKEND_URL]
                               [-k S3_ACCESS_KEY] [-s S3_SECRET_KEY]
@@ -255,44 +256,70 @@ Please refer to the `run_ticker_analysis.py script <https://github.com/AlgoTrade
                               [-n KEYNAME] [-m REDIS_DB] [-x REDIS_EXPIRE]
                               [-z STRIKE] [-c CONTRACT_TYPE] [-P GET_PRICING]
                               [-N GET_NEWS] [-O GET_OPTIONS] [-U S3_ENABLED]
-                              [-R REDIS_ENABLED] [-d]
+                              [-R REDIS_ENABLED] [-A ANALYSIS_TYPE] [-L URLS]
+                              [-d]
 
     Download and store the latest stock pricing, news, and options chain data and
     store it in S3 and Redis. Once stored, this will also start the buy and sell
     trading analysis.
 
     optional arguments:
-    -h, --help          show this help message and exit
-    -t TICKER           ticker
-    -g FETCH_MODE       optional - fetch mode: all = fetch from all data sources
-                        (default), yahoo = fetch from just Yahoo sources, iex =
-                        fetch from just IEX sources
-    -i TICKER_ID        optional - ticker id not used without a database
-    -e EXP_DATE_STR     optional - options expiration date
-    -l LOG_CONFIG_PATH  optional - path to the log config file
-    -b BROKER_URL       optional - broker url for Celery
-    -B BACKEND_URL      optional - backend url for Celery
-    -k S3_ACCESS_KEY    optional - s3 access key
-    -s S3_SECRET_KEY    optional - s3 secret key
-    -a S3_ADDRESS       optional - s3 address format: <host:port>
-    -S S3_SECURE        optional - s3 ssl or not
-    -u S3_BUCKET_NAME   optional - s3 bucket name
-    -G S3_REGION_NAME   optional - s3 region name
-    -p REDIS_PASSWORD   optional - redis_password
-    -r REDIS_ADDRESS    optional - redis_address format: <host:port>
-    -n KEYNAME          optional - redis and s3 key name
-    -m REDIS_DB         optional - redis database number (4 by default)
-    -x REDIS_EXPIRE     optional - redis expiration in seconds
-    -z STRIKE           optional - strike price
-    -c CONTRACT_TYPE    optional - contract type "C" for calls "P" for puts
-    -P GET_PRICING      optional - get pricing data if "1" or "0" disabled
-    -N GET_NEWS         optional - get news data if "1" or "0" disabled
-    -O GET_OPTIONS      optional - get options data if "1" or "0" disabled
-    -U S3_ENABLED       optional - s3 enabled for publishing if "1" or "0" is
-                        disabled
-    -R REDIS_ENABLED    optional - redis enabled for publishing if "1" or "0" is
-                        disabled
-    -d                  debug
+      -h, --help          show this help message and exit
+      -t TICKER           ticker
+      -g FETCH_MODE       optional - fetch mode: all = fetch from all data sources
+                           (default), yahoo = fetch from just Yahoo sources, iex =
+                           fetch from just IEX sources
+      -i TICKER_ID        optional - ticker id not used without a database
+      -e EXP_DATE_STR     optional - options expiration date
+      -l LOG_CONFIG_PATH  optional - path to the log config file
+      -b BROKER_URL       optional - broker url for Celery
+      -B BACKEND_URL      optional - backend url for Celery
+      -k S3_ACCESS_KEY    optional - s3 access key
+      -s S3_SECRET_KEY    optional - s3 secret key
+      -a S3_ADDRESS       optional - s3 address format: <host:port>
+      -S S3_SECURE        optional - s3 ssl or not
+      -u S3_BUCKET_NAME   optional - s3 bucket name
+      -G S3_REGION_NAME   optional - s3 region name
+      -p REDIS_PASSWORD   optional - redis_password
+      -r REDIS_ADDRESS    optional - redis_address format: <host:port>
+      -n KEYNAME          optional - redis and s3 key name
+      -m REDIS_DB         optional - redis database number (4 by default)
+      -x REDIS_EXPIRE     optional - redis expiration in seconds
+      -z STRIKE           optional - strike price
+      -c CONTRACT_TYPE    optional - contract type "C" for calls "P" for puts
+      -P GET_PRICING      optional - get pricing data if "1" or "0" disabled
+      -N GET_NEWS         optional - get news data if "1" or "0" disabled
+      -O GET_OPTIONS      optional - get options data if "1" or "0" disabled
+      -U S3_ENABLED       optional - s3 enabled for publishing if "1" or "0" is
+                           disabled
+      -R REDIS_ENABLED    optional - redis enabled for publishing if "1" or "0" is
+                           disabled
+      -A ANALYSIS_TYPE    optional - run an analysis supported modes: scn
+      -L URLS             optional - screener urls to pull tickers for analysis
+      -d                  debug
+
+Run FinViz Screener-driven Analysis
+===================================
+
+This is a work in progress, but the screener-driven workflow is:
+
+#.  Convert FinViz screeners into a list of tickers
+    and a ``pandas.DataFrames`` from each ticker's html row
+#.  Build unique list of tickers
+#.  Pull datasets for each ticker
+#.  Run sale-side processing - coming soon
+#.  Run buy-side processing - coming soon
+#.  Issue alerts to slack - coming soon
+
+Here is how to run an analysis on all unique tickers found in two FinViz screener urls:
+
+https://finviz.com/screener.ashx?v=111&f=cap_midunder,exch_nyse,fa_div_o6,idx_sp500&ft=4
+and
+https://finviz.com/screener.ashx?v=111&f=cap_midunder,exch_nyse,fa_div_o8,idx_sp500&ft=4
+
+::
+
+    run_ticker_analysis.py -A scn -L 'https://finviz.com/screener.ashx?v=111&f=cap_midunder,exch_nyse,fa_div_o6,idx_sp500&ft=4|https://finviz.com/screener.ashx?v=111&f=cap_midunder,exch_nyse,fa_div_o8,idx_sp500&ft=4'
 
 Run Publish from an Existing S3 Key to Redis
 ============================================
@@ -898,6 +925,7 @@ Most of the scripts support running without Celery workers. To run without worke
     publish_from_s3_to_redis.py -t ${ticker} -u integration-tests -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -n integration-test-v1
     sa.py -t ${ticker} -f -o ${ticker}_latest_v1 -j prepared -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -n ${ticker}_demo
     run_ticker_analysis.py -t ${ticker} -g all -e 2018-10-19 -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -n ${ticker}_demo -P 1 -N 1 -O 1 -U 1 -R 1
+    run_ticker_analysis.py -A scn -L 'https://finviz.com/screener.ashx?v=111&f=cap_midunder,exch_nyse,fa_div_o6,idx_sp500&ft=4|https://finviz.com/screener.ashx?v=111&f=cap_midunder,exch_nyse,fa_div_o8,idx_sp500&ft=4'
 
 Linting and Other Tools
 -----------------------
@@ -981,3 +1009,4 @@ If you redistribute our API data:
 - Cite IEX using the following text and link: "Data provided for free by IEX."
 - Provide a link to https://iextrading.com/api-exhibit-a in your terms of service.
 - Additionally, if you display our TOPS price data, cite "IEX Real-Time Price" near the price.
+

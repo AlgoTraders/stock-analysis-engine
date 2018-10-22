@@ -14,12 +14,14 @@ Steps:
 
 """
 
+import os
 import argparse
+import analysis_engine.api_requests as api_requests
 import analysis_engine.work_tasks.get_new_pricing_data as task_pricing
+import analysis_engine.work_tasks.task_screener_analysis as screener_utils
 from celery import signals
 from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.work_tasks.get_celery_app import get_celery_app
-from analysis_engine.api_requests import build_get_new_pricing_request
 from analysis_engine.consts import LOG_CONFIG_PATH
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import TICKER_ID
@@ -61,6 +63,38 @@ log = build_colorized_logger(
     log_config_path=LOG_CONFIG_PATH)
 
 
+def start_screener_analysis(
+        req):
+    """start_screener_analysis
+
+    Start screener-driven analysis with a simple workflow:
+
+    1) Convert FinViz screeners into a list of tickers
+       and a ``pandas.DataFrames`` from each ticker's html row
+    2) Build unique list of tickers
+    3) Pull datasets for each ticker
+    4) Run sale-side processing - coming soon
+    5) Run buy-side processing - coming soon
+    6) Issue alerts to slack - coming soon
+
+    :param req: dictionary to start the screener analysis
+    """
+    label = req.get(
+        'label',
+        'screener')
+    log.info(
+        '{} - start screener analysis'.format(
+            label))
+    req['celery_disabled'] = True
+    analysis_res = screener_utils.run_screener_analysis(
+        work_dict=req)
+    log.info(
+        '{} - done screener analysis result={}'.format(
+            label,
+            analysis_res))
+# end of start_screener_analysis
+
+
 def run_ticker_analysis():
     """run_ticker_analysis
 
@@ -96,7 +130,7 @@ def run_ticker_analysis():
         '-t',
         help=(
             'ticker'),
-        required=True,
+        required=False,
         dest='ticker')
     parser.add_argument(
         '-g',
@@ -249,6 +283,20 @@ def run_ticker_analysis():
         required=False,
         dest='redis_enabled')
     parser.add_argument(
+        '-A',
+        help=(
+            'optional - run an analysis '
+            'supported modes: scn'),
+        required=False,
+        dest='analysis_type')
+    parser.add_argument(
+        '-L',
+        help=(
+            'optional - screener urls to pull '
+            'tickers for analysis'),
+        required=False,
+        dest='urls')
+    parser.add_argument(
         '-d',
         help=(
             'debug'),
@@ -286,6 +334,7 @@ def run_ticker_analysis():
     get_options = True
     s3_enabled = True
     redis_enabled = True
+    analysis_type = None
     debug = False
 
     if args.ticker:
@@ -337,10 +386,12 @@ def run_ticker_analysis():
         redis_enabled = args.redis_enabled == '1'
     if args.fetch_mode:
         fetch_mode = str(args.fetch_mode).lower()
+    if args.analysis_type:
+        analysis_type = str(args.analysis_type).lower()
     if args.debug:
         debug = True
 
-    work = build_get_new_pricing_request()
+    work = api_requests.build_get_new_pricing_request()
 
     work['ticker'] = ticker
     work['ticker_id'] = ticker_id
@@ -365,81 +416,99 @@ def run_ticker_analysis():
     work['s3_enabled'] = s3_enabled
     work['redis_enabled'] = redis_enabled
     work['fetch_mode'] = fetch_mode
+    work['analysis_type'] = analysis_type
     work['debug'] = debug
     work['label'] = 'ticker={}'.format(
         ticker)
 
-    if not args.keyname:
-        last_close_date = last_close()
-        work['s3_key'] = '{}_{}'.format(
-            work['ticker'],
-            last_close_date.strftime(COMMON_DATE_FORMAT))
-        work['redis_key'] = '{}_{}'.format(
-            work['ticker'],
-            last_close_date.strftime(COMMON_DATE_FORMAT))
+    if analysis_type == 'scn':
+        label = 'screener={}'.format(
+            work['ticker'])
+        fv_urls = []
+        if args.urls:
+            fv_urls = str(args.urls).split('|')
+        if len(fv_urls) == 0:
+            fv_urls = os.getenv('SCREENER_URLS', []).split('|')
+        screener_req = api_requests.build_screener_analysis_request(
+            ticker=ticker,
+            fv_urls=fv_urls,
+            label=label)
+        work.update(screener_req)
+        start_screener_analysis(
+            req=work)
+    # end of analysis_type
+    else:
+        if not args.keyname:
+            last_close_date = last_close()
+            work['s3_key'] = '{}_{}'.format(
+                work['ticker'],
+                last_close_date.strftime(COMMON_DATE_FORMAT))
+            work['redis_key'] = '{}_{}'.format(
+                work['ticker'],
+                last_close_date.strftime(COMMON_DATE_FORMAT))
 
-    path_to_tasks = 'analysis_engine.work_tasks'
-    task_name = (
-        '{}.get_new_pricing_data.get_new_pricing_data'.format(
-            path_to_tasks))
-    task_res = None
-    if is_celery_disabled():
-        work['celery_disabled'] = True
-        log.debug(
-            'starting without celery work={}'.format(
-                ppj(work)))
-        task_res = task_pricing.get_new_pricing_data(
-            work)
+        path_to_tasks = 'analysis_engine.work_tasks'
+        task_name = (
+            '{}.get_new_pricing_data.get_new_pricing_data'.format(
+                path_to_tasks))
+        task_res = None
+        if is_celery_disabled():
+            work['celery_disabled'] = True
+            log.debug(
+                'starting without celery work={}'.format(
+                    ppj(work)))
+            task_res = task_pricing.get_new_pricing_data(
+                work)
 
-        if debug:
-            log.info(
-                'done - result={} '
-                'task={} status={} '
-                'err={} label={}'.format(
-                    ppj(task_res),
-                    task_name,
-                    get_status(status=task_res['status']),
-                    task_res['err'],
-                    work['label']))
+            if debug:
+                log.info(
+                    'done - result={} '
+                    'task={} status={} '
+                    'err={} label={}'.format(
+                        ppj(task_res),
+                        task_name,
+                        get_status(status=task_res['status']),
+                        task_res['err'],
+                        work['label']))
+            else:
+                log.info(
+                    'done - result '
+                    'task={} status={} '
+                    'err={} label={}'.format(
+                        task_name,
+                        get_status(status=task_res['status']),
+                        task_res['err'],
+                        work['label']))
+            # if/else debug
         else:
             log.info(
-                'done - result '
-                'task={} status={} '
-                'err={} label={}'.format(
+                'connecting to broker={} backend={}'.format(
+                    broker_url,
+                    backend_url))
+
+            # Get the Celery app
+            app = get_celery_app(
+                name=__name__,
+                auth_url=broker_url,
+                backend_url=backend_url,
+                path_to_config_module=celery_config_module,
+                ssl_options=ssl_options,
+                transport_options=transport_options,
+                include_tasks=include_tasks)
+
+            log.info(
+                'calling task={} - work={}'.format(
                     task_name,
-                    get_status(status=task_res['status']),
-                    task_res['err'],
-                    work['label']))
-        # if/else debug
-    else:
-        log.info(
-            'connecting to broker={} backend={}'.format(
-                broker_url,
-                backend_url))
-
-        # Get the Celery app
-        app = get_celery_app(
-            name=__name__,
-            auth_url=broker_url,
-            backend_url=backend_url,
-            path_to_config_module=celery_config_module,
-            ssl_options=ssl_options,
-            transport_options=transport_options,
-            include_tasks=include_tasks)
-
-        log.info(
-            'calling task={} - work={}'.format(
+                    ppj(work)))
+            job_id = app.send_task(
                 task_name,
-                ppj(work)))
-        job_id = app.send_task(
-            task_name,
-            (work,))
-        log.info(
-            'calling task={} - success job_id={}'.format(
-                task_name,
-                job_id))
-    # end of if/else
-
+                (work,))
+            log.info(
+                'calling task={} - success job_id={}'.format(
+                    task_name,
+                    job_id))
+        # end of if/else
+    # end of supported modes
 # end of run_ticker_analysis
 
 

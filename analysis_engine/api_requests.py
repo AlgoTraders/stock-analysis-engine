@@ -29,7 +29,9 @@ from analysis_engine.consts import DIVIDENDS_S3_BUCKET_NAME
 from analysis_engine.consts import COMPANY_S3_BUCKET_NAME
 from analysis_engine.consts import PREPARE_S3_BUCKET_NAME
 from analysis_engine.consts import ANALYZE_S3_BUCKET_NAME
+from analysis_engine.consts import SCREENER_S3_BUCKET_NAME
 from analysis_engine.consts import SERVICE_VALS
+from analysis_engine.consts import IEX_DATASETS_DEFAULT
 from analysis_engine.utils import get_last_close_str
 from analysis_engine.utils import utc_date_str
 from analysis_engine.utils import utc_now_str
@@ -923,3 +925,81 @@ def build_iex_fetch_company_request(
 
     return work
 # end of build_iex_fetch_company_request
+
+
+def build_screener_analysis_request(
+        ticker=None,
+        tickers=None,
+        fv_urls=None,
+        fetch_mode='iex',
+        iex_datasets=IEX_DATASETS_DEFAULT,
+        determine_sells=None,
+        determine_buys=None,
+        label='screener'):
+    """build_screener_analysis_request
+
+    Build a dictionary request for the task:
+    ``analysis_engine.work_tasks.run_screener_analysis``
+
+    :param ticker: ticker to add to the analysis
+    :param tickers: tickers to add to the analysis
+    :param fv_urls: finviz urls
+    :param fetch_mode: supports pulling from ``iex``,
+        ``yahoo``, ``all`` (defaults to ``iex``)
+    :param iex_datasets: datasets to fetch from
+        ``iex`` (defaults to ``analysis_engine.con
+        sts.IEX_DATASETS_DEFAULT``)
+    :param determine_sells: string custom Celery task
+        name for handling sell-side processing
+    :param determine_buys: string custom Celery task
+        name for handling buy-side processing
+    :param label: log tracking label
+    :return: initial request dictionary:
+        ::
+
+            req = {
+                'tickers': use_tickers,
+                'fv_urls': use_urls,
+                'fetch_mode': fetch_mode,
+                'iex_datasets': iex_datasets,
+                's3_bucket': s3_bucket_name,
+                's3_enabled': s3_enabled,
+                'redis_enabled': redis_enabled,
+                'determine_sells': determine_sells,
+                'determine_buys': determine_buys,
+                'label': label
+            }
+    """
+    use_urls = []
+    if fv_urls:
+        for f in fv_urls:
+            if f not in use_urls:
+                use_urls.append(f)
+
+    use_tickers = tickers
+    if ticker:
+        if not tickers:
+            use_tickers = [
+                ticker
+            ]
+        if ticker.upper() not in use_tickers:
+            use_tickers.append(ticker.upper())
+
+    s3_bucket_name = SCREENER_S3_BUCKET_NAME
+    s3_enabled = True
+    redis_enabled = True
+
+    req = {
+        'tickers': use_tickers,
+        'urls': use_urls,
+        'fetch_mode': fetch_mode,
+        'iex_datasets': iex_datasets,
+        's3_bucket': s3_bucket_name,
+        's3_enabled': s3_enabled,
+        'redis_enabled': redis_enabled,
+        'determine_sells': determine_sells,
+        'determine_buys': determine_buys,
+        'label': label
+    }
+    return req
+# end build_screener_analysis_request

@@ -56,7 +56,8 @@ Celery Environment Variables
          'analysis_engine.work_tasks.handle_pricing_update_task,'
          'analysis_engine.work_tasks.prepare_pricing_dataset,'
          'analysis_engine.work_tasks.publish_from_s3_to_redis,'
-         'analysis_engine.work_tasks.publish_pricing_update'))
+         'analysis_engine.work_tasks.publish_pricing_update,'
+         'analysis_engine.work_tasks.task_screener_analysis'))
     INCLUDE_TASKS = WORKER_TASKS.split(',')
 
 Supported S3 Environment Variables
@@ -220,7 +221,8 @@ WORKER_TASKS = ev(
      'analysis_engine.work_tasks.handle_pricing_update_task,'
      'analysis_engine.work_tasks.prepare_pricing_dataset,'
      'analysis_engine.work_tasks.publish_from_s3_to_redis,'
-     'analysis_engine.work_tasks.publish_pricing_update'))
+     'analysis_engine.work_tasks.publish_pricing_update,'
+     'analysis_engine.work_tasks.task_screener_analysis'))
 INCLUDE_TASKS = WORKER_TASKS.split(',')
 CELERY_DISABLED = ev('CELERY_DISABLED', '0') == '1'
 
@@ -279,6 +281,9 @@ PREPARE_S3_BUCKET_NAME = ev(
 ANALYZE_S3_BUCKET_NAME = ev(
     'ANALYZE_S3_BUCKET_NAME',
     'analyzed')
+SCREENER_S3_BUCKET_NAME = ev(
+    'SCREENER_S3_BUCKET_NAME',
+    'screeners-data')
 PREPARE_DATA_MIN_SIZE = 11
 PLOT_COLORS = {
     'red': '#E74C3C',
@@ -310,6 +315,19 @@ IEX_DAILY_DATE_FORMAT = '%Y-%b-%d'
 IEX_MINUTE_DATE_FORMAT = '%Y-%m-%d %I:%M:%S %p'
 IEX_TICK_DATE_FORMAT = '%Y-%m-%d %I:%M:%S %p'
 IEX_QUOTE_DATE_FORMAT = '%B %d, %Y'
+IEX_DATASETS_DEFAULT = [
+    'daily',
+    'minute',
+    'quote',
+    'stats',
+    'peers',
+    'news',
+    'financials',
+    'earnings',
+    'dividends',
+    'company'
+]
+
 COMMON_DATE_FORMAT = '%Y-%m-%d'
 COMMON_TICK_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 CACHE_DICT_VERSION = 1
