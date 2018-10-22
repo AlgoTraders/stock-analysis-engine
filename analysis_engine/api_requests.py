@@ -933,6 +933,8 @@ def build_screener_analysis_request(
         fv_urls=None,
         fetch_mode='iex',
         iex_datasets=IEX_DATASETS_DEFAULT,
+        determine_sells=None,
+        determine_buys=None,
         label='screener'):
     """build_screener_analysis_request
 
@@ -947,6 +949,10 @@ def build_screener_analysis_request(
     :param iex_datasets: datasets to fetch from
         ``iex`` (defaults to ``analysis_engine.con
         sts.IEX_DATASETS_DEFAULT``)
+    :param determine_sells: string custom Celery task
+        name for handling sell-side processing
+    :param determine_buys: string custom Celery task
+        name for handling buy-side processing
     :param label: log tracking label
     :return: initial request dictionary:
         ::
@@ -959,6 +965,8 @@ def build_screener_analysis_request(
                 's3_bucket': s3_bucket_name,
                 's3_enabled': s3_enabled,
                 'redis_enabled': redis_enabled,
+                'determine_sells': determine_sells,
+                'determine_buys': determine_buys,
                 'label': label
             }
     """
@@ -989,6 +997,8 @@ def build_screener_analysis_request(
         's3_bucket': s3_bucket_name,
         's3_enabled': s3_enabled,
         'redis_enabled': redis_enabled,
+        'determine_sells': determine_sells,
+        'determine_buys': determine_buys,
         'label': label
     }
     return req

@@ -1,27 +1,43 @@
 """
 Work in progress - screener-driven analysis task
+
+**Supported environment variables**
+
+::
+
+    export DEBUG_RESULTS=1
+
 """
 
 import os
-import analysis_engine.api_requests as api_requests
 import analysis_engine.get_task_results as task_utils
 import analysis_engine.fetch as fetch_utils
 import analysis_engine.build_result as build_result
 import analysis_engine.finviz.fetch_api as finviz_utils
+import analysis_engine.work_tasks.custom_task as use_task_class
+from celery.task import task
+from analysis_engine.consts import is_celery_disabled
 from analysis_engine.consts import SUCCESS
 from analysis_engine.consts import NOT_RUN
 from analysis_engine.consts import ERR
 from analysis_engine.consts import IEX_DATASETS_DEFAULT
+from analysis_engine.consts import get_status
+from analysis_engine.consts import ev
+from analysis_engine.consts import ppj
 from spylunking.log.setup_logging import build_colorized_logger
-
 
 log = build_colorized_logger(
     name=__name__)
 
 
-def run_screener_analysis(
+@task(
+    bind=True,
+    base=use_task_class.CustomTask,
+    queue='task_screener_analysis')
+def task_screener_analysis(
+        self,
         work_dict):
-    """run_screener_analysis
+    """task_screener_analysis
 
     :param work_dict: task dictionary
     """
@@ -84,15 +100,28 @@ def run_screener_analysis(
             'IEX_DATASETS_DEFAULT',
             IEX_DATASETS_DEFAULT))
 
+    # if defined, these are task functions for
+    # calling customiized determine Celery tasks
+    determine_sells_callback = work_dict.get(
+        'determine_sells',
+        None)
+    determine_buys_callback = work_dict.get(
+        'determine_buys',
+        None)
+
     try:
 
         log.info(
             '{} fetch={} tickers={} '
-            'iex_datasets={}'.format(
+            'iex_datasets={} '
+            'sell_task={} '
+            'buy_task={}'.format(
                 label,
                 fetch_mode,
                 tickers,
-                iex_datasets))
+                iex_datasets,
+                determine_sells_callback,
+                determine_buys_callback))
 
         """
         Input - Set up required urls for building buckets
@@ -155,12 +184,8 @@ def run_screener_analysis(
                         uidx,
                         num_urls,
                         url))
-            # if success vs log thereror
+            # if success vs log the error
         # end of urls to get pandas.DataFrame and unique tickers
-
-        """
-        Output - Where is data getting cached and archived?
-        """
 
         """
         Find tickers in screens
@@ -185,6 +210,12 @@ def run_screener_analysis(
 
         if fetch_recs:
             rec = fetch_recs
+
+            """
+            Output - Where is data getting cached and archived?
+            (this helps to retroactively evaluate trading performance)
+            """
+
             res = build_result.build_result(
                 status=SUCCESS,
                 err=None,
@@ -222,24 +253,97 @@ def run_screener_analysis(
     return task_utils.get_task_results(
         work_dict=work_dict,
         result=res)
+# end of task_screener_analysis
+
+
+def run_screener_analysis(
+        work_dict):
+    """run_screener_analysis
+
+    Celery wrapper for running without celery
+
+    :param work_dict: task data
+    """
+
+    fn_name = 'run_screener_analysis'
+    label = '{} - {}'.format(
+        fn_name,
+        work_dict.get(
+            'label',
+            ''))
+
+    log.info(
+        '{} - start'.format(
+            label))
+
+    response = build_result.build_result(
+        status=NOT_RUN,
+        err=None,
+        rec={})
+    task_res = {}
+
+    # allow running without celery
+    if is_celery_disabled(
+            work_dict=work_dict):
+        work_dict['celery_disabled'] = True
+        task_res = task_screener_analysis(
+            work_dict)
+        if task_res:
+            response = task_res.get(
+                'result',
+                task_res)
+            if ev('DEBUG_RESULTS', '0') == '1':
+                response_details = response
+                try:
+                    response_details = ppj(response)
+                except Exception:
+                    response_details = response
+
+                log.info(
+                    '{} task result={}'.format(
+                        label,
+                        response_details))
+        else:
+            log.error(
+                '{} celery was disabled but the task={} '
+                'did not return anything'.format(
+                    label,
+                    response))
+        # end of if response
+    else:
+        task_res = task_screener_analysis.delay(
+            work_dict=work_dict)
+        rec = {
+            'task_id': task_res
+        }
+        response = build_result.build_result(
+            status=SUCCESS,
+            err=None,
+            rec=rec)
+    # if celery enabled
+
+    if response:
+        if ev('DEBUG_RESULTS', '0') == '1':
+            log.info(
+                '{} - done '
+                'status={} err={} rec={}'.format(
+                    label,
+                    get_status(response['status']),
+                    response['err'],
+                    response['rec']))
+        else:
+            log.info(
+                '{} - done '
+                'status={} err={}'.format(
+                    label,
+                    get_status(response['status']),
+                    response['err']))
+    else:
+        log.info(
+            '{} - done '
+            'no response'.format(
+                label))
+    # end of if/else response
+
+    return response
 # end of run_screener_analysis
-
-
-if __name__ == '__main__':
-
-    label = 'test'
-    ticker = 'NFLX'
-    url = (
-        'https://finviz.com/screener.ashx?v=111&'
-        'f=cap_midunder,exch_nyse,fa_div_o5,idx_sp500&ft=4')
-    fv_urls = [
-        url
-    ]
-
-    req = api_requests.build_screener_analysis_request(
-        ticker=ticker,
-        fv_urls=fv_urls,
-        label=label)
-
-    run_screener_analysis(
-        work_dict=req)

@@ -56,7 +56,8 @@ Celery Environment Variables
          'analysis_engine.work_tasks.handle_pricing_update_task,'
          'analysis_engine.work_tasks.prepare_pricing_dataset,'
          'analysis_engine.work_tasks.publish_from_s3_to_redis,'
-         'analysis_engine.work_tasks.publish_pricing_update'))
+         'analysis_engine.work_tasks.publish_pricing_update,'
+         'analysis_engine.work_tasks.task_screener_analysis'))
     INCLUDE_TASKS = WORKER_TASKS.split(',')
 
 Supported S3 Environment Variables
@@ -220,7 +221,8 @@ WORKER_TASKS = ev(
      'analysis_engine.work_tasks.handle_pricing_update_task,'
      'analysis_engine.work_tasks.prepare_pricing_dataset,'
      'analysis_engine.work_tasks.publish_from_s3_to_redis,'
-     'analysis_engine.work_tasks.publish_pricing_update'))
+     'analysis_engine.work_tasks.publish_pricing_update,'
+     'analysis_engine.work_tasks.task_screener_analysis'))
 INCLUDE_TASKS = WORKER_TASKS.split(',')
 CELERY_DISABLED = ev('CELERY_DISABLED', '0') == '1'
 
@@ -281,7 +283,7 @@ ANALYZE_S3_BUCKET_NAME = ev(
     'analyzed')
 SCREENER_S3_BUCKET_NAME = ev(
     'SCREENER_S3_BUCKET_NAME',
-    'reports-screeners')
+    'screeners-data')
 PREPARE_DATA_MIN_SIZE = 11
 PLOT_COLORS = {
     'red': '#E74C3C',
