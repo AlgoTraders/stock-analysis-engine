@@ -361,20 +361,8 @@ def publish_ticker_aggregate_from_s3(
             # end of try/ex for creating bucket
 
             try:
-                sizes = {'MB': 1024000,
-                         'GB': 1024000000,
-                         'TB': 1024000000000,
-                         'PB': 1024000000000000}
-                initial_size_value = len(str(data))
-                data_size = 'MB'
-                for skey in sizes.keys():
-                    size_value = float(initial_size_value) / float(sizes[skey])
-                    if size_value > 1024:
-                        continue
-                    data_size = skey
-                    initial_size_value = size_value
-                    break
-                initial_size_str = to_f(initial_size_value)
+                cmpr_data = zlib.compress(json.dumps(data).encode(encoding), 9)
+
                 if ev('DEBUG_S3', '0') == '1':
                     log.info(
                         '{} uploading to s3={}/{} data={} updated={}'.format(
@@ -384,18 +372,45 @@ def publish_ticker_aggregate_from_s3(
                             ppj(loop_data),
                             updated))
                 else:
+                    sizes = {'MB': 1024000,
+                             'GB': 1024000000,
+                             'TB': 1024000000000,
+                             'PB': 1024000000000000}
+                    initial_size_value = len(str(data))
+                    org_data_size = 'MB'
+                    for key in sizes.keys():
+                        size = float(initial_size_value) / float(sizes[key])
+                        if size > 1024:
+                            continue
+                        org_data_size = key
+                        initial_size_value = size
+                        break
+                    initial_size_str = to_f(initial_size_value)
+
+                    cmpr_data_size_value = len(cmpr_data)
+                    cmpr_data_size = 'MB'
+                    for key in sizes.keys():
+                        size = float(cmpr_data_size_value) / float(sizes[key])
+                        if size > 1024:
+                            continue
+                        cmpr_data_size = key
+                        cmpr_data_size_value = size
+                        break
+                    cmpr_size_str = to_f(cmpr_data_size_value)
                     log.info(
-                        '{} uploading to s3={}/{} data size={} {} '
-                        'updated={}'.format(
+                        '{} uploading to s3={}/{} data original_size={} {} '
+                        'compressed_size={} {} updated={}'.format(
                             label,
                             s3_compiled_bucket_name,
                             s3_key,
                             initial_size_str,
-                            data_size,
+                            org_data_size,
+                            cmpr_size_str,
+                            cmpr_data_size,
                             updated))
                 s3.Bucket(s3_compiled_bucket_name).put_object(
                     Key=s3_key,
-                    Body=zlib.compress(json.dumps(data).encode(encoding), 9))
+                    Body=cmpr_data)
             except Exception as e:
                 log.error(
                     '{} failed uploading bucket={} '
