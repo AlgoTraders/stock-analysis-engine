@@ -257,7 +257,7 @@ Please refer to the `run_ticker_analysis.py script <https://github.com/AlgoTrade
                               [-z STRIKE] [-c CONTRACT_TYPE] [-P GET_PRICING]
                               [-N GET_NEWS] [-O GET_OPTIONS] [-U S3_ENABLED]
                               [-R REDIS_ENABLED] [-A ANALYSIS_TYPE] [-L URLS]
-                              [-d]
+                              [-d DEBUG]
 
     Download and store the latest stock pricing, news, and options chain data and
     store it in S3 and Redis. Once stored, this will also start the buy and sell
@@ -363,6 +363,26 @@ Run Publish from an Existing S3 Key to Redis
         11) "SPY_demo_news"
         12) "SPY_demo_options"
         13) "SPY_demo_pricing"
+        127.0.0.1:6379[4]>
+
+Run Publish aggregated data from a Ticker in S3 to Redis and S3
+===============================================================
+
+#.  Run an analysis with an existing S3 key using `./analysis_engine/scripts/publish_ticker_aggregate_from_s3.py <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/publish_ticker_aggregate_from_s3.py>`__
+
+    ::
+
+        publish_ticker_aggregate_from_s3.py -t SPY -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -u pricing
+
+#.  Confirm the aggregated Ticker is now in Redis
+
+    ::
+
+        ./tools/redis-cli.sh
+        127.0.0.1:6379> select 4
+        OK
+        127.0.0.1:6379[4]> keys *latest*
+        1) "SPY_latest"
         127.0.0.1:6379[4]>
 
 View Archives in S3 - Minio
@@ -1009,3 +1029,12 @@ If you redistribute our API data:
 - Cite IEX using the following text and link: "Data provided for free by IEX."
 - Provide a link to https://iextrading.com/api-exhibit-a in your terms of service.
 - Additionally, if you display our TOPS price data, cite "IEX Real-Time Price" near the price.
+
+Adding Celery Tasks
+===================
+
+If you want to add a new Celery task add the file path to WORKER_TASKS at these locations:
+
+- compose/envs/local.env
+- compose/envs/.env
+- analysis_engine/work_tasks/consts.py
