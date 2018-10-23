@@ -380,7 +380,7 @@ def publish_ticker_aggregate_from_s3(
                         '{} uploading to s3={}/{} data={} updated={}'.format(
                             label,
                             s3_compiled_bucket_name,
-                            key,
+                            s3_key,
                             ppj(loop_data),
                             updated))
                 else:
@@ -389,7 +389,7 @@ def publish_ticker_aggregate_from_s3(
                         'updated={}'.format(
                             label,
                             s3_compiled_bucket_name,
-                            key,
+                            s3_key,
                             initial_size_str,
                             data_size,
                             updated))
