@@ -105,6 +105,8 @@ spec:
           value: SPY,TSLA,AMZN,NFLX
         - name: SCREENER_URLS
           value: "https://finviz.com/screener.ashx?v=111&f=cap_midunder,exch_nyse,fa_div_o6,idx_sp500&ft=4|https://finviz.com/screener.ashx?v=111&f=cap_midunder,exch_nyse,fa_div_o8,idx_sp500&ft=4"
+        - name: SCREENER_S3_BUCKET_NAME
+          value: screener-data
         # set to your Slack webhook url:
         - name: SLACK_WEBHOOK
           value: https://hooks.slack.com/services/YOUR_WEBHOOK_HERE
