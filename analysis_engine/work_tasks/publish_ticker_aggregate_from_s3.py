@@ -367,11 +367,11 @@ def publish_ticker_aggregate_from_s3(
                          'PB': 1024000000000000}
                 initial_size_value = len(str(data))
                 data_size = 'MB'
-                for key in sizes.keys():
-                    size_value = float(initial_size_value) / float(sizes[key])
+                for skey in sizes.keys():
+                    size_value = float(initial_size_value) / float(sizes[skey])
                     if size_value > 1024:
                         continue
-                    data_size = key
+                    data_size = skey
                     initial_size_value = size_value
                     break
                 initial_size_str = to_f(initial_size_value)
