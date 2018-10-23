@@ -40,8 +40,10 @@ lysis_engine/api_requests.py#L426>`__
 """
 
 import boto3
-import redis
 import json
+import re
+import redis
+import zlib
 import analysis_engine.build_result as build_result
 import analysis_engine.get_task_results
 import analysis_engine.work_tasks.custom_task
@@ -245,11 +247,12 @@ def publish_ticker_aggregate_from_s3(
                         s3_bucket_name))
                 date_keys = []
                 keys = []
+                # {TICKER}_YYYY-DD-MM regex
+                reg = r'^.*_\d{4}-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$'
                 for bucket in s3.buckets.all():
                     for key in bucket.objects.all():
                         if (ticker.lower() in key.key.lower() and
-                            key.key.count('-') == 2 and
-                                key.key.count('_') == 1):
+                                bool(re.compile(reg).search(key.key))):
                                 keys.append(key.key)
                                 date_keys.append(
                                     key.key.split('{}_'.format(ticker))[1])
@@ -340,7 +343,7 @@ def publish_ticker_aggregate_from_s3(
                         updated))
                 s3.Bucket(s3_bucket_name).put_object(
                     Key=s3_key,
-                    Body=json.dumps(data).encode(encoding))
+                    Body=zlib.compress(json.dumps(data).encode(encoding), 9))
             except Exception as e:
                 log.error(
                     '{} failed uploading bucket={} '

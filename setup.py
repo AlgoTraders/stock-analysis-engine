@@ -90,6 +90,7 @@ setup(
     ],
     scripts=[
         'analysis_engine/scripts/publish_from_s3_to_redis.py',
+        'analysis_engine/scripts/publish_ticker_aggregate_from_s3.py',
         'analysis_engine/scripts/run_ticker_analysis.py',
         'analysis_engine/scripts/sa.py',
         'tools/logs-dataset-collection.sh',
