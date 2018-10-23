@@ -133,6 +133,7 @@ class TestPublishTickerAggregateFromS3(BaseTestCase):
         work['redis_password'] = REDIS_PASSWORD
         work['redis_expire'] = REDIS_EXPIRE
         work['s3_bucket'] = 'integration-tests'
+        work['s3_compiled_bucket'] = 'compiled-integration-tests'
         work['s3_key'] = 'integration-test-v1'
         work['redis_key'] = 'integration-test-v1'
 
@@ -160,6 +161,9 @@ class TestPublishTickerAggregateFromS3(BaseTestCase):
         self.assertEqual(
             record['s3_bucket'],
             work['s3_bucket'])
+        self.assertEqual(
+            record['s3_compiled_bucket'],
+            work['s3_compiled_bucket'])
         self.assertEqual(
             record['s3_key'],
             work['s3_key'])
@@ -215,6 +219,7 @@ class TestPublishTickerAggregateFromS3(BaseTestCase):
         work['redis_password'] = REDIS_PASSWORD
         work['redis_expire'] = REDIS_EXPIRE
         work['s3_bucket'] = 'integration-tests'
+        work['s3_compiled_bucket'] = 'compiled-integration-tests'
         work['s3_key'] = 'integration-test-v1'
         work['redis_key'] = 'integration-test-v1'
 
@@ -242,6 +247,9 @@ class TestPublishTickerAggregateFromS3(BaseTestCase):
         self.assertEqual(
             record['s3_bucket'],
             work['s3_bucket'])
+        self.assertEqual(
+            record['s3_compiled_bucket'],
+            work['s3_compiled_bucket'])
         self.assertEqual(
             record['s3_key'],
             work['s3_key'])
@@ -274,6 +282,7 @@ class TestPublishTickerAggregateFromS3(BaseTestCase):
         work['redis_password'] = REDIS_PASSWORD
         work['redis_expire'] = REDIS_EXPIRE
         work['s3_bucket'] = 'integration-tests'
+        work['s3_compiled_bucket'] = 'compiled-integration-tests'
         work['s3_key'] = 'integration-test-v1'
         work['redis_key'] = 'integration-test-v1'
 
@@ -301,6 +310,9 @@ class TestPublishTickerAggregateFromS3(BaseTestCase):
         self.assertEqual(
             record['s3_bucket'],
             work['s3_bucket'])
+        self.assertEqual(
+            record['s3_compiled_bucket'],
+            work['s3_compiled_bucket'])
         self.assertEqual(
             record['s3_key'],
             work['s3_key'])
@@ -333,6 +345,7 @@ class TestPublishTickerAggregateFromS3(BaseTestCase):
         work['redis_password'] = REDIS_PASSWORD
         work['redis_expire'] = REDIS_EXPIRE
         work['s3_bucket'] = 'integration-tests'
+        work['s3_compiled_bucket'] = 'compiled-integration-tests'
         work['s3_key'] = 'integration-test-v1'
         work['redis_key'] = 'integration-test-v1'
 
@@ -360,6 +373,9 @@ class TestPublishTickerAggregateFromS3(BaseTestCase):
         self.assertEqual(
             record['s3_bucket'],
             work['s3_bucket'])
+        self.assertEqual(
+            record['s3_compiled_bucket'],
+            work['s3_compiled_bucket'])
         self.assertEqual(
             record['s3_key'],
             work['s3_key'])

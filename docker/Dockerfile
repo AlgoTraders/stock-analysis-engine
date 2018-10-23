@@ -45,6 +45,7 @@ ENV PROJECT_NAME="sa" \
     S3_ADDRESS="0.0.0.0:9000" \
     S3_SECURE="0" \
     S3_BUCKET="pricing" \
+    S3_COMPILED_BUCKET="compileddatasets" \
     S3_KEY="SPY_latest" \
     ENABLED_REDIS_PUBLISH="1" \
     REDIS_ADDRESS="0.0.0.0:6379" \

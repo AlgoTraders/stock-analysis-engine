@@ -19,6 +19,7 @@ lysis_engine/api_requests.py#L426>`__
         'ticker': ticker,
         'ticker_id': ticker_id,
         's3_bucket': s3_bucket_name,
+        's3_compiled_bucket': s3_compiled_bucket_name,
         's3_key': s3_key,
         'redis_key': redis_key,
         's3_enabled': s3_enabled,
@@ -112,6 +113,7 @@ def publish_ticker_aggregate_from_s3(
         's3_upload_enabled': True,
         'redis_enabled': True,
         's3_bucket': None,
+        's3_compiled_bucket': None,
         's3_key': None,
         'redis_key': None,
         'updated': None
@@ -145,6 +147,9 @@ def publish_ticker_aggregate_from_s3(
         s3_bucket_name = work_dict.get(
             's3_bucket',
             'pricing')
+        s3_compiled_bucket_name = work_dict.get(
+            's3_compiled_bucket',
+            'compileddatasets')
         redis_key = work_dict.get(
             'redis_key',
             None)
@@ -169,6 +174,7 @@ def publish_ticker_aggregate_from_s3(
         rec['ticker'] = ticker
         rec['ticker_id'] = ticker_id
         rec['s3_bucket'] = s3_bucket_name
+        rec['s3_compiled_bucket'] = s3_compiled_bucket_name
         rec['s3_key'] = s3_key
         rec['redis_key'] = redis_key
         rec['updated'] = updated
@@ -335,13 +341,34 @@ def publish_ticker_aggregate_from_s3(
         if data and enable_s3_upload:
             try:
                 log.info(
+                    '{} checking bucket={} exists'.format(
+                        label,
+                        s3_compiled_bucket_name))
+                if s3.Bucket(s3_compiled_bucket_name) not in s3.buckets.all():
+                    log.info(
+                        '{} creating bucket={}'.format(
+                            label,
+                            s3_compiled_bucket_name))
+                    s3.create_bucket(
+                        Bucket=s3_compiled_bucket_name)
+            except Exception as e:
+                log.info(
+                    '{} failed creating bucket={} '
+                    'with ex={}'.format(
+                        label,
+                        s3_compiled_bucket_name,
+                        e))
+            # end of try/ex for creating bucket
+
+            try:
+                log.info(
                     '{} uploading to s3={}/{} '
                     'updated={}'.format(
                         label,
-                        s3_bucket_name,
+                        s3_compiled_bucket_name,
                         s3_key,
                         updated))
-                s3.Bucket(s3_bucket_name).put_object(
+                s3.Bucket(s3_compiled_bucket_name).put_object(
                     Key=s3_key,
                     Body=zlib.compress(json.dumps(data).encode(encoding), 9))
             except Exception as e:
@@ -349,7 +376,7 @@ def publish_ticker_aggregate_from_s3(
                     '{} failed uploading bucket={} '
                     'key={} ex={}'.format(
                         label,
-                        s3_bucket_name,
+                        s3_compiled_bucket_name,
                         s3_key,
                         e))
             # end of try/ex for creating bucket

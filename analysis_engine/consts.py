@@ -87,6 +87,9 @@ Supported S3 Environment Variables
     S3_BUCKET = ev(
         'S3_BUCKET',
         'pricing')
+    S3_COMPILED_BUCKET = ev(
+        'S3_COMPILED_BUCKET',
+        'compileddatasets')
     S3_KEY = ev(
         'S3_KEY',
         'test_key')
@@ -392,6 +395,9 @@ S3_SECURE = ev(
 S3_BUCKET = ev(
     'S3_BUCKET',
     'pricing')
+S3_COMPILED_BUCKET = ev(
+    'S3_COMPILED_BUCKET',
+    'compileddatasets')
 S3_KEY = ev(
     'S3_KEY',
     'test_key')

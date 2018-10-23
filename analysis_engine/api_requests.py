@@ -30,6 +30,8 @@ from analysis_engine.consts import COMPANY_S3_BUCKET_NAME
 from analysis_engine.consts import PREPARE_S3_BUCKET_NAME
 from analysis_engine.consts import ANALYZE_S3_BUCKET_NAME
 from analysis_engine.consts import SCREENER_S3_BUCKET_NAME
+from analysis_engine.consts import S3_BUCKET
+from analysis_engine.consts import S3_COMPILED_BUCKET
 from analysis_engine.consts import SERVICE_VALS
 from analysis_engine.consts import IEX_DATASETS_DEFAULT
 from analysis_engine.utils import get_last_close_str
@@ -160,7 +162,7 @@ def build_get_new_pricing_request(
         ticker,
         datetime.datetime.utcnow().strftime(
             '%Y_%m_%d_%H_%M_%S'))
-    s3_bucket_name = 'pricing'
+    s3_bucket_name = S3_BUCKET
     s3_key = base_key
     redis_key = base_key
     use_strike = None
@@ -360,7 +362,7 @@ def build_publish_pricing_request(
         ticker,
         datetime.datetime.utcnow().strftime(
             '%Y_%m_%d_%H_%M_%S'))
-    s3_bucket_name = 'pricing'
+    s3_bucket_name = S3_BUCKET
     s3_key = base_key
     redis_key = base_key
     use_strike = None
@@ -402,7 +404,7 @@ def build_publish_from_s3_to_redis_request(
         ticker,
         datetime.datetime.utcnow().strftime(
             '%Y_%m_%d_%H_%M_%S'))
-    s3_bucket_name = 'pricing'
+    s3_bucket_name = S3_BUCKET
     s3_key = base_key
     redis_key = base_key
     s3_enabled = True
@@ -438,7 +440,8 @@ def build_publish_ticker_aggregate_from_s3_request(
     """
     ticker = TICKER
     ticker_id = TICKER_ID
-    s3_bucket_name = 'pricing'
+    s3_bucket_name = S3_BUCKET
+    s3_compiled_bucket_name = S3_COMPILED_BUCKET
     s3_key = '{}_latest'.format(ticker)
     redis_key = '{}_latest'.format(ticker)
     s3_enabled = True
@@ -448,6 +451,7 @@ def build_publish_ticker_aggregate_from_s3_request(
         'ticker': ticker,
         'ticker_id': ticker_id,
         's3_bucket': s3_bucket_name,
+        's3_compiled_bucket': s3_compiled_bucket_name,
         's3_key': s3_key,
         'redis_key': redis_key,
         's3_enabled': s3_enabled,
@@ -478,7 +482,7 @@ def build_prepare_dataset_request(
         ticker,
         datetime.datetime.utcnow().strftime(
             '%Y_%m_%d_%H_%M_%S'))
-    s3_bucket_name = 'pricing'
+    s3_bucket_name = S3_BUCKET
     s3_key = base_key
     redis_key = base_key
     s3_prepared_bucket_name = PREPARE_S3_BUCKET_NAME

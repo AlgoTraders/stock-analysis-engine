@@ -365,14 +365,14 @@ Run Publish from an Existing S3 Key to Redis
         13) "SPY_demo_pricing"
         127.0.0.1:6379[4]>
 
-Run Publish aggregated data from a Ticker in S3 to Redis and S3
+Run Aggregate and then Publish data for a Ticker from S3 to Redis
 ===============================================================
 
 #.  Run an analysis with an existing S3 key using `./analysis_engine/scripts/publish_ticker_aggregate_from_s3.py <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/publish_ticker_aggregate_from_s3.py>`__
 
     ::
 
-        publish_ticker_aggregate_from_s3.py -t SPY -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -u pricing
+        publish_ticker_aggregate_from_s3.py -t SPY -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -u pricing -c compileddatasets
 
 #.  Confirm the aggregated Ticker is now in Redis
 
