@@ -361,13 +361,38 @@ def publish_ticker_aggregate_from_s3(
             # end of try/ex for creating bucket
 
             try:
-                log.info(
-                    '{} uploading to s3={}/{} '
-                    'updated={}'.format(
-                        label,
-                        s3_compiled_bucket_name,
-                        s3_key,
-                        updated))
+                sizes = {'MB': 1024000,
+                         'GB': 1024000000,
+                         'TB': 1024000000000,
+                         'PB': 1024000000000000}
+                initial_size_value = len(str(data))
+                data_size = 'MB'
+                for key in sizes.keys():
+                    size_value = float(initial_size_value) / float(sizes[key])
+                    if size_value > 1024:
+                        continue
+                    data_size = key
+                    initial_size_value = size_value
+                    break
+                initial_size_str = to_f(initial_size_value)
+                if ev('DEBUG_S3', '0') == '1':
+                    log.info(
+                        '{} uploading to s3={}/{} data={} updated={}'.format(
+                            label,
+                            s3_compiled_bucket_name,
+                            key,
+                            ppj(loop_data),
+                            updated))
+                else:
+                    log.info(
+                        '{} uploading to s3={}/{} data size={} {} '
+                        'updated={}'.format(
+                            label,
+                            s3_compiled_bucket_name,
+                            key,
+                            initial_size_str,
+                            data_size,
+                            updated))
                 s3.Bucket(s3_compiled_bucket_name).put_object(
                     Key=s3_key,
                     Body=zlib.compress(json.dumps(data).encode(encoding), 9))
