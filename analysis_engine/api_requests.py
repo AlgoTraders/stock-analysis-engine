@@ -439,8 +439,8 @@ def build_publish_ticker_aggregate_from_s3_request(
     ticker = TICKER
     ticker_id = TICKER_ID
     s3_bucket_name = 'pricing'
-    s3_key = ticker
-    redis_key = ticker
+    s3_key = '{}_latest'.format(ticker)
+    redis_key = '{}_latest'.format(ticker)
     s3_enabled = True
     redis_enabled = True
 

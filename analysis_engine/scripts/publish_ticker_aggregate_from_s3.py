@@ -243,8 +243,9 @@ def publish_ticker_aggregate_from_s3():
     work['ticker'] = ticker
     work['ticker_id'] = ticker_id
     work['s3_bucket'] = s3_bucket_name
-    work['s3_key'] = s3_key
-    work['redis_key'] = redis_key
+    if args.keyname:
+        work['s3_key'] = s3_key
+        work['redis_key'] = redis_key
     work['s3_access_key'] = s3_access_key
     work['s3_secret_key'] = s3_secret_key
     work['s3_region_name'] = s3_region_name
