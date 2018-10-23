@@ -11,7 +11,7 @@ Publish new stock data to external services and systems
 
 `analysis_engine.api_requests.publish_pricing_update <https://
 github.com/AlgoTraders/stock-analysis-engine/blob/master/ana
-lysis_engine/api_requests.py#L218>`__
+lysis_engine/api_requests.py#L344>`__
 
 ::
 
@@ -422,7 +422,7 @@ def run_publish_pricing_update(
             work_dict=work_dict):
         work_dict['celery_disabled'] = True
         task_res = publish_pricing_update(
-            work_dict)
+            work_dict=work_dict)
         if task_res:
             response = task_res.get(
                 'result',

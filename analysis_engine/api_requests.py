@@ -425,6 +425,42 @@ def build_publish_from_s3_to_redis_request(
 # end of build_publish_from_s3_to_redis_request
 
 
+def build_publish_ticker_aggregate_from_s3_request(
+        label=None):
+    """build_publish_ticker_aggregate_from_s3_request
+
+    Build a sample Celery task API request:
+    analysis_engine.work_tasks.publish_ticker_aggregate_from_s3
+
+    Used for testing: run_publish_ticker_aggregate_from_s3(work)
+
+    :param label: log label to use
+    """
+    ticker = TICKER
+    ticker_id = TICKER_ID
+    s3_bucket_name = 'pricing'
+    s3_key = '{}_latest'.format(ticker)
+    redis_key = '{}_latest'.format(ticker)
+    s3_enabled = True
+    redis_enabled = True
+
+    work = {
+        'ticker': ticker,
+        'ticker_id': ticker_id,
+        's3_bucket': s3_bucket_name,
+        's3_key': s3_key,
+        'redis_key': redis_key,
+        's3_enabled': s3_enabled,
+        'redis_enabled': redis_enabled
+    }
+
+    if label:
+        work['label'] = label
+
+    return work
+# end of build_publish_ticker_aggregate_from_s3_request
+
+
 def build_prepare_dataset_request(
         label=None):
     """build_prepare_dataset_request

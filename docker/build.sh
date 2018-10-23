@@ -1,7 +1,7 @@
 #!/bin/bash
 
 maintainer=jayjohnson
-imagename=stock-analysis
+imagename=stock-analysis-engine
 
 cd ..
 tag=$(cat setup.py | grep "version=" | sed -e 's/"/ /g' | awk '{print $2}')

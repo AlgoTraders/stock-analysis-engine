@@ -2,26 +2,27 @@
 
 """
 
-Publish the contents of an S3 key to a
-Redis key
+Publish the aggregated S3 contents of a ticker to a
+Redis key and back to S3
 
 Steps:
 ------
 
 1) Parse arguments
-2) Download pricing data as a Celery task
-3) Publish pricing data as a Celery tasks
-4) Coming Soon - Start buy/sell analysis as Celery task(s)
+2) Download and aggregate ticker data from S3 as a Celery task
+3) Publish aggregated data to S3 as a Celery task
+4) Publish aggregated data to Redis as a Celery task
 
 """
 
 import argparse
-import analysis_engine.work_tasks.publish_from_s3_to_redis \
+import analysis_engine.work_tasks.publish_ticker_aggregate_from_s3 \
     as task_publisher
 from celery import signals
 from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.work_tasks.get_celery_app import get_celery_app
-from analysis_engine.api_requests import build_publish_from_s3_to_redis_request
+from analysis_engine.api_requests import \
+    build_publish_ticker_aggregate_from_s3_request
 from analysis_engine.consts import LOG_CONFIG_PATH
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import TICKER_ID
@@ -56,27 +57,25 @@ def setup_celery_logging(**kwargs):
 
 
 log = build_colorized_logger(
-    name='pub-from-s3-to-redis',
+    name='pub-tic-agg-s3-to-redis',
     log_config_path=LOG_CONFIG_PATH)
 
 
-def publish_from_s3_to_redis():
-    """publish_from_s3_to_redis
+def publish_ticker_aggregate_from_s3():
+    """publish_ticker_aggregate_from_s3
 
-    Download an S3 key and publish it's contents to Redis
+    Download all ticker data from S3 and publish it's contents
+    to Redis and back to S3
 
     """
 
     log.info(
-        'start - publish_from_s3_to_redis')
+        'start - publish_ticker_aggregate_from_s3')
 
     parser = argparse.ArgumentParser(
         description=(
-            'Download and store the latest stock pricing, '
-            'news, and options chain data '
-            'and store it in S3 and Redis. '
-            'Once stored, this will also '
-            'start the buy and sell trading analysis.'))
+            'Download and aggregated all ticker data, '
+            'and store it in S3 and Redis. '))
     parser.add_argument(
         '-t',
         help=(
@@ -239,13 +238,14 @@ def publish_from_s3_to_redis():
     if args.debug:
         debug = True
 
-    work = build_publish_from_s3_to_redis_request()
+    work = build_publish_ticker_aggregate_from_s3_request()
 
     work['ticker'] = ticker
     work['ticker_id'] = ticker_id
     work['s3_bucket'] = s3_bucket_name
-    work['s3_key'] = s3_key
-    work['redis_key'] = redis_key
+    if args.keyname:
+        work['s3_key'] = s3_key
+        work['redis_key'] = redis_key
     work['s3_access_key'] = s3_access_key
     work['s3_secret_key'] = s3_secret_key
     work['s3_region_name'] = s3_region_name
@@ -261,7 +261,8 @@ def publish_from_s3_to_redis():
 
     path_to_tasks = 'analysis_engine.work_tasks'
     task_name = (
-        '{}.publish_from_s3_to_redis.publish_from_s3_to_redis'.format(
+        '{}.publish_ticker_aggregate_from_s3.'
+        'publish_ticker_aggregate_from_s3'.format(
             path_to_tasks))
     task_res = None
     if is_celery_disabled():
@@ -269,7 +270,7 @@ def publish_from_s3_to_redis():
         log.debug(
             'starting without celery work={}'.format(
                 ppj(work)))
-        task_res = task_publisher.publish_from_s3_to_redis(
+        task_res = task_publisher.publish_ticker_aggregate_from_s3(
             work_dict=work)
         if debug:
             log.info(
@@ -319,8 +320,8 @@ def publish_from_s3_to_redis():
                 task_name,
                 job_id))
     # end of if/else
-# end of publish_from_s3_to_redis
+# end of publish_ticker_aggregate_from_s3
 
 
 if __name__ == '__main__':
-    publish_from_s3_to_redis()
+    publish_ticker_aggregate_from_s3()
