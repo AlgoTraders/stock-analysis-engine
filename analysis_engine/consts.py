@@ -283,7 +283,7 @@ ANALYZE_S3_BUCKET_NAME = ev(
     'analyzed')
 SCREENER_S3_BUCKET_NAME = ev(
     'SCREENER_S3_BUCKET_NAME',
-    'screeners-data')
+    'screener-data')
 PREPARE_DATA_MIN_SIZE = 11
 PLOT_COLORS = {
     'red': '#E74C3C',

@@ -1,0 +1,119 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: sa-screener
+  annotations:
+    description: Screener analysis
+    runtime: python3
+  labels:
+    sa: engine
+    purpose: screener-analysis
+    layer: backend
+    messaging: redis
+    cache: redis
+    pubsub: publisher
+spec:
+  template:
+    metadata:
+      labels:
+        app: sa-screener
+        backend: enabled
+        purpose: screener-analysis
+        layer: backend
+        messaging: redis
+        cache: redis
+        pubsub: publisher
+    spec:
+      hostname: sa-screener
+      restartPolicy: Never
+      containers:
+      - image: jayjohnson/stock-analysis-engine:latest
+        imagePullPolicy: Always
+        name: sa-screener
+        resources: {}
+        command: ["/bin/bash", "-c", "cd /opt/sa/ && . /opt/venv/bin/activate && /opt/sa/tools/start-screener.sh"]
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: api.db
+              key: username
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: api.db
+              key: password
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: api.db
+              key: dbname
+        - name: S3_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-s3-access
+              key: access_key
+        - name: S3_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-s3-access
+              key: secret_key
+        - name: S3_ADDRESS
+          value: minio-service:9000
+        - name: S3_REGION_NAME
+          value: us-east-1
+        - name: WORKER_BROKER_URL
+          value: redis://redis-master:6379/13
+        - name: WORKER_BACKEND_URL
+          value: redis://redis-master:6379/14
+        - name: REDIS_ADDRESS
+          value: redis-master:6379
+        - name: REDIS_DB
+          value: "4"
+        # Stock Analysis - Dataset Collector Envs:
+        - name: S3_BUCKET
+          value: pricing
+        - name: DAILY_S3_BUCKET_NAME
+          value: daily
+        - name: MINUTE_S3_BUCKET_NAME
+          value: minute
+        - name: QUOTE_S3_BUCKET_NAME
+          value: quote
+        - name: STATS_S3_BUCKET_NAME
+          value: stats
+        - name: PEERS_S3_BUCKET_NAME
+          value: peers
+        - name: NEWS_S3_BUCKET_NAME
+          value: news
+        - name: FINANCIALS_S3_BUCKET_NAME
+          value: financials
+        - name: EARNINGS_S3_BUCKET_NAME
+          value: earnings
+        - name: DIVIDENDS_S3_BUCKET_NAME
+          value: dividends
+        - name: COMPANY_S3_BUCKET_NAME
+          value: company
+        - name: PREPARE_S3_BUCKET_NAME
+          value: prepared
+        - name: ANALYZE_S3_BUCKET_NAME
+          value: analyzed
+        - name: FETCH_MODE
+          value: full
+        - name: TICKER
+          value: SPY
+        - name: DEFAULT_TICKERS
+          value: SPY,TSLA,AMZN,NFLX
+        - name: SCREENER_URLS
+          value: "https://finviz.com/screener.ashx?v=111&f=cap_midunder,exch_nyse,fa_div_o6,idx_sp500&ft=4|https://finviz.com/screener.ashx?v=111&f=cap_midunder,exch_nyse,fa_div_o8,idx_sp500&ft=4"
+        - name: SCREENER_S3_BUCKET_NAME
+          value: screener-data
+        # set to your Slack webhook url:
+        - name: SLACK_WEBHOOK
+          value: https://hooks.slack.com/services/YOUR_WEBHOOK_HERE
+        # set to "1" to enable publishing to slack when
+        # each ticker's job completes
+        - name: DATASET_COLLECTION_SLACK_ALERTS
+          value: "0"
+        # set to "1" to publish Celery task failures to Slack
+        - name: PROD_SLACK_ALERTS
+          value: "0"
