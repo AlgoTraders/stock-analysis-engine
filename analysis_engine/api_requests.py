@@ -162,7 +162,7 @@ def build_get_new_pricing_request(
         ticker,
         datetime.datetime.utcnow().strftime(
             '%Y_%m_%d_%H_%M_%S'))
-    s3_bucket_name = 'pricing'
+    s3_bucket_name = S3_BUCKET
     s3_key = base_key
     redis_key = base_key
     use_strike = None
@@ -362,7 +362,7 @@ def build_publish_pricing_request(
         ticker,
         datetime.datetime.utcnow().strftime(
             '%Y_%m_%d_%H_%M_%S'))
-    s3_bucket_name = 'pricing'
+    s3_bucket_name = S3_BUCKET
     s3_key = base_key
     redis_key = base_key
     use_strike = None
@@ -482,7 +482,7 @@ def build_prepare_dataset_request(
         ticker,
         datetime.datetime.utcnow().strftime(
             '%Y_%m_%d_%H_%M_%S'))
-    s3_bucket_name = 'pricing'
+    s3_bucket_name = S3_BUCKET
     s3_key = base_key
     redis_key = base_key
     s3_prepared_bucket_name = PREPARE_S3_BUCKET_NAME
