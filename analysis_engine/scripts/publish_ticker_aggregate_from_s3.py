@@ -38,6 +38,7 @@ from analysis_engine.consts import S3_REGION_NAME
 from analysis_engine.consts import S3_ADDRESS
 from analysis_engine.consts import S3_SECURE
 from analysis_engine.consts import S3_BUCKET
+from analysis_engine.consts import S3_COMPILED_BUCKET
 from analysis_engine.consts import S3_KEY
 from analysis_engine.consts import REDIS_ADDRESS
 from analysis_engine.consts import REDIS_KEY
@@ -138,6 +139,12 @@ def publish_ticker_aggregate_from_s3():
         required=False,
         dest='s3_bucket_name')
     parser.add_argument(
+        '-c',
+        help=(
+            'optional - s3 compiled bucket name'),
+        required=False,
+        dest='s3_compiled_bucket_name')
+    parser.add_argument(
         '-g',
         help=(
             'optional - s3 region name'),
@@ -196,6 +203,7 @@ def publish_ticker_aggregate_from_s3():
     s3_address = S3_ADDRESS
     s3_secure = S3_SECURE
     s3_bucket_name = S3_BUCKET
+    s3_compiled_bucket_name = S3_COMPILED_BUCKET
     s3_key = S3_KEY
     redis_address = REDIS_ADDRESS
     redis_key = REDIS_KEY
@@ -224,6 +232,8 @@ def publish_ticker_aggregate_from_s3():
         s3_secure = args.s3_secure
     if args.s3_bucket_name:
         s3_bucket_name = args.s3_bucket_name
+    if args.s3_compiled_bucket_name:
+        s3_compiled_bucket_name = args.s3_compiled_bucket_name
     if args.keyname:
         s3_key = args.keyname
         redis_key = args.keyname
@@ -243,6 +253,7 @@ def publish_ticker_aggregate_from_s3():
     work['ticker'] = ticker
     work['ticker_id'] = ticker_id
     work['s3_bucket'] = s3_bucket_name
+    work['s3_compiled_bucket'] = s3_compiled_bucket_name
     if args.keyname:
         work['s3_key'] = s3_key
         work['redis_key'] = redis_key

@@ -17,6 +17,14 @@ Publish stock data in an s3 key to redis
 .. automodule:: analysis_engine.scripts.publish_from_s3_to_redis
    :members: publish_from_s3_to_redis
 
+Run Aggregate and then Publish data for a Ticker from S3 to Redis
+=================================================================
+
+Publish stock data in an s3 key to redis
+
+.. automodule:: analysis_engine.scripts.publish_ticker_aggregate_from_s3
+   :members: publish_ticker_aggregate_from_s3
+
 Stock Analysis Command Line Tool
 ================================
 
@@ -39,6 +47,7 @@ Set these as needed for your S3 deployment
     export S3_ADDRESS=<S3 endpoint address host:port like: localhost:9000>
     export S3_UPLOAD_FILE=<path to file to upload>
     export S3_BUCKET=<bucket name - pricing default>
+    export S3_COMPILED_BUCKET=<compiled bucket name - compileddatasets default>
     export S3_KEY=<key name - SPY_demo default>
     export S3_SECURE=<use ssl '1', disable with '0' which is the default>
     export PREPARE_S3_BUCKET_NAME=<prepared dataset bucket name>
