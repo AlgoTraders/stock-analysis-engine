@@ -21,11 +21,17 @@ if [[ -e /opt/sa/analysis_engine/scripts/print_last_close_date.py ]]; then
     use_date=$(echo ${use_date_str} | awk '{print $1}')
 fi
 
+dataset_sources="all"
+if [[ "${DATASET_SOURCES}" != "" ]]; then
+    dataset_sources="${DATASET_SOURCES}"
+fi
+
+
 for ticker in ${tickers}; do
     echo ""
     s3_key="${ticker}_${use_date}"
-    echo "run_ticker_analysis.py -t ${ticker} -g all -n ${s3_key} -e ${exp_date}"
-    run_ticker_analysis.py -t ${ticker} -g all -n ${s3_key} -e ${exp_date}
+    echo "run_ticker_analysis.py -t ${ticker} -g ${dataset_sources} -n ${s3_key} -e ${exp_date}"
+    run_ticker_analysis.py -t ${ticker} -g ${dataset_sources} -n ${s3_key} -e ${exp_date}
 done
 
 date -u +"%Y-%m-%d %H:%M:%S"
