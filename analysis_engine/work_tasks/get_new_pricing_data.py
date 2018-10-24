@@ -460,7 +460,6 @@ def get_new_pricing_data(
                 env_name,
                 redis_key,
                 s3_key,
-                label,
                 get_iex_data,
                 get_yahoo_data))
         log.debug(
