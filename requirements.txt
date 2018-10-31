@@ -8,7 +8,8 @@ coverage
 flake8<=3.4.1
 future
 mock
-pandas
+numpy<=1.14
+pandas<=0.22.0
 pep8>=1.7.1
 pinance
 pypandoc
@@ -26,3 +27,4 @@ trading_calendars
 unittest2
 urllib3<=1.23
 ujson
+zipline
