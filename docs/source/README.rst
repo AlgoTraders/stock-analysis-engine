@@ -590,7 +590,7 @@ Deploy Jupyter with:
 
 ::
 
-    kubectl apply -f ./k8/jupyter/deployment.yml
+    ./k8/jupyter/run.sh
 
 Testing
 =======
