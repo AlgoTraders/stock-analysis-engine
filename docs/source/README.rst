@@ -90,13 +90,13 @@ Running on Ubuntu and CentOS
 
     ::
 
-        sudo apt-get install make cmake gcc python3-distutils python3-tk python3 python3-apport python3-certifi python3-dev python3-pip python3-venv python3.6 redis-tools
+        sudo apt-get install make cmake gcc python3-distutils python3-tk python3 python3-apport python3-certifi python3-dev python3-pip python3-venv python3.6 redis-tools virtualenv libcurl4-openssl-dev libssl-dev
 
     CentOS 7
 
     ::
 
-        sudo yum install cmake gcc make tkinter curl-devel make cmake python-devel python-setuptools python-pip python-virtualenv redis python36u-libs python36u-devel python36u-pip python36u-tkinter python36u-setuptools python36u
+        sudo yum install cmake gcc gcc-c++ make tkinter curl-devel make cmake python-devel python-setuptools python-pip python-virtualenv redis python36u-libs python36u-devel python36u-pip python36u-tkinter python36u-setuptools python36u openssl-devel
 
 
 #.  Create and Load Python 3 Virtual Environment
@@ -133,9 +133,7 @@ Running on Mac OS X
 
     ::
 
-        brew install openssl
-        brew install pyenv-virtualenv
-        brew install redis
+        brew install openssl pyenv-virtualenv redis freetype pkg-config gcc
 
 #.  Create and Load Python 3 Virtual Environment
 
