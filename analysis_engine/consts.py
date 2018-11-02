@@ -149,7 +149,7 @@ Supported Redis Environment Variables
         None)
     REDIS_DB = int(ev(
         'REDIS_DB',
-        '4'))
+        '0'))
     REDIS_EXPIRE = ev(
         'REDIS_EXPIRE',
         None)
@@ -421,7 +421,7 @@ REDIS_PASSWORD = ev(
     None)
 REDIS_DB = int(ev(
     'REDIS_DB',
-    '4'))
+    '0'))
 REDIS_EXPIRE = ev(
     'REDIS_EXPIRE',
     None)

@@ -179,7 +179,7 @@ def extract(
         if not redis_db:
             redis_db = int(os.getenv(
                 'REDIS_DB',
-                '4'))
+                '0'))
         if not redis_expire:
             redis_expire = os.getenv(
                 'REDIS_EXPIRE',

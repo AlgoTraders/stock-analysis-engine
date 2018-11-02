@@ -88,7 +88,7 @@ spec:
         - name: REDIS_ADDRESS
           value: redis-master:6379
         - name: REDIS_DB
-          value: "4"
+          value: "0"
         # set to your Slack webhook url:
         - name: SLACK_WEBHOOK
           value: https://hooks.slack.com/services/YOUR_WEBHOOK_HERE

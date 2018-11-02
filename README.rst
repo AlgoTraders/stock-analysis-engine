@@ -235,7 +235,7 @@ The `run_ticker_analysis.py script <https://github.com/AlgoTraders/stock-analysi
 
 ::
 
-    run_ticker_analysis.py -t SPY -g all -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -n SPY_demo -P 1 -N 1 -O 1 -U 1 -R 1
+    run_ticker_analysis.py -t SPY -g all -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 0 -n SPY_demo -P 1 -N 1 -O 1 -U 1 -R 1
 
 Usage
 -----
@@ -281,7 +281,7 @@ Please refer to the `run_ticker_analysis.py script <https://github.com/AlgoTrade
       -p REDIS_PASSWORD   optional - redis_password
       -r REDIS_ADDRESS    optional - redis_address format: <host:port>
       -n KEYNAME          optional - redis and s3 key name
-      -m REDIS_DB         optional - redis database number (4 by default)
+      -m REDIS_DB         optional - redis database number (0 by default)
       -x REDIS_EXPIRE     optional - redis expiration in seconds
       -z STRIKE           optional - strike price
       -c CONTRACT_TYPE    optional - contract type "C" for calls "P" for puts
@@ -337,16 +337,14 @@ Run Publish from an Existing S3 Key to Redis
 
     ::
 
-        publish_from_s3_to_redis.py -t SPY -u integration-tests -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -n integration-test-v1
+        publish_from_s3_to_redis.py -t SPY -u integration-tests -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 0 -n integration-test-v1
 
 #.  Confirm the Key is now in Redis
 
     ::
 
         ./tools/redis-cli.sh
-        127.0.0.1:6379> select 4
-        OK
-        127.0.0.1:6379[4]> keys *
+        127.0.0.1:6379> keys *
         keys *
         1) "SPY_demo_daily"
         2) "SPY_demo_minute"
@@ -361,7 +359,7 @@ Run Publish from an Existing S3 Key to Redis
         11) "SPY_demo_news"
         12) "SPY_demo_options"
         13) "SPY_demo_pricing"
-        127.0.0.1:6379[4]>
+        127.0.0.1:6379>
 
 Run Aggregate and then Publish data for a Ticker from S3 to Redis
 =================================================================
@@ -370,18 +368,16 @@ Run Aggregate and then Publish data for a Ticker from S3 to Redis
 
     ::
 
-        publish_ticker_aggregate_from_s3.py -t SPY -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -u pricing -c compileddatasets
+        publish_ticker_aggregate_from_s3.py -t SPY -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 0 -u pricing -c compileddatasets
 
 #.  Confirm the aggregated Ticker is now in Redis
 
     ::
 
         ./tools/redis-cli.sh
-        127.0.0.1:6379> select 4
-        OK
-        127.0.0.1:6379[4]> keys *latest*
+        127.0.0.1:6379> keys *latest*
         1) "SPY_latest"
-        127.0.0.1:6379[4]>
+        127.0.0.1:6379>
 
 View Archives in S3 - Minio
 ===========================
@@ -445,9 +441,7 @@ View Caches in Redis
 ::
 
     ./tools/redis-cli.sh
-    127.0.0.1:6379> select 4
-    OK
-    127.0.0.1:6379[4]> keys *
+    127.0.0.1:6379> keys *
     1) "SPY_demo"
 
 Jupyter
@@ -494,9 +488,7 @@ After running the dataset collection container, the datasets should be auto-cach
 ::
 
     ./tools/redis-cli.sh
-    127.0.0.1:6379> select 4
-    OK
-    127.0.0.1:6379[4]> keys *
+    127.0.0.1:6379> keys *
     1) "SPY_2018-10-06"
     2) "AMZN_2018-10-06_peers"
     3) "AMZN_2018-10-06_pricing"
@@ -926,7 +918,7 @@ Prepare a Dataset
 ::
 
     ticker=SPY
-    sa.py -t ${ticker} -f -o ${ticker}_latest_v1 -j prepared -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -n ${ticker}_demo
+    sa.py -t ${ticker} -f -o ${ticker}_latest_v1 -j prepared -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 0 -n ${ticker}_demo
 
 Debugging
 =========
@@ -940,9 +932,9 @@ Most of the scripts support running without Celery workers. To run without worke
 ::
 
     ticker=SPY
-    publish_from_s3_to_redis.py -t ${ticker} -u integration-tests -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -n integration-test-v1
-    sa.py -t ${ticker} -f -o ${ticker}_latest_v1 -j prepared -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -n ${ticker}_demo
-    run_ticker_analysis.py -t ${ticker} -g all -e 2018-10-19 -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 4 -n ${ticker}_demo -P 1 -N 1 -O 1 -U 1 -R 1
+    publish_from_s3_to_redis.py -t ${ticker} -u integration-tests -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 0 -n integration-test-v1
+    sa.py -t ${ticker} -f -o ${ticker}_latest_v1 -j prepared -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 0 -n ${ticker}_demo
+    run_ticker_analysis.py -t ${ticker} -g all -e 2018-10-19 -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 0 -n ${ticker}_demo -P 1 -N 1 -O 1 -U 1 -R 1
     run_ticker_analysis.py -A scn -L 'https://finviz.com/screener.ashx?v=111&f=cap_midunder,exch_nyse,fa_div_o6,idx_sp500&ft=4|https://finviz.com/screener.ashx?v=111&f=cap_midunder,exch_nyse,fa_div_o8,idx_sp500&ft=4'
 
 Linting and Other Tools
