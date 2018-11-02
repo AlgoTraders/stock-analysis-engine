@@ -89,6 +89,10 @@ spec:
           value: redis-master:6379
         - name: REDIS_DB
           value: "0"
+        # logging to the notebook can make them hard to read
+        # this will only log errors
+        - name: SHARED_LOG_CFG
+          value: /opt/sa/analysis_engine/log/error-logging.json
         # set to your Slack webhook url:
         - name: SLACK_WEBHOOK
           value: https://hooks.slack.com/services/YOUR_WEBHOOK_HERE
