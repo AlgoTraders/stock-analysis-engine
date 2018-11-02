@@ -1,0 +1,101 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: sa-jupyter
+  annotations:
+    description: The Stock Analysis Jupyter Application
+    runtime: python3
+  labels:
+    sa: jupyter
+    purpose: stock-analysis
+    layer: backend
+    messaging: redis
+    cache: redis
+    pubsub: publisher
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sa-jupyter
+      backend: enabled
+  template:
+    metadata:
+      labels:
+        app: sa-jupyter
+        backend: enabled
+        purpose: stock-analysis
+        layer: backend
+        messaging: redis
+        cache: redis
+        pubsub: publisher
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: backend
+                operator: In
+                values:
+                - enabled
+      hostname: sa-jupyter
+      restartPolicy: Always
+      containers:
+      - image: jayjohnson/stock-analysis-jupyter:latest
+        imagePullPolicy: Always
+        name: sa-jupyter
+        resources: {}
+        command:
+        - /bin/bash
+        - -c
+        - cd /opt/sa/ &&
+          . /opt/venv/bin/activate &&
+          /opt/sa/start-workers.sh
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: api.db
+              key: username
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: api.db
+              key: password
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: api.db
+              key: dbname
+        - name: S3_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-s3-access
+              key: access_key
+        - name: S3_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-s3-access
+              key: secret_key
+        - name: S3_ADDRESS
+          value: minio-service:9000
+        - name: S3_REGION_NAME
+          value: us-east-1
+        - name: WORKER_BROKER_URL
+          value: redis://redis-master:6379/13
+        - name: WORKER_BACKEND_URL
+          value: redis://redis-master:6379/14
+        - name: REDIS_ADDRESS
+          value: redis-master:6379
+        - name: REDIS_DB
+          value: "0"
+        # set to your Slack webhook url:
+        - name: SLACK_WEBHOOK
+          value: https://hooks.slack.com/services/YOUR_WEBHOOK_HERE
+        # set to "1" to enable publishing to slack when
+        # each ticker's job completes
+        - name: DATASET_COLLECTION_SLACK_ALERTS
+          value: "0"
+        # set to "1" to publish Celery task failures to Slack
+        - name: PROD_SLACK_ALERTS
+          value: "0"
