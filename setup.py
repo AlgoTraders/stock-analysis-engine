@@ -13,14 +13,13 @@ try:
 except ImportError:
     from distutils.command.build_py import build_py
 
-long_description = ''
-try:
-    import pypandoc
-    long_description = pypandoc.convert(
-        'README.rst',
-        'rst')
-except(IOError, ImportError):
-    long_description = open('README.rst').read()
+"""
+https://packaging.python.org/guides/making-a-pypi-friendly-readme/
+check the README.rst works on pypi as the
+long_description with:
+twine check dist/*
+"""
+long_description = open('README.rst').read()
 
 cur_path, cur_script = os.path.split(sys.argv[0])
 os.chdir(os.path.abspath(cur_path))

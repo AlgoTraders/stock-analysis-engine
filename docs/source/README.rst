@@ -366,7 +366,7 @@ Run Publish from an Existing S3 Key to Redis
         127.0.0.1:6379[4]>
 
 Run Aggregate and then Publish data for a Ticker from S3 to Redis
-===============================================================
+=================================================================
 
 #.  Run an analysis with an existing S3 key using `./analysis_engine/scripts/publish_ticker_aggregate_from_s3.py <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/publish_ticker_aggregate_from_s3.py>`__
 

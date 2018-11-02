@@ -11,7 +11,6 @@ mock
 pandas
 pep8>=1.7.1
 pinance
-pypandoc
 pycodestyle<=2.3.1
 pylint
 pyEX>=0.1.5
