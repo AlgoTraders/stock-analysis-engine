@@ -586,7 +586,7 @@ Start the dataset collection job with:
 Kubernetes Deployments - Jupyter
 --------------------------------
 
-Deploy Jupyter with:
+Deploy Jupyter to a Kubernetes cluster with:
 
 ::
 
