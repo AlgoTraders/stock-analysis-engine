@@ -467,9 +467,7 @@ class TestIEXFetchData(BaseTestCase):
         ::
 
             ./tools/redis-cli.sh
-            127.0.0.1:6379> select 4
-            OK
-            127.0.0.1:6379[4]> keys testing_TSLA_financials
+            127.0.0.1:6379> keys testing_TSLA_financials
             1) "testing_TSLA_financials"
 
         """

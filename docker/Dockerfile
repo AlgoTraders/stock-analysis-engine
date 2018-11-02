@@ -1,6 +1,8 @@
 FROM jayjohnson/ai-core:latest
 
-RUN echo "creating project directories" \
+RUN echo "installing redis-tools" \
+  && apt-get install -y redis-tools \
+  && echo "creating project directories" \
   && git clone https://github.com/AlgoTraders/stock-analysis-engine.git /opt/sa \
   && mkdir -p -m 777 /var/log/sa \
   && mkdir -p -m 777 /opt/notebooks \
@@ -50,7 +52,7 @@ ENV PROJECT_NAME="sa" \
     ENABLED_REDIS_PUBLISH="1" \
     REDIS_ADDRESS="0.0.0.0:6379" \
     REDIS_KEY="SPY_latest" \
-    REDIS_DB="4" \
+    REDIS_DB="0" \
     DEBUG_SHARED_LOG_CFG="0" \
     LOG_LEVEL="DEBUG" \
     LOG_FILE="/var/log/sa/worker.log" \

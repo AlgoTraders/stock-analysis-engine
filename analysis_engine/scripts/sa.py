@@ -195,7 +195,7 @@ def run_sa_tool():
     parser.add_argument(
         '-m',
         help=(
-            'optional - redis database number (4 by default)'),
+            'optional - redis database number (0 by default)'),
         required=False,
         dest='redis_db')
     parser.add_argument(
