@@ -64,5 +64,5 @@ Set these as needed for your Redis deployment
     export REDIS_ADDRESS=<redis endpoint address host:port like: localhost:6379>
     export REDIS_KEY=<key to cache values in redis>
     export REDIS_PASSWORD=<optional - redis password>
-    export REDIS_DB=<optional - redis database - 4 by default>
+    export REDIS_DB=<optional - redis database - 0 by default>
     export REDIS_EXPIRE=<optional - redis expiration for data in seconds>
