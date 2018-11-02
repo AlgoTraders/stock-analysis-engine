@@ -32,8 +32,12 @@ echo ""
 echo "python version:"
 which python
 
-echo "updating pip"
+echo "uninstalling stock-analysis-engine"
+pip uninstall stock-analysis-engine
+
+echo "updating pip and setuptools"
 pip install --upgrade pip
+pip install --upgrade setuptools
 
 cd /opt
 repos="/opt/sa"
