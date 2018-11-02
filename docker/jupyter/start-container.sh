@@ -28,6 +28,8 @@ fi
 echo "Starting Jupyter"
 notebook_config=/opt/sa/docker/jupyter/jupyter_notebook_config.py
 notebook_dir=/opt/notebooks
+notebook_ip="0.0.0.0"
+notebook_port="88888"
 
 if [[ "${JUPYTER_CONFIG}" != "" ]]; then
     if [[ -e ${JUPYTER_CONFIG} ]]; then
@@ -47,12 +49,19 @@ if [[ "${NOTEBOOK_DIR}" != "" ]]; then
     fi
 fi
 
+if [[ "${NOTEBOOK_IP}" != "" ]]; then
+    notebook_ip="${NOTEBOOK_IP}"
+fi
+if [[ "${NOTEBOOK_PORT}" != "" ]]; then
+    notebook_port="${NOTEBOOK_PORT}"
+fi
+
 echo ""
 echo "Starting Jupyter with command: "
-echo "jupyter notebook --ip=* --port=8888 --no-browser --config=${notebook_config} --notebook-dir=${notebook_dir} --allow-root"
+echo "jupyter notebook --ip=${notebook_ip} --port=${notebook_port} --no-browser --config=${notebook_config} --notebook-dir=${notebook_dir} --allow-root"
 jupyter notebook \
-    --ip=* \
-    --port=8888 \
+    --ip=${notebook_ip} \
+    --port=${notebook_port} \
     --no-browser \
     --config=${notebook_config} \
     --notebook-dir=${notebook_dir} \
