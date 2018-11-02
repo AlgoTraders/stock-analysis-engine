@@ -583,6 +583,15 @@ Start the dataset collection job with:
 
     kubectl apply -f ./k8/datasets/job.yml
 
+Kubernetes Deployments - Jupyter
+--------------------------------
+
+Deploy Jupyter to a Kubernetes cluster with:
+
+::
+
+    ./k8/jupyter/run.sh
+
 Testing
 =======
 
