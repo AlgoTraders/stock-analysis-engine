@@ -40,7 +40,8 @@ def fetch(
         celery_disabled=True,
         broker_url=None,
         result_backend=None,
-        label=None):
+        label=None,
+        verbose=False):
     """fetch
 
     Fetch all supported datasets for a stock ``ticker`` or
@@ -130,6 +131,11 @@ def fetch(
     :param result_backend: Celery backend url
         (default is ``redis://0.0.0.0:6379/14``)
     :param label: tracking log label
+
+    **(Optional) Debugging**
+
+    :param verbose: bool - show fetch warnings
+        and other debug logging (default is False)
 
     **Supported environment variables**
 
@@ -363,71 +369,81 @@ def fetch(
                 iex_extract_utils.extract_daily_dataset(
                     extract_req)
             if iex_daily_status != SUCCESS:
-                log.warning(
-                    'unable to fetch iex_daily={}'.format(ticker))
+                if verbose:
+                    log.warning(
+                        'unable to fetch iex_daily={}'.format(ticker))
         if 'minute' in iex_datasets or extract_iex:
             iex_minute_status, iex_minute_df = \
                 iex_extract_utils.extract_minute_dataset(
                     extract_req)
             if iex_minute_status != SUCCESS:
-                log.warning(
-                    'unable to fetch iex_minute={}'.format(ticker))
+                if verbose:
+                    log.warning(
+                        'unable to fetch iex_minute={}'.format(ticker))
         if 'quote' in iex_datasets or extract_iex:
             iex_quote_status, iex_quote_df = \
                 iex_extract_utils.extract_quote_dataset(
                     extract_req)
             if iex_quote_status != SUCCESS:
-                log.warning(
-                    'unable to fetch iex_quote={}'.format(ticker))
+                if verbose:
+                    log.warning(
+                        'unable to fetch iex_quote={}'.format(ticker))
         if 'stats' in iex_datasets or extract_iex:
             iex_stats_df, iex_stats_df = \
                 iex_extract_utils.extract_stats_dataset(
                     extract_req)
             if iex_stats_status != SUCCESS:
-                log.warning(
-                    'unable to fetch iex_stats={}'.format(ticker))
+                if verbose:
+                    log.warning(
+                        'unable to fetch iex_stats={}'.format(ticker))
         if 'peers' in iex_datasets or extract_iex:
             iex_peers_df, iex_peers_df = \
                 iex_extract_utils.extract_peers_dataset(
                     extract_req)
             if iex_peers_status != SUCCESS:
-                log.warning(
-                    'unable to fetch iex_peers={}'.format(ticker))
+                if verbose:
+                    log.warning(
+                        'unable to fetch iex_peers={}'.format(ticker))
         if 'news' in iex_datasets or extract_iex:
             iex_news_status, iex_news_df = \
                 iex_extract_utils.extract_news_dataset(
                     extract_req)
             if iex_news_status != SUCCESS:
-                log.warning(
-                    'unable to fetch iex_news={}'.format(ticker))
+                if verbose:
+                    log.warning(
+                        'unable to fetch iex_news={}'.format(ticker))
         if 'financials' in iex_datasets or extract_iex:
             iex_financials_status, iex_financials_df = \
                 iex_extract_utils.extract_financials_dataset(
                     extract_req)
             if iex_financials_status != SUCCESS:
-                log.warning(
-                    'unable to fetch iex_financials={}'.format(ticker))
+                if verbose:
+                    log.warning(
+                        'unable to fetch iex_financials={}'.format(ticker))
         if 'earnings' in iex_datasets or extract_iex:
             iex_earnings_status, iex_earnings_df = \
                 iex_extract_utils.extract_dividends_dataset(
                     extract_req)
             if iex_earnings_status != SUCCESS:
-                log.warning(
-                    'unable to fetch iex_earnings={}'.format(ticker))
+                if verbose:
+                    log.warning(
+                        'unable to fetch iex_earnings={}'.format(ticker))
         if 'dividends' in iex_datasets or extract_iex:
             iex_dividends_status, iex_dividends_df = \
                 iex_extract_utils.extract_dividends_dataset(
                     extract_req)
             if iex_dividends_status != SUCCESS:
-                log.warning(
-                    'unable to fetch iex_dividends={}'.format(ticker))
+                if verbose:
+                    log.warning(
+                        'unable to fetch iex_dividends={}'.format(ticker))
         if 'company' in iex_datasets or extract_iex:
             iex_company_status, iex_company_df = \
                 iex_extract_utils.extract_dividends_dataset(
                     extract_req)
             if iex_company_status != SUCCESS:
-                log.warning(
-                    'unable to fetch iex_company={}'.format(ticker))
+                if verbose:
+                    log.warning(
+                        'unable to fetch iex_company={}'.format(ticker))
         # end of iex extracts
 
         if extract_yahoo:
@@ -438,20 +454,23 @@ def fetch(
                 yahoo_extract_utils.extract_option_puts_dataset(
                     extract_req)
             if yahoo_options_status != SUCCESS:
-                log.warning(
-                    'unable to fetch yahoo_options={}'.format(ticker))
+                if verbose:
+                    log.warning(
+                        'unable to fetch yahoo_options={}'.format(ticker))
             yahoo_pricing_status, yahoo_pricing_df = \
                 yahoo_extract_utils.extract_pricing_dataset(
                     extract_req)
             if yahoo_pricing_status != SUCCESS:
-                log.warning(
-                    'unable to fetch yahoo_pricing={}'.format(ticker))
+                if verbose:
+                    log.warning(
+                        'unable to fetch yahoo_pricing={}'.format(ticker))
             yahoo_news_status, yahoo_news_df = \
                 yahoo_extract_utils.extract_yahoo_news_dataset(
                     extract_req)
             if yahoo_news_status != SUCCESS:
-                log.warning(
-                    'unable to fetch yahoo_news={}'.format(ticker))
+                if verbose:
+                    log.warning(
+                        'unable to fetch yahoo_news={}'.format(ticker))
         # end of yahoo extracts
 
         ticker_data['daily'] = iex_daily_df
