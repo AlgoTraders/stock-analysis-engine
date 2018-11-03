@@ -25,7 +25,8 @@ cur_path, cur_script = os.path.split(sys.argv[0])
 os.chdir(os.path.abspath(cur_path))
 
 requires_that_fail_on_rtd = [
-    'awscli'
+    'awscli',
+    'ta-lib'
 ]
 
 install_requires = []
@@ -35,8 +36,9 @@ with open(os.path.join(
         cur_dir, 'requirements.txt'), encoding='utf-8') as f:
     install_requires = f.read().split()
 
-# if not on readthedocs.io get all the pips:
-if os.getenv("READTHEDOCS", "") == "":
+# if not on readthedocs.io or travis ci get all the pips:
+if (os.getenv("READTHEDOCS", "") == ""
+        and os.getenv("TRAVIS", "") == ""):
     install_requires = install_requires + requires_that_fail_on_rtd
 
 if sys.version_info < (3, 5):
@@ -61,7 +63,7 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.1.33',
+    version='1.1.34',
     description=(
         'Stock Analysis Engine - '
         'Use this to get pricing data for tickers '

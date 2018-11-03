@@ -24,6 +24,8 @@ RUN echo "installing redis-tools" \
   && cd /opt/sa \
   && echo "upgrading pip" \
   && pip install --upgrade pip \
+  && echo "installing ta-lib with: /opt/sa/tools/linux-install-talib.sh" \
+  && /opt/sa/tools/linux-install-talib.sh
   && echo "installing pip upgrades" \
   && pip install --upgrade -e . \
   && echo "installing pip fixes for 2018-10-06" \

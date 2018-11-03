@@ -30,6 +30,11 @@ class BaseTestCase(unittest.TestCase):
         self.backup_s3_contents = None
         self.celery_disabled_value = None
         self.debug_get_pricing = None
+        self.has_ta_lib = False
+        if (os.getenv("READTHEDOCS", "") == ""
+                and os.getenv("TRAVIS", "") == ""):
+            self.has_ta_lib = True
+
         if os.getenv(
                 'CELERY_DISABLED',
                 'not-set') != 'not-set':
