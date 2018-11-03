@@ -147,6 +147,16 @@ rm env.sh
 
 docker-compose -f ./${compose} -p $USER down
 
+containers="sa-workers-${USER} sa-jupyter-${USER} redis-${USER} minio-${USER}"
+for c in ${containers}; do
+    test_exists=$(docker ps -a | grep ${c} | wc -l)
+    if [[ "${test_exists}" != "0" ]]; then
+        echo "cleaning up ${c}"
+        docker stop ${c} >> /dev/null 2>&1
+        docker rm ${c} >> /dev/null 2>&1
+    fi
+done
+
 # MacOS specific, remove the backup file that is created by sed -i 
 if [[ -n $mac && -f envs/.env$mac ]]; then
     rm envs/.env$mac

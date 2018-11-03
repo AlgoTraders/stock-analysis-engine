@@ -29,7 +29,7 @@ echo "Starting Jupyter"
 notebook_config=/opt/sa/docker/jupyter/jupyter_notebook_config.py
 notebook_dir=/opt/notebooks
 notebook_ip="0.0.0.0"
-notebook_port="88888"
+notebook_port="8888"
 
 if [[ "${JUPYTER_CONFIG}" != "" ]]; then
     if [[ -e ${JUPYTER_CONFIG} ]]; then
