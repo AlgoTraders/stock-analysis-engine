@@ -25,7 +25,8 @@ cur_path, cur_script = os.path.split(sys.argv[0])
 os.chdir(os.path.abspath(cur_path))
 
 requires_that_fail_on_rtd = [
-    'awscli'
+    'awscli',
+    'ta-lib'
 ]
 
 install_requires = []
@@ -61,7 +62,7 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.1.33',
+    version='1.1.34',
     description=(
         'Stock Analysis Engine - '
         'Use this to get pricing data for tickers '

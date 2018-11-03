@@ -133,7 +133,7 @@ Running on Mac OS X
 
     ::
 
-        brew install openssl pyenv-virtualenv redis freetype pkg-config gcc
+        brew install openssl pyenv-virtualenv redis freetype pkg-config gcc ta-lib
 
 #.  Create and Load Python 3 Virtual Environment
 
