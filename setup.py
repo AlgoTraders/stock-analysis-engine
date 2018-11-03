@@ -37,8 +37,7 @@ with open(os.path.join(
     install_requires = f.read().split()
 
 # if not on readthedocs.io or travis ci get all the pips:
-if (
-        os.getenv("READTHEDOCS", "") == ""
+if (os.getenv("READTHEDOCS", "") == ""
         and os.getenv("TRAVIS", "") == ""):
     install_requires = install_requires + requires_that_fail_on_rtd
 
