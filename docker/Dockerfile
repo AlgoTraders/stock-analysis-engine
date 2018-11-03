@@ -1,25 +1,5 @@
 FROM jayjohnson/ai-core:latest
 
-RUN echo "installing talib for python pip ta-lib" \
-  && cd /opt \
-  && echo "getting ta-lib: http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz" \
-  && wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz \
-  && ls /opt/ta-lib-0.4.0-src.tar.gz \
-  && echo "extracting /opt/ta-lib-0.4.0-src.tar.gz" \
-  && tar xvf ta-lib-0.4.0-src.tar.gz \
-  && ls /opt/ta-lib \
-  && cd /opt/ta-lib \
-  && echo "configuring ta-lib with /usr" \
-  && ./configure --prefix=/usr \
-  && echo "making ta-lib" \
-  && make \
-  && echo "installing ta-lib" \
-  && make install \
-  && echo "activating virtualenv" \
-  && . /opt/venv/bin/activate \
-  && echo "installing ta-lib pip" \
-  && pip install ta-lib
-
 RUN echo "installing redis-tools" \
   && apt-get install -y redis-tools \
   && echo "creating project directories" \
@@ -44,6 +24,8 @@ RUN echo "installing redis-tools" \
   && cd /opt/sa \
   && echo "upgrading pip" \
   && pip install --upgrade pip \
+  && echo "installing ta-lib with: /opt/sa/tools/linux-install-talib.sh" \
+  && /opt/sa/tools/linux-install-talib.sh
   && echo "installing pip upgrades" \
   && pip install --upgrade -e . \
   && echo "installing pip fixes for 2018-10-06" \

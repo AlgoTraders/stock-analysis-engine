@@ -36,8 +36,10 @@ with open(os.path.join(
         cur_dir, 'requirements.txt'), encoding='utf-8') as f:
     install_requires = f.read().split()
 
-# if not on readthedocs.io get all the pips:
-if os.getenv("READTHEDOCS", "") == "":
+# if not on readthedocs.io or travis ci get all the pips:
+if (
+        os.getenv("READTHEDOCS", "") == ""
+        and os.getenv("TRAVIS", "") == ""):
     install_requires = install_requires + requires_that_fail_on_rtd
 
 if sys.version_info < (3, 5):
