@@ -1033,9 +1033,9 @@ IEX Real-Time Price
 
 If you redistribute our API data:
 
-- Cite IEX using the following text and link: "Data provided for free by IEX."
+- Cite IEX using the following text and link: "Data provided for free by `IEX <https://iextrading.com/developer>`__."
 - Provide a link to https://iextrading.com/api-exhibit-a in your terms of service.
-- Additionally, if you display our TOPS price data, cite "IEX Real-Time Price" near the price.
+- Additionally, if you display our TOPS price data, cite "`IEX Real-Time Price <https://iextrading.com/developer>`__" near the price.
 
 Adding Celery Tasks
 ===================
