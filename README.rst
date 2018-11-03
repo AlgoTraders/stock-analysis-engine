@@ -98,6 +98,14 @@ Running on Ubuntu and CentOS
 
         sudo yum install cmake gcc gcc-c++ make tkinter curl-devel make cmake python-devel python-setuptools python-pip python-virtualenv redis python36u-libs python36u-devel python36u-pip python36u-tkinter python36u-setuptools python36u openssl-devel
 
+#.  Install TA-Lib
+
+    Follow the `TA-Lib install guide <https://mrjbq7.github.io/ta-lib/install.html>`__ or use the included install tool as root:
+
+    ::
+
+        sudo su
+        /opt/sa/tools/linux-install-talib.sh
 
 #.  Create and Load Python 3 Virtual Environment
 
