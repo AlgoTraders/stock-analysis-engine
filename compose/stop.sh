@@ -147,7 +147,7 @@ rm env.sh
 
 docker-compose -f ./${compose} -p $USER down
 
-containers="sa-workers-${USER} sa-jupyter-${USER} redis-${USER} minio-${USER}"
+containers="sa-workers-${USER} sa-jupyter-${USER} redis-${USER} minio-${USER} sa-dataset-collection-${USER}"
 for c in ${containers}; do
     test_exists=$(docker ps -a | grep ${c} | wc -l)
     if [[ "${test_exists}" != "0" ]]; then
