@@ -274,11 +274,12 @@ def extract(
     common_vals['s3_address'] = s3_address
 
     log.info(
-        '{} - extract ticker={} last_close={} '
+        '{} - extract ticker={} last_close={} base_key={} '
         'redis_address={} s3_address={}'.format(
             label,
             ticker,
             last_close_str,
+            common_vals['base_key'],
             common_vals['redis_address'],
             common_vals['s3_address']))
 
@@ -316,12 +317,9 @@ def extract(
     yahoo_news_df = None
 
     for ticker in use_tickers:
-        base_key = '{}_{}'.format(
-            ticker,
-            last_close_str)
         req = get_ds_dict(
             ticker=ticker,
-            base_key=base_key,
+            base_key=common_vals['base_key'],
             ds_id=label,
             service_dict=common_vals)
         extract_requests.append(req)
