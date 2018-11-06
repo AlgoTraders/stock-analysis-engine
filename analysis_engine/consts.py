@@ -129,6 +129,15 @@ Supported S3 Environment Variables
     ANALYZE_S3_BUCKET_NAME = ev(
         'ANALYZE_S3_BUCKET_NAME',
         'analyzed')
+    ALGO_BUYS_S3_BUCKET_NAME = ev(
+        'ALGO_BUYS_S3_BUCKET_NAME',
+        'algobuys')
+    ALGO_SELLS_S3_BUCKET_NAME = ev(
+        'ALGO_SELLS_S3_BUCKET_NAME',
+        'algosells')
+    ALGO_RESULT_S3_BUCKET_NAME = ev(
+        'ALGO_RESULT_S3_BUCKET_NAME',
+        'algoresults')
 
 Supported Redis Environment Variables
 -------------------------------------
@@ -186,6 +195,10 @@ INVALID = 5
 NOT_DONE = 6
 NOT_SET = 7
 EMPTY = 8
+TRADE_OPEN = 9
+TRADE_NOT_ENOUGH_FUNDS = 10
+TRADE_FILLED = 11
+TRADE_NO_SHARES_TO_SELL = 12
 
 SA_MODE_PREPARE = 100
 SA_MODE_ANALYZE = 101
@@ -286,6 +299,15 @@ PREPARE_S3_BUCKET_NAME = ev(
 ANALYZE_S3_BUCKET_NAME = ev(
     'ANALYZE_S3_BUCKET_NAME',
     'analyzed')
+ALGO_BUYS_S3_BUCKET_NAME = ev(
+    'ALGO_BUYS_S3_BUCKET_NAME',
+    'algobuys')
+ALGO_SELLS_S3_BUCKET_NAME = ev(
+    'ALGO_SELLS_S3_BUCKET_NAME',
+    'algosells')
+ALGO_RESULT_S3_BUCKET_NAME = ev(
+    'ALGO_RESULT_S3_BUCKET_NAME',
+    'algoresults')
 SCREENER_S3_BUCKET_NAME = ev(
     'SCREENER_S3_BUCKET_NAME',
     'screener-data')
@@ -486,6 +508,14 @@ def get_status(
         return 'PLOT_ACTION_SAVE_TO_S3'
     elif status == PLOT_ACTION_SAVE_AS_FILE:
         return 'PLOT_ACTION_SAVE_AS_FILE'
+    elif status == TRADE_OPEN:
+        return 'TRADE_OPEN'
+    elif status == TRADE_NOT_ENOUGH_FUNDS:
+        return 'TRADE_NOT_ENOUGH_FUNDS'
+    elif status == TRADE_FILLED:
+        return 'TRADE_FILLED'
+    elif status == TRADE_NO_SHARES_TO_SELL:
+        return 'TRADE_NO_SHARES_TO_SELL'
     else:
         return 'unsupported status={}'.format(
             status)

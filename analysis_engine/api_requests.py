@@ -12,6 +12,7 @@ import datetime
 import analysis_engine.iex.utils as iex_utils
 import pandas as pd
 from functools import lru_cache
+from analysis_engine.consts import to_f
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import TICKER_ID
 from analysis_engine.consts import COMMON_DATE_FORMAT
@@ -30,13 +31,21 @@ from analysis_engine.consts import COMPANY_S3_BUCKET_NAME
 from analysis_engine.consts import PREPARE_S3_BUCKET_NAME
 from analysis_engine.consts import ANALYZE_S3_BUCKET_NAME
 from analysis_engine.consts import SCREENER_S3_BUCKET_NAME
+from analysis_engine.consts import ALGO_BUYS_S3_BUCKET_NAME
+from analysis_engine.consts import ALGO_SELLS_S3_BUCKET_NAME
+from analysis_engine.consts import ALGO_RESULT_S3_BUCKET_NAME
 from analysis_engine.consts import S3_BUCKET
 from analysis_engine.consts import S3_COMPILED_BUCKET
 from analysis_engine.consts import SERVICE_VALS
 from analysis_engine.consts import IEX_DATASETS_DEFAULT
+from analysis_engine.consts import TRADE_OPEN
+from analysis_engine.consts import TRADE_NOT_ENOUGH_FUNDS
+from analysis_engine.consts import TRADE_FILLED
+from analysis_engine.consts import TRADE_NO_SHARES_TO_SELL
 from analysis_engine.utils import get_last_close_str
 from analysis_engine.utils import utc_date_str
 from analysis_engine.utils import utc_now_str
+from analysis_engine.utils import get_date_from_str
 from analysis_engine.iex.consts import FETCH_DAILY
 from analysis_engine.iex.consts import FETCH_MINUTE
 from analysis_engine.iex.consts import FETCH_QUOTE
@@ -1043,3 +1052,263 @@ def build_screener_analysis_request(
     }
     return req
 # end build_screener_analysis_request
+
+
+def build_algo_request(
+        ticker=None,
+        tickers=None,
+        use_key=None,
+        start_date=None,
+        end_date=None,
+        datasets=None,
+        balance=None,
+        num_shares=None,
+        cache_freq='daily',
+        label='algo'):
+    """build_algo_request
+
+    :param ticker: ticker
+    :param tickers: optional - list of tickers
+    :param use_key: redis and s3 to store the algo result
+    :param start_date: string date format ``YYYY-MM-DD HH:MM:SS``
+    :param end_date: string date format ``YYYY-MM-DD HH:MM:SS``
+    :param datasets: list of string dataset types
+    :param balance: starting capital balance
+    :param num_shares: integer number of starting shares
+    :param num_shares: optional - cache frequency (``daily`` is default)
+    :param label: optional - algo log tracking name
+    """
+    use_tickers = []
+    if ticker:
+        use_tickers = [
+            ticker.upper()
+        ]
+    if tickers:
+        for t in tickers:
+            if t not in use_tickers:
+                use_tickers.append(t.upper())
+
+    s3_bucket_name = ALGO_RESULT_S3_BUCKET_NAME
+    s3_key = use_key
+    redis_key = use_key
+    s3_enabled = True
+    redis_enabled = True
+
+    work = {
+        'tickers': use_tickers,
+        's3_bucket': s3_bucket_name,
+        's3_key': s3_key,
+        'redis_key': redis_key,
+        's3_enabled': s3_enabled,
+        'redis_enabled': redis_enabled,
+        'extract_datasets': [],
+        'cache_freq': cache_freq,
+        'version': 1,
+        'label': label
+    }
+
+    start_date_val = get_date_from_str(start_date)
+    end_date_val = get_date_from_str(end_date)
+    if start_date_val >= end_date_val:
+        raise Exception(
+            'Invalid start_date={} must be less than end_date={}'.format(
+                start_date,
+                end_date))
+
+    use_dates = []
+    new_dataset = None
+    cur_date = start_date_val
+    while cur_date <= end_date_val:
+        for t in use_tickers:
+            if cache_freq == 'daily':
+                new_dataset = '{}_{}'.format(
+                    t,
+                    cur_date.strftime(
+                        COMMON_DATE_FORMAT))
+            else:
+                new_dataset = '{}_{}'.format(
+                    t,
+                    cur_date.strftime(
+                        COMMON_TICK_DATE_FORMAT))
+            if new_dataset:
+                use_dates.append(new_dataset)
+            new_dataset = None
+        # end for all tickers
+        if cache_freq == 'daily':
+            cur_date += datetime.timedelta(days=1)
+        else:
+            cur_date += datetime.timedelta(minute=1)
+    # end of walking all dates to add
+
+    work['extract_datasets'] = use_dates
+
+    return work
+# end of build_algo_request
+
+
+def build_buy_order(
+        ticker,
+        shares,
+        close,
+        balance,
+        commission,
+        date,
+        details,
+        use_key,
+        version=1,
+        reason=None):
+    """build_buy_order
+
+    Create an algorithm buy order as a dictionary
+
+    :param ticker: ticker
+    :param shares: string date format ``YYYY-MM-DD HH:MM:SS``
+    :param close: float closing price of the asset
+    :param balance: float amount of available capital
+    :param commission: float for commission costs
+    :param date: string trade date for that row usually
+        ``COMMON_DATE_FORMAT`` (``YYYY-MM-DD``)
+    :param details: dictionary for full row of values to review
+        all buys after the algorithm finishes. (usually ``row.to_json()``)
+    :param use_key: string for redis and s3 publishing of the algorithm
+        result dictionary as a json-serialized dictionary
+    :param version: optional - version tracking integer
+    :param reason: optional - string for recording why the algo
+        decided to buy for review after the algorithm finishes
+    """
+    status = TRADE_OPEN
+    s3_bucket_name = ALGO_BUYS_S3_BUCKET_NAME
+    s3_key = use_key
+    redis_key = use_key
+    s3_enabled = True
+    redis_enabled = True
+
+    cost_of_trade = None
+    new_shares = None
+    new_balance = None
+    filled_date = None
+
+    tradable_funds = balance - (2.0 * commission)
+
+    if close > 0.1 and tradable_funds > 10.0:
+        can_buy_num_shares = int(tradable_funds / close)
+        if can_buy_num_shares > 0:
+            cost_of_trade = to_f(val=(can_buy_num_shares * close))
+            if cost_of_trade > balance:
+                status = TRADE_NOT_ENOUGH_FUNDS
+            else:
+                new_shares += can_buy_num_shares
+                new_balance = to_f(balance - cost_of_trade)
+                status = TRADE_FILLED
+                filled_date = utc_now_str()
+        else:
+            status = TRADE_NOT_ENOUGH_FUNDS
+    else:
+        status = TRADE_NOT_ENOUGH_FUNDS
+
+    order_dict = {
+        'ticker': ticker,
+        'status': status,
+        'balance': new_balance,
+        'shares': new_shares,
+        'buy_price': cost_of_trade,
+        'prev_balance': balance,
+        'prev_shares': shares,
+        'close': close,
+        'details': details,
+        'reason': reason,
+        'open_date': date,
+        'date': filled_date,
+        's3_bucket': s3_bucket_name,
+        's3_key': s3_key,
+        'redis_key': redis_key,
+        's3_enabled': s3_enabled,
+        'redis_enabled': redis_enabled,
+        'version': version
+    }
+    return order_dict
+# end of build_buy_order
+
+
+def build_sell_order(
+        ticker,
+        shares,
+        close,
+        balance,
+        commission,
+        date,
+        details,
+        use_key,
+        version=1,
+        reason=None):
+    """build_sell_order
+
+    Create an algorithm sell order as a dictionary
+
+    :param ticker: ticker
+    :param shares: string date format ``YYYY-MM-DD HH:MM:SS``
+    :param close: float closing price of the asset
+    :param balance: float amount of available capital
+    :param commission: float for commission costs
+    :param date: string trade date for that row usually
+        ``COMMON_DATE_FORMAT`` (``YYYY-MM-DD``)
+    :param details: dictionary for full row of values to review
+        all sells after the algorithm finishes. (usually ``row.to_json()``)
+    :param use_key: string for redis and s3 publishing of the algorithm
+        result dictionary as a json-serialized dictionary
+    :param version: optional - version tracking integer
+    :param reason: optional - string for recording why the algo
+        decided to sell for review after the algorithm finishes
+    """
+    status = TRADE_OPEN
+    s3_bucket_name = ALGO_SELLS_S3_BUCKET_NAME
+    s3_key = use_key
+    redis_key = use_key
+    s3_enabled = True
+    redis_enabled = True
+
+    cost_of_trade = None
+    sell_price = None
+    new_shares = None
+    new_balance = None
+    filled_date = None
+
+    tradable_funds = balance - commission
+
+    if shares == 0:
+        status = TRADE_NO_SHARES_TO_SELL
+    elif close > 0.1 and tradable_funds > 10.0:
+        cost_of_trade = commission
+        if cost_of_trade > balance:
+            status = TRADE_NOT_ENOUGH_FUNDS
+        else:
+            new_shares -= shares
+            sell_price = to_f(shares * close)
+            new_balance = to_f(balance + sell_price)
+            status = TRADE_FILLED
+            filled_date = utc_now_str()
+    else:
+        status = TRADE_NOT_ENOUGH_FUNDS
+
+    order_dict = {
+        'ticker': ticker,
+        'status': status,
+        'balance': new_balance,
+        'shares': new_shares,
+        'sell_price': sell_price,
+        'prev_balance': balance,
+        'prev_shares': shares,
+        'close': close,
+        'details': details,
+        'reason': reason,
+        'open_date': date,
+        'date': filled_date,
+        's3_bucket': s3_bucket_name,
+        's3_key': s3_key,
+        'redis_key': redis_key,
+        's3_enabled': s3_enabled,
+        'redis_enabled': redis_enabled,
+        'version': version
+    }
+    return order_dict
+# end of build_sell_order

@@ -79,12 +79,29 @@ def utc_date_str(
     """utc_date_str
 
     Get the UTC date as a string
-    with default formatting COMMON_DATE_FORMAT
-    (YYYY-MM-DD)
+    with default formatting ``COMMON_DATE_FORMAT``
 
     :param fmt: optional output format (default
-                COMMON_DATE_FORMAT)
+                COMMON_DATE_FORMAT ``YYYY-MM-DD``)
     """
     return datetime.datetime.utcnow().strftime(
         fmt)
 # end of utc_date_str
+
+
+def get_date_from_str(
+        date_str,
+        fmt=COMMON_TICK_DATE_FORMAT):
+    """get_date_from_str
+
+    Convert a date to a string where the
+    default date formatting is ``COMMON_TICK_DATE_FORMAT``
+
+    :param date_str: string date value with a format of ``fmt``
+    :param fmt: date format ``YYYY-MM-DD HH:MM:SS`` by default
+    """
+
+    return datetime.datetime.strptime(
+        date_str,
+        fmt)
+# end of get_date_from_str
