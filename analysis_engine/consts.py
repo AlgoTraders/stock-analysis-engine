@@ -538,8 +538,12 @@ def ppj(
 # end of ppj
 
 
-def to_float_str(val):
+def to_float_str(
+        val):
     """to_float_str
+
+    convert the float to a string with 2 decimal points of
+    precision
 
     :param val: float to change to a 2-decimal string
     """
@@ -547,8 +551,12 @@ def to_float_str(val):
 # end of to_float_str
 
 
-def to_f(val):
+def to_f(
+        val):
     """to_f
+
+    truncate the float to 2 decimal points of
+    precision
 
     :param val: float to change
     """
@@ -560,6 +568,9 @@ def get_percent_done(
         progress,
         total):
     """get_percent_done
+
+    calculate percentage done to 2 decimal points of
+    precision
 
     :param progress: progress counter
     :param total: total number of counts

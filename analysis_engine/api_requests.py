@@ -1119,21 +1119,23 @@ def build_algo_request(
     new_dataset = None
     cur_date = start_date_val
     while cur_date <= end_date_val:
-        for t in use_tickers:
-            if cache_freq == 'daily':
-                new_dataset = '{}_{}'.format(
-                    t,
-                    cur_date.strftime(
-                        COMMON_DATE_FORMAT))
-            else:
-                new_dataset = '{}_{}'.format(
-                    t,
-                    cur_date.strftime(
-                        COMMON_TICK_DATE_FORMAT))
-            if new_dataset:
-                use_dates.append(new_dataset)
-            new_dataset = None
-        # end for all tickers
+        if cur_date.weekday() < 5:
+            for t in use_tickers:
+                if cache_freq == 'daily':
+                    new_dataset = '{}_{}'.format(
+                        t,
+                        cur_date.strftime(
+                            COMMON_DATE_FORMAT))
+                else:
+                    new_dataset = '{}_{}'.format(
+                        t,
+                        cur_date.strftime(
+                            COMMON_TICK_DATE_FORMAT))
+                if new_dataset:
+                    use_dates.append(new_dataset)
+                new_dataset = None
+            # end for all tickers
+        # end of valid days M-F
         if cache_freq == 'daily':
             cur_date += datetime.timedelta(days=1)
         else:
@@ -1148,21 +1150,24 @@ def build_algo_request(
 
 def build_buy_order(
         ticker,
-        shares,
+        num_owned,
         close,
         balance,
         commission,
         date,
         details,
         use_key,
+        shares=None,
         version=1,
+        auto_filled=True,
         reason=None):
     """build_buy_order
 
     Create an algorithm buy order as a dictionary
 
     :param ticker: ticker
-    :param shares: string date format ``YYYY-MM-DD HH:MM:SS``
+    :param num_owned: integer current owned
+        number of shares of this asset
     :param close: float closing price of the asset
     :param balance: float amount of available capital
     :param commission: float for commission costs
@@ -1172,7 +1177,12 @@ def build_buy_order(
         all buys after the algorithm finishes. (usually ``row.to_json()``)
     :param use_key: string for redis and s3 publishing of the algorithm
         result dictionary as a json-serialized dictionary
+    :param shares: optional - integer number of shares to buy
+        if None buy max number of shares at the ``close`` with the
+        available ``balance`` amount.
     :param version: optional - version tracking integer
+    :param auto_filled: optional - bool for not assuming the trade
+        filled (default ``True``)
     :param reason: optional - string for recording why the algo
         decided to buy for review after the algorithm finishes
     """
@@ -1186,21 +1196,28 @@ def build_buy_order(
     cost_of_trade = None
     new_shares = None
     new_balance = None
-    filled_date = None
+    update_date = None
 
     tradable_funds = balance - (2.0 * commission)
 
     if close > 0.1 and tradable_funds > 10.0:
         can_buy_num_shares = int(tradable_funds / close)
+        if shares:
+            if can_buy_num_shares > shares:
+                can_buy_num_shares = shares
+        cost_of_trade = to_f(val=(can_buy_num_shares * close))
         if can_buy_num_shares > 0:
-            cost_of_trade = to_f(val=(can_buy_num_shares * close))
             if cost_of_trade > balance:
                 status = TRADE_NOT_ENOUGH_FUNDS
             else:
-                new_shares += can_buy_num_shares
-                new_balance = to_f(balance - cost_of_trade)
-                status = TRADE_FILLED
-                filled_date = utc_now_str()
+                update_date = utc_now_str()
+                if auto_filled:
+                    new_shares = num_owned + can_buy_num_shares
+                    new_balance = to_f(balance - cost_of_trade)
+                    status = TRADE_FILLED
+                else:
+                    new_shares = shares
+                    new_balance = balance
         else:
             status = TRADE_NOT_ENOUGH_FUNDS
     else:
@@ -1218,7 +1235,7 @@ def build_buy_order(
         'details': details,
         'reason': reason,
         'open_date': date,
-        'date': filled_date,
+        'date': update_date,
         's3_bucket': s3_bucket_name,
         's3_key': s3_key,
         'redis_key': redis_key,
@@ -1232,21 +1249,24 @@ def build_buy_order(
 
 def build_sell_order(
         ticker,
-        shares,
+        num_owned,
         close,
         balance,
         commission,
         date,
         details,
         use_key,
+        shares=None,
         version=1,
+        auto_filled=True,
         reason=None):
     """build_sell_order
 
     Create an algorithm sell order as a dictionary
 
     :param ticker: ticker
-    :param shares: string date format ``YYYY-MM-DD HH:MM:SS``
+    :param num_owned: integer current owned
+        number of shares of this asset
     :param close: float closing price of the asset
     :param balance: float amount of available capital
     :param commission: float for commission costs
@@ -1256,7 +1276,11 @@ def build_sell_order(
         all sells after the algorithm finishes. (usually ``row.to_json()``)
     :param use_key: string for redis and s3 publishing of the algorithm
         result dictionary as a json-serialized dictionary
+    :param shares: optional - integer number of shares to sell
+        if None sell all ``num_owned`` shares at the ``close``.
     :param version: optional - version tracking integer
+    :param auto_filled: optional - bool for not assuming the trade
+        filled (default ``True``)
     :param reason: optional - string for recording why the algo
         decided to sell for review after the algorithm finishes
     """
@@ -1271,22 +1295,31 @@ def build_sell_order(
     sell_price = None
     new_shares = None
     new_balance = None
-    filled_date = None
+    update_date = None
 
     tradable_funds = balance - commission
 
-    if shares == 0:
+    if num_owned == 0:
         status = TRADE_NO_SHARES_TO_SELL
     elif close > 0.1 and tradable_funds > 10.0:
         cost_of_trade = commission
+        if shares:
+            if shares > num_owned:
+                shares = num_owned
+        else:
+            shares = num_owned
+        sell_price = to_f(shares * close)
         if cost_of_trade > balance:
             status = TRADE_NOT_ENOUGH_FUNDS
         else:
-            new_shares -= shares
-            sell_price = to_f(shares * close)
-            new_balance = to_f(balance + sell_price)
-            status = TRADE_FILLED
-            filled_date = utc_now_str()
+            update_date = utc_now_str()
+            if auto_filled:
+                new_shares = num_owned - shares
+                new_balance = to_f(balance + sell_price)
+                status = TRADE_FILLED
+            else:
+                new_shares = shares
+                new_balance = balance
     else:
         status = TRADE_NOT_ENOUGH_FUNDS
 
@@ -1302,7 +1335,7 @@ def build_sell_order(
         'details': details,
         'reason': reason,
         'open_date': date,
-        'date': filled_date,
+        'date': update_date,
         's3_bucket': s3_bucket_name,
         's3_key': s3_key,
         'redis_key': redis_key,
