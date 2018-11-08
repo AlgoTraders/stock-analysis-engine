@@ -22,7 +22,7 @@ def run_algo(
         tickers=None,
         start_date=None,    # string YYYY-MM-DD HH:MM:SS
         end_date=None,      # string YYYY-MM-DD HH:MM:SS
-        dataset_type=None,  # string identifier
+        dataset_type=None,  # string list of identifiers
         algo=None,  # derived ``analysis_engine.algo.Algo`` instance
         use_key=None,
         extract_mode='all',
@@ -49,8 +49,8 @@ def run_algo(
     Run an algorithm with steps:
 
         1) Extract redis keys between dates
-        2) Compile a dataset
-        3) I
+        2) Compile a data pipeline dictionary (call it ``data``)
+        3) Call algorithm's ``myalgo.handle_data(data=data)``
 
     .. note:: Please ensure Redis and Minio are running
               before trying to extract tickers
@@ -70,6 +70,7 @@ def run_algo(
         object, by default ``analysis_engine.calendars.
         always_open.AlwaysOpen`` trading calendar
         # TradingCalendar by ``TFSExchangeCalendar``
+
     **(Optional) Data sources, datafeeds and datasets to gather**
 
     :param iex_datasets: list of strings for gathering specific `IEX

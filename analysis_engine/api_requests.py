@@ -1159,7 +1159,7 @@ def build_buy_order(
         use_key,
         shares=None,
         version=1,
-        auto_filled=True,
+        auto_fill=True,
         reason=None):
     """build_buy_order
 
@@ -1167,7 +1167,7 @@ def build_buy_order(
 
     :param ticker: ticker
     :param num_owned: integer current owned
-        number of shares of this asset
+        number of shares for this asset
     :param close: float closing price of the asset
     :param balance: float amount of available capital
     :param commission: float for commission costs
@@ -1181,7 +1181,7 @@ def build_buy_order(
         if None buy max number of shares at the ``close`` with the
         available ``balance`` amount.
     :param version: optional - version tracking integer
-    :param auto_filled: optional - bool for not assuming the trade
+    :param auto_fill: optional - bool for not assuming the trade
         filled (default ``True``)
     :param reason: optional - string for recording why the algo
         decided to buy for review after the algorithm finishes
@@ -1194,26 +1194,26 @@ def build_buy_order(
     redis_enabled = True
 
     cost_of_trade = None
-    new_shares = None
-    new_balance = None
-    update_date = None
+    new_shares = num_owned
+    new_balance = balance
+    created_date = None
 
     tradable_funds = balance - (2.0 * commission)
 
     if close > 0.1 and tradable_funds > 10.0:
-        can_buy_num_shares = int(tradable_funds / close)
-        if shares:
-            if can_buy_num_shares > shares:
-                can_buy_num_shares = shares
-        cost_of_trade = to_f(val=(can_buy_num_shares * close))
+        can_buy_num_shares = shares
+        if not can_buy_num_shares:
+            can_buy_num_shares = int(tradable_funds / close)
+        cost_of_trade = to_f(
+            val=(can_buy_num_shares * close) + commission)
         if can_buy_num_shares > 0:
             if cost_of_trade > balance:
                 status = TRADE_NOT_ENOUGH_FUNDS
             else:
-                update_date = utc_now_str()
-                if auto_filled:
+                created_date = utc_now_str()
+                if auto_fill:
                     new_shares = num_owned + can_buy_num_shares
-                    new_balance = to_f(balance - cost_of_trade)
+                    new_balance = balance - cost_of_trade
                     status = TRADE_FILLED
                 else:
                     new_shares = shares
@@ -1230,12 +1230,12 @@ def build_buy_order(
         'shares': new_shares,
         'buy_price': cost_of_trade,
         'prev_balance': balance,
-        'prev_shares': shares,
+        'prev_shares': num_owned,
         'close': close,
         'details': details,
         'reason': reason,
-        'open_date': date,
-        'date': update_date,
+        'date': date,
+        'created': created_date,
         's3_bucket': s3_bucket_name,
         's3_key': s3_key,
         'redis_key': redis_key,
@@ -1258,7 +1258,7 @@ def build_sell_order(
         use_key,
         shares=None,
         version=1,
-        auto_filled=True,
+        auto_fill=True,
         reason=None):
     """build_sell_order
 
@@ -1266,7 +1266,7 @@ def build_sell_order(
 
     :param ticker: ticker
     :param num_owned: integer current owned
-        number of shares of this asset
+        number of shares for this asset
     :param close: float closing price of the asset
     :param balance: float amount of available capital
     :param commission: float for commission costs
@@ -1279,7 +1279,7 @@ def build_sell_order(
     :param shares: optional - integer number of shares to sell
         if None sell all ``num_owned`` shares at the ``close``.
     :param version: optional - version tracking integer
-    :param auto_filled: optional - bool for not assuming the trade
+    :param auto_fill: optional - bool for not assuming the trade
         filled (default ``True``)
     :param reason: optional - string for recording why the algo
         decided to sell for review after the algorithm finishes
@@ -1292,10 +1292,10 @@ def build_sell_order(
     redis_enabled = True
 
     cost_of_trade = None
-    sell_price = None
-    new_shares = None
-    new_balance = None
-    update_date = None
+    sell_price = 0.0
+    new_shares = num_owned
+    new_balance = balance
+    created_date = None
 
     tradable_funds = balance - commission
 
@@ -1308,12 +1308,13 @@ def build_sell_order(
                 shares = num_owned
         else:
             shares = num_owned
-        sell_price = to_f(shares * close)
+        sell_price = to_f(
+            val=(shares * close) + commission)
         if cost_of_trade > balance:
             status = TRADE_NOT_ENOUGH_FUNDS
         else:
-            update_date = utc_now_str()
-            if auto_filled:
+            created_date = utc_now_str()
+            if auto_fill:
                 new_shares = num_owned - shares
                 new_balance = to_f(balance + sell_price)
                 status = TRADE_FILLED
@@ -1330,12 +1331,12 @@ def build_sell_order(
         'shares': new_shares,
         'sell_price': sell_price,
         'prev_balance': balance,
-        'prev_shares': shares,
+        'prev_shares': num_owned,
         'close': close,
         'details': details,
         'reason': reason,
-        'open_date': date,
-        'date': update_date,
+        'date': date,
+        'created': created_date,
         's3_bucket': s3_bucket_name,
         's3_key': s3_key,
         'redis_key': redis_key,

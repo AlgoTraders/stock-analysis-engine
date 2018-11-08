@@ -1,7 +1,5 @@
 """
 Algorithm classes:
-
-- EquityAlgo
 """
 
 import json
@@ -17,6 +15,15 @@ log = build_colorized_logger(
 
 class EquityAlgo:
     """EquityAlgo
+
+    Run an algorithm against multiple tickers at once through the
+    redis dataframe pipeline provided by `analysis_engine.extract.ex
+    tract <https://github.com/AlgoTraders/stock-analysis-engine/bl
+    ob/master/analysis_engine/extract.py>`__.
+
+    **Data Pipeline Structure**
+
+    This algorithm can handle an extracted dictionary with structure:
 
     .. code-block:: python
 
