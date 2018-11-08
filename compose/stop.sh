@@ -147,7 +147,24 @@ rm env.sh
 
 docker-compose -f ./${compose} -p $USER down
 
-containers="sa-workers-${USER} sa-jupyter-${USER} redis-${USER} minio-${USER} sa-dataset-collection-${USER}"
+containers=""
+if [[ "${compose}" == "dev.yml" ]]; then
+    inf "stopping redis and minio"
+    containers="redis-${USER} minio-${USER}"
+elif [[ "${compose}" == "integration.yml" ]]; then
+    inf "stopping integration stack: redis, minio, workers and jupyter"
+    containers="sa-workers-${USER} sa-jupyter-${USER} redis-${USER} minio-${USER}"
+elif [[ "${compose}" == "notebook-integration.yml" ]]; then
+    inf "stopping end-to-end with notebook integration stack: redis, minio, workers and jupyter"
+    containers="sa-workers-${USER} sa-jupyter-${USER} redis-${USER} minio-${USER}"
+elif [[ "${compose}" == "automation-dataset-collection.yml" ]]; then
+    inf "stopping dataset collection"
+    containers="sa-dataset-collection-${USER}"
+else
+    err "unsupported compose file: ${compose}"
+    exit 1
+fi
+
 for c in ${containers}; do
     test_exists=$(docker ps -a | grep ${c} | wc -l)
     if [[ "${test_exists}" != "0" ]]; then

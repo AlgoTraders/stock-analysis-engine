@@ -60,6 +60,7 @@ Table of Contents
    README
    scripts
    api_reference
+   algos
    iex_api
    yahoo_api
    finviz_api
