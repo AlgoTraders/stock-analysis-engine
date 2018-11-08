@@ -95,7 +95,7 @@ def fetch(
     :param redis_address: Redis connection string format: ``host:port``
         (default is ``localhost:6379``)
     :param redis_db: Redis db to use
-        (default is ``4`` by default)
+        (default is ``0``)
     :param redis_password: optional - Redis password
         (default is ``None``)
     :param redis_expire: optional - Redis expire value
