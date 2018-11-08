@@ -13,6 +13,7 @@ from analysis_engine.api_requests import build_algo_request
 from analysis_engine.api_requests import build_buy_order
 from analysis_engine.api_requests import build_sell_order
 from analysis_engine.algo import EquityAlgo
+from analysis_engine.run_algo import run_algo
 
 
 class TestAlgoEquity(BaseTestCase):
@@ -57,21 +58,28 @@ class TestAlgoEquity(BaseTestCase):
                 'date': self.end_date_str  # Monday
             }
         ])
-        self.daily_df_name = '{}_2018-11-05_daily'.format(
+        self.minute_df = pd.DataFrame([])
+        self.options_df = pd.DataFrame([])
+        self.date_key = '{}_2018-11-05'.format(
             self.ticker)
-        self.minute_df_name = '{}_2018-11-05_minute'.format(
-            self.ticker)
-        self.options_df_name = '{}_2018-11-05_options'.format(
-            self.ticker)
+        self.daily_df_name = '{}_daily'.format(
+            self.date_key)
+        self.minute_df_name = '{}_minute'.format(
+            self.date_key)
+        self.options_df_name = '{}_options'.format(
+            self.date_key)
         self.datasets = [
             'daily'
         ]
         self.data = {}
         self.data[self.ticker] = [
             {
-                'name': self.daily_df_name,
-                'valid': True,
-                'df': self.daily_df
+                'date': self.date_key,
+                'data': {
+                    'daily': self.daily_df,
+                    'minute': self.minute_df,
+                    'options': self.options_df
+                }
             }
         ]
         self.balance = 10000.00
@@ -399,4 +407,25 @@ class TestAlgoEquity(BaseTestCase):
             data=self.data)
     # end of test_run_daily
 
-# end of TestAlgoEquity
+    def test_run_algo_daily(self):
+        """test_run_algo_daily"""
+        test_name = 'test_run_algo_daily'
+        balance = self.balance
+        commission = 13.5
+        algo = EquityAlgo(
+            ticker=self.ticker,
+            balance=balance,
+            commission=commission,
+            name=test_name)
+        rec = run_algo(
+            ticker=self.ticker,
+            algo=algo,
+            label=test_name)
+        self.assertEqual(
+            algo.name,
+            test_name)
+        self.assertEqual(
+            algo.tickers,
+            [self.ticker])
+        print(rec)
+    # end of test_run_algo_daily

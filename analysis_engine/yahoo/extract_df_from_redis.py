@@ -15,6 +15,12 @@ Supported environment variables:
     # verbose logging for just S3 operations in this module
     export DEBUG_S3_EXTRACT=1
 
+    # to show debug, trace logging please export ``SHARED_LOG_CFG``
+    # to a debug logger json file. To turn on debugging for this
+    # library, you can export this variable to the repo's
+    # included file with the command:
+    export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
+
 """
 
 import pandas as pd
@@ -68,7 +74,7 @@ def extract_pricing_dataset(
         'redis_db',
         REDIS_DB)
 
-    log.info(
+    log.debug(
         '{} - {} - start - redis_key={} s3_key={}'.format(
             label,
             df_str,
@@ -91,7 +97,7 @@ def extract_pricing_dataset(
             key=redis_key)
 
         status = redis_rec['status']
-        log.info(
+        log.debug(
             '{} - {} redis get data key={} status={}'.format(
                 label,
                 df_str,
@@ -99,12 +105,12 @@ def extract_pricing_dataset(
                 get_status(status=status)))
 
         if status == SUCCESS:
-            log.info(
+            log.debug(
                 '{} - {} redis convert pricing to json'.format(
                     label,
                     df_str))
             cached_dict = redis_rec['rec']['data']
-            log.info(
+            log.debug(
                 '{} - {} redis convert pricing to df'.format(
                     label,
                     df_str))
@@ -113,7 +119,7 @@ def extract_pricing_dataset(
                     cached_dict,
                     index=[0])
             except Exception as f:
-                log.info(
+                log.debug(
                     '{} - {} redis_key={} '
                     'no pricing df found'.format(
                         label,
@@ -121,13 +127,13 @@ def extract_pricing_dataset(
                         redis_key))
                 return EMPTY, None
             # end of try/ex to convert to df
-            log.info(
+            log.debug(
                 '{} - {} redis_key={} done convert pricing to df'.format(
                     label,
                     df_str,
                     redis_key))
         else:
-            log.info(
+            log.debug(
                 '{} - {} did not find valid redis pricing '
                 'in redis_key={} status={}'.format(
                     label,
@@ -136,7 +142,7 @@ def extract_pricing_dataset(
                     get_status(status=status)))
 
     except Exception as e:
-        log.error(
+        log.debug(
             '{} - {} - ds_id={} failed getting pricing from '
             'redis={}:{}@{} key={} ex={}'.format(
                 label,
@@ -150,7 +156,7 @@ def extract_pricing_dataset(
         return ERR, None
     # end of try/ex extract from redis
 
-    log.info(
+    log.debug(
         '{} - {} ds_id={} extract scrub={}'.format(
             label,
             df_str,
@@ -202,7 +208,7 @@ def extract_yahoo_news_dataset(
         'redis_db',
         REDIS_DB)
 
-    log.info(
+    log.debug(
         '{} - {} - start - redis_key={} s3_key={}'.format(
             label,
             df_str,
@@ -225,7 +231,7 @@ def extract_yahoo_news_dataset(
             key=redis_key)
 
         status = redis_rec['status']
-        log.info(
+        log.debug(
             '{} - {} redis get data key={} status={}'.format(
                 label,
                 df_str,
@@ -234,7 +240,7 @@ def extract_yahoo_news_dataset(
 
         if status == SUCCESS:
             cached_dict = redis_rec['rec']['data']
-            log.info(
+            log.debug(
                 '{} - {} redis convert news to df'.format(
                     label,
                     df_str))
@@ -242,7 +248,7 @@ def extract_yahoo_news_dataset(
                 df = pd.DataFrame(
                     cached_dict)
             except Exception as f:
-                log.info(
+                log.debug(
                     '{} - {} redis_key={} '
                     'no news df found'.format(
                         label,
@@ -250,13 +256,13 @@ def extract_yahoo_news_dataset(
                         redis_key))
                 return EMPTY, None
             # end of try/ex to convert to df
-            log.info(
+            log.debug(
                 '{} - {} redis_key={} done convert news to df'.format(
                     label,
                     df_str,
                     redis_key))
         else:
-            log.info(
+            log.debug(
                 '{} - {} did not find valid redis news calls '
                 'in redis_key={} status={}'.format(
                     label,
@@ -265,7 +271,7 @@ def extract_yahoo_news_dataset(
                     get_status(status=status)))
 
     except Exception as e:
-        log.error(
+        log.debug(
             '{} - {} - ds_id={} failed getting news calls from '
             'redis={}:{}@{} key={} ex={}'.format(
                 label,
@@ -279,7 +285,7 @@ def extract_yahoo_news_dataset(
         return ERR, None
     # end of try/ex extract from redis
 
-    log.info(
+    log.debug(
         '{} - {} ds_id={} extract scrub={}'.format(
             label,
             df_str,
@@ -331,7 +337,7 @@ def extract_option_calls_dataset(
         'redis_db',
         REDIS_DB)
 
-    log.info(
+    log.debug(
         '{} - {} - start - redis_key={} s3_key={}'.format(
             label,
             df_str,
@@ -355,7 +361,7 @@ def extract_option_calls_dataset(
             key=redis_key)
 
         status = redis_rec['status']
-        log.info(
+        log.debug(
             '{} - {} redis get data key={} status={}'.format(
                 label,
                 df_str,
@@ -365,7 +371,7 @@ def extract_option_calls_dataset(
         if status == SUCCESS:
             exp_date_str = redis_rec['rec']['data']['exp_date']
             calls_json = redis_rec['rec']['data']['calls']
-            log.info(
+            log.debug(
                 '{} - {} redis convert calls to df'.format(
                     label,
                     df_str))
@@ -374,7 +380,7 @@ def extract_option_calls_dataset(
                     calls_json,
                     orient='records')
             except Exception as f:
-                log.info(
+                log.debug(
                     '{} - {} redis_key={} '
                     'no calls df found'.format(
                         label,
@@ -382,7 +388,7 @@ def extract_option_calls_dataset(
                         redis_key))
                 return EMPTY, None
             # end of try/ex to convert to df
-            log.info(
+            log.debug(
                 '{} - {} redis_key={} calls={} exp_date={}'.format(
                     label,
                     df_str,
@@ -390,7 +396,7 @@ def extract_option_calls_dataset(
                     len(calls_df.index),
                     exp_date_str))
         else:
-            log.info(
+            log.debug(
                 '{} - {} did not find valid redis option calls '
                 'in redis_key={} status={}'.format(
                     label,
@@ -399,7 +405,7 @@ def extract_option_calls_dataset(
                     get_status(status=status)))
 
     except Exception as e:
-        log.error(
+        log.debug(
             '{} - {} - ds_id={} failed getting option calls from '
             'redis={}:{}@{} key={} ex={}'.format(
                 label,
@@ -413,7 +419,7 @@ def extract_option_calls_dataset(
         return ERR, None
     # end of try/ex extract from redis
 
-    log.info(
+    log.debug(
         '{} - {} ds_id={} extract scrub={}'.format(
             label,
             df_str,
@@ -465,7 +471,7 @@ def extract_option_puts_dataset(
         'redis_db',
         REDIS_DB)
 
-    log.info(
+    log.debug(
         '{} - {} - start - redis_key={} s3_key={}'.format(
             label,
             df_str,
@@ -489,7 +495,7 @@ def extract_option_puts_dataset(
             key=redis_key)
 
         status = redis_rec['status']
-        log.info(
+        log.debug(
             '{} - {} redis get data key={} status={}'.format(
                 label,
                 df_str,
@@ -499,7 +505,7 @@ def extract_option_puts_dataset(
         if status == SUCCESS:
             exp_date_str = redis_rec['rec']['data']['exp_date']
             puts_json = redis_rec['rec']['data']['puts']
-            log.info(
+            log.debug(
                 '{} - {} redis convert puts to df'.format(
                     label,
                     df_str))
@@ -508,7 +514,7 @@ def extract_option_puts_dataset(
                     puts_json,
                     orient='records')
             except Exception as f:
-                log.info(
+                log.debug(
                     '{} - {} redis_key={} '
                     'no puts df found'.format(
                         label,
@@ -516,7 +522,7 @@ def extract_option_puts_dataset(
                         redis_key))
                 return EMPTY, None
             # end of try/ex to convert to df
-            log.info(
+            log.debug(
                 '{} - {} redis_key={} puts={} exp_date={}'.format(
                     label,
                     df_str,
@@ -524,7 +530,7 @@ def extract_option_puts_dataset(
                     len(puts_df.index),
                     exp_date_str))
         else:
-            log.info(
+            log.debug(
                 '{} - {} did not find valid redis option puts '
                 'in redis_key={} status={}'.format(
                     label,
@@ -533,7 +539,7 @@ def extract_option_puts_dataset(
                     get_status(status=status)))
 
     except Exception as e:
-        log.error(
+        log.debug(
             '{} - {} - ds_id={} failed getting option puts from '
             'redis={}:{}@{} key={} ex={}'.format(
                 label,
@@ -547,7 +553,7 @@ def extract_option_puts_dataset(
         return ERR, None
     # end of try/ex extract from redis
 
-    log.info(
+    log.debug(
         '{} - {} ds_id={} extract scrub={}'.format(
             label,
             df_str,

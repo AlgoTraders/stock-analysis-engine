@@ -8,6 +8,12 @@ Debug redis calls with:
 
     export DEBUG_REDIS=1
 
+    # to show debug, trace logging please export ``SHARED_LOG_CFG``
+    # to a debug logger json file. To turn on debugging for this
+    # library, you can export this variable to the repo's
+    # included file with the command:
+    export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
+
 """
 
 import redis
@@ -73,7 +79,7 @@ def build_df_from_redis(
     log_id = label if label else 'build-df'
 
     try:
-        log.info(
+        log.debug(
             '{} calling get redis key={}'.format(
                 log_id,
                 key))
@@ -124,7 +130,7 @@ def build_df_from_redis(
                             key,
                             ppj(data)))
                 else:
-                    log.info(
+                    log.debug(
                         '{} - loading df from key={}'.format(
                             log_id,
                             key))
@@ -133,7 +139,7 @@ def build_df_from_redis(
                         orient='records')
                     valid_df = True
             else:
-                log.info(
+                log.debug(
                     '{} key={} no data'.format(
                         log_id,
                         key))
@@ -148,7 +154,7 @@ def build_df_from_redis(
                 rec=rec)
             return res
         else:
-            log.info(
+            log.debug(
                 '{} no data key={}'.format(
                     log_id,
                     key))

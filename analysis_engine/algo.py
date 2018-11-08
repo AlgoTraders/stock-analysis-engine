@@ -74,13 +74,17 @@ class EquityAlgo:
             self,
             ticker,
             balance,
+            commission=6.0,
             tickers=None,
             name=None,
-            auto_fill=True):
+            auto_fill=True,
+            publish_report_to_slack=True):
         """__init__
 
-        :param ticker: ngle ticker string
+        :param ticker: single ticker string
         :param balance: starting capital balance
+        :param commission: cost for commission
+            for a single buy or sell trade
         :param tickers: optional - list of ticker strings
         :param name: optional - log tracking name
             or algo name
@@ -88,7 +92,6 @@ class EquityAlgo:
             buy/sell orders for backtesting (default is
             ``True``)
         """
-        self.commission = 6.0
         self.buys = []
         self.sells = []
         self.num_shares = 0
@@ -99,6 +102,7 @@ class EquityAlgo:
                     ticker
                 ]
         self.balance = balance
+        self.commission = commission
         self.result = None
         self.name = name
         self.last_close = None
@@ -109,9 +113,19 @@ class EquityAlgo:
 
     def analyze_dataset(
             self,
-            track_id,
+            algo_id,
             ticker,
             dataset):
+        """analyze_dataset
+
+        process buy and sell conditions and place orders here.
+
+        :param algo_id: string - algo identifier label for debugging datasets
+            during specific dates
+        :param ticker: string - ticker
+        :param dataset: a pandas ``pd.DataFrame`` which could
+            be empty
+        """
 
         num_owned, num_buys, num_sells = self.get_ticker_positions(
             ticker=ticker)
@@ -122,17 +136,16 @@ class EquityAlgo:
             'bal={} shares={} '
             'num_buys={} num_sells={}'.format(
                 self.name,
-                track_id,
+                algo_id,
                 ds_name,
                 self.balance,
                 num_owned,
                 len(self.buys),
                 len(self.sells)))
-        print(dataset)
         self.create_buy_order(
             ticker=ticker,
             row={
-                'name': track_id,
+                'name': algo_id,
                 'close': 270.0,
                 'date': '2018-11-02'
             },
@@ -140,7 +153,7 @@ class EquityAlgo:
         self.create_sell_order(
             ticker=ticker,
             row={
-                'name': track_id,
+                'name': algo_id,
                 'close': 270.0,
                 'date': '2018-11-02'
             },
@@ -179,9 +192,14 @@ class EquityAlgo:
         return num_owned, buys, sells
     # end of get_ticker_positions
 
+    def get_name(self):
+        """get_name"""
+        return self.name
+    # end of get_name
+
     def get_result(self):
         """get_result"""
-        return self.get_result
+        return self.result
     # end of get_result
 
     def get_balance(self):
@@ -206,7 +224,7 @@ class EquityAlgo:
 
         :param ticker: ticker to lookup
         """
-        num_owned = None
+        num_owned = 0
         if ticker in self.positions:
             num_owned = self.positions[ticker].get(
                 'shares',
@@ -219,7 +237,9 @@ class EquityAlgo:
             ticker,
             row,
             shares=None,
-            reason=None):
+            reason=None,
+            orient='records',
+            date_format='iso'):
         """create_buy_order
 
         create a buy order at the close or ask price
@@ -228,13 +248,17 @@ class EquityAlgo:
         :param shares: optional - integer number of shares to buy
             if None buy max number of shares at the ``close`` with the
             available ``balance`` amount.
-        :param row: ``pd.DataFrame`` row record that will
-            be converted to a json-serialized string
+        :param row: ``dictionary`` or ``pd.DataFrame``
+            row record that will be converted to a
+            json-serialized string
         :param reason: optional - reason for creating the order
             which is useful for troubleshooting order histories
+        :param orient: optional - pandas orient for ``row.to_json()``
+        :param date_format: optional - pandas date_format
+            parameter for ``row.to_json()``
         """
         close = row['close']
-        backtest_date = row['date']
+        dataset_date = row['date']
         log.info(
             '{} - buy start {}@{} - shares={}'.format(
                 self.name,
@@ -242,6 +266,12 @@ class EquityAlgo:
                 close,
                 shares))
         new_buy = None
+
+        order_details = row
+        if hasattr(row, 'to_json'):
+            order_details = row.to_json(
+                orient='records',
+                date_format='iso'),
         try:
             num_owned = self.get_owned_shares(
                 ticker=ticker)
@@ -252,10 +282,11 @@ class EquityAlgo:
                 shares=shares,
                 balance=self.balance,
                 commission=self.commission,
-                date=backtest_date,
-                details=row.to_json(
-                    orient='records',
-                    date_format='iso'),
+                date=dataset_date,
+                use_key='{}_{}'.format(
+                    ticker,
+                    dataset_date),
+                details=order_details,
                 reason=reason)
 
             prev_shares = num_owned
@@ -317,38 +348,53 @@ class EquityAlgo:
             self,
             ticker,
             row,
-            reason=None):
+            shares=None,
+            reason=None,
+            orient='records',
+            date_format='iso'):
         """create_sell_order
 
         create a sell order at the close or ask price
 
         :param ticker: string ticker
+        :param shares: optional - integer number of shares to sell
+            if None sell all owned shares at the ``close``
         :param row: ``pd.DataFrame`` row record that will
             be converted to a json-serialized string
         :param reason: optional - reason for creating the order
             which is useful for troubleshooting order histories
+        :param orient: optional - pandas orient for ``row.to_json()``
+        :param date_format: optional - pandas date_format
+            parameter for ``row.to_json()``
         """
         close = row['close']
-        backtest_date = row['date']
+        dataset_date = row['date']
         log.info(
             '{} - sell start {}@{}'.format(
                 self.name,
                 ticker,
                 close))
         new_sell = None
+        order_details = row
+        if hasattr(row, 'to_json'):
+            order_details = row.to_json(
+                orient=orient,
+                date_format=date_format),
         try:
             num_owned = self.get_owned_shares(
                 ticker=ticker)
             new_sell = api_requests.build_sell_order(
                 ticker=ticker,
                 close=close,
-                shares=num_owned,
+                num_owned=num_owned,
+                shares=shares,
                 balance=self.balance,
                 commission=self.commission,
-                date=backtest_date,
-                details=row.to_json(
-                    orient='records',
-                    date_format='iso'),
+                date=dataset_date,
+                use_key='{}_{}'.format(
+                    ticker,
+                    dataset_date),
+                details=order_details,
                 reason=reason)
 
             prev_shares = num_owned
@@ -487,28 +533,22 @@ class EquityAlgo:
                 track_label = self.build_progress_label(
                     progress=idx,
                     total=num_ticker_datasets)
-                track_id = 'ticker={} {}'.format(
+                algo_id = 'ticker={} {}'.format(
                     ticker,
                     track_label)
-                is_valid = node.get('valid', False)
-                if is_valid:
-                    log.info(
-                        '{} - handle - {} - ds={} valid={}'.format(
-                            self.name,
-                            track_id,
-                            node['name'],
-                            node.get('valid', None)))
-                    self.analyze_dataset(
-                        track_id=track_id,
-                        ticker=ticker,
-                        dataset=node)
-                else:
-                    log.info(
-                        '{} - handle - {} - invalid ds={}'.format(
-                            self.name,
-                            track_id,
-                            node['name']))
-                # end of if/else valid dataset
+                log.info(
+                    '{} - handle - {} - ds={}'.format(
+                        self.name,
+                        algo_id,
+                        node['date']))
+                # thinking this could be a separate celery task
+                # to increase horizontal scaling to crunch
+                # datasets faster like:
+                # http://jsatt.com/blog/class-based-celery-tasks/
+                self.analyze_dataset(
+                    algo_id=algo_id,
+                    ticker=ticker,
+                    dataset=node)
                 cur_idx += 1
         # for all supported tickers
 

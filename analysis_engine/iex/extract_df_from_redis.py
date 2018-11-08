@@ -15,6 +15,12 @@ Supported environment variables:
     # verbose logging for just S3 operations in this module
     export DEBUG_S3_EXTRACT=1
 
+    # to show debug, trace logging please export ``SHARED_LOG_CFG``
+    # to a debug logger json file. To turn on debugging for this
+    # library, you can export this variable to the repo's
+    # included file with the command:
+    export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
+
 """
 
 import copy
@@ -59,7 +65,7 @@ def extract_daily_dataset(
             req['s3_key'] = req['daily']
     # end of support for the get dataset dictionary
 
-    log.info(
+    log.debug(
         '{} - {} - start'.format(
             label,
             df_str))
@@ -95,7 +101,7 @@ def extract_minute_dataset(
             req['s3_key'] = req['minute']
     # end of support for the get dataset dictionary
 
-    log.info(
+    log.debug(
         '{} - {} - start'.format(
             label,
             df_str))
@@ -131,7 +137,7 @@ def extract_quote_dataset(
             req['s3_key'] = req['quote']
     # end of support for the get dataset dictionary
 
-    log.info(
+    log.debug(
         '{} - {} - start'.format(
             label,
             df_str))
@@ -167,7 +173,7 @@ def extract_stats_dataset(
             req['s3_key'] = req['stats']
     # end of support for the get dataset dictionary
 
-    log.info(
+    log.debug(
         '{} - {} - start'.format(
             label,
             df_str))
@@ -203,7 +209,7 @@ def extract_peers_dataset(
             req['s3_key'] = req['peers']
     # end of support for the get dataset dictionary
 
-    log.info(
+    log.debug(
         '{} - {} - start'.format(
             label,
             df_str))
@@ -239,7 +245,7 @@ def extract_news_dataset(
             req['s3_key'] = req['news1']
     # end of support for the get dataset dictionary
 
-    log.info(
+    log.debug(
         '{} - {} - start'.format(
             label,
             df_str))
@@ -275,7 +281,7 @@ def extract_financials_dataset(
             req['s3_key'] = req['financials']
     # end of support for the get dataset dictionary
 
-    log.info(
+    log.debug(
         '{} - {} - start'.format(
             label,
             df_str))
@@ -311,7 +317,7 @@ def extract_earnings_dataset(
             req['s3_key'] = req['earnings']
     # end of support for the get dataset dictionary
 
-    log.info(
+    log.debug(
         '{} - {} - start'.format(
             label,
             df_str))
@@ -347,7 +353,7 @@ def extract_dividends_dataset(
             req['s3_key'] = req['dividends']
     # end of support for the get dataset dictionary
 
-    log.info(
+    log.debug(
         '{} - {} - start'.format(
             label,
             df_str))
@@ -383,7 +389,7 @@ def extract_company_dataset(
             req['s3_key'] = req['company']
     # end of support for the get dataset dictionary
 
-    log.info(
+    log.debug(
         '{} - {} - start'.format(
             label,
             df_str))

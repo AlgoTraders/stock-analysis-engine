@@ -22,6 +22,12 @@ Supported environment variables:
     # verbose logging for just S3 operations in this module
     export DEBUG_S3_EXTRACT=1
 
+    # to show debug, trace logging please export ``SHARED_LOG_CFG``
+    # to a debug logger json file. To turn on debugging for this
+    # library, you can export this variable to the repo's
+    # included file with the command:
+    export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
+
 """
 
 import analysis_engine.build_df_from_redis as build_df
@@ -37,7 +43,6 @@ from analysis_engine.consts import S3_ADDRESS
 from analysis_engine.consts import S3_SECURE
 from analysis_engine.consts import S3_BUCKET
 from analysis_engine.consts import S3_KEY
-from analysis_engine.consts import ENABLED_REDIS_PUBLISH
 from analysis_engine.consts import REDIS_ADDRESS
 from analysis_engine.consts import REDIS_KEY
 from analysis_engine.consts import REDIS_PASSWORD
@@ -88,9 +93,6 @@ def perform_extract(
     s3_enabled = work_dict.get(
         's3_enabled',
         ENABLED_S3_UPLOAD)
-    redis_enabled = work_dict.get(
-        'redis_enabled',
-        ENABLED_REDIS_PUBLISH)
     s3_access_key = work_dict.get(
         's3_access_key',
         S3_ACCESS_KEY)
@@ -119,15 +121,14 @@ def perform_extract(
         'redis_expire',
         REDIS_EXPIRE)
 
-    log.info(
+    log.debug(
         '{} - {} - START - ds_id={} scrub_mode={} '
-        'redis={} redis_address={}@{} redis_key={} '
+        'redis_address={}@{} redis_key={} '
         's3={} s3_address={} s3_bucket={} s3_key={}'.format(
             label,
             df_str,
             ds_id,
             scrub_mode,
-            redis_enabled,
             redis_address,
             redis_db,
             redis_key,
@@ -187,19 +188,20 @@ def perform_extract(
         and extract_res['rec']['valid_df'])
 
     if not valid_df:
-        log.error(
-            '{} - {} ds_id={} invalid df '
-            'status={} extract_res={}'.format(
-                label,
-                df_str,
-                ds_id,
-                get_status(status=extract_res['status']),
-                extract_res))
+        if ev('DEBUG_S3_EXTRACT', '0') == '1':
+            log.error(
+                '{} - {} ds_id={} invalid df '
+                'status={} extract_res={}'.format(
+                    label,
+                    df_str,
+                    ds_id,
+                    get_status(status=extract_res['status']),
+                    extract_res))
         return status, None
 
     extract_df = extract_res['rec']['data']
 
-    log.info(
+    log.debug(
         '{} - {} ds_id={} extract scrub={}'.format(
             label,
             df_str,

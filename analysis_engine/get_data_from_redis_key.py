@@ -7,6 +7,12 @@ Debug redis calls with:
 
     export DEBUG_REDIS=1
 
+    # to show debug, trace logging please export ``SHARED_LOG_CFG``
+    # to a debug logger json file. To turn on debugging for this
+    # library, you can export this variable to the repo's
+    # included file with the command:
+    export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
+
 """
 
 import json
@@ -66,7 +72,7 @@ def get_data_from_redis_key(
 
         use_client = client
         if not use_client:
-            log.info(
+            log.debug(
                 '{} get key={} new client={}:{}@{}'.format(
                     log_id,
                     key,
@@ -79,7 +85,7 @@ def get_data_from_redis_key(
                 password=password,
                 db=db)
         else:
-            log.info(
+            log.debug(
                 '{} get key={} client'.format(
                     log_id,
                     key))
@@ -90,14 +96,14 @@ def get_data_from_redis_key(
             name=key)
 
         if raw_data:
-            log.info(
+            log.debug(
                 '{} decoding key={} encoding={}'.format(
                     log_id,
                     key,
                     encoding))
             decoded_data = raw_data.decode(encoding)
 
-            log.info(
+            log.debug(
                 '{} deserial key={} serializer={}'.format(
                     log_id,
                     key,
@@ -118,7 +124,7 @@ def get_data_from_redis_key(
                             key,
                             ppj(data)))
                 else:
-                    log.info(
+                    log.debug(
                         '{} - found key={}'.format(
                             log_id,
                             key))
@@ -132,7 +138,7 @@ def get_data_from_redis_key(
                 rec=rec)
             return res
         else:
-            log.info(
+            log.debug(
                 '{} no data key={}'.format(
                     log_id,
                     key))

@@ -3,12 +3,23 @@ Run an Algo
 """
 
 import os
+import datetime
 import json
 import analysis_engine.iex.extract_df_from_redis as iex_extract_utils
 import analysis_engine.yahoo.extract_df_from_redis as yahoo_extract_utils
+import analysis_engine.yahoo.extract_df_from_redis as default_algo
+import analysis_engine.build_result as build_result
 from analysis_engine.consts import SUCCESS
+from analysis_engine.consts import ERR
+from analysis_engine.consts import NOT_RUN
 from analysis_engine.consts import FAILED
+from analysis_engine.consts import EMPTY
+from analysis_engine.consts import COMMON_TICK_DATE_FORMAT
+from analysis_engine.consts import get_percent_done
+from analysis_engine.utils import last_close
 from analysis_engine.utils import get_last_close_str
+from analysis_engine.utils import get_date_from_str
+from analysis_engine.api_requests import build_algo_request
 from analysis_engine.api_requests import get_ds_dict
 from spylunking.log.setup_logging import build_colorized_logger
 
@@ -20,10 +31,14 @@ log = build_colorized_logger(
 def run_algo(
         ticker=None,
         tickers=None,
-        start_date=None,    # string YYYY-MM-DD HH:MM:SS
-        end_date=None,      # string YYYY-MM-DD HH:MM:SS
-        dataset_type=None,  # string list of identifiers
+        balance=None,     # float starting base capital
+        commission=None,  # float for single trade commission for buy or sell
+        start_date=None,  # string YYYY-MM-DD HH:MM:SS
+        end_date=None,    # string YYYY-MM-DD HH:MM:SS
+        datasets=None,    # string list of identifiers
         algo=None,  # derived ``analysis_engine.algo.Algo`` instance
+        num_owned_dict=None,  # not supported
+        cache_freq='daily',   # 'minute' not supported
         use_key=None,
         extract_mode='all',
         iex_datasets=None,
@@ -61,11 +76,17 @@ def run_algo(
     :param tickers: optional - list of tickers to extract
     :param use_key: optional - extract historical key from Redis
 
+    **Algo Configuration**
+
+    :param balance: float balance
+    :param commission: float for single trade commission for
+        buy or sell
     :param start_date: string ``YYYY-MM-DD_HH:MM:SS`` cache value
     :param end_date: string ``YYYY-MM-DD_HH:MM:SS`` cache value
     :param dataset_types: list of strings that are ``iex`` or ``yahoo``
         datasets that are cached.
     :param algo: derived instance of ``analysis_engine.algo.Algo`` object
+    :param num_owned_dict: not supported yet
     :param trading_calendar: ``trading_calendar.TradingCalendar``
         object, by default ``analysis_engine.calendars.
         always_open.AlwaysOpen`` trading calendar
@@ -143,8 +164,12 @@ def run_algo(
         export WORKER_BACKEND_URL="redis://0.0.0.0:6379/14"
     """
 
-    rec = {}
+    # dictionary structure with a list sorted on: ascending dates
+    # algo_data_req[ticker][list][dataset] = pd.DataFrame
+    algo_data_req = {}
     extract_requests = []
+    rec = {}
+    msg = None
 
     use_tickers = tickers
     if ticker:
@@ -221,21 +246,21 @@ def run_algo(
             'redis://0.0.0.0:6379/14')
 
     if not label:
-        label = 'get-latest'
+        label = 'run-algo'
 
     num_tickers = len(use_tickers)
     last_close_str = get_last_close_str()
 
     if iex_datasets:
         log.info(
-            '{} - getting latest for tickers={} '
+            '{} - tickers={} '
             'iex={}'.format(
                 label,
                 num_tickers,
                 json.dumps(iex_datasets)))
     else:
         log.info(
-            '{} - getting latest for tickers={}'.format(
+            '{} - tickers={}'.format(
                 label,
                 num_tickers))
 
@@ -244,6 +269,24 @@ def run_algo(
         ticker_key = '{}_{}'.format(
             ticker,
             last_close_str)
+
+    if not algo:
+        algo = default_algo.EquityAlgo(
+            tickers=use_tickers,
+            balance=balance,
+            commission=commission,
+            name=label,
+            auto_fill=True)
+
+    if not algo:
+        msg = (
+            '{} - missing algo object'.format(
+                label))
+        log.error(msg)
+        return build_result.build_result(
+                status=EMPTY,
+                err=msg,
+                rec=rec)
 
     common_vals = {}
     common_vals['base_key'] = ticker_key
@@ -265,19 +308,6 @@ def run_algo(
     common_vals['redis_db'] = redis_db
     common_vals['redis_key'] = ticker_key
     common_vals['redis_expire'] = redis_expire
-
-    common_vals['redis_address'] = redis_address
-    common_vals['s3_address'] = s3_address
-
-    log.info(
-        '{} - extract ticker={} last_close={} base_key={} '
-        'redis_address={} s3_address={}'.format(
-            label,
-            ticker,
-            last_close_str,
-            common_vals['base_key'],
-            common_vals['redis_address'],
-            common_vals['s3_address']))
 
     """
     Extract Datasets
@@ -312,13 +342,74 @@ def run_algo(
     yahoo_pricing_df = None
     yahoo_news_df = None
 
+    use_start_date_str = start_date
+    use_end_date_str = end_date
+    last_close_date = last_close()
+    end_date_val = None
+
+    cache_freq_fmt = COMMON_TICK_DATE_FORMAT
+
+    if not use_end_date_str:
+        use_end_date_str = last_close_date.strftime(
+            cache_freq_fmt)
+
+    end_date_val = get_date_from_str(
+        date_str=use_end_date_str,
+        fmt=cache_freq_fmt)
+
+    if not use_start_date_str:
+        start_date_val = end_date_val - datetime.timedelta(
+            days=60)
+        use_start_date_str = start_date_val.strftime(
+            cache_freq_fmt)
+
+    total_dates = (end_date_val - start_date_val).days
+
+    if end_date_val < start_date_val:
+        msg = (
+            '{} - invalid dates - start_date={} is after '
+            'end_date={}'.format(
+                label,
+                start_date_val,
+                end_date_val))
+        raise Exception(msg)
+
+    log.info(
+        '{} - days={} start={} end={} datatset={}'.format(
+            label,
+            total_dates,
+            use_start_date_str,
+            use_end_date_str,
+            datasets))
+
     for ticker in use_tickers:
-        req = get_ds_dict(
+        req = build_algo_request(
             ticker=ticker,
-            base_key=common_vals['base_key'],
-            ds_id=label,
-            service_dict=common_vals)
-        extract_requests.append(req)
+            use_key=use_key,
+            start_date=use_start_date_str,
+            end_date=use_end_date_str,
+            datasets=datasets,
+            balance=balance,
+            cache_freq=cache_freq,
+            label=label)
+        ticker_key = '{}_{}'.format(
+            ticker,
+            last_close_str)
+        common_vals['ticker'] = ticker
+        common_vals['base_key'] = ticker_key
+        common_vals['redis_key'] = ticker_key
+        common_vals['s3_key'] = ticker_key
+
+        for date_key in req['extract_datasets']:
+            date_req = get_ds_dict(
+                ticker=ticker,
+                base_key=date_key,
+                ds_id=label,
+                service_dict=common_vals)
+            extract_requests.append({
+                'ticker': ticker,
+                'date_key': date_key,
+                'req': date_req})
     # end of for all ticker in use_tickers
 
     extract_iex = True
@@ -329,7 +420,29 @@ def run_algo(
     if extract_mode not in ['all', 'yahoo']:
         extract_yahoo = False
 
-    for extract_req in extract_requests:
+    first_extract_date = None
+    last_extract_date = None
+    total_extract_requests = len(extract_requests)
+    for idx, extract_node in enumerate(extract_requests):
+        extract_ticker = extract_node['ticker']
+        extract_date = extract_node['date_key']
+        extract_req = extract_node['req']
+        if not first_extract_date:
+            first_extract_date = extract_date
+        last_extract_date = extract_date
+        percent_label = (
+            '{} ticker={} {} {}/{} date={}'.format(
+                label,
+                extract_ticker,
+                get_percent_done(
+                    progress=idx,
+                    total=total_extract_requests),
+                idx,
+                total_extract_requests,
+                extract_date))
+        log.info(
+            '{} - ex - start'.format(
+                percent_label))
         if 'daily' in iex_datasets or extract_iex:
             iex_daily_status, iex_daily_df = \
                 iex_extract_utils.extract_daily_dataset(
@@ -455,8 +568,99 @@ def run_algo(
         ticker_data['pricing'] = yahoo_pricing_df
         ticker_data['news'] = yahoo_news_df
 
-        rec[ticker] = ticker_data
+        if ticker not in algo_data_req:
+            algo_data_req[ticker] = []
+
+        algo_data_req[ticker].append({
+            'date': extract_date,  # used to confirm dates in asc order
+            'data': ticker_data})
+
+        log.info(
+            '{} - ex - algo data={}'.format(
+                percent_label,
+                len(algo_data_req[ticker])))
     # end of for service_dict in extract_requests
 
-    return rec
-# end of extract
+    # this could be a separate celery task
+    status = NOT_RUN
+    if len(algo_data_req) == 0:
+        msg = (
+            '{} - nothing to test - no data found for tickers={} '
+            'between {} and {}'.format(
+                label,
+                use_tickers,
+                first_extract_date,
+                last_extract_date))
+        log.info(msg)
+        return build_result.build_result(
+            status=EMPTY,
+            err=msg,
+            rec=rec)
+
+    # this could be a separate celery task
+    try:
+        log.info(
+            '{} handle_data - START {} to {}'.format(
+                percent_label,
+                first_extract_date,
+                last_extract_date))
+        algo.handle_data(
+            data=algo_data_req)
+        log.info(
+            '{} handle_data - END from {} to {}'.format(
+                percent_label,
+                first_extract_date,
+                last_extract_date))
+    except Exception as e:
+        msg = (
+            '{} - algo={} encountered exception in handle_data '
+            'tickers={} from '
+            '{} to {} ex={}'.format(
+                percent_label,
+                algo.get_name(),
+                use_tickers,
+                first_extract_date,
+                last_extract_date,
+                e))
+        return build_result.build_result(
+            status=ERR,
+            err=msg,
+            rec=rec)
+    # end of try/ex
+
+    # this could be a separate celery task
+    try:
+        log.info(
+            '{} analyzing - START {} to {}'.format(
+                percent_label,
+                first_extract_date,
+                last_extract_date))
+        rec = algo.get_result()
+        status = SUCCESS
+        log.info(
+            '{} analyzing - END from {} to {}'.format(
+                percent_label,
+                first_extract_date,
+                last_extract_date))
+    except Exception as e:
+        msg = (
+            '{} - algo={} encountered exception in get_result '
+            'tickers={} from '
+            '{} to {} ex={}'.format(
+                percent_label,
+                algo.get_name(),
+                use_tickers,
+                first_extract_date,
+                last_extract_date,
+                e))
+        return build_result.build_result(
+            status=ERR,
+            err=msg,
+            rec=rec)
+    # end of try/ex
+
+    return build_result.build_result(
+        status=status,
+        err=msg,
+        rec=rec)
+# end of run_algo
