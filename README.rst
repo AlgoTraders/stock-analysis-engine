@@ -603,6 +603,12 @@ Deploy Jupyter to a Kubernetes cluster with:
 Testing
 =======
 
+To show debug, trace logging please export ``SHARED_LOG_CFG`` to a debug logger json file. To turn on debugging for this library, you can export this variable to the repo's included file with the command:
+
+::
+
+    export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
+
 .. note:: There is a known `pandas issue that logs a warning about _timelex <https://github.com/pandas-dev/pandas/issues/18141>`__, and it will show as a warning until it is fixed in pandas. Please ignore this warning for now.
 
    ::

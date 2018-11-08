@@ -1,6 +1,9 @@
 """
-Test file for:
-Build Dataset Cache Dict
+Test file for classes and functions:
+
+- analysis_engine.algo.EquityAlgo
+- analysis_engine.run_algo.run_algo
+
 """
 
 import pandas as pd
@@ -13,6 +16,7 @@ from analysis_engine.api_requests import build_algo_request
 from analysis_engine.api_requests import build_buy_order
 from analysis_engine.api_requests import build_sell_order
 from analysis_engine.algo import EquityAlgo
+from analysis_engine.run_algo import run_algo
 
 
 class TestAlgoEquity(BaseTestCase):
@@ -57,11 +61,9 @@ class TestAlgoEquity(BaseTestCase):
                 'date': self.end_date_str  # Monday
             }
         ])
-        self.daily_df_name = '{}_2018-11-05_daily'.format(
-            self.ticker)
-        self.minute_df_name = '{}_2018-11-05_minute'.format(
-            self.ticker)
-        self.options_df_name = '{}_2018-11-05_options'.format(
+        self.minute_df = pd.DataFrame([])
+        self.options_df = pd.DataFrame([])
+        self.date_key = '{}_2018-11-05'.format(
             self.ticker)
         self.datasets = [
             'daily'
@@ -69,9 +71,12 @@ class TestAlgoEquity(BaseTestCase):
         self.data = {}
         self.data[self.ticker] = [
             {
-                'name': self.daily_df_name,
-                'valid': True,
-                'df': self.daily_df
+                'date': self.date_key,
+                'data': {
+                    'daily': self.daily_df,
+                    'minute': self.minute_df,
+                    'options': self.options_df
+                }
             }
         ]
         self.balance = 10000.00
@@ -398,5 +403,90 @@ class TestAlgoEquity(BaseTestCase):
         algo.handle_data(
             data=self.data)
     # end of test_run_daily
+
+    def test_run_algo_daily(self):
+        """test_run_algo_daily"""
+        test_name = 'test_run_algo_daily'
+        balance = self.balance
+        commission = 13.5
+        algo = EquityAlgo(
+            ticker=self.ticker,
+            balance=balance,
+            commission=commission,
+            name=test_name)
+        rec = run_algo(
+            ticker=self.ticker,
+            algo=algo,
+            label=test_name)
+        self.assertEqual(
+            algo.name,
+            test_name)
+        self.assertEqual(
+            algo.tickers,
+            [self.ticker])
+        print(rec)
+    # end of test_run_algo_daily
+
+    def test_sample_algo_code_in_docstring(self):
+        ticker = 'SPY'
+        demo_algo = EquityAlgo(
+            ticker=ticker,
+            balance=1000.00,
+            commission=6.00,
+            name='test-{}'.format(ticker))
+        date_key = '{}_2018-11-05'.format(
+            ticker)
+        # mock the data pipeline in redis:
+        data = {
+            ticker: [
+                {
+                    'date': date_key,
+                    'data': {
+                        'daily': pd.DataFrame([
+                            {
+                                'high': 280.01,
+                                'low': 270.01,
+                                'open': 275.01,
+                                'close': 272.02,
+                                'volume': 123,
+                                'date': '2018-11-01 15:59:59'
+                            },
+                            {
+                                'high': 281.01,
+                                'low': 271.01,
+                                'open': 276.01,
+                                'close': 273.02,
+                                'volume': 124,
+                                'date': '2018-11-02 15:59:59'
+                            },
+                            {
+                                'high': 282.01,
+                                'low': 272.01,
+                                'open': 277.01,
+                                'close': 274.02,
+                                'volume': 121,
+                                'date': '2018-11-05 15:59:59'
+                            }
+                        ]),
+                        'minute': pd.DataFrame([]),
+                        'news': pd.DataFrame([]),
+                        'options': pd.DataFrame([])
+                        # etc
+                    }
+                }
+            ]
+        }
+
+        # run the algorithm
+        demo_algo.handle_data(data=data)
+
+        # get the algorithm results
+        results = demo_algo.get_result()
+
+        print(ppj(results))
+        self.assertEqual(
+            results['balance'],
+            1000.0)
+    # end of test_sample_algo_code_in_docstring
 
 # end of TestAlgoEquity

@@ -140,6 +140,7 @@ def get_ds_dict(
         'label': label,
         'created': now_str,
         'date': date_str,
+        'manifest_key': use_base_key,
         'version': CACHE_DICT_VERSION
     }
 
