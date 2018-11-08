@@ -1,6 +1,9 @@
 """
-Test file for:
-Build Dataset Cache Dict
+Test file for classes and functions:
+
+- analysis_engine.algo.EquityAlgo
+- analysis_engine.run_algo.run_algo
+
 """
 
 import pandas as pd
@@ -62,12 +65,6 @@ class TestAlgoEquity(BaseTestCase):
         self.options_df = pd.DataFrame([])
         self.date_key = '{}_2018-11-05'.format(
             self.ticker)
-        self.daily_df_name = '{}_daily'.format(
-            self.date_key)
-        self.minute_df_name = '{}_minute'.format(
-            self.date_key)
-        self.options_df_name = '{}_options'.format(
-            self.date_key)
         self.datasets = [
             'daily'
         ]
@@ -429,3 +426,67 @@ class TestAlgoEquity(BaseTestCase):
             [self.ticker])
         print(rec)
     # end of test_run_algo_daily
+
+    def test_sample_algo_code_in_docstring(self):
+        ticker = 'SPY'
+        demo_algo = EquityAlgo(
+            ticker=ticker,
+            balance=1000.00,
+            commission=6.00,
+            name='test-{}'.format(ticker))
+        date_key = '{}_2018-11-05'.format(
+            ticker)
+        # mock the data pipeline in redis:
+        data = {
+            ticker: [
+                {
+                    'date': date_key,
+                    'data': {
+                        'daily': pd.DataFrame([
+                            {
+                                'high': 280.01,
+                                'low': 270.01,
+                                'open': 275.01,
+                                'close': 272.02,
+                                'volume': 123,
+                                'date': '2018-11-01 15:59:59'
+                            },
+                            {
+                                'high': 281.01,
+                                'low': 271.01,
+                                'open': 276.01,
+                                'close': 273.02,
+                                'volume': 124,
+                                'date': '2018-11-02 15:59:59'
+                            },
+                            {
+                                'high': 282.01,
+                                'low': 272.01,
+                                'open': 277.01,
+                                'close': 274.02,
+                                'volume': 121,
+                                'date': '2018-11-05 15:59:59'
+                            }
+                        ]),
+                        'minute': pd.DataFrame([]),
+                        'news': pd.DataFrame([]),
+                        'options': pd.DataFrame([])
+                        # etc
+                    }
+                }
+            ]
+        }
+
+        # run the algorithm
+        demo_algo.handle_data(data=data)
+
+        # get the algorithm results
+        results = demo_algo.get_result()
+
+        print(ppj(results))
+        self.assertEqual(
+            results['balance'],
+            1000.0)
+    # end of test_sample_algo_code_in_docstring
+
+# end of TestAlgoEquity

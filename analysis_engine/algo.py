@@ -7,6 +7,7 @@ import analysis_engine.api_requests as api_requests
 from analysis_engine.consts import TRADE_FILLED
 from analysis_engine.consts import get_status
 from analysis_engine.consts import get_percent_done
+from analysis_engine.utils import utc_now_str
 from spylunking.log.setup_logging import build_colorized_logger
 
 log = build_colorized_logger(
@@ -27,47 +28,64 @@ class EquityAlgo:
 
     .. code-block:: python
 
+        import pandas as pd
+        from analysis_engine.algo import EquityAlgo
         ticker = 'SPY'
-        starting_capital = 1000.00
         demo_algo = EquityAlgo(
             ticker=ticker,
-            balance=starting_capital,
+            balance=1000.00,
+            commission=6.00,
             name='test-{}'.format(ticker))
-        df_name = '{}_2018-11-05_daily'.format(
+        date_key = '{}_2018-11-05'.format(
             ticker)
+        # mock the data pipeline in redis:
         data = {
             ticker: [
                 {
-                    df_name: [
-                        {
-                            'high': 280.01,
-                            'low': 270.01,
-                            'open': 275.01,
-                            'close': 272.02,
-                            'volume': 123,
-                            'date': '2018-11-01 15:59:59'
-                        },
-                        {
-                            'high': 281.01,
-                            'low': 271.01,
-                            'open': 276.01,
-                            'close': 273.02,
-                            'volume': 124,
-                            'date': '2018-11-02 15:59:59'
-                        },
-                        {
-                            'high': 282.01,
-                            'low': 272.01,
-                            'open': 277.01,
-                            'close': 274.02,
-                            'volume': 121,
-                            'date': '2018-11-05 15:59:59'
-                        }
-                    ]
+                    'date': date_key,
+                    'data': {
+                        'daily': pd.DataFrame([
+                            {
+                                'high': 280.01,
+                                'low': 270.01,
+                                'open': 275.01,
+                                'close': 272.02,
+                                'volume': 123,
+                                'date': '2018-11-01 15:59:59'
+                            },
+                            {
+                                'high': 281.01,
+                                'low': 271.01,
+                                'open': 276.01,
+                                'close': 273.02,
+                                'volume': 124,
+                                'date': '2018-11-02 15:59:59'
+                            },
+                            {
+                                'high': 282.01,
+                                'low': 272.01,
+                                'open': 277.01,
+                                'close': 274.02,
+                                'volume': 121,
+                                'date': '2018-11-05 15:59:59'
+                            }
+                        ]),
+                        'minute': pd.DataFrame([]),
+                        'news': pd.DataFrame([]),
+                        'options': pd.DataFrame([])
+                        # etc
+                    }
                 }
             ]
         }
+
+        # run the algorithm
         demo_algo.handle_data(data=data)
+
+        # get the algorithm results
+        results = demo_algo.get_result()
+
+        print(results)
     """
 
     def __init__(
@@ -107,6 +125,7 @@ class EquityAlgo:
         self.name = name
         self.last_close = None
         self.positions = {}
+        self.created_date = utc_now_str()
         if not self.name:
             self.name = 'eqa'
     # end of __init__
@@ -199,6 +218,19 @@ class EquityAlgo:
 
     def get_result(self):
         """get_result"""
+
+        finished_date = utc_now_str()
+        self.result = {
+            'name': self.name,
+            'created': self.created_date,
+            'updated': finished_date,
+            'open_positions': self.positions,
+            'buys': self.get_buys(),
+            'sells': self.get_sells(),
+            'balance': self.balance,
+            'commission': self.commission
+        }
+
         return self.result
     # end of get_result
 
