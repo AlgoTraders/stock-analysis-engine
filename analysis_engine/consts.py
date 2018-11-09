@@ -211,10 +211,16 @@ TRADE_HIT_TAILING_STOP_LOSS = 21
 TRADE_HIT_TAILING_STOP_LOSS_PERCENT = 22
 TRADE_INVALID = 23
 TRADE_ERROR = 24
-BACKTEST_FOUND_TRADE_PROFITABLE = 25
-BACKTEST_FOUND_TRADE_NOT_PROFITABLE = 26
-BACKTEST_FOUND_TRADE_NEVER_FILLED = 27  # limit order price never hit
-BACKTEST_FOUND_TRADE_EXPIRED = 28  # trades assumed are expired after a day
+TRADE_ENTRY = 25
+TRADE_EXIT = 26
+BACKTEST_FOUND_TRADE_PROFITABLE = 27
+BACKTEST_FOUND_TRADE_NOT_PROFITABLE = 28
+BACKTEST_FOUND_TRADE_NEVER_FILLED = 29  # limit order price never hit
+BACKTEST_FOUND_TRADE_EXPIRED = 30  # trades assumed are expired after a day
+SPREAD_VERTICAL_BULL = 31
+SPREAD_VERTICAL_BEAR = 32
+OPTION_CALL = 33
+OPTION_PUT = 34
 
 SA_MODE_PREPARE = 100
 SA_MODE_ANALYZE = 101
@@ -556,6 +562,10 @@ def get_status(
         return 'TRADE_INVALID'
     elif status == TRADE_ERROR:
         return 'TRADE_ERROR'
+    elif status == TRADE_ENTRY:
+        return 'TRADE_ENTRY'
+    elif status == TRADE_EXIT:
+        return 'TRADE_EXIT'
     elif status == BACKTEST_FOUND_TRADE_PROFITABLE:
         return 'BACKTEST_FOUND_TRADE_PROFITABLE'
     elif status == BACKTEST_FOUND_TRADE_NOT_PROFITABLE:
@@ -564,6 +574,14 @@ def get_status(
         return 'BACKTEST_FOUND_TRADE_NEVER_FILLED'
     elif status == BACKTEST_FOUND_TRADE_EXPIRED:
         return 'BACKTEST_FOUND_TRADE_EXPIRED'
+    elif status == SPREAD_VERTICAL_BULL:
+        return 'SPREAD_VERTICAL_BULL'
+    elif status == SPREAD_VERTICAL_BEAR:
+        return 'SPREAD_VERTICAL_BEAR'
+    elif status == OPTION_CALL:
+        return 'OPTION_CALL'
+    elif status == OPTION_PUT:
+        return 'OPTION_PUT'
     else:
         return 'unsupported status={}'.format(
             status)
