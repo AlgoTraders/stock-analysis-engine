@@ -165,8 +165,11 @@ class EquityAlgo:
         self.sell_strength = None
         self.sell_risk = None
         self.stop_loss = None
-        self.trailing_stop = None
         self.trailing_stop_loss = None
+
+        if config_dict:
+            self.load_from_config(
+                config_dict=config_dict)
 
         self.note = None
         self.version = 1
@@ -356,6 +359,24 @@ class EquityAlgo:
 
         return history_dict
     # end of get_trade_history_node
+
+    def load_from_config(
+            self,
+            config_dict):
+        """load_config
+
+        support for replaying algorithms from a trading history
+
+        :param config_dict: algorithm configuration values
+            usually from a previous trading history or for
+            quickly testing dataset theories in a development
+            environment
+        """
+        if config_dict:
+            for k in config_dict:
+                if k in self.__dict__:
+                    self.__dict__[k] = config_dict[k]
+    # end of load_from_config
 
     def get_name(self):
         """get_name"""
