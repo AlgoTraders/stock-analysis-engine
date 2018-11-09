@@ -1,10 +1,11 @@
 """
-Algorithm classes:
+Example Equity algorithm
 """
 
 import json
 import analysis_engine.api_requests as api_requests
 from analysis_engine.consts import TRADE_FILLED
+from analysis_engine.consts import TRADE_SHARES
 from analysis_engine.consts import get_status
 from analysis_engine.consts import get_percent_done
 from analysis_engine.utils import utc_now_str
@@ -18,8 +19,9 @@ class EquityAlgo:
     """EquityAlgo
 
     Run an algorithm against multiple tickers at once through the
-    redis dataframe pipeline provided by `analysis_engine.extract.ex
-    tract <https://github.com/AlgoTraders/stock-analysis-engine/bl
+    redis dataframe pipeline provided by
+    `analysis_engine.extract.extract
+    <https://github.com/AlgoTraders/stock-analysis-engine/bl
     ob/master/analysis_engine/extract.py>`__.
 
     **Data Pipeline Structure**
@@ -36,13 +38,16 @@ class EquityAlgo:
             balance=1000.00,
             commission=6.00,
             name='test-{}'.format(ticker))
-        date_key = '{}_2018-11-05'.format(
-            ticker)
+        date = '2018-11-05'
+        dataset_id = '{}_{}'.format(
+            ticker,
+            date)
         # mock the data pipeline in redis:
         data = {
             ticker: [
                 {
-                    'date': date_key,
+                    'id': dataset_id,
+                    'date': date,
                     'data': {
                         'daily': pd.DataFrame([
                             {
@@ -96,6 +101,7 @@ class EquityAlgo:
             tickers=None,
             name=None,
             auto_fill=True,
+            config_dict=None,
             publish_report_to_slack=True):
         """__init__
 
@@ -106,6 +112,9 @@ class EquityAlgo:
         :param tickers: optional - list of ticker strings
         :param name: optional - log tracking name
             or algo name
+        :param config_dict: optional - configuration dictionary
+            for passing complex attributes or properties for this
+            algo
         :param auto_fill: optional - boolean for auto filling
             buy/sell orders for backtesting (default is
             ``True``)
@@ -123,19 +132,55 @@ class EquityAlgo:
         self.commission = commission
         self.result = None
         self.name = name
+        self.num_owned = None
+        self.num_buys = None
+        self.num_sells = None
+        self.trade_price = 0.0
+        self.latest_close = 0.0
+        self.latest_high = 0.0
+        self.latest_open = 0.0
+        self.latest_low = 0.0
+        self.latest_volume = 0.0
+        self.ask = 0.0
+        self.bid = 0.0
+        self.prev_bal = None
+        self.prev_num_owned = None
+        self.ds_id = None
+        self.trade_date = None
+        self.trade_type = TRADE_SHARES
+        self.buy_hold_units = 20
+        self.sell_hold_units = 20
+        self.spread_exp_date = None
         self.last_close = None
+        self.order_history = []
+        self.config_dict = config_dict
         self.positions = {}
         self.created_date = utc_now_str()
+        self.created_buy = False
+        self.should_buy = False
+        self.buy_strength = None
+        self.buy_risk = None
+        self.created_sell = False
+        self.should_sell = False
+        self.sell_strength = None
+        self.sell_risk = None
+        self.stop_loss = None
+        self.trailing_stop = None
+        self.trailing_stop_loss = None
+
+        self.note = None
+        self.version = 1
+
         if not self.name:
             self.name = 'eqa'
     # end of __init__
 
-    def analyze_dataset(
+    def process(
             self,
             algo_id,
             ticker,
             dataset):
-        """analyze_dataset
+        """process
 
         process buy and sell conditions and place orders here.
 
@@ -146,38 +191,72 @@ class EquityAlgo:
             be empty
         """
 
-        num_owned, num_buys, num_sells = self.get_ticker_positions(
-            ticker=ticker)
-        ds_name = dataset.get('name', 'no-ds-name')
-
         log.info(
-            '{} - az - {} - ds={} '
-            'bal={} shares={} '
-            'num_buys={} num_sells={}'.format(
-                self.name,
-                algo_id,
-                ds_name,
+            'process - ticker={} balance={} owned={} date={} '
+            'high={} low={} open={} close={} vol={} '
+            'comm={} '
+            'buy_str={} buy_risk={} '
+            'sell_str={} sell_risk={} '
+            'num_buys={} num_sells={} '
+            'id={}'.format(
+                self.ticker,
                 self.balance,
-                num_owned,
+                self.num_owned,
+                self.trade_date,
+                self.latest_high,
+                self.latest_low,
+                self.latest_open,
+                self.latest_close,
+                self.latest_volume,
+                self.commission,
+                self.buy_strength,
+                self.buy_risk,
+                self.sell_strength,
+                self.sell_risk,
                 len(self.buys),
-                len(self.sells)))
-        self.create_buy_order(
-            ticker=ticker,
-            row={
-                'name': algo_id,
-                'close': 270.0,
-                'date': '2018-11-02'
-            },
-            reason='testing')
-        self.create_sell_order(
-            ticker=ticker,
-            row={
-                'name': algo_id,
-                'close': 270.0,
-                'date': '2018-11-02'
-            },
-            reason='testing')
-    # end of analyze_dataset
+                len(self.sells),
+                algo_id))
+
+        # flip these on to sell/buy
+        # buys will not FILL if there's not enough funds to buy
+        # sells will not FILL if there's nothing already owned
+        self.should_sell = False
+        self.should_buy = False
+
+        if self.num_owned and self.should_sell:
+            self.create_sell_order(
+                ticker=ticker,
+                row={
+                    'name': algo_id,
+                    'close': 270.0,
+                    'date': '2018-11-02'
+                },
+                reason='testing')
+
+        if self.should_buy:
+            self.create_buy_order(
+                ticker=ticker,
+                row={
+                    'name': algo_id,
+                    'close': 270.0,
+                    'date': '2018-11-02'
+                },
+                reason='testing')
+
+        # if still owned and have not already created
+        # a sell already
+        # self.num_owned automatically updates on sell and buy orders
+        if self.num_owned and not self.created_sell:
+            self.create_sell_order(
+                ticker=ticker,
+                row={
+                    'name': algo_id,
+                    'close': 270.0,
+                    'date': '2018-11-02'
+                },
+                reason='testing')
+
+    # end of process
 
     def get_ticker_positions(
             self,
@@ -211,6 +290,73 @@ class EquityAlgo:
         return num_owned, buys, sells
     # end of get_ticker_positions
 
+    def get_trade_history_node(
+                self):
+        """get_trade_history_node
+
+            Helper for quickly building a history node
+            on a derived algorithm. Whatever member variables
+            are in the base class ``analysis_engine.EquityAlgo``
+            will be added automatically into the returned:
+            `historical transaction dictionary`
+
+            .. tip:: if you get a `None` back it means there
+                could be a bug in how you are using the member
+                variables (likely created an invalid math
+                calculation) or could be a bug in the helper:
+                `build_trade_history_entry <https://github.c
+                om/AlgoTraders/stock-analysis-engine/blob/ma
+                ster/analysis_engine/api_requests.py>`__
+        """
+        history_dict = {}
+        try:
+            history_dict = api_requests.build_trade_history_entry(
+                ticker=self.ticker,
+                num_owned=self.num_owned,
+                close=self.trade_price,
+                balance=self.balance,
+                commission=self.commission,
+                date=self.trade_date,
+                trade_type=self.trade_type,
+                high=self.latest_high,
+                low=self.latest_low,
+                open_val=self.latest_open,
+                volume=self.latest_volume,
+                ask=self.ask,
+                bid=self.bid,
+                stop_loss=self.stop_loss,
+                trailing_stop_loss=self.trailing_stop_loss,
+                buy_hold_units=self.buy_hold_units,
+                sell_hold_units=self.sell_hold_units,
+                spread_exp_date=self.spread_exp_date,
+                prev_balance=self.prev_bal,
+                prev_num_owned=self.prev_num_owned,
+                total_buys=self.num_buys,
+                total_sells=self.num_sells,
+                buy_triggered=self.should_buy,
+                buy_strength=self.buy_strength,
+                buy_risk=self.buy_risk,
+                sell_triggered=self.should_sell,
+                sell_strength=self.sell_strength,
+                sell_risk=self.sell_risk,
+                note=self.note,
+                ds_id=self.ds_id,
+                version=self.version)
+        except Exception as e:
+            msg = (
+                '{} - failed building trade history node ticker={} ds={} '
+                'history ex={}'.format(
+                    self.name,
+                    self.ticker,
+                    self.ds_id,
+                    e))
+            log.error(msg)
+            history_dict = None
+        # end of try/ex
+
+        return history_dict
+    # end of get_trade_history_node
+
     def get_name(self):
         """get_name"""
         return self.name
@@ -227,6 +373,8 @@ class EquityAlgo:
             'open_positions': self.positions,
             'buys': self.get_buys(),
             'sells': self.get_sells(),
+            'num_processed': len(self.order_history),
+            'history': self.order_history,
             'balance': self.balance,
             'commission': self.commission
         }
@@ -331,6 +479,11 @@ class EquityAlgo:
                         new_buy['shares'])
                     self.positions[ticker]['buys'].append(
                         new_buy)
+                    (self.num_owned,
+                     self.num_buys,
+                     self.num_sells) = self.get_ticker_positions(
+                        ticker=ticker)
+                    self.created_buy = True
                 else:
                     self.positions[ticker] = {
                         'shares': new_buy['shares'],
@@ -374,6 +527,12 @@ class EquityAlgo:
                     close,
                     e))
         # end of try/ex
+
+        (self.num_owned,
+         self.num_buys,
+         self.num_sells) = self.get_ticker_positions(
+            ticker=ticker)
+
     # end of create_buy_order
 
     def create_sell_order(
@@ -439,6 +598,11 @@ class EquityAlgo:
                         new_sell['shares'])
                     self.positions[ticker]['sells'].append(
                         new_sell)
+                    (self.num_owned,
+                     self.num_buys,
+                     self.num_sells) = self.get_ticker_positions(
+                        ticker=ticker)
+                    self.created_sell = True
                 else:
                     self.positions[ticker] = {
                         'shares': new_sell['shares'],
@@ -482,6 +646,12 @@ class EquityAlgo:
                     close,
                     e))
         # end of try/ex
+
+        (self.num_owned,
+         self.num_buys,
+         self.num_sells) = self.get_ticker_positions(
+            ticker=ticker)
+
     # end of create_sell_order
 
     def build_progress_label(
@@ -563,7 +733,7 @@ class EquityAlgo:
             cur_idx = 1
             for idx, node in enumerate(data[ticker]):
                 track_label = self.build_progress_label(
-                    progress=idx,
+                    progress=cur_idx,
                     total=num_ticker_datasets)
                 algo_id = 'ticker={} {}'.format(
                     ticker,
@@ -573,14 +743,71 @@ class EquityAlgo:
                         self.name,
                         algo_id,
                         node['date']))
+
+                self.ticker = ticker
+                self.prev_bal = self.balance
+                self.prev_num_owned = self.num_owned
+
+                (self.num_owned,
+                 self.num_buys,
+                 self.num_sells) = self.get_ticker_positions(
+                    ticker=ticker)
+
+                self.ds_id = node.get('id', 'no-ds_id')
+                self.trade_date = node.get('date', 'no-date')
+                self.created_buy = False
+                self.created_sell = False
+                self.should_buy = False
+                self.should_sell = False
+
+                try:
+                    daily_df = node.get(
+                        'data', {}).get(
+                            'daily', None)
+
+                    if hasattr(daily_df, 'empty'):
+                        columns = daily_df.columns.values
+                        if 'high' in columns:
+                            self.latest_high = float(
+                                daily_df.iloc[-1]['high'])
+                        if 'low' in columns:
+                            self.latest_low = float(
+                                daily_df.iloc[-1]['low'])
+                        if 'open' in columns:
+                            self.latest_open = float(
+                                daily_df.iloc[-1]['open'])
+                        if 'close' in columns:
+                            self.latest_close = float(
+                                daily_df.iloc[-1]['close'])
+                        if 'volume' in columns:
+                            self.latest_volume = int(
+                                daily_df.iloc[-1]['volume'])
+                except Exception as e:
+                    log.info(
+                        '{} - handle - FAILED getting latest prices '
+                        'for algo={} - ds={} ex={}'.format(
+                            self.name,
+                            algo_id,
+                            node['date'],
+                            e))
+                # end of trying to get the latest prices out of the
+                # datasets
+
                 # thinking this could be a separate celery task
                 # to increase horizontal scaling to crunch
                 # datasets faster like:
                 # http://jsatt.com/blog/class-based-celery-tasks/
-                self.analyze_dataset(
+                self.process(
                     algo_id=algo_id,
-                    ticker=ticker,
+                    ticker=self.ticker,
                     dataset=node)
+
+                # always record the trade history for
+                # analysis/review using: myalgo.get_result()
+                self.last_history_dict = self.get_trade_history_node()
+                if self.last_history_dict:
+                    self.order_history.append(self.last_history_dict)
+
                 cur_idx += 1
         # for all supported tickers
 

@@ -430,6 +430,9 @@ def run_algo(
         if not first_extract_date:
             first_extract_date = extract_date
         last_extract_date = extract_date
+        dataset_id = '{}_{}'.format(
+            ticker,
+            extract_date)
         percent_label = (
             '{} ticker={} {} {}/{} date={}'.format(
                 label,
@@ -572,8 +575,10 @@ def run_algo(
             algo_data_req[ticker] = []
 
         algo_data_req[ticker].append({
+            'id': dataset_id,  # id is currently the cache key in redis
             'date': extract_date,  # used to confirm dates in asc order
-            'data': ticker_data})
+            'data': ticker_data
+        })
 
         log.info(
             '{} - ex - algo data={}'.format(
