@@ -136,7 +136,10 @@ class BaseAlgo:
             name=None,
             auto_fill=True,
             config_dict=None,
-            publish_report_to_slack=True):
+            publish_to_slack=True,
+            publish_to_s3=True,
+            publish_to_redis=True,
+            raise_on_err=False):
         """__init__
 
         :param ticker: single ticker string
@@ -152,6 +155,18 @@ class BaseAlgo:
         :param auto_fill: optional - boolean for auto filling
             buy/sell orders for backtesting (default is
             ``True``)
+        :param publish_to_slack: optional - boolean for
+            publishing to slack (coming soon)
+        :param publish_to_s3: optional - boolean for
+            publishing to s3 (coming soon)
+        :param publish_to_redis: optional - boolean for
+            publishing to redis (coming soon)
+        :param raise_on_err: optional - boolean for
+            unittests and developing algorithms with the
+            ``analysis_engine.run_algo.run_algo`` helper.
+            .. note:: When set to ``True`` exceptions will
+                are raised to the calling functions
+
         """
         self.buys = []
         self.sells = []
@@ -164,7 +179,7 @@ class BaseAlgo:
                 ]
         self.balance = balance
         self.starting_balance = balance
-        self.starting_close = None
+        self.starting_close = 0.0
         self.commission = commission
         self.result = None
         self.name = name
@@ -221,10 +236,17 @@ class BaseAlgo:
         self.df_iex_news = pd.DataFrame([])
         self.df_yahoo_news = pd.DataFrame([])
         self.df_options = pd.DataFrame([])
+        self.empty_pd = pd.DataFrame([])
         self.df_pricing = {}
 
         self.note = None
+        self.debug_msg = ''
         self.version = 1
+
+        self.publish_to_slack = publish_to_slack
+        self.publish_to_s3 = publish_to_s3
+        self.publish_to_redis = publish_to_redis
+        self.raise_on_err = raise_on_err
 
         if not self.name:
             self.name = 'eqa'
@@ -330,8 +352,13 @@ class BaseAlgo:
             'process has df_daily rows={}'.format(
                 len(self.df_daily.index)))
 
-        for idx, row in self.df_daily.iterrows():
-            print(row)
+        """
+        Want to iterate over the daily rows in the
+        to determine a buy or sell from the self.df_daily
+        dataset fetched from IEX?
+        """
+        # for idx, row in self.df_daily.iterrows():
+        #     print(row)
 
         if self.num_owned and self.should_sell:
             self.create_sell_order(
@@ -481,6 +508,8 @@ class BaseAlgo:
     def get_result(self):
         """get_result"""
 
+        self.debug_msg = (
+            'building results')
         finished_date = utc_now_str()
         self.result = {
             'name': self.name,
@@ -498,17 +527,31 @@ class BaseAlgo:
         return self.result
     # end of get_result
 
-    def get_balance(self):
+    def get_debug_msg(
+            self):
+        """get_debug_msg
+
+        debug algorithms that failed
+        by viewing the last ``self.debug_msg`` they
+        set
+        """
+        return self.debug_msg
+    # end of get_debug_msg
+
+    def get_balance(
+            self):
         """get_balance"""
         return self.balance
     # end of get_balance
 
-    def get_buys(self):
+    def get_buys(
+            self):
         """get_buys"""
         return self.buys
     # end of get_buys
 
-    def get_sells(self):
+    def get_sells(
+            self):
         """get_sells"""
         return self.sells
     # end of get_sells
@@ -636,12 +679,15 @@ class BaseAlgo:
 
             self.buys.append(new_buy)
         except Exception as e:
-            log.error(
+            self.debug_msg = (
                 '{} - buy {}@{} - FAILED with ex={}'.format(
                     self.name,
                     ticker,
                     close,
                     e))
+            log.error(self.debug_msg)
+            if self.raise_on_err:
+                raise e
         # end of try/ex
 
         (self.num_owned,
@@ -755,12 +801,15 @@ class BaseAlgo:
 
             self.sells.append(new_sell)
         except Exception as e:
-            log.error(
+            self.debug_msg = (
                 '{} - sell {}@{} - FAILED with ex={}'.format(
                     self.name,
                     ticker,
                     close,
                     e))
+            log.error(self.debug_msg)
+            if self.raise_on_err:
+                raise e
         # end of try/ex
 
         (self.num_owned,
@@ -869,43 +918,70 @@ class BaseAlgo:
             'missing-DATA')
         self.df_daily = self.ds_data.get(
             'daily',
-            pd.DataFrame([]))
+            self.empty_pd)
         self.df_minute = self.ds_data.get(
             'minute',
-            pd.DataFrame([]))
+            self.empty_pd)
         self.df_stats = self.ds_data.get(
             'stats',
-            pd.DataFrame([]))
+            self.empty_pd)
         self.df_peers = self.ds_data.get(
             'peers',
-            pd.DataFrame([]))
+            self.empty_pd)
         self.df_financials = self.ds_data.get(
             'financials',
-            pd.DataFrame([]))
+            self.empty_pd)
         self.df_earnings = self.ds_data.get(
             'earnings',
-            pd.DataFrame([]))
+            self.empty_pd)
         self.df_dividends = self.ds_data.get(
             'dividends',
-            pd.DataFrame([]))
+            self.empty_pd)
         self.df_quote = self.ds_data.get(
             'quote',
-            pd.DataFrame([]))
+            self.empty_pd)
         self.df_company = self.ds_data.get(
             'company',
-            pd.DataFrame([]))
+            self.empty_pd)
         self.df_iex_news = self.ds_data.get(
             'news1',
-            pd.DataFrame([]))
+            self.empty_pd)
         self.df_yahoo_news = self.ds_data.get(
             'news',
-            pd.DataFrame([]))
+            self.empty_pd)
         self.df_options = self.ds_data.get(
             'options',
-            pd.DataFrame([]))
+            self.empty_pd)
         self.df_pricing = self.ds_data.get(
             'pricing',
             {})
+
+        if not hasattr(self.df_daily, 'empty'):
+            self.df_daily = self.empty_pd
+        if not hasattr(self.df_minute, 'empty'):
+            self.df_minute = self.empty_pd
+        if not hasattr(self.df_stats, 'empty'):
+            self.df_stats = self.empty_pd
+        if not hasattr(self.df_peers, 'empty'):
+            self.df_peers = self.empty_pd
+        if not hasattr(self.df_financials, 'empty'):
+            self.df_financials = self.empty_pd
+        if not hasattr(self.df_earnings, 'empty'):
+            self.df_earnings = self.empty_pd
+        if not hasattr(self.df_dividends, 'empty'):
+            self.df_dividends = self.empty_pd
+        if not hasattr(self.df_quote, 'empty'):
+            self.df_quote = self.empty_pd
+        if not hasattr(self.df_company, 'empty'):
+            self.df_company = self.empty_pd
+        if not hasattr(self.df_iex_news, 'empty'):
+            self.df_iex_news = self.empty_pd
+        if not hasattr(self.df_yahoo_news, 'empty'):
+            self.df_yahoo_news = self.empty_pd
+        if not hasattr(self.df_options, 'empty'):
+            self.df_options = self.empty_pd
+        if not hasattr(self.df_pricing, 'empty'):
+            self.df_pricing = self.empty_pd
 
         # set internal values:
         self.trade_date = self.ds_date
@@ -936,13 +1012,16 @@ class BaseAlgo:
                     self.latest_volume = int(
                         self.df_daily.iloc[-1]['volume'])
         except Exception as e:
-            log.info(
-                '{} - handle - FAILED getting latest prices '
+            self.debug_msg = (
+                '{} handle - FAILED getting latest prices '
                 'for algo={} - ds={} ex={}'.format(
                     self.name,
                     self.ds_id,
                     self.ds_date,
                     e))
+            log.error(self.debug_msg)
+            if self.raise_on_err:
+                raise e
         # end of trying to get the latest prices out of the
         # datasets
     # end of load_from_dataset
@@ -990,17 +1069,19 @@ class BaseAlgo:
                 }
 
         """
-        log.info(
-            '{} - handle - start'.format(
+        self.debug_msg = (
+            '{} handle - start'.format(
                 self.name))
+
+        log.info(self.debug_msg)
 
         data_for_tickers = self.get_supported_tickers_in_data(
             data=data)
 
         num_tickers = len(data_for_tickers)
         if num_tickers > 0:
-            log.info(
-                '{} - handle - tickers={}'.format(
+            self.debug_msg = (
+                '{} handle - tickers={}'.format(
                     self.name,
                     json.dumps(data_for_tickers)))
 
@@ -1015,7 +1096,7 @@ class BaseAlgo:
                     ticker,
                     track_label)
                 log.info(
-                    '{} - handle - {} - ds={}'.format(
+                    '{} handle - {} - ds={}'.format(
                         self.name,
                         algo_id,
                         node['date']))
@@ -1030,29 +1111,53 @@ class BaseAlgo:
                     ticker=ticker)
 
                 # parse the dataset node and set member variables
+                self.debug_msg = (
+                    '{} START - load dataset id={}'.format(
+                        ticker,
+                        node.get('id', 'missing-id')))
                 self.load_from_dataset(
                     ds_data=node)
+                self.debug_msg = (
+                    '{} END - load dataset id={}'.format(
+                        ticker,
+                        node.get('id', 'missing-id')))
 
                 # thinking this could be a separate celery task
                 # to increase horizontal scaling to crunch
                 # datasets faster like:
                 # http://jsatt.com/blog/class-based-celery-tasks/
+                self.debug_msg = (
+                    '{} START - process id={}'.format(
+                        ticker,
+                        node.get('id', 'missing-id')))
                 self.process(
                     algo_id=algo_id,
                     ticker=self.ticker,
                     dataset=node)
+                self.debug_msg = (
+                    '{} END - process id={}'.format(
+                        ticker,
+                        node.get('id', 'missing-id')))
 
                 # always record the trade history for
                 # analysis/review using: myalgo.get_result()
+                self.debug_msg = (
+                    '{} START - history id={}'.format(
+                        ticker,
+                        node.get('id', 'missing-id')))
                 self.last_history_dict = self.get_trade_history_node()
                 if self.last_history_dict:
                     self.order_history.append(self.last_history_dict)
+                self.debug_msg = (
+                    '{} END - history id={}'.format(
+                        ticker,
+                        node.get('id', 'missing-id')))
 
                 cur_idx += 1
         # for all supported tickers
 
-        log.info(
-            '{} - handle - end tickers={}'.format(
+        self.debug_msg = (
+            '{} handle - end tickers={}'.format(
                 self.name,
                 num_tickers))
 
