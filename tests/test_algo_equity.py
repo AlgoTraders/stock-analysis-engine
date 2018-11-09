@@ -9,12 +9,14 @@ Test file for classes and functions:
 import pandas as pd
 from analysis_engine.mocks.base_test import BaseTestCase
 from analysis_engine.consts import COMMON_DATE_FORMAT
+from analysis_engine.consts import TRADE_SHARES
 from analysis_engine.consts import ppj
 from analysis_engine.consts import get_status
 from analysis_engine.utils import get_last_close_str
 from analysis_engine.api_requests import build_algo_request
 from analysis_engine.api_requests import build_buy_order
 from analysis_engine.api_requests import build_sell_order
+from analysis_engine.api_requests import build_trade_history_entry
 from analysis_engine.algo import EquityAlgo
 from analysis_engine.run_algo import run_algo
 
@@ -63,15 +65,18 @@ class TestAlgoEquity(BaseTestCase):
         ])
         self.minute_df = pd.DataFrame([])
         self.options_df = pd.DataFrame([])
-        self.date_key = '{}_2018-11-05'.format(
-            self.ticker)
+        self.use_date = '2018-11-05'
+        self.dataset_id = '{}_{}'.format(
+            self.ticker,
+            self.use_date)
         self.datasets = [
             'daily'
         ]
         self.data = {}
         self.data[self.ticker] = [
             {
-                'date': self.date_key,
+                'id': self.dataset_id,
+                'date': self.use_date,
                 'data': {
                     'daily': self.daily_df,
                     'minute': self.minute_df,
@@ -487,6 +492,44 @@ class TestAlgoEquity(BaseTestCase):
         self.assertEqual(
             results['balance'],
             1000.0)
+        self.assertEqual(
+            len(results['history']),
+            1)
+        self.assertEqual(
+            get_status(results['history'][0]['status']),
+            'NOT_RUN')
+        self.assertEqual(
+            get_status(results['history'][0]['backtest_status']),
+            'NOT_RUN')
     # end of test_sample_algo_code_in_docstring
+
+    def test_build_new_balance_history_entry_not_run(self):
+        history = build_trade_history_entry(
+            ticker='notreal',
+            num_owned=1,
+            close=280.41,
+            balance=123,
+            commission=6,
+            date='today',
+            trade_type=TRADE_SHARES)
+        self.assertEqual(
+            get_status(status=history['status']),
+            'NOT_RUN')
+        self.assertEqual(
+            get_status(status=history['backtest_status']),
+            'NOT_RUN')
+        self.assertEqual(
+            history['balance'],
+            123)
+        self.assertEqual(
+            history['commission'],
+            6)
+        self.assertEqual(
+            history['close'],
+            280.41)
+        self.assertEqual(
+            history['net_gain'],
+            0.0)
+    # end of test_build_new_balance_history_entry_not_run
 
 # end of TestAlgoEquity
