@@ -481,13 +481,17 @@ class TestAlgoEquity(BaseTestCase):
             balance=1000.00,
             commission=6.00,
             name='test-{}'.format(ticker))
-        date_key = '{}_2018-11-05'.format(
-            ticker)
+        date = '2018-11-05'
+        dataset_id = '{}_{}'.format(
+            ticker,
+            date)
+
         # mock the data pipeline in redis:
         data = {
             ticker: [
                 {
-                    'date': date_key,
+                    'id': dataset_id,
+                    'date': date,
                     'data': {
                         'daily': pd.DataFrame([
                             {
@@ -531,6 +535,7 @@ class TestAlgoEquity(BaseTestCase):
         results = demo_algo.get_result()
 
         print(ppj(results))
+        print(results['history'][0].get('err', 'no error'))
         self.assertEqual(
             results['balance'],
             1000.0)
@@ -539,27 +544,31 @@ class TestAlgoEquity(BaseTestCase):
             1)
         self.assertEqual(
             get_status(results['history'][0]['status']),
-            'NOT_RUN')
+            'TRADE_NOT_PROFITABLE')
         self.assertEqual(
-            get_status(results['history'][0]['backtest_status']),
-            'NOT_RUN')
+            get_status(results['history'][0]['algo_status']),
+            'ALGO_NOT_PROFITABLE')
     # end of test_sample_algo_code_in_docstring
 
-    def test_build_new_balance_history_entry_not_run(self):
+    def test_trade_history_algo_not_trade_profitable(self):
         history = build_trade_history_entry(
             ticker='notreal',
-            num_owned=1,
+            original_balance=1000.00,
+            num_owned=20,
+            algo_start_price=270.01,
             close=280.41,
             balance=123,
             commission=6,
+            ds_id='SPY_2018-11-02',
             date='today',
             trade_type=TRADE_SHARES)
+        print(history.get('err', 'no error'))
         self.assertEqual(
             get_status(status=history['status']),
-            'NOT_RUN')
+            'TRADE_PROFITABLE')
         self.assertEqual(
-            get_status(status=history['backtest_status']),
-            'NOT_RUN')
+            get_status(status=history['algo_status']),
+            'ALGO_NOT_PROFITABLE')
         self.assertEqual(
             history['balance'],
             123)
@@ -572,6 +581,6 @@ class TestAlgoEquity(BaseTestCase):
         self.assertEqual(
             history['net_gain'],
             0.0)
-    # end of test_build_new_balance_history_entry_not_run
+    # end of test_trade_history_algo_not_trade_profitable
 
 # end of TestAlgoEquity

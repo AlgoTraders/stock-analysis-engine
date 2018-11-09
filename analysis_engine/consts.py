@@ -221,6 +221,10 @@ SPREAD_VERTICAL_BULL = 31
 SPREAD_VERTICAL_BEAR = 32
 OPTION_CALL = 33
 OPTION_PUT = 34
+ALGO_PROFITABLE = 35
+ALGO_NOT_PROFITABLE = 36
+ALGO_ERROR = 37
+ALGO_NOT_ACTIVE = 37
 
 SA_MODE_PREPARE = 100
 SA_MODE_ANALYZE = 101
@@ -582,6 +586,14 @@ def get_status(
         return 'OPTION_CALL'
     elif status == OPTION_PUT:
         return 'OPTION_PUT'
+    elif status == ALGO_PROFITABLE:
+        return 'ALGO_PROFITABLE'
+    elif status == ALGO_NOT_PROFITABLE:
+        return 'ALGO_NOT_PROFITABLE'
+    elif status == ALGO_ERROR:
+        return 'ALGO_ERROR'
+    elif status == ALGO_NOT_ACTIVE:
+        return 'ALGO_NOT_ACTIVE'
     else:
         return 'unsupported status={}'.format(
             status)

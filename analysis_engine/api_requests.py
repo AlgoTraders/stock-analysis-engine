@@ -45,10 +45,16 @@ from analysis_engine.consts import TRADE_FILLED
 from analysis_engine.consts import TRADE_NO_SHARES_TO_SELL
 from analysis_engine.consts import TRADE_ENTRY
 from analysis_engine.consts import TRADE_EXIT
+from analysis_engine.consts import TRADE_PROFITABLE
+from analysis_engine.consts import TRADE_NOT_PROFITABLE
+from analysis_engine.consts import TRADE_ERROR
 from analysis_engine.consts import SPREAD_VERTICAL_BULL
 from analysis_engine.consts import SPREAD_VERTICAL_BEAR
 from analysis_engine.consts import OPTION_CALL
 from analysis_engine.consts import OPTION_PUT
+from analysis_engine.consts import ALGO_PROFITABLE
+from analysis_engine.consts import ALGO_NOT_PROFITABLE
+from analysis_engine.consts import ALGO_ERROR
 from analysis_engine.utils import get_last_close_str
 from analysis_engine.utils import utc_date_str
 from analysis_engine.utils import utc_now_str
@@ -1682,6 +1688,8 @@ def build_trade_history_entry(
         commission,
         date,
         trade_type,
+        algo_start_price,
+        original_balance,
         high=None,
         low=None,
         open_val=None,
@@ -1693,6 +1701,7 @@ def build_trade_history_entry(
         buy_hold_units=None,
         sell_hold_units=None,
         spread_exp_date=None,
+        spread_id=None,
         low_strike=None,
         low_bid=None,
         low_ask=None,
@@ -1739,6 +1748,8 @@ def build_trade_history_entry(
         sell_risk=None,
         ds_id=None,
         note=None,
+        err=None,
+        entry_spread_dict=None,
         version=1):
     """build_trade_history_entry
 
@@ -1762,6 +1773,10 @@ def build_trade_history_entry(
             ``TRADE_SHARES``,
             ``TRADE_VERTICAL_BULL_SPREAD``,
             ``TRADE_VERTICAL_BEAR_SPREAD``
+    :param algo_start_price: float starting close/contract price
+        for this algo
+    :param original_balance: float starting original account
+        balance for this algo
     :param high: optional - float underlying stock asset ``high`` price
     :param low: optional - float underlying stock asset ``low`` price
     :param open_val: optional - float underlying stock asset ``open`` price
@@ -1780,6 +1795,8 @@ def build_trade_history_entry(
         to hold sells - helps with algorithm tuning
     :param spread_exp_date: optional - string spread contract
         expiration date (``COMMON_DATE_FORMAT`` (``YYYY-MM-DD``)
+    :param spread_id: optional - spread identifier for reviewing
+        spread performances
     :param low_strike: optional
         - only for vertical bull/bear trade types
         ``low leg strike price`` of the spread
@@ -1915,20 +1932,33 @@ def build_trade_history_entry(
         testing notes on algorithm indicator ratings and
         internal message passing during an algorithms's
         ``self.process`` method
+    :param err: optional - string for tracking errors
+    :param entry_spread_dict: optional - on exit spreads
+        the calculation of net gain can use the entry
+        spread to determine specific performance metrics
+        (work in progress)
     :param version: optional - version tracking order history
     """
     status = NOT_RUN
-    backtest_status = NOT_RUN
+    algo_status = NOT_RUN
+    err = None
     net_gain = 0.0
+    balance_net_gain = 0.0
     breakeven_price = None
     max_profit = None  # only for option spreads
     max_loss = None  # only for option spreads
     exp_date = None  # only for option spreads
 
+    # latest price - start price of the algo
+    price_change_since_start = close - algo_start_price
+
     history_dict = {
         'ticker': ticker,
+        'algo_start_price': algo_start_price,
+        'algo_price_change': price_change_since_start,
+        'original_balance': original_balance,
         'status': status,
-        'backtest_status': backtest_status,
+        'algo_status': algo_status,
         'ds_id': ds_id,
         'num_owned': num_owned,
         'close': close,
@@ -1980,6 +2010,7 @@ def build_trade_history_entry(
         'high_theo_volatility': high_theo_volatility,
         'high_max_covered': high_max_covered,
         'high_exp_date': high_exp_date,
+        'spread_id': spread_id,
         'net_gain': net_gain,
         'breakeven_price': breakeven_price,
         'max_profit': max_profit,
@@ -1990,13 +2021,67 @@ def build_trade_history_entry(
         'total_buys': total_buys,
         'total_sells': total_sells,
         'note': note,
+        'err': err,
         'version': version
     }
 
-    # perform calculations:
+    # evaluate if the algorithm is gaining
+    # cash over the test
+    if balance and original_balance:
+        # net change on the balance
+        # note this needs to be upgraded to
+        # support orders per ticker
+        # single tickers will work for v1
+        balance_net_gain = balance - original_balance
+        if balance_net_gain > 0.0:
+            algo_status = ALGO_PROFITABLE
+        else:
+            algo_status = ALGO_NOT_PROFITABLE
+    else:
+        history_dict['err'] = (
+            '{} ds_id={} missing balance={} and '
+            'original_balance={}'.format(
+                ticker,
+                ds_id,
+                balance,
+                original_balance))
+        algo_status = ALGO_ERROR
+    # if starting balance and original_balance exist
+    # to determine algorithm trade profitability
+
+    # if there are no shares to sell then
+    # there's no current trade open
+    if num_owned and num_owned < 1:
+        status = TRADE_NO_SHARES_TO_SELL
+    else:
+        if close < 0.01:
+            history_dict['err'] = (
+                '{} ds_id={} close={} must be greater '
+                'than 0.01'.format(
+                    ticker,
+                    ds_id,
+                    close))
+            status = TRADE_ERROR
+        elif algo_start_price < 0.01:
+            history_dict['err'] = (
+                '{} ds_id={} algo_start_price={} must be greater '
+                'than 0.01'.format(
+                    ticker,
+                    ds_id,
+                    algo_start_price))
+            status = TRADE_ERROR
+        else:
+            price_net_gain = close - algo_start_price
+            if price_net_gain > 0.0:
+                status = TRADE_PROFITABLE
+            else:
+                status = TRADE_NOT_PROFITABLE
+    # if starting price when algo started and close exist
+    # determine if this trade profitability
 
     # Assign calculated values:
     history_dict['net_gain'] = net_gain
+    history_dict['balance_net_gain'] = balance_net_gain
     history_dict['breakeven_price'] = breakeven_price
     history_dict['max_profit'] = max_profit
     history_dict['max_loss'] = max_loss
@@ -2004,7 +2089,7 @@ def build_trade_history_entry(
 
     # assign statuses
     history_dict['status'] = status
-    history_dict['backtest_status'] = backtest_status
+    history_dict['algo_status'] = algo_status
 
     return history_dict
 # end of build_trade_history_entry
