@@ -426,7 +426,8 @@ class TestBaseAlgo(BaseTestCase):
         rec = run_algo(
             ticker=self.ticker,
             algo=algo,
-            label=test_name)
+            label=test_name,
+            raise_on_err=True)
         self.assertEqual(
             algo.name,
             test_name)
@@ -586,5 +587,142 @@ class TestBaseAlgo(BaseTestCase):
             history['net_gain'],
             0.0)
     # end of test_trade_history_algo_not_trade_profitable
+
+    def test_run_derived_algo_daily(self):
+        """test_run_derived_algo_daily"""
+        test_name = 'test_run_derived_algo_daily'
+        balance = self.balance
+        commission = 13.5
+
+        class DerivedAlgoTest(BaseAlgo):
+            """
+            # alternative inheritance - python 2
+            def __init__(
+                    self,
+                    ticker,
+                    balance,
+                    commission=6.0,
+                    tickers=None,
+                    name=None,
+                    auto_fill=True,
+                    config_dict=None):
+                BaseAlgo.__init__(
+                    self,
+                    ticker=ticker,
+                    balance=balance,
+                    commission=commission,
+                    tickers=tickers,
+                    name=name,
+                    auto_fill=auto_fill,
+                    config_dict=config_dict)
+            """
+
+            def __init__(
+                    self,
+                    ticker,
+                    balance,
+                    commission=6.0,
+                    tickers=None,
+                    name=None,
+                    auto_fill=True,
+                    config_dict=None):
+                """__init__
+
+                :param ticker: test ticker
+                :param balance: test balance
+                :param commission: test commission
+                :param tickers: test tickers
+                :param name: name of algo
+                :param auto_fill: auto fill trade for backtesting
+                :param config_dict: config_dict
+                """
+                super().__init__(
+                    ticker=ticker,
+                    balance=balance,
+                    commission=commission,
+                    tickers=tickers,
+                    name=name,
+                    auto_fill=auto_fill,
+                    config_dict=config_dict)
+
+                self.daily_results = []
+                self.num_daily_found = 0
+            # end of __init__
+
+            def process(
+                    self,
+                    algo_id,
+                    ticker,
+                    dataset):
+                """process
+
+                derived process method
+
+                :param algo_id: algorithm id
+                :param ticker: ticker
+                :param dataset: datasets for this date
+                """
+                self.daily_results.append(dataset)
+
+                assert(hasattr(self.df_daily, 'index'))
+                assert(hasattr(self.df_daily, 'index'))
+                assert(hasattr(self.df_minute, 'index'))
+                assert(hasattr(self.df_quote, 'index'))
+                assert(hasattr(self.df_stats, 'index'))
+                assert(hasattr(self.df_peers, 'index'))
+                assert(hasattr(self.df_iex_news, 'index'))
+                assert(hasattr(self.df_financials, 'index'))
+                assert(hasattr(self.df_earnings, 'index'))
+                assert(hasattr(self.df_dividends, 'index'))
+                assert(hasattr(self.df_company, 'index'))
+                assert(hasattr(self.df_yahoo_news, 'index'))
+                assert(hasattr(self.df_options, 'index'))
+                assert(hasattr(self.df_pricing, 'index'))
+
+                self.num_daily_found += len(self.df_daily.index)
+            # end of process
+
+            def get_test_values(
+                    self):
+                """get_test_values"""
+                return self.daily_results
+            # end of get_test_values
+
+            def get_num_daily_found(
+                    self):
+                """get_test_values"""
+                return self.num_daily_found
+            # end of get_num_daily_found
+
+        # end of DerivedAlgoTest
+
+        algo = DerivedAlgoTest(
+            ticker=self.ticker,
+            balance=balance,
+            commission=commission,
+            name=test_name)
+        algo_res = run_algo(
+            ticker=self.ticker,
+            algo=algo,
+            label=test_name,
+            raise_on_err=True)
+        print(ppj(algo_res))
+        self.assertEqual(
+            algo.name,
+            test_name)
+        self.assertEqual(
+            algo.tickers,
+            [self.ticker])
+        self.assertTrue(
+            len(algo.get_test_values()) > 30)
+        self.assertTrue(
+            len(algo_res['rec']['history']) > 30)
+        self.assertEqual(
+            get_status(status=algo_res['status']),
+            'SUCCESS')
+        self.assertEqual(
+            len(algo_res['rec']['history']),
+            len(algo.get_test_values()))
+    # end of test_run_derived_algo_daily
 
 # end of TestBaseAlgo

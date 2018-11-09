@@ -39,6 +39,7 @@ def run_algo(
         algo=None,  # derived ``analysis_engine.algo.Algo`` instance
         num_owned_dict=None,  # not supported
         cache_freq='daily',   # 'minute' not supported
+        auto_fill=True,
         use_key=None,
         extract_mode='all',
         iex_datasets=None,
@@ -58,7 +59,11 @@ def run_algo(
         broker_url=None,
         result_backend=None,
         label=None,
-        verbose=False):
+        verbose=False,
+        publish_to_slack=True,
+        publish_to_s3=True,
+        publish_to_redis=True,
+        raise_on_err=False):
     """run_algo
 
     Run an algorithm with steps:
@@ -88,8 +93,13 @@ def run_algo(
     :param end_date: string ``YYYY-MM-DD_HH:MM:SS`` cache value
     :param dataset_types: list of strings that are ``iex`` or ``yahoo``
         datasets that are cached.
+    :param cache_freq: optional - depending on if you are running data feeds
+        on a ``daily`` cron (default) vs every ``minute`` (or faster)
     :param algo: derived instance of ``analysis_engine.algo.Algo`` object
     :param num_owned_dict: not supported yet
+    :param auto_fill: optional - boolean for auto filling
+        buy/sell orders for backtesting (default is
+        ``True``)
     :param trading_calendar: ``trading_calendar.TradingCalendar``
         object, by default ``analysis_engine.calendars.
         always_open.AlwaysOpen`` trading calendar
@@ -145,11 +155,22 @@ def run_algo(
     :param result_backend: Celery backend url
         (default is ``redis://0.0.0.0:6379/14``)
     :param label: tracking log label
+    :param publish_to_slack: optional - boolean for
+        publishing to slack (coming soon)
+    :param publish_to_s3: optional - boolean for
+        publishing to s3 (coming soon)
+    :param publish_to_redis: optional - boolean for
+        publishing to redis (coming soon)
 
     **(Optional) Debugging**
 
     :param verbose: bool - show extract warnings
         and other debug logging (default is False)
+    :param raise_on_err: optional - boolean for
+        unittests and developing algorithms with the
+        ``analysis_engine.run_algo.run_algo`` helper.
+        .. note:: When set to ``True`` exceptions will
+            are raised to the calling functions
 
     **Supported environment variables**
 
@@ -279,7 +300,11 @@ def run_algo(
             balance=balance,
             commission=commission,
             name=label,
-            auto_fill=True)
+            auto_fill=auto_fill,
+            publish_to_slack=publish_to_slack,
+            publish_to_s3=publish_to_s3,
+            publish_to_redis=publish_to_redis,
+            raise_on_err=raise_on_err)
 
     if not algo:
         msg = (
@@ -290,6 +315,12 @@ def run_algo(
                 status=EMPTY,
                 err=msg,
                 rec=rec)
+
+    if raise_on_err:
+        log.debug(
+            '{} - enabling algo exception raises'.format(
+                label))
+        algo.raise_on_err = True
 
     common_vals = {}
     common_vals['base_key'] = ticker_key
@@ -377,7 +408,7 @@ def run_algo(
                 end_date_val))
         raise Exception(msg)
 
-    log.info(
+    log.debug(
         '{} - days={} start={} end={} datatset={}'.format(
             label,
             total_dates,
@@ -426,6 +457,7 @@ def run_algo(
     first_extract_date = None
     last_extract_date = None
     total_extract_requests = len(extract_requests)
+    cur_idx = 1
     for idx, extract_node in enumerate(extract_requests):
         extract_ticker = extract_node['ticker']
         extract_date = extract_node['date_key']
@@ -437,17 +469,17 @@ def run_algo(
             ticker,
             extract_date)
         percent_label = (
-            '{} ticker={} {} {}/{} date={}'.format(
+            '{} ticker={} date={} {} {}/{}'.format(
                 label,
                 extract_ticker,
+                extract_date,
                 get_percent_done(
-                    progress=idx,
+                    progress=cur_idx,
                     total=total_extract_requests),
                 idx,
-                total_extract_requests,
-                extract_date))
-        log.info(
-            '{} - ex - start'.format(
+                total_extract_requests))
+        log.debug(
+            '{} - extract - start'.format(
                 percent_label))
         if 'daily' in iex_datasets or extract_iex:
             iex_daily_status, iex_daily_df = \
@@ -584,9 +616,10 @@ def run_algo(
         })
 
         log.info(
-            '{} - ex - algo data={}'.format(
+            'extract - {} dataset={}'.format(
                 percent_label,
                 len(algo_data_req[ticker])))
+        cur_idx += 1
     # end of for service_dict in extract_requests
 
     # this could be a separate celery task
@@ -608,14 +641,14 @@ def run_algo(
     # this could be a separate celery task
     try:
         log.info(
-            '{} handle_data - START {} to {}'.format(
+            'handle_data START - {} from {} to {}'.format(
                 percent_label,
                 first_extract_date,
                 last_extract_date))
         algo.handle_data(
             data=algo_data_req)
         log.info(
-            '{} handle_data - END from {} to {}'.format(
+            'handle_data END - {} from {} to {}'.format(
                 percent_label,
                 first_extract_date,
                 last_extract_date))
@@ -630,23 +663,34 @@ def run_algo(
                 first_extract_date,
                 last_extract_date,
                 e))
-        return build_result.build_result(
-            status=ERR,
-            err=msg,
-            rec=rec)
+        if raise_on_err:
+            if algo:
+                log.error(
+                    'algo={} failed in handle_data with debug_msg'
+                    '={}'.format(
+                        algo.get_name(),
+                        algo.get_debug_msg()))
+            log.error(msg)
+            raise e
+        else:
+            log.error(msg)
+            return build_result.build_result(
+                status=ERR,
+                err=msg,
+                rec=rec)
     # end of try/ex
 
     # this could be a separate celery task
     try:
         log.info(
-            '{} analyzing - START {} to {}'.format(
+            'get_result START - {} from {} to {}'.format(
                 percent_label,
                 first_extract_date,
                 last_extract_date))
         rec = algo.get_result()
         status = SUCCESS
         log.info(
-            '{} analyzing - END from {} to {}'.format(
+            'get_result END - {} from {} to {}'.format(
                 percent_label,
                 first_extract_date,
                 last_extract_date))
@@ -661,10 +705,21 @@ def run_algo(
                 first_extract_date,
                 last_extract_date,
                 e))
-        return build_result.build_result(
-            status=ERR,
-            err=msg,
-            rec=rec)
+        if raise_on_err:
+            if algo:
+                log.error(
+                    'algo={} failed in get_result with debug_msg'
+                    '={}'.format(
+                        algo.get_name(),
+                        algo.get_debug_msg()))
+            log.error(msg)
+            raise e
+        else:
+            log.error(msg)
+            return build_result.build_result(
+                status=ERR,
+                err=msg,
+                rec=rec)
     # end of try/ex
 
     return build_result.build_result(
