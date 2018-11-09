@@ -129,6 +129,8 @@ class EquityAlgo:
                     ticker
                 ]
         self.balance = balance
+        self.starting_balance = balance
+        self.starting_close = None
         self.commission = commission
         self.result = None
         self.name = name
@@ -311,52 +313,40 @@ class EquityAlgo:
                 om/AlgoTraders/stock-analysis-engine/blob/ma
                 ster/analysis_engine/api_requests.py>`__
         """
-        history_dict = {}
-        try:
-            history_dict = api_requests.build_trade_history_entry(
-                ticker=self.ticker,
-                num_owned=self.num_owned,
-                close=self.trade_price,
-                balance=self.balance,
-                commission=self.commission,
-                date=self.trade_date,
-                trade_type=self.trade_type,
-                high=self.latest_high,
-                low=self.latest_low,
-                open_val=self.latest_open,
-                volume=self.latest_volume,
-                ask=self.ask,
-                bid=self.bid,
-                stop_loss=self.stop_loss,
-                trailing_stop_loss=self.trailing_stop_loss,
-                buy_hold_units=self.buy_hold_units,
-                sell_hold_units=self.sell_hold_units,
-                spread_exp_date=self.spread_exp_date,
-                prev_balance=self.prev_bal,
-                prev_num_owned=self.prev_num_owned,
-                total_buys=self.num_buys,
-                total_sells=self.num_sells,
-                buy_triggered=self.should_buy,
-                buy_strength=self.buy_strength,
-                buy_risk=self.buy_risk,
-                sell_triggered=self.should_sell,
-                sell_strength=self.sell_strength,
-                sell_risk=self.sell_risk,
-                note=self.note,
-                ds_id=self.ds_id,
-                version=self.version)
-        except Exception as e:
-            msg = (
-                '{} - failed building trade history node ticker={} ds={} '
-                'history ex={}'.format(
-                    self.name,
-                    self.ticker,
-                    self.ds_id,
-                    e))
-            log.error(msg)
-            history_dict = None
-        # end of try/ex
-
+        history_dict = api_requests.build_trade_history_entry(
+            ticker=self.ticker,
+            algo_start_price=self.starting_close,
+            original_balance=self.starting_balance,
+            num_owned=self.num_owned,
+            close=self.trade_price,
+            balance=self.balance,
+            commission=self.commission,
+            date=self.trade_date,
+            trade_type=self.trade_type,
+            high=self.latest_high,
+            low=self.latest_low,
+            open_val=self.latest_open,
+            volume=self.latest_volume,
+            ask=self.ask,
+            bid=self.bid,
+            stop_loss=self.stop_loss,
+            trailing_stop_loss=self.trailing_stop_loss,
+            buy_hold_units=self.buy_hold_units,
+            sell_hold_units=self.sell_hold_units,
+            spread_exp_date=self.spread_exp_date,
+            prev_balance=self.prev_bal,
+            prev_num_owned=self.prev_num_owned,
+            total_buys=self.num_buys,
+            total_sells=self.num_sells,
+            buy_triggered=self.should_buy,
+            buy_strength=self.buy_strength,
+            buy_risk=self.buy_risk,
+            sell_triggered=self.should_sell,
+            sell_strength=self.sell_strength,
+            sell_risk=self.sell_risk,
+            note=self.note,
+            ds_id=self.ds_id,
+            version=self.version)
         return history_dict
     # end of get_trade_history_node
 
@@ -800,6 +790,9 @@ class EquityAlgo:
                         if 'close' in columns:
                             self.latest_close = float(
                                 daily_df.iloc[-1]['close'])
+                            self.trade_price = self.latest_close
+                            if not self.starting_close:
+                                self.starting_close = self.latest_close
                         if 'volume' in columns:
                             self.latest_volume = int(
                                 daily_df.iloc[-1]['volume'])
