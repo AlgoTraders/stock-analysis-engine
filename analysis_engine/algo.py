@@ -353,12 +353,14 @@ class BaseAlgo:
                 len(self.df_daily.index)))
 
         """
-        Want to iterate over the daily rows in the
-        to determine a buy or sell from the self.df_daily
-        dataset fetched from IEX?
+        Want to iterate over daily pricing data
+        to determine buys or sells from the:
+        self.df_daily dataset fetched from IEX?
+
+        # loop over the rows in the daily dataset:
+        for idx, row in self.df_daily.iterrows():
+            print(row)
         """
-        # for idx, row in self.df_daily.iterrows():
-        #     print(row)
 
         if self.num_owned and self.should_sell:
             self.create_sell_order(
