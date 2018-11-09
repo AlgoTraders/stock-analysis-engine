@@ -432,7 +432,49 @@ class TestAlgoEquity(BaseTestCase):
         print(rec)
     # end of test_run_algo_daily
 
+    def test_algo_config_dict_assignments(self):
+        """test_algo_config_dict_assignments"""
+        ticker = 'SPY'
+        config_dict = {
+            'latest_high': 800.0,
+            'latest_low': 100.0,
+            'latest_open': 300.0,
+            'latest_close': 400.0,
+            'latest_volume': 500,
+            'num_owned': 7,
+            'balance': 2000.0
+        }
+        demo_algo = EquityAlgo(
+            ticker=ticker,
+            balance=1000.00,
+            commission=6.00,
+            config_dict=config_dict,
+            name='test-{}'.format(ticker))
+        self.assertEqual(
+            demo_algo.latest_high,
+            config_dict['latest_high'])
+        self.assertEqual(
+            demo_algo.latest_low,
+            config_dict['latest_low'])
+        self.assertEqual(
+            demo_algo.latest_open,
+            config_dict['latest_open'])
+        self.assertEqual(
+            demo_algo.latest_close,
+            config_dict['latest_close'])
+        self.assertEqual(
+            demo_algo.latest_volume,
+            config_dict['latest_volume'])
+        self.assertEqual(
+            demo_algo.num_owned,
+            config_dict['num_owned'])
+        self.assertEqual(
+            demo_algo.balance,
+            config_dict['balance'])
+    # end of test_algo_config_dict_assignments
+
     def test_sample_algo_code_in_docstring(self):
+        """test_sample_algo_code_in_docstring"""
         ticker = 'SPY'
         demo_algo = EquityAlgo(
             ticker=ticker,
