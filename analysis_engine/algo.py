@@ -30,7 +30,7 @@ datasets from the redis pipeline:
     Please ensure the engine successfully fetched
     and cached the dataset in redis using a tool like
     ``redis-cli`` and a query of ``keys *`` or
-    ``keys <TICKER>_*`` one large deployments.
+    ``keys <TICKER>_*`` on large deployments.
 """
 
 import json
