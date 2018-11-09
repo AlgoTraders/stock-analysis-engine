@@ -3,6 +3,10 @@ Test file for classes and functions:
 
 - analysis_engine.algo.EquityAlgo
 - analysis_engine.run_algo.run_algo
+- analysis_engine.build_algo_request
+- analysis_engine.build_buy_order
+- analysis_engine.build_sell_order
+- analysis_engine.build_trade_history_entry
 
 """
 
@@ -13,10 +17,10 @@ from analysis_engine.consts import TRADE_SHARES
 from analysis_engine.consts import ppj
 from analysis_engine.consts import get_status
 from analysis_engine.utils import get_last_close_str
-from analysis_engine.api_requests import build_algo_request
-from analysis_engine.api_requests import build_buy_order
-from analysis_engine.api_requests import build_sell_order
-from analysis_engine.api_requests import build_trade_history_entry
+from analysis_engine.build_algo_request import build_algo_request
+from analysis_engine.build_buy_order import build_buy_order
+from analysis_engine.build_sell_order import build_sell_order
+from analysis_engine.build_trade_history_entry import build_trade_history_entry
 from analysis_engine.algo import EquityAlgo
 from analysis_engine.run_algo import run_algo
 

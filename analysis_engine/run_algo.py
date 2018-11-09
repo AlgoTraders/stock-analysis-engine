@@ -5,9 +5,10 @@ Run an Algo
 import os
 import datetime
 import json
+import analysis_engine.build_algo_request as algo_utils
 import analysis_engine.iex.extract_df_from_redis as iex_extract_utils
 import analysis_engine.yahoo.extract_df_from_redis as yahoo_extract_utils
-import analysis_engine.yahoo.extract_df_from_redis as default_algo
+import analysis_engine.algo as default_algo
 import analysis_engine.build_result as build_result
 from analysis_engine.consts import SUCCESS
 from analysis_engine.consts import ERR
@@ -19,7 +20,6 @@ from analysis_engine.consts import get_percent_done
 from analysis_engine.utils import last_close
 from analysis_engine.utils import get_last_close_str
 from analysis_engine.utils import get_date_from_str
-from analysis_engine.api_requests import build_algo_request
 from analysis_engine.api_requests import get_ds_dict
 from spylunking.log.setup_logging import build_colorized_logger
 
@@ -383,7 +383,7 @@ def run_algo(
             datasets))
 
     for ticker in use_tickers:
-        req = build_algo_request(
+        req = algo_utils.build_algo_request(
             ticker=ticker,
             use_key=use_key,
             start_date=use_start_date_str,
