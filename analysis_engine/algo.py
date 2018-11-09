@@ -1,9 +1,11 @@
 """
-Example Equity algorithm
+Base Equity algorithm
 """
 
 import json
-import analysis_engine.api_requests as api_requests
+import analysis_engine.build_trade_history_entry as history_utils
+import analysis_engine.build_buy_order as buy_utils
+import analysis_engine.build_sell_order as sell_utils
 from analysis_engine.consts import TRADE_FILLED
 from analysis_engine.consts import TRADE_SHARES
 from analysis_engine.consts import get_status
@@ -313,7 +315,7 @@ class EquityAlgo:
                 om/AlgoTraders/stock-analysis-engine/blob/ma
                 ster/analysis_engine/api_requests.py>`__
         """
-        history_dict = api_requests.build_trade_history_entry(
+        history_dict = history_utils.build_trade_history_entry(
             ticker=self.ticker,
             algo_start_price=self.starting_close,
             original_balance=self.starting_balance,
@@ -466,7 +468,7 @@ class EquityAlgo:
         try:
             num_owned = self.get_owned_shares(
                 ticker=ticker)
-            new_buy = api_requests.build_buy_order(
+            new_buy = buy_utils.build_buy_order(
                 ticker=ticker,
                 close=close,
                 num_owned=num_owned,
@@ -585,7 +587,7 @@ class EquityAlgo:
         try:
             num_owned = self.get_owned_shares(
                 ticker=ticker)
-            new_sell = api_requests.build_sell_order(
+            new_sell = sell_utils.build_sell_order(
                 ticker=ticker,
                 close=close,
                 num_owned=num_owned,
