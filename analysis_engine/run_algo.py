@@ -59,13 +59,16 @@ def run_algo(
         result_backend=None,
         label=None,
         verbose=False):
-    """extract
+    """run_algo
 
     Run an algorithm with steps:
 
         1) Extract redis keys between dates
         2) Compile a data pipeline dictionary (call it ``data``)
         3) Call algorithm's ``myalgo.handle_data(data=data)``
+            a) If no ``algo`` is set, the
+               ``analysis_engine.algo.BaseAlgo`` algorithm
+               is used.
 
     .. note:: Please ensure Redis and Minio are running
               before trying to extract tickers
@@ -271,7 +274,7 @@ def run_algo(
             last_close_str)
 
     if not algo:
-        algo = default_algo.EquityAlgo(
+        algo = default_algo.BaseAlgo(
             tickers=use_tickers,
             balance=balance,
             commission=commission,

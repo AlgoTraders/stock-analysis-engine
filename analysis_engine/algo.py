@@ -1,8 +1,40 @@
 """
-Base Equity algorithm
+Algorithms automatically provide the following
+member variables to any custom algorithm that derives
+the ``analysis_engine.algo.BaseAlgo.process`` method.
+
+By deriving the ``process`` method using an inherited
+class, you can quickly build algorithms that
+determine **buy** and **sell** conditions from
+any of the automatically extracted
+datasets from the redis pipeline:
+
+- ``self.df_daily``
+- ``self.df_minute``
+- ``self.df_quote``
+- ``self.df_stats``
+- ``self.df_peers``
+- ``self.df_iex_news``
+- ``self.df_financials``
+- ``self.df_earnings``
+- ``self.df_dividends``
+- ``self.df_company``
+- ``self.df_yahoo_news``
+- ``self.df_options``
+- ``self.df_pricing``
+
+.. note:: If a key is not in the dataset, the
+    algorithms's member variable will be an empty
+    pandas DataFrame created with: ``pd.DataFrame([])``
+    except ``self.pricing`` which is just a dictionary.
+    Please ensure the engine successfully fetched
+    and cached the dataset in redis using a tool like
+    ``redis-cli`` and a query of ``keys *`` or
+    ``keys <TICKER>_*`` one large deployments.
 """
 
 import json
+import pandas as pd
 import analysis_engine.build_trade_history_entry as history_utils
 import analysis_engine.build_buy_order as buy_utils
 import analysis_engine.build_sell_order as sell_utils
@@ -17,8 +49,8 @@ log = build_colorized_logger(
     name=__name__)
 
 
-class EquityAlgo:
-    """EquityAlgo
+class BaseAlgo:
+    """BaseAlgo
 
     Run an algorithm against multiple tickers at once through the
     redis dataframe pipeline provided by
@@ -33,9 +65,9 @@ class EquityAlgo:
     .. code-block:: python
 
         import pandas as pd
-        from analysis_engine.algo import EquityAlgo
+        from analysis_engine.algo import BaseAlgo
         ticker = 'SPY'
-        demo_algo = EquityAlgo(
+        demo_algo = BaseAlgo(
             ticker=ticker,
             balance=1000.00,
             commission=6.00,
@@ -171,15 +203,34 @@ class EquityAlgo:
         self.stop_loss = None
         self.trailing_stop_loss = None
 
-        if config_dict:
-            self.load_from_config(
-                config_dict=config_dict)
+        self.last_ds_id = None
+        self.last_ds_date = None
+        self.last_ds_data = None
+
+        self.ds_date = None
+        self.ds_data = None
+        self.df_daily = pd.DataFrame([])
+        self.df_minute = pd.DataFrame([])
+        self.df_stats = pd.DataFrame([])
+        self.df_peers = pd.DataFrame([])
+        self.df_financials = pd.DataFrame([])
+        self.df_earnings = pd.DataFrame([])
+        self.df_dividends = pd.DataFrame([])
+        self.df_quote = pd.DataFrame([])
+        self.df_company = pd.DataFrame([])
+        self.df_iex_news = pd.DataFrame([])
+        self.df_yahoo_news = pd.DataFrame([])
+        self.df_options = pd.DataFrame([])
+        self.df_pricing = {}
 
         self.note = None
         self.version = 1
 
         if not self.name:
             self.name = 'eqa'
+
+        self.load_from_config(
+            config_dict=config_dict)
     # end of __init__
 
     def process(
@@ -189,13 +240,58 @@ class EquityAlgo:
             dataset):
         """process
 
-        process buy and sell conditions and place orders here.
+        Derive custom algorithm buy and sell conditions
+        before placing orders. Just implement your own
+        ``process`` method.
 
         :param algo_id: string - algo identifier label for debugging datasets
             during specific dates
         :param ticker: string - ticker
-        :param dataset: a pandas ``pd.DataFrame`` which could
-            be empty
+        :param dataset: a dictionary of identifiers (for debugging) and
+            multiple pandas ``pd.DataFrame`` objects. Dictionary where keys
+            represent a label from one of the data sources (``IEX``,
+            ``Yahoo``, ``FinViz`` or other). Here is the supported
+            dataset structure for the process method:
+
+            .. note:: There are no required keys for ``data``, the list
+                below is not hard-enforced by default. This is just
+                a reference for what is available with the v1 engine.
+
+            ::
+
+                dataset = {
+                    'id': <string TICKER_DATE - redis cache key>,
+                    'date': <string DATE>,
+                    'data': {
+                        'daily': pd.DataFrame([]),
+                        'minute': pd.DataFrame([]),
+                        'quote': pd.DataFrame([]),
+                        'stats': pd.DataFrame([]),
+                        'peers': pd.DataFrame([]),
+                        'news1': pd.DataFrame([]),
+                        'financials': pd.DataFrame([]),
+                        'earnings': pd.DataFrame([]),
+                        'dividends': pd.DataFrame([]),
+                        'options': pd.DataFrame([]),
+                        'pricing': dictionary,
+                        'news': pd.DataFrame([])
+                    }
+                }
+
+            example:
+
+            ::
+
+                dataset = {
+                    'id': 'SPY_2018-11-02
+                    'date': '2018-11-02',
+                    'data': {
+                        'daily': pd.DataFrame,
+                        'minute': pd.DataFrame,
+                        'options': pd.DataFrame,
+                        'news': pd.DataFrame
+                    }
+                }
         """
 
         log.info(
@@ -229,6 +325,13 @@ class EquityAlgo:
         # sells will not FILL if there's nothing already owned
         self.should_sell = False
         self.should_buy = False
+
+        log.info(
+            'process has df_daily rows={}'.format(
+                len(self.df_daily.index)))
+
+        for idx, row in self.df_daily.iterrows():
+            print(row)
 
         if self.num_owned and self.should_sell:
             self.create_sell_order(
@@ -303,17 +406,17 @@ class EquityAlgo:
 
             Helper for quickly building a history node
             on a derived algorithm. Whatever member variables
-            are in the base class ``analysis_engine.EquityAlgo``
+            are in the base class ``analysis_engine.algo.BaseAlgo``
             will be added automatically into the returned:
-            `historical transaction dictionary`
+            ``historical transaction dictionary``
 
-            .. tip:: if you get a `None` back it means there
+            .. tip:: if you get a ``None`` back it means there
                 could be a bug in how you are using the member
                 variables (likely created an invalid math
                 calculation) or could be a bug in the helper:
                 `build_trade_history_entry <https://github.c
                 om/AlgoTraders/stock-analysis-engine/blob/ma
-                ster/analysis_engine/api_requests.py>`__
+                ster/analysis_engine/build_trade_history_entry.py>`__
         """
         history_dict = history_utils.build_trade_history_entry(
             ticker=self.ticker,
@@ -710,6 +813,140 @@ class EquityAlgo:
         return data_for_tickers
     # end of get_supported_tickers_in_data
 
+    def load_from_dataset(
+            self,
+            ds_data):
+        """load_from_dataset
+
+        Load the member variables from the extracted
+        ``ds_data`` dataset.
+
+        algorithms automatically provide the following
+        member variables to  ``myalgo.process()`` for
+        quickly building algorithms:
+
+        - ``self.df_daily``
+        - ``self.df_minute``
+        - ``self.df_quote``
+        - ``self.df_stats``
+        - ``self.df_peers``
+        - ``self.df_iex_news``
+        - ``self.df_financials``
+        - ``self.df_earnings``
+        - ``self.df_dividends``
+        - ``self.df_company``
+        - ``self.df_yahoo_news``
+        - ``self.df_options``
+        - ``self.df_pricing``
+
+        .. note:: If a key is not in the dataset, the
+            algorithms's member variable will be an empty
+            ``pd.DataFrame([])``. Please ensure the engine
+            cached the dataset in redis using a tool like
+            ``redis-cli`` to verify the values are in
+            memory.
+
+        :param ds_data: extracted, structured
+            dataset from redis
+        """
+
+        # back up for debugging/tracking/comparing
+        self.last_ds_id = self.ds_id
+        self.last_ds_date = self.ds_date
+        self.last_ds_data = self.ds_data
+
+        # load the new one
+        self.ds_data = ds_data
+
+        self.ds_id = self.ds_data.get(
+            'id',
+            'missing-ID')
+        self.ds_date = self.ds_data.get(
+            'date',
+            'missing-DATE')
+        self.ds_data = self.ds_data.get(
+            'data',
+            'missing-DATA')
+        self.df_daily = self.ds_data.get(
+            'daily',
+            pd.DataFrame([]))
+        self.df_minute = self.ds_data.get(
+            'minute',
+            pd.DataFrame([]))
+        self.df_stats = self.ds_data.get(
+            'stats',
+            pd.DataFrame([]))
+        self.df_peers = self.ds_data.get(
+            'peers',
+            pd.DataFrame([]))
+        self.df_financials = self.ds_data.get(
+            'financials',
+            pd.DataFrame([]))
+        self.df_earnings = self.ds_data.get(
+            'earnings',
+            pd.DataFrame([]))
+        self.df_dividends = self.ds_data.get(
+            'dividends',
+            pd.DataFrame([]))
+        self.df_quote = self.ds_data.get(
+            'quote',
+            pd.DataFrame([]))
+        self.df_company = self.ds_data.get(
+            'company',
+            pd.DataFrame([]))
+        self.df_iex_news = self.ds_data.get(
+            'news1',
+            pd.DataFrame([]))
+        self.df_yahoo_news = self.ds_data.get(
+            'news',
+            pd.DataFrame([]))
+        self.df_options = self.ds_data.get(
+            'options',
+            pd.DataFrame([]))
+        self.df_pricing = self.ds_data.get(
+            'pricing',
+            {})
+
+        # set internal values:
+        self.trade_date = self.ds_date
+        self.created_buy = False
+        self.created_sell = False
+        self.should_buy = False
+        self.should_sell = False
+
+        try:
+            if hasattr(self.df_daily, 'empty'):
+                columns = self.df_daily.columns.values
+                if 'high' in columns:
+                    self.latest_high = float(
+                        self.df_daily.iloc[-1]['high'])
+                if 'low' in columns:
+                    self.latest_low = float(
+                        self.df_daily.iloc[-1]['low'])
+                if 'open' in columns:
+                    self.latest_open = float(
+                        self.df_daily.iloc[-1]['open'])
+                if 'close' in columns:
+                    self.latest_close = float(
+                        self.df_daily.iloc[-1]['close'])
+                    self.trade_price = self.latest_close
+                    if not self.starting_close:
+                        self.starting_close = self.latest_close
+                if 'volume' in columns:
+                    self.latest_volume = int(
+                        self.df_daily.iloc[-1]['volume'])
+        except Exception as e:
+            log.info(
+                '{} - handle - FAILED getting latest prices '
+                'for algo={} - ds={} ex={}'.format(
+                    self.name,
+                    self.ds_id,
+                    self.ds_date,
+                    e))
+        # end of trying to get the latest prices out of the
+        # datasets
+    # end of load_from_dataset
+
     def handle_data(
             self,
             data):
@@ -718,14 +955,40 @@ class EquityAlgo:
         process new data for the algorithm using a multi-ticker
         mapping structure
 
-        :param data: dictionary with structure:
+        :param data: dictionary of extracted data from
+            the redis pipeline with a structure:
             ::
 
-                data['SPY'][0] = {
-                    'name': 'SPY_2018-11-02_daily',
-                    'valid_df': bool,
-                    'df': pd.DataFrame
+                ticker = 'SPY'
+                # string usually: YYYY-MM-DD
+                date = '2018-11-05'
+                # redis cache key for the dataset format: <ticker>_<date>
+                dataset_id = '{}_{}'.format(
+                    ticker,
+                    date)
+                dataset = {
+                    ticker: [
+                        {
+                            'id': dataset_id,
+                            'date': date,
+                            'data': {
+                                'daily': pd.DataFrame([]),
+                                'minute': pd.DataFrame([]),
+                                'quote': pd.DataFrame([]),
+                                'stats': pd.DataFrame([]),
+                                'peers': pd.DataFrame([]),
+                                'news1': pd.DataFrame([]),
+                                'financials': pd.DataFrame([]),
+                                'earnings': pd.DataFrame([]),
+                                'dividends': pd.DataFrame([]),
+                                'options': pd.DataFrame([]),
+                                'pricing': dictionary,
+                                'news': pd.DataFrame([])
+                            }
+                        }
+                    ]
                 }
+
         """
         log.info(
             '{} - handle - start'.format(
@@ -766,48 +1029,9 @@ class EquityAlgo:
                  self.num_sells) = self.get_ticker_positions(
                     ticker=ticker)
 
-                self.ds_id = node.get('id', 'no-ds_id')
-                self.trade_date = node.get('date', 'no-date')
-                self.created_buy = False
-                self.created_sell = False
-                self.should_buy = False
-                self.should_sell = False
-
-                try:
-                    daily_df = node.get(
-                        'data', {}).get(
-                            'daily', None)
-
-                    if hasattr(daily_df, 'empty'):
-                        columns = daily_df.columns.values
-                        if 'high' in columns:
-                            self.latest_high = float(
-                                daily_df.iloc[-1]['high'])
-                        if 'low' in columns:
-                            self.latest_low = float(
-                                daily_df.iloc[-1]['low'])
-                        if 'open' in columns:
-                            self.latest_open = float(
-                                daily_df.iloc[-1]['open'])
-                        if 'close' in columns:
-                            self.latest_close = float(
-                                daily_df.iloc[-1]['close'])
-                            self.trade_price = self.latest_close
-                            if not self.starting_close:
-                                self.starting_close = self.latest_close
-                        if 'volume' in columns:
-                            self.latest_volume = int(
-                                daily_df.iloc[-1]['volume'])
-                except Exception as e:
-                    log.info(
-                        '{} - handle - FAILED getting latest prices '
-                        'for algo={} - ds={} ex={}'.format(
-                            self.name,
-                            algo_id,
-                            node['date'],
-                            e))
-                # end of trying to get the latest prices out of the
-                # datasets
+                # parse the dataset node and set member variables
+                self.load_from_dataset(
+                    ds_data=node)
 
                 # thinking this could be a separate celery task
                 # to increase horizontal scaling to crunch
@@ -834,4 +1058,4 @@ class EquityAlgo:
 
     # end of handle_data
 
-# end of EquityAlgo
+# end of BaseAlgo

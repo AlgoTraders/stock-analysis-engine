@@ -1,5 +1,5 @@
 """
-Algorithm API
+Build a dictionary for running an algorithm
 """
 
 import datetime
@@ -45,7 +45,8 @@ def build_algo_request(
     :param num_shares: optional - integer number of starting shares
     :param config_dict: optional - configuration dictionary
         for builk assigning starting values for the new algo
-    :param num_shares: optional - cache frequency (``daily`` is default)
+    :param cache_freq: optional - cache frequency
+        (``daily`` is default)
     :param label: optional - algo log tracking name
     """
     use_tickers = []
