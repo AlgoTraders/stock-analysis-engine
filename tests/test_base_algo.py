@@ -1,7 +1,7 @@
 """
 Test file for classes and functions:
 
-- analysis_engine.algo.EquityAlgo
+- analysis_engine.algo.BaseAlgo
 - analysis_engine.run_algo.run_algo
 - analysis_engine.build_algo_request
 - analysis_engine.build_buy_order
@@ -21,12 +21,12 @@ from analysis_engine.build_algo_request import build_algo_request
 from analysis_engine.build_buy_order import build_buy_order
 from analysis_engine.build_sell_order import build_sell_order
 from analysis_engine.build_trade_history_entry import build_trade_history_entry
-from analysis_engine.algo import EquityAlgo
+from analysis_engine.algo import BaseAlgo
 from analysis_engine.run_algo import run_algo
 
 
-class TestAlgoEquity(BaseTestCase):
-    """TestAlgoEquity"""
+class TestBaseAlgo(BaseTestCase):
+    """TestBaseAlgo"""
 
     ticker = None
     last_close_str = None
@@ -398,7 +398,7 @@ class TestAlgoEquity(BaseTestCase):
     def test_run_daily(self):
         """test_run_daily"""
         test_name = 'test_run_daily'
-        algo = EquityAlgo(
+        algo = BaseAlgo(
             ticker=self.ticker,
             balance=self.balance,
             name=test_name)
@@ -418,7 +418,7 @@ class TestAlgoEquity(BaseTestCase):
         test_name = 'test_run_algo_daily'
         balance = self.balance
         commission = 13.5
-        algo = EquityAlgo(
+        algo = BaseAlgo(
             ticker=self.ticker,
             balance=balance,
             commission=commission,
@@ -448,7 +448,7 @@ class TestAlgoEquity(BaseTestCase):
             'num_owned': 7,
             'balance': 2000.0
         }
-        demo_algo = EquityAlgo(
+        demo_algo = BaseAlgo(
             ticker=ticker,
             balance=1000.00,
             commission=6.00,
@@ -480,7 +480,7 @@ class TestAlgoEquity(BaseTestCase):
     def test_sample_algo_code_in_docstring(self):
         """test_sample_algo_code_in_docstring"""
         ticker = 'SPY'
-        demo_algo = EquityAlgo(
+        demo_algo = BaseAlgo(
             ticker=ticker,
             balance=1000.00,
             commission=6.00,
@@ -587,4 +587,4 @@ class TestAlgoEquity(BaseTestCase):
             0.0)
     # end of test_trade_history_algo_not_trade_profitable
 
-# end of TestAlgoEquity
+# end of TestBaseAlgo

@@ -1,7 +1,7 @@
-Here are some example algorithms for running your own analysis.
+Here is the base algorithm class for building your own algorithms.
 
-Equity Algo
-===========
+Base Algo
+=========
 
 .. automodule:: analysis_engine.algo
-   :members: EquityAlgo
+   :members: BaseAlgo
