@@ -1,8 +1,4 @@
 """
-
-Send Celery Task Details to Slack Utilities
-===========================================
-
 Helper for extracting details from Celery task and
 sending it to a slack webhook.
 

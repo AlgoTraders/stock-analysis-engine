@@ -38,8 +38,22 @@ import pandas as pd
 import analysis_engine.build_trade_history_entry as history_utils
 import analysis_engine.build_buy_order as buy_utils
 import analysis_engine.build_sell_order as sell_utils
+import analysis_engine.publish as publish
+from analysis_engine.consts import NOT_RUN
+from analysis_engine.consts import INVALID
 from analysis_engine.consts import TRADE_FILLED
 from analysis_engine.consts import TRADE_SHARES
+from analysis_engine.consts import ENABLED_S3_UPLOAD
+from analysis_engine.consts import ENABLED_REDIS_PUBLISH
+from analysis_engine.consts import REDIS_DB
+from analysis_engine.consts import REDIS_PASSWORD
+from analysis_engine.consts import REDIS_EXPIRE
+from analysis_engine.consts import S3_ACCESS_KEY
+from analysis_engine.consts import S3_SECRET_KEY
+from analysis_engine.consts import S3_REGION_NAME
+from analysis_engine.consts import S3_ADDRESS
+from analysis_engine.consts import S3_SECURE
+from analysis_engine.consts import ALGO_INPUT_DATASET_S3_BUCKET_NAME
 from analysis_engine.consts import get_status
 from analysis_engine.consts import get_percent_done
 from analysis_engine.utils import utc_now_str
@@ -137,8 +151,11 @@ class BaseAlgo:
             auto_fill=True,
             config_dict=None,
             publish_to_slack=True,
-            publish_to_s3=True,
-            publish_to_redis=True,
+            publish_to_s3=None,
+            publish_to_redis=None,
+            publish_input_datasets=True,
+            publish_history=True,
+            publish_output_datasets=True,
             raise_on_err=False):
         """__init__
 
@@ -161,6 +178,15 @@ class BaseAlgo:
             publishing to s3 (coming soon)
         :param publish_to_redis: optional - boolean for
             publishing to redis (coming soon)
+        :param publish_input_datasets: boolean - toggle publishing
+            all input datasets to s3 and redis
+            (coming soon - default ``False``)
+        :param publish_history: boolean - toggle publishing
+            the history to s3 and redis
+            (coming soon - default ``False``)
+        :param publish_output_datasets: boolean - toggle publishing
+            any generated datasets to s3 and redis
+            (coming soon - default ``False``)
         :param raise_on_err: optional - boolean for
             unittests and developing algorithms with the
             ``analysis_engine.run_algo.run_algo`` helper.
@@ -175,7 +201,7 @@ class BaseAlgo:
         if not self.tickers:
             if ticker:
                 self.tickers = [
-                    ticker
+                    ticker.upper()
                 ]
         self.balance = balance
         self.starting_balance = balance
@@ -246,7 +272,24 @@ class BaseAlgo:
         self.publish_to_slack = publish_to_slack
         self.publish_to_s3 = publish_to_s3
         self.publish_to_redis = publish_to_redis
+        self.publish_history = publish_history
+        self.publish_output_datasets = publish_output_datasets
+        self.publish_input_datasets = publish_input_datasets
         self.raise_on_err = raise_on_err
+
+        if not self.publish_to_s3:
+            self.publish_to_s3 = ENABLED_S3_UPLOAD
+        if not self.publish_to_redis:
+            self.publish_to_redis = ENABLED_REDIS_PUBLISH
+
+        self.output_file_dir = None
+        self.output_file_prefix = None
+
+        if self.raise_on_err:
+            if self.tickers and len(self.tickers):
+                self.output_file_prefix = str(
+                    self.tickers[0]).upper()
+            self.output_file_dir = '/opt/sa/tests/datasets/algo'
 
         if not self.name:
             self.name = 'eqa'
@@ -396,6 +439,172 @@ class BaseAlgo:
                 reason='testing')
 
     # end of process
+
+    def store_output_datasets(
+            self,
+            **kwargs):
+        """store_output_datasets
+
+        coming soon - publish generated datasets to caches (redis)
+        and archives (minio s3)
+
+        :param kwargs: keyword argument dictionary
+        """
+        if not self.publish_output_datasets:
+            log.debug(
+                '{} - tickers={} disabled output publishing'.format(
+                    self.name,
+                    self.tickers))
+            return
+        else:
+            log.debug(
+                '{} - tickers={} publishing output datasets'.format(
+                    self.name,
+                    self.tickers))
+    # end of store_output_datasets
+
+    def store_trade_history(
+            self,
+            **kwargs):
+        """store_trade_history
+
+        coming soon - publish trade history to caches (redis)
+        and archives (minio s3)
+
+        :param kwargs: keyword argument dictionary
+        """
+        if not self.publish_history:
+            log.debug(
+                '{} - tickers={} disabled trade history publishing'.format(
+                    self.name,
+                    self.tickers))
+            return
+        else:
+            log.debug(
+                '{} - tickers={} publishing trade history'.format(
+                    self.name,
+                    self.tickers))
+    # end of store_trade_history
+
+    def store_input_datasets(
+            self,
+            **kwargs):
+        """store_input_datasets
+
+        publish input datasets to caches (redis), archives
+        (minio s3), a local file (``output_file``) and slack
+
+        :param kwargs: keyword argument dictionary
+        :return: tuple: ``status``, ``output_file``
+        """
+
+        # parse optional input args
+        output_dir = kwargs.pop('output_dir', self.output_file_dir)
+        output_file = kwargs.pop('output_file', None)
+        label = kwargs.pop('label', self.name)
+        convert_to_json = kwargs.pop('compress', True)
+        compress = kwargs.pop('compress', False)
+        redis_enabled = kwargs.pop('redis_enabled', self.publish_to_redis)
+        redis_address = kwargs.pop('redis_address', ENABLED_S3_UPLOAD)
+        redis_db = kwargs.pop('redis_db', REDIS_DB)
+        redis_password = kwargs.pop('redis_password', REDIS_PASSWORD)
+        redis_expire = kwargs.pop('redis_expire', REDIS_EXPIRE)
+        redis_serializer = kwargs.pop('redis_serializer', 'json')
+        redis_encoding = kwargs.pop('redis_encoding', 'utf-8')
+        s3_enabled = kwargs.pop('s3_enabled', self.publish_to_s3)
+        s3_address = kwargs.pop('s3_address', S3_ADDRESS)
+        s3_bucket = kwargs.pop('s3_bucket', ALGO_INPUT_DATASET_S3_BUCKET_NAME)
+        s3_access_key = kwargs.pop('s3_access_key', S3_ACCESS_KEY)
+        s3_secret_key = kwargs.pop('s3_secret_key', S3_SECRET_KEY)
+        s3_region_name = kwargs.pop('s3_region_name', S3_REGION_NAME)
+        s3_secure = kwargs.pop('s3_secure', S3_SECURE)
+        slack_enabled = kwargs.pop('slack_enabled', False)
+        slack_code_block = kwargs.pop('slack_code_block', False)
+        slack_full_width = kwargs.pop('slack_full_width', False)
+        redis_key = kwargs.pop('redis_key', output_file)
+        s3_key = kwargs.pop('s3_key', output_file)
+        verbose = kwargs.pop('verbose', False)
+
+        status = NOT_RUN
+
+        if self.raise_on_err:
+            if not output_file:
+                output_file = (
+                    '{}/{}-input.json'.format(
+                        output_dir,
+                        self.output_file_prefix))
+        # if raising errors this is a unittest or development algo
+
+        if not self.publish_input_datasets:
+            log.info(
+                'input publish - disabled - '
+                '{} - tickers={}'.format(
+                    self.name,
+                    self.tickers))
+            return status, output_file
+        else:
+            if not output_file:
+                log.debug(
+                    'input publish - invalid - '
+                    '{} - tickers={} missing output_file'.format(
+                        self.name,
+                        self.tickers))
+                status = INVALID
+                return status, output_file
+            # end of if good to run
+        # end of screening for returning early
+
+        if output_file:
+            log.info(
+                'input publish - START - '
+                '{} - tickers={} file={}'.format(
+                    self.name,
+                    self.tickers,
+                    output_file))
+            output_data = {
+                'test': 'hello'
+            }
+            use_data = json.dumps(output_data)
+            publish_status = publish.publish(
+                data=use_data,
+                label=label,
+                convert_to_json=convert_to_json,
+                output_file=output_file,
+                compress=compress,
+                redis_enabled=redis_enabled,
+                redis_key=redis_key,
+                redis_address=redis_address,
+                redis_db=redis_db,
+                redis_password=redis_password,
+                redis_expire=redis_expire,
+                redis_serializer=redis_serializer,
+                redis_encoding=redis_encoding,
+                s3_enabled=s3_enabled,
+                s3_key=s3_key,
+                s3_address=s3_address,
+                s3_bucket=s3_bucket,
+                s3_access_key=s3_access_key,
+                s3_secret_key=s3_secret_key,
+                s3_region_name=s3_region_name,
+                s3_secure=s3_secure,
+                slack_enabled=slack_enabled,
+                slack_code_block=slack_code_block,
+                slack_full_width=slack_full_width,
+                verbose=verbose)
+
+            status = publish_status
+
+            log.info(
+                'input publish - END - {} '
+                '{} - tickers={} file={}'.format(
+                    get_status(status=status),
+                    self.name,
+                    self.tickers,
+                    output_file))
+        # end of handling for publish
+
+        return status, output_file
+    # end of store_input_datasets
 
     def get_ticker_positions(
             self,

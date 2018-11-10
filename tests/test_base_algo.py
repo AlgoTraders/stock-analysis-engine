@@ -11,6 +11,10 @@ Test file for classes and functions:
 """
 
 import pandas as pd
+import mock
+from analysis_engine.mocks.mock_boto3_s3 import \
+    build_boto3_resource
+from analysis_engine.mocks.mock_redis import MockRedis
 from analysis_engine.mocks.base_test import BaseTestCase
 from analysis_engine.consts import COMMON_DATE_FORMAT
 from analysis_engine.consts import TRADE_SHARES
@@ -21,8 +25,48 @@ from analysis_engine.build_algo_request import build_algo_request
 from analysis_engine.build_buy_order import build_buy_order
 from analysis_engine.build_sell_order import build_sell_order
 from analysis_engine.build_trade_history_entry import build_trade_history_entry
+from analysis_engine.build_publish_request import build_publish_request
 from analysis_engine.algo import BaseAlgo
 from analysis_engine.run_algo import run_algo
+from types import SimpleNamespace
+
+
+def mock_write_to_file(
+        output_file,
+        data):
+    print(
+        'mock - mock_write_to_file('
+        'output_file={}, data={})'.format(
+            output_file,
+            data))
+    return True
+# end of mock_write_to_file
+
+
+def mock_write_to_file_failed(
+        output_file,
+        data):
+    print(
+        'mock - fail - mock_write_to_file('
+        'output_file={}, data={})'.format(
+            output_file,
+            data))
+    return False
+# end of mock_write_to_file_failed
+
+
+def mock_request_success_result(
+        url,
+        data):
+    """mock_request_success_result
+
+    Mock slack post_success
+
+    :param kwargs: keyword args dict
+    """
+    res = {'status_code': 200}
+    return SimpleNamespace(**res)
+# end of mock_request_success_result
 
 
 class TestBaseAlgo(BaseTestCase):
@@ -395,6 +439,9 @@ class TestBaseAlgo(BaseTestCase):
             details)
     # end of test_build_sell_order_not_owned_asset
 
+    @mock.patch(
+        ('analysis_engine.write_to_file.write_to_file'),
+        new=mock_write_to_file)
     def test_run_daily(self):
         """test_run_daily"""
         test_name = 'test_run_daily'
@@ -413,6 +460,9 @@ class TestBaseAlgo(BaseTestCase):
             data=self.data)
     # end of test_run_daily
 
+    @mock.patch(
+        ('analysis_engine.write_to_file.write_to_file'),
+        new=mock_write_to_file)
     def test_run_algo_daily(self):
         """test_run_algo_daily"""
         test_name = 'test_run_algo_daily'
@@ -437,6 +487,9 @@ class TestBaseAlgo(BaseTestCase):
         print(rec)
     # end of test_run_algo_daily
 
+    @mock.patch(
+        ('analysis_engine.write_to_file.write_to_file'),
+        new=mock_write_to_file)
     def test_algo_config_dict_assignments(self):
         """test_algo_config_dict_assignments"""
         ticker = 'SPY'
@@ -478,6 +531,9 @@ class TestBaseAlgo(BaseTestCase):
             config_dict['balance'])
     # end of test_algo_config_dict_assignments
 
+    @mock.patch(
+        ('analysis_engine.write_to_file.write_to_file'),
+        new=mock_write_to_file)
     def test_sample_algo_code_in_docstring(self):
         """test_sample_algo_code_in_docstring"""
         ticker = 'SPY'
@@ -588,6 +644,9 @@ class TestBaseAlgo(BaseTestCase):
             0.0)
     # end of test_trade_history_algo_not_trade_profitable
 
+    @mock.patch(
+        ('analysis_engine.write_to_file.write_to_file'),
+        new=mock_write_to_file)
     def test_run_derived_algo_daily(self):
         """test_run_derived_algo_daily"""
         test_name = 'test_run_derived_algo_daily'
@@ -724,5 +783,203 @@ class TestBaseAlgo(BaseTestCase):
             len(algo_res['rec']['history']),
             len(algo.get_test_values()))
     # end of test_run_derived_algo_daily
+
+    @mock.patch(
+        ('analysis_engine.write_to_file.write_to_file'),
+        new=mock_write_to_file)
+    def test_algo_can_save_all_input_datasets_publish_disabled(self):
+        """test_algo_can_save_all_input_datasets_publish_disabled"""
+        test_name = 'test_run_algo_daily'
+        balance = self.balance
+        commission = 13.5
+        algo = BaseAlgo(
+            ticker=self.ticker,
+            balance=balance,
+            commission=commission,
+            publish_history=False,
+            publish_output_datasets=False,
+            publish_input_datasets=False,
+            name=test_name)
+        algo_res = run_algo(
+            ticker=self.ticker,
+            algo=algo,
+            label=test_name,
+            raise_on_err=True)
+        self.assertTrue(
+            len(algo_res['rec']['history']) > 30)
+        self.assertEqual(
+            algo.name,
+            test_name)
+        self.assertEqual(
+            algo.tickers,
+            [self.ticker])
+        output_file = '/opt/sa/tests/datasets/algo/{}.json'.format(
+            test_name)
+        redis_enabled = False
+        redis_key = '{}'.format(
+            test_name)
+        s3_enabled = False
+        s3_key = '{}.json'.format(
+            test_name)
+        compress = False
+        slack_enabled = False
+        slack_code_block = True
+        slack_full_width = False
+        verbose = True
+        store_input_req = build_publish_request(
+            label=test_name,
+            convert_to_json=True,
+            output_file=output_file,
+            compress=compress,
+            redis_enabled=redis_enabled,
+            redis_key=redis_key,
+            s3_enabled=s3_enabled,
+            s3_key=s3_key,
+            slack_enabled=slack_enabled,
+            slack_code_block=slack_code_block,
+            slack_full_width=slack_full_width,
+            verbose=verbose)
+        store_input_status, output_file = algo.store_input_datasets(
+            **store_input_req)
+        self.assertEqual(
+            get_status(status=store_input_status),
+            'NOT_RUN')
+    # end of test_algo_can_save_all_input_datasets_publish_disabled
+
+    @mock.patch(
+        ('redis.Redis'),
+        new=MockRedis)
+    @mock.patch(
+        ('boto3.resource'),
+        new=build_boto3_resource)
+    @mock.patch(
+        ('requests.post'),
+        new=mock_request_success_result)
+    @mock.patch(
+        ('analysis_engine.write_to_file.write_to_file'),
+        new=mock_write_to_file)
+    def test_algo_can_save_all_input_datasets_to_file(self):
+        """test_algo_can_save_all_input_datasets_to_file"""
+        test_name = 'test_run_algo_daily'
+        balance = self.balance
+        commission = 13.5
+        algo = BaseAlgo(
+            ticker=self.ticker,
+            balance=balance,
+            commission=commission,
+            name=test_name)
+        algo_res = run_algo(
+            ticker=self.ticker,
+            algo=algo,
+            label=test_name,
+            raise_on_err=True)
+        self.assertTrue(
+            len(algo_res['rec']['history']) > 30)
+        self.assertEqual(
+            algo.name,
+            test_name)
+        self.assertEqual(
+            algo.tickers,
+            [self.ticker])
+        output_file = '/opt/sa/tests/datasets/algo/{}.json'.format(
+            test_name)
+        redis_enabled = True
+        redis_key = '{}'.format(
+            test_name)
+        s3_enabled = True
+        s3_key = '{}.json'.format(
+            test_name)
+        compress = False
+        slack_enabled = True
+        slack_code_block = True
+        slack_full_width = False
+        verbose = True
+        store_input_req = build_publish_request(
+            label=test_name,
+            convert_to_json=True,
+            output_file=output_file,
+            compress=compress,
+            redis_enabled=redis_enabled,
+            redis_key=redis_key,
+            s3_enabled=s3_enabled,
+            s3_key=s3_key,
+            slack_enabled=slack_enabled,
+            slack_code_block=slack_code_block,
+            slack_full_width=slack_full_width,
+            verbose=verbose)
+        store_input_status, output_file = algo.store_input_datasets(
+            **store_input_req)
+        self.assertEqual(
+            get_status(status=store_input_status),
+            'SUCCESS')
+    # end of test_algo_can_save_all_input_datasets_to_file
+
+    @mock.patch(
+        ('redis.Redis'),
+        new=MockRedis)
+    @mock.patch(
+        ('boto3.resource'),
+        new=build_boto3_resource)
+    @mock.patch(
+        ('requests.post'),
+        new=mock_request_success_result)
+    @mock.patch(
+        ('analysis_engine.write_to_file.write_to_file'),
+        new=mock_write_to_file_failed)
+    def test_algo_can_save_all_input_datasets_to_file_failed(self):
+        """test_algo_can_save_all_input_datasets_to_file_failed"""
+        test_name = 'test_run_algo_daily'
+        balance = self.balance
+        commission = 13.5
+        algo = BaseAlgo(
+            ticker=self.ticker,
+            balance=balance,
+            commission=commission,
+            name=test_name)
+        algo_res = run_algo(
+            ticker=self.ticker,
+            algo=algo,
+            label=test_name,
+            raise_on_err=True)
+        self.assertTrue(
+            len(algo_res['rec']['history']) > 30)
+        self.assertEqual(
+            algo.name,
+            test_name)
+        self.assertEqual(
+            algo.tickers,
+            [self.ticker])
+        output_file = '/opt/sa/tests/datasets/algo/{}.json'.format(
+            test_name)
+        redis_enabled = True
+        redis_key = '{}'.format(
+            test_name)
+        s3_enabled = True
+        s3_key = '{}.json'.format(
+            test_name)
+        compress = False
+        slack_enabled = True
+        slack_code_block = True
+        slack_full_width = False
+        verbose = True
+        store_input_req = build_publish_request(
+            label=test_name,
+            convert_to_json=True,
+            output_file=output_file,
+            compress=compress,
+            redis_enabled=redis_enabled,
+            redis_key=redis_key,
+            s3_enabled=s3_enabled,
+            s3_key=s3_key,
+            slack_enabled=slack_enabled,
+            slack_code_block=slack_code_block,
+            slack_full_width=slack_full_width,
+            verbose=verbose)
+        store_input_status, output_file = algo.store_input_datasets(
+            **store_input_req)
+        self.assertEqual(
+            get_status(status=store_input_status),
+            'FILE_FAILED')
+    # end of test_algo_can_save_all_input_datasets_to_file_failed
 
 # end of TestBaseAlgo

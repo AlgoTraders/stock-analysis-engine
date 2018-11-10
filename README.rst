@@ -658,6 +658,13 @@ Prepare Dataset
 
     python -m unittest tests.test_prepare_pricing_dataset.TestPreparePricingDataset.test_prepare_pricing_data_success
 
+Test Algo Saving All Input Datasets to File
+-------------------------------------------
+
+::
+
+    python -m unittest tests.test_base_algo.TestBaseAlgo.test_algo_can_save_all_input_datasets_to_file
+
 End-to-End Integration Testing
 ==============================
 
