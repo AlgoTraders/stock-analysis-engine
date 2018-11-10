@@ -141,9 +141,12 @@ Supported S3 Environment Variables
     ALGO_INPUT_DATASET_S3_BUCKET_NAME = ev(
         'ALGO_INPUT_DATASET_S3_BUCKET_NAME',
         'algoinput')
-    ALGO_OUTPUT_DATASET_S3_BUCKET_NAME = ev(
-        'ALGO_OUTPUT_DATASET_S3_BUCKET_NAME',
+    ALGO_HISTORY_DATASET_S3_BUCKET_NAME = ev(
+        'ALGO_HISTORY_DATASET_S3_BUCKET_NAME',
         'algohistory')
+    ALGO_REPORT_DATASET_S3_BUCKET_NAME = ev(
+        'ALGO_REPORT_DATASET_S3_BUCKET_NAME',
+        'algoreport')
     SCREENER_S3_BUCKET_NAME = ev(
         'SCREENER_S3_BUCKET_NAME',
         'screener-data')
@@ -350,9 +353,12 @@ ALGO_RESULT_S3_BUCKET_NAME = ev(
 ALGO_INPUT_DATASET_S3_BUCKET_NAME = ev(
     'ALGO_INPUT_DATASET_S3_BUCKET_NAME',
     'algoinput')
-ALGO_OUTPUT_DATASET_S3_BUCKET_NAME = ev(
-    'ALGO_OUTPUT_DATASET_S3_BUCKET_NAME',
+ALGO_HISTORY_DATASET_S3_BUCKET_NAME = ev(
+    'ALGO_HISTORY_DATASET_S3_BUCKET_NAME',
     'algohistory')
+ALGO_REPORT_DATASET_S3_BUCKET_NAME = ev(
+    'ALGO_REPORT_DATASET_S3_BUCKET_NAME',
+    'algoreport')
 SCREENER_S3_BUCKET_NAME = ev(
     'SCREENER_S3_BUCKET_NAME',
     'screener-data')
@@ -434,6 +440,15 @@ SLACK_FINVIZ_COLUMNS = [
     'pe',
     'market_cap'
 ]
+ALGO_INPUT_COMPRESS = (ev(
+    'ALGO_INPUT_COMPRESS',
+    '0') == '1')
+ALGO_HISTORY_COMPRESS = (ev(
+    'ALGO_HISTORY_COMPRESS',
+    '0') == '1')
+ALGO_REPORT_COMPRESS = (ev(
+    'ALGO_REPORT_COMPRESS',
+    '0') == '1')
 
 
 ########################################

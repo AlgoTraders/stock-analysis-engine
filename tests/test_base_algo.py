@@ -797,7 +797,7 @@ class TestBaseAlgo(BaseTestCase):
             balance=balance,
             commission=commission,
             publish_history=False,
-            publish_output_datasets=False,
+            publish_report=False,
             publish_input_datasets=False,
             name=test_name)
         algo_res = run_algo(
