@@ -169,8 +169,8 @@ def run_algo(
     :param raise_on_err: optional - boolean for
         unittests and developing algorithms with the
         ``analysis_engine.run_algo.run_algo`` helper.
-        .. note:: When set to ``True`` exceptions will
-            are raised to the calling functions
+        When set to ``True`` exceptions will
+        are raised to the calling functions
 
     **Supported environment variables**
 

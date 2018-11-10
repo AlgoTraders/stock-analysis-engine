@@ -83,6 +83,8 @@ Table of Contents
    mock_api
    slack_utils
    utils
+   publish
+   build_publish_request
 
 Indices and tables
 ==================

@@ -138,6 +138,15 @@ Supported S3 Environment Variables
     ALGO_RESULT_S3_BUCKET_NAME = ev(
         'ALGO_RESULT_S3_BUCKET_NAME',
         'algoresults')
+    ALGO_INPUT_DATASET_S3_BUCKET_NAME = ev(
+        'ALGO_INPUT_DATASET_S3_BUCKET_NAME',
+        'algoinput')
+    ALGO_OUTPUT_DATASET_S3_BUCKET_NAME = ev(
+        'ALGO_OUTPUT_DATASET_S3_BUCKET_NAME',
+        'algohistory')
+    SCREENER_S3_BUCKET_NAME = ev(
+        'SCREENER_S3_BUCKET_NAME',
+        'screener-data')
 
 Supported Redis Environment Variables
 -------------------------------------
@@ -224,7 +233,11 @@ OPTION_PUT = 34
 ALGO_PROFITABLE = 35
 ALGO_NOT_PROFITABLE = 36
 ALGO_ERROR = 37
-ALGO_NOT_ACTIVE = 37
+ALGO_NOT_ACTIVE = 38
+S3_FAILED = 39
+REDIS_FAILED = 40
+FILE_FAILED = 41
+SLACK_FAILED = 42
 
 SA_MODE_PREPARE = 100
 SA_MODE_ANALYZE = 101
@@ -334,6 +347,12 @@ ALGO_SELLS_S3_BUCKET_NAME = ev(
 ALGO_RESULT_S3_BUCKET_NAME = ev(
     'ALGO_RESULT_S3_BUCKET_NAME',
     'algoresults')
+ALGO_INPUT_DATASET_S3_BUCKET_NAME = ev(
+    'ALGO_INPUT_DATASET_S3_BUCKET_NAME',
+    'algoinput')
+ALGO_OUTPUT_DATASET_S3_BUCKET_NAME = ev(
+    'ALGO_OUTPUT_DATASET_S3_BUCKET_NAME',
+    'algohistory')
 SCREENER_S3_BUCKET_NAME = ev(
     'SCREENER_S3_BUCKET_NAME',
     'screener-data')
@@ -594,6 +613,14 @@ def get_status(
         return 'ALGO_ERROR'
     elif status == ALGO_NOT_ACTIVE:
         return 'ALGO_NOT_ACTIVE'
+    elif status == S3_FAILED:
+        return 'S3_FAILED'
+    elif status == REDIS_FAILED:
+        return 'REDIS_FAILED'
+    elif status == FILE_FAILED:
+        return 'FILE_FAILED'
+    elif status == SLACK_FAILED:
+        return 'SLACK_FAILED'
     else:
         return 'unsupported status={}'.format(
             status)
