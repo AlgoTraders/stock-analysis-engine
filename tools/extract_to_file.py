@@ -10,6 +10,7 @@ redis for developing and tuning algorithms offline
 """
 
 import os
+import sys
 import json
 from analysis_engine.consts import ppj
 from analysis_engine.extract import extract
@@ -21,9 +22,17 @@ res = extract(
 daily_df = res['SPY']['daily']
 minute_df = res['SPY']['minute']
 
-daily_file = '/tmp/{}-daily.json'.format(
+out_dir = '/opt/sa/tests/datasets'
+if not os.path.exists(out_dir):
+    print('missing output dir: {}'.format(
+        out_dir))
+    sys.exit(1)
+
+daily_file = '{}/{}-daily.json'.format(
+    out_dir,
     ticker.lower())
-minute_file = '/tmp/{}-minute.json'.format(
+minute_file = '{}/{}-minute.json'.format(
+    out_dir,
     ticker.lower())
 print('converting dates')
 
@@ -44,6 +53,9 @@ if not os.path.exists(daily_file):
         ticker,
         daily_file))
 
+print(
+    'converting to pretty printed json file={}'.format(
+        minute_file))
 minute_out_json = ppj(json.loads(minute_df.iloc[-100:-1].to_json(
     orient='records',
     date_format='iso')))
