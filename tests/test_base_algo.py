@@ -725,4 +725,30 @@ class TestBaseAlgo(BaseTestCase):
             len(algo.get_test_values()))
     # end of test_run_derived_algo_daily
 
+    def test_algo_can_save_all_input_datasets_to_file(self):
+        """test_algo_can_save_all_input_datasets_to_file"""
+        test_name = 'test_run_algo_daily'
+        balance = self.balance
+        commission = 13.5
+        algo = BaseAlgo(
+            ticker=self.ticker,
+            balance=balance,
+            commission=commission,
+            name=test_name)
+        algo_res = run_algo(
+            ticker=self.ticker,
+            algo=algo,
+            label=test_name,
+            raise_on_err=True)
+        self.assertTrue(
+            len(algo_res['rec']['history']) > 30)
+        self.assertEqual(
+            algo.name,
+            test_name)
+        self.assertEqual(
+            algo.tickers,
+            [self.ticker])
+        print(algo_res)
+    # end of test_algo_can_save_all_input_datasets_to_file
+
 # end of TestBaseAlgo
