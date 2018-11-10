@@ -39,6 +39,7 @@ import analysis_engine.build_trade_history_entry as history_utils
 import analysis_engine.build_buy_order as buy_utils
 import analysis_engine.build_sell_order as sell_utils
 import analysis_engine.publish as publish
+import analysis_engine.build_publish_request as build_publish_request
 from analysis_engine.consts import NOT_RUN
 from analysis_engine.consts import INVALID
 from analysis_engine.consts import TRADE_FILLED
@@ -54,6 +55,11 @@ from analysis_engine.consts import S3_REGION_NAME
 from analysis_engine.consts import S3_ADDRESS
 from analysis_engine.consts import S3_SECURE
 from analysis_engine.consts import ALGO_INPUT_DATASET_S3_BUCKET_NAME
+from analysis_engine.consts import ALGO_HISTORY_DATASET_S3_BUCKET_NAME
+from analysis_engine.consts import ALGO_REPORT_DATASET_S3_BUCKET_NAME
+from analysis_engine.consts import ALGO_INPUT_COMPRESS
+from analysis_engine.consts import ALGO_HISTORY_COMPRESS
+from analysis_engine.consts import ALGO_REPORT_COMPRESS
 from analysis_engine.consts import get_status
 from analysis_engine.consts import get_percent_done
 from analysis_engine.utils import utc_now_str
@@ -148,14 +154,19 @@ class BaseAlgo:
             commission=6.0,
             tickers=None,
             name=None,
+            use_key=None,
             auto_fill=True,
             config_dict=None,
+            output_dir=None,
+            input_config=None,
+            history_config=None,
+            report_config=None,
             publish_to_slack=True,
             publish_to_s3=None,
             publish_to_redis=None,
             publish_input_datasets=True,
             publish_history=True,
-            publish_output_datasets=True,
+            publish_report=True,
             raise_on_err=False):
         """__init__
 
@@ -184,7 +195,7 @@ class BaseAlgo:
         :param publish_history: boolean - toggle publishing
             the history to s3 and redis
             (coming soon - default ``False``)
-        :param publish_output_datasets: boolean - toggle publishing
+        :param publish_report: boolean - toggle publishing
             any generated datasets to s3 and redis
             (coming soon - default ``False``)
         :param raise_on_err: optional - boolean for
@@ -192,7 +203,18 @@ class BaseAlgo:
             ``analysis_engine.run_algo.run_algo`` helper.
             .. note:: When set to ``True`` exceptions will
                 are raised to the calling functions
-
+        :param input_config: dictionary for publishing
+            the algorithm's ``inputs`` to redis, s3, a file and
+            slack. This is **not** related to how datasets
+            are loaded for backtest processing, it's just for publishing
+            the entire data argument for ``handle_data(data=data)``
+            as a tool for debugging and tuning algorithms.
+        :param history_config: dictionary for publishing
+            the algorithm's ``trade history`` to redis, s3, a file and
+            slack
+        :param report_config: dictionary for publishing
+            the algorithm's ``generated output datasets`` to
+            redis, s3, a file and slack
         """
         self.buys = []
         self.sells = []
@@ -273,7 +295,7 @@ class BaseAlgo:
         self.publish_to_s3 = publish_to_s3
         self.publish_to_redis = publish_to_redis
         self.publish_history = publish_history
-        self.publish_output_datasets = publish_output_datasets
+        self.publish_report = publish_report
         self.publish_input_datasets = publish_input_datasets
         self.raise_on_err = raise_on_err
 
@@ -293,6 +315,212 @@ class BaseAlgo:
 
         if not self.name:
             self.name = 'eqa'
+
+        """
+        Load tracking connectivity for recording
+        - input
+        - trade history
+        - algorithm-generated datasets
+        """
+
+        # parse optional input args
+        self.save_as_key = use_key
+        if not self.save_as_key:
+            self.save_as_key = '{}-{}'.format(
+                self.name.replace(' ', ''),
+                utc_now_str(fmt='%Y-%m-%d-%H-%M-%S.%f'))
+        self.output_file_dir = '/opt/sa/tests/datasets/algo'
+        if not output_dir:
+            self.output_file_dir = output_dir
+
+        # set up default keys
+        self.default_output_file = '{}/{}.json'.format(
+            self.output_file_dir,
+            self.save_as_key)
+        self.default_s3_key = '{}.json'.format(
+            self.save_as_key)
+        self.default_redis_key = '{}'.format(
+            self.save_as_key)
+
+        self.default_input_output_file = '{}/input-{}.json'.format(
+            self.output_file_dir,
+            self.save_as_key)
+        self.default_history_output_file = '{}/history-{}.json'.format(
+            self.output_file_dir,
+            self.save_as_key)
+        self.default_report_output_file = '{}/report-{}.json'.format(
+            self.output_file_dir,
+            self.save_as_key)
+
+        self.default_input_redis_key = 'algo:input:{}'.format(
+            self.default_redis_key)
+        self.default_history_redis_key = 'algo:history:{}'.format(
+            self.default_redis_key)
+        self.default_report_redis_key = 'algo:output:{}'.format(
+            self.default_redis_key)
+
+        if not input_config:
+            input_config = build_publish_request.build_publish_request()
+        if not history_config:
+            history_config = build_publish_request.build_publish_request()
+        if not report_config:
+            report_config = build_publish_request.build_publish_request()
+
+        # Load the input dataset publishing member variables
+        self.input_output_dir = input_config.get(
+            'output_dir', self.output_file_dir)
+        self.input_output_file = input_config.get(
+            'output_file', self.default_input_output_file)
+        self.input_label = input_config.get(
+            'label', self.name)
+        self.input_convert_to_json = input_config.get(
+            'convert_to_json', True)
+        self.input_compress = input_config.get(
+            'compress', ALGO_INPUT_COMPRESS)
+        self.input_redis_enabled = input_config.get(
+            'redis_enabled', self.publish_to_redis)
+        self.input_redis_address = input_config.get(
+            'redis_address', ENABLED_S3_UPLOAD)
+        self.input_redis_db = input_config.get(
+            'redis_db', REDIS_DB)
+        self.input_redis_password = input_config.get(
+            'redis_password', REDIS_PASSWORD)
+        self.input_redis_expire = input_config.get(
+            'redis_expire', REDIS_EXPIRE)
+        self.input_redis_serializer = input_config.get(
+            'redis_serializer', 'json')
+        self.input_redis_encoding = input_config.get(
+            'redis_encoding', 'utf-8')
+        self.input_s3_enabled = input_config.get(
+            's3_enabled', self.publish_to_s3)
+        self.input_s3_address = input_config.get(
+            's3_address', S3_ADDRESS)
+        self.input_s3_bucket = input_config.get(
+            's3_bucket', ALGO_INPUT_DATASET_S3_BUCKET_NAME)
+        self.input_s3_access_key = input_config.get(
+            's3_access_key', S3_ACCESS_KEY)
+        self.input_s3_secret_key = input_config.get(
+            's3_secret_key', S3_SECRET_KEY)
+        self.input_s3_region_name = input_config.get(
+            's3_region_name', S3_REGION_NAME)
+        self.input_s3_secure = input_config.get(
+            's3_secure', S3_SECURE)
+        self.input_slack_enabled = input_config.get(
+            'slack_enabled', False)
+        self.input_slack_code_block = input_config.get(
+            'slack_code_block', False)
+        self.input_slack_full_width = input_config.get(
+            'slack_full_width', False)
+        self.input_redis_key = input_config.get(
+            'redis_key', self.default_input_redis_key)
+        self.input_s3_key = input_config.get(
+            's3_key', self.default_s3_key)
+        self.input_verbose = input_config.get(
+            'verbose', False)
+
+        # load the trade history publishing member variables
+        self.history_output_dir = history_config.get(
+            'output_dir', self.output_file_dir)
+        self.history_output_file = history_config.get(
+            'output_file', self.default_history_output_file)
+        self.history_label = history_config.get(
+            'label', self.name)
+        self.history_convert_to_json = history_config.get(
+            'convert_to_json', True)
+        self.history_compress = history_config.get(
+            'compress', ALGO_HISTORY_COMPRESS)
+        self.history_redis_enabled = history_config.get(
+            'redis_enabled', self.publish_to_redis)
+        self.history_redis_address = history_config.get(
+            'redis_address', ENABLED_S3_UPLOAD)
+        self.history_redis_db = history_config.get(
+            'redis_db', REDIS_DB)
+        self.history_redis_password = history_config.get(
+            'redis_password', REDIS_PASSWORD)
+        self.history_redis_expire = history_config.get(
+            'redis_expire', REDIS_EXPIRE)
+        self.history_redis_serializer = history_config.get(
+            'redis_serializer', 'json')
+        self.history_redis_encoding = history_config.get(
+            'redis_encoding', 'utf-8')
+        self.history_s3_enabled = history_config.get(
+            's3_enabled', self.publish_to_s3)
+        self.history_s3_address = history_config.get(
+            's3_address', S3_ADDRESS)
+        self.history_s3_bucket = history_config.get(
+            's3_bucket', ALGO_HISTORY_DATASET_S3_BUCKET_NAME)
+        self.history_s3_access_key = history_config.get(
+            's3_access_key', S3_ACCESS_KEY)
+        self.history_s3_secret_key = history_config.get(
+            's3_secret_key', S3_SECRET_KEY)
+        self.history_s3_region_name = history_config.get(
+            's3_region_name', S3_REGION_NAME)
+        self.history_s3_secure = history_config.get(
+            's3_secure', S3_SECURE)
+        self.history_slack_enabled = history_config.get(
+            'slack_enabled', False)
+        self.history_slack_code_block = history_config.get(
+            'slack_code_block', False)
+        self.history_slack_full_width = history_config.get(
+            'slack_full_width', False)
+        self.history_redis_key = history_config.get(
+            'redis_key', self.default_history_redis_key)
+        self.history_s3_key = history_config.get(
+            's3_key', self.default_s3_key)
+        self.history_verbose = history_config.get(
+            'verbose', False)
+
+        # Load publishing for algorithm-generated report member variables
+        self.report_output_dir = report_config.get(
+            'output_dir', self.output_file_dir)
+        self.report_output_file = report_config.get(
+            'output_file', self.default_report_output_file)
+        self.report_label = report_config.get(
+            'label', self.name)
+        self.report_convert_to_json = report_config.get(
+            'convert_to_json', True)
+        self.report_compress = report_config.get(
+            'compress', ALGO_REPORT_COMPRESS)
+        self.report_redis_enabled = report_config.get(
+            'redis_enabled', self.publish_to_redis)
+        self.report_redis_address = report_config.get(
+            'redis_address', ENABLED_S3_UPLOAD)
+        self.report_redis_db = report_config.get(
+            'redis_db', REDIS_DB)
+        self.report_redis_password = report_config.get(
+            'redis_password', REDIS_PASSWORD)
+        self.report_redis_expire = report_config.get(
+            'redis_expire', REDIS_EXPIRE)
+        self.report_redis_serializer = report_config.get(
+            'redis_serializer', 'json')
+        self.report_redis_encoding = report_config.get(
+            'redis_encoding', 'utf-8')
+        self.report_s3_enabled = report_config.get(
+            's3_enabled', self.publish_to_s3)
+        self.report_s3_address = report_config.get(
+            's3_address', S3_ADDRESS)
+        self.report_s3_bucket = report_config.get(
+            's3_bucket', ALGO_REPORT_DATASET_S3_BUCKET_NAME)
+        self.report_s3_access_key = report_config.get(
+            's3_access_key', S3_ACCESS_KEY)
+        self.report_s3_secret_key = report_config.get(
+            's3_secret_key', S3_SECRET_KEY)
+        self.report_s3_region_name = report_config.get(
+            's3_region_name', S3_REGION_NAME)
+        self.report_s3_secure = report_config.get(
+            's3_secure', S3_SECURE)
+        self.report_slack_enabled = report_config.get(
+            'slack_enabled', False)
+        self.report_slack_code_block = report_config.get(
+            'slack_code_block', False)
+        self.report_slack_full_width = report_config.get(
+            'slack_full_width', False)
+        self.report_redis_key = report_config.get(
+            'redis_key', self.default_report_redis_key)
+        self.report_s3_key = report_config.get(
+            's3_key', self.default_s3_key)
+        self.report_verbose = report_config.get(
+            'verbose', False)
 
         self.load_from_config(
             config_dict=config_dict)
@@ -440,50 +668,292 @@ class BaseAlgo:
 
     # end of process
 
-    def store_output_datasets(
+    def store_report_datasets(
             self,
             **kwargs):
-        """store_output_datasets
+        """store_report_datasets
 
-        coming soon - publish generated datasets to caches (redis)
+        publish generated datasets to caches (redis)
         and archives (minio s3)
 
         :param kwargs: keyword argument dictionary
         """
-        if not self.publish_output_datasets:
-            log.debug(
-                '{} - tickers={} disabled output publishing'.format(
+
+        # parse optional input args
+        output_dir = kwargs.get(
+            'output_dir', self.output_file_dir)
+        output_file = kwargs.get(
+            'output_file', self.report_output_file)
+        label = kwargs.get(
+            'label', self.name)
+        convert_to_json = kwargs.get(
+            'convert_to_json', self.report_convert_to_json)
+        compress = kwargs.get(
+            'compress', self.report_compress)
+        redis_enabled = kwargs.get(
+            'redis_enabled', self.report_redis_enabled)
+        redis_address = kwargs.get(
+            'redis_address', self.report_redis_address)
+        redis_db = kwargs.get(
+            'redis_db', self.report_redis_db)
+        redis_password = kwargs.get(
+            'redis_password', self.report_redis_password)
+        redis_expire = kwargs.get(
+            'redis_expire', self.report_redis_expire)
+        redis_serializer = kwargs.get(
+            'redis_serializer', self.report_redis_serializer)
+        redis_encoding = kwargs.get(
+            'redis_encoding', self.report_redis_encoding)
+        s3_enabled = kwargs.get(
+            's3_enabled', self.report_s3_enabled)
+        s3_address = kwargs.get(
+            's3_address', self.report_s3_address)
+        s3_bucket = kwargs.get(
+            's3_bucket', self.report_s3_bucket)
+        s3_access_key = kwargs.get(
+            's3_access_key', self.report_s3_access_key)
+        s3_secret_key = kwargs.get(
+            's3_secret_key', self.report_s3_secret_key)
+        s3_region_name = kwargs.get(
+            's3_region_name', self.report_s3_region_name)
+        s3_secure = kwargs.get(
+            's3_secure', self.report_s3_secure)
+        slack_enabled = kwargs.get(
+            'slack_enabled', self.report_slack_enabled)
+        slack_code_block = kwargs.get(
+            'slack_code_block', self.report_slack_code_block)
+        slack_full_width = kwargs.get(
+            'slack_full_width', self.report_slack_full_width)
+        redis_key = kwargs.get(
+            'redis_key', self.report_redis_key)
+        s3_key = kwargs.get(
+            's3_key', self.report_s3_key)
+        verbose = kwargs.get(
+            'verbose', self.report_verbose)
+
+        status = NOT_RUN
+
+        if self.raise_on_err:
+            if not output_file:
+                output_file = (
+                    '{}/report-{}.json'.format(
+                        output_dir,
+                        self.output_file_prefix))
+        # if raising errors this is a unittest or development algo
+
+        if not self.publish_report:
+            log.info(
+                'report publish - disabled - '
+                '{} - tickers={}'.format(
                     self.name,
                     self.tickers))
-            return
+            return status, output_file
         else:
-            log.debug(
-                '{} - tickers={} publishing output datasets'.format(
+            if not output_file:
+                log.debug(
+                    'report publish - invalid - '
+                    '{} - tickers={} missing output_file'.format(
+                        self.name,
+                        self.tickers))
+                status = INVALID
+                return status, output_file
+            # end of if good to run
+        # end of screening for returning early
+
+        if output_file:
+            log.info(
+                'report publish - START - '
+                '{} - tickers={} file={}'.format(
                     self.name,
-                    self.tickers))
-    # end of store_output_datasets
+                    self.tickers,
+                    output_file))
+            output_data = {
+                'test': 'hello'
+            }
+            use_data = json.dumps(output_data)
+            publish_status = publish.publish(
+                data=use_data,
+                label=label,
+                convert_to_json=convert_to_json,
+                output_file=output_file,
+                compress=compress,
+                redis_enabled=redis_enabled,
+                redis_key=redis_key,
+                redis_address=redis_address,
+                redis_db=redis_db,
+                redis_password=redis_password,
+                redis_expire=redis_expire,
+                redis_serializer=redis_serializer,
+                redis_encoding=redis_encoding,
+                s3_enabled=s3_enabled,
+                s3_key=s3_key,
+                s3_address=s3_address,
+                s3_bucket=s3_bucket,
+                s3_access_key=s3_access_key,
+                s3_secret_key=s3_secret_key,
+                s3_region_name=s3_region_name,
+                s3_secure=s3_secure,
+                slack_enabled=slack_enabled,
+                slack_code_block=slack_code_block,
+                slack_full_width=slack_full_width,
+                verbose=verbose)
+
+            status = publish_status
+
+            log.info(
+                'report publish - END - {} '
+                '{} - tickers={} file={}'.format(
+                    get_status(status=status),
+                    self.name,
+                    self.tickers,
+                    output_file))
+        # end of handling for publish
+
+        return status, output_file
+    # end of store_report_datasets
 
     def store_trade_history(
             self,
             **kwargs):
         """store_trade_history
 
-        coming soon - publish trade history to caches (redis)
+        publish trade history to caches (redis)
         and archives (minio s3)
 
         :param kwargs: keyword argument dictionary
         """
+
+        # parse optional input args
+        output_dir = kwargs.get(
+            'output_dir', self.output_file_dir)
+        output_file = kwargs.get(
+            'output_file', self.history_output_file)
+        label = kwargs.get(
+            'label', self.name)
+        convert_to_json = kwargs.get(
+            'convert_to_json', self.history_convert_to_json)
+        compress = kwargs.get(
+            'compress', self.history_compress)
+        redis_enabled = kwargs.get(
+            'redis_enabled', self.history_redis_enabled)
+        redis_address = kwargs.get(
+            'redis_address', self.history_redis_address)
+        redis_db = kwargs.get(
+            'redis_db', self.history_redis_db)
+        redis_password = kwargs.get(
+            'redis_password', self.history_redis_password)
+        redis_expire = kwargs.get(
+            'redis_expire', self.history_redis_expire)
+        redis_serializer = kwargs.get(
+            'redis_serializer', self.history_redis_serializer)
+        redis_encoding = kwargs.get(
+            'redis_encoding', self.history_redis_encoding)
+        s3_enabled = kwargs.get(
+            's3_enabled', self.history_s3_enabled)
+        s3_address = kwargs.get(
+            's3_address', self.history_s3_address)
+        s3_bucket = kwargs.get(
+            's3_bucket', self.history_s3_bucket)
+        s3_access_key = kwargs.get(
+            's3_access_key', self.history_s3_access_key)
+        s3_secret_key = kwargs.get(
+            's3_secret_key', self.history_s3_secret_key)
+        s3_region_name = kwargs.get(
+            's3_region_name', self.history_s3_region_name)
+        s3_secure = kwargs.get(
+            's3_secure', self.history_s3_secure)
+        slack_enabled = kwargs.get(
+            'slack_enabled', self.history_slack_enabled)
+        slack_code_block = kwargs.get(
+            'slack_code_block', self.history_slack_code_block)
+        slack_full_width = kwargs.get(
+            'slack_full_width', self.history_slack_full_width)
+        redis_key = kwargs.get(
+            'redis_key', self.history_redis_key)
+        s3_key = kwargs.get(
+            's3_key', self.history_s3_key)
+        verbose = kwargs.get(
+            'verbose', self.history_verbose)
+
+        status = NOT_RUN
+
+        if self.raise_on_err:
+            if not output_file:
+                output_file = (
+                    '{}/history-{}.json'.format(
+                        output_dir,
+                        self.output_file_prefix))
+        # if raising errors this is a unittest or development algo
+
         if not self.publish_history:
-            log.debug(
-                '{} - tickers={} disabled trade history publishing'.format(
+            log.info(
+                'history publish - disabled - '
+                '{} - tickers={}'.format(
                     self.name,
                     self.tickers))
-            return
+            return status, output_file
         else:
-            log.debug(
-                '{} - tickers={} publishing trade history'.format(
+            if not output_file:
+                log.debug(
+                    'history publish - invalid - '
+                    '{} - tickers={} missing output_file'.format(
+                        self.name,
+                        self.tickers))
+                status = INVALID
+                return status, output_file
+            # end of if good to run
+        # end of screening for returning early
+
+        if output_file:
+            log.info(
+                'history publish - START - '
+                '{} - tickers={} file={}'.format(
                     self.name,
-                    self.tickers))
+                    self.tickers,
+                    output_file))
+            output_data = {
+                'test': 'hello'
+            }
+            use_data = json.dumps(output_data)
+            publish_status = publish.publish(
+                data=use_data,
+                label=label,
+                convert_to_json=convert_to_json,
+                output_file=output_file,
+                compress=compress,
+                redis_enabled=redis_enabled,
+                redis_key=redis_key,
+                redis_address=redis_address,
+                redis_db=redis_db,
+                redis_password=redis_password,
+                redis_expire=redis_expire,
+                redis_serializer=redis_serializer,
+                redis_encoding=redis_encoding,
+                s3_enabled=s3_enabled,
+                s3_key=s3_key,
+                s3_address=s3_address,
+                s3_bucket=s3_bucket,
+                s3_access_key=s3_access_key,
+                s3_secret_key=s3_secret_key,
+                s3_region_name=s3_region_name,
+                s3_secure=s3_secure,
+                slack_enabled=slack_enabled,
+                slack_code_block=slack_code_block,
+                slack_full_width=slack_full_width,
+                verbose=verbose)
+
+            status = publish_status
+
+            log.info(
+                'history publish - END - {} '
+                '{} - tickers={} file={}'.format(
+                    get_status(status=status),
+                    self.name,
+                    self.tickers,
+                    output_file))
+        # end of handling for publish
+
+        return status, output_file
     # end of store_trade_history
 
     def store_input_datasets(
@@ -499,38 +969,63 @@ class BaseAlgo:
         """
 
         # parse optional input args
-        output_dir = kwargs.pop('output_dir', self.output_file_dir)
-        output_file = kwargs.pop('output_file', None)
-        label = kwargs.pop('label', self.name)
-        convert_to_json = kwargs.pop('compress', True)
-        compress = kwargs.pop('compress', False)
-        redis_enabled = kwargs.pop('redis_enabled', self.publish_to_redis)
-        redis_address = kwargs.pop('redis_address', ENABLED_S3_UPLOAD)
-        redis_db = kwargs.pop('redis_db', REDIS_DB)
-        redis_password = kwargs.pop('redis_password', REDIS_PASSWORD)
-        redis_expire = kwargs.pop('redis_expire', REDIS_EXPIRE)
-        redis_serializer = kwargs.pop('redis_serializer', 'json')
-        redis_encoding = kwargs.pop('redis_encoding', 'utf-8')
-        s3_enabled = kwargs.pop('s3_enabled', self.publish_to_s3)
-        s3_address = kwargs.pop('s3_address', S3_ADDRESS)
-        s3_bucket = kwargs.pop('s3_bucket', ALGO_INPUT_DATASET_S3_BUCKET_NAME)
-        s3_access_key = kwargs.pop('s3_access_key', S3_ACCESS_KEY)
-        s3_secret_key = kwargs.pop('s3_secret_key', S3_SECRET_KEY)
-        s3_region_name = kwargs.pop('s3_region_name', S3_REGION_NAME)
-        s3_secure = kwargs.pop('s3_secure', S3_SECURE)
-        slack_enabled = kwargs.pop('slack_enabled', False)
-        slack_code_block = kwargs.pop('slack_code_block', False)
-        slack_full_width = kwargs.pop('slack_full_width', False)
-        redis_key = kwargs.pop('redis_key', output_file)
-        s3_key = kwargs.pop('s3_key', output_file)
-        verbose = kwargs.pop('verbose', False)
+        output_dir = kwargs.get(
+            'output_dir', self.output_file_dir)
+        output_file = kwargs.get(
+            'output_file', self.input_output_file)
+        label = kwargs.get(
+            'label', self.name)
+        convert_to_json = kwargs.get(
+            'convert_to_json', self.input_convert_to_json)
+        compress = kwargs.get(
+            'compress', self.input_compress)
+        redis_enabled = kwargs.get(
+            'redis_enabled', self.input_redis_enabled)
+        redis_address = kwargs.get(
+            'redis_address', self.input_redis_address)
+        redis_db = kwargs.get(
+            'redis_db', self.input_redis_db)
+        redis_password = kwargs.get(
+            'redis_password', self.input_redis_password)
+        redis_expire = kwargs.get(
+            'redis_expire', self.input_redis_expire)
+        redis_serializer = kwargs.get(
+            'redis_serializer', self.input_redis_serializer)
+        redis_encoding = kwargs.get(
+            'redis_encoding', self.input_redis_encoding)
+        s3_enabled = kwargs.get(
+            's3_enabled', self.input_s3_enabled)
+        s3_address = kwargs.get(
+            's3_address', self.input_s3_address)
+        s3_bucket = kwargs.get(
+            's3_bucket', self.input_s3_bucket)
+        s3_access_key = kwargs.get(
+            's3_access_key', self.input_s3_access_key)
+        s3_secret_key = kwargs.get(
+            's3_secret_key', self.input_s3_secret_key)
+        s3_region_name = kwargs.get(
+            's3_region_name', self.input_s3_region_name)
+        s3_secure = kwargs.get(
+            's3_secure', self.input_s3_secure)
+        slack_enabled = kwargs.get(
+            'slack_enabled', self.input_slack_enabled)
+        slack_code_block = kwargs.get(
+            'slack_code_block', self.input_slack_code_block)
+        slack_full_width = kwargs.get(
+            'slack_full_width', self.input_slack_full_width)
+        redis_key = kwargs.get(
+            'redis_key', self.input_redis_key)
+        s3_key = kwargs.get(
+            's3_key', self.input_s3_key)
+        verbose = kwargs.get(
+            'verbose', self.input_verbose)
 
         status = NOT_RUN
 
         if self.raise_on_err:
             if not output_file:
                 output_file = (
-                    '{}/{}-input.json'.format(
+                    '{}/input-{}.json'.format(
                         output_dir,
                         self.output_file_prefix))
         # if raising errors this is a unittest or development algo
