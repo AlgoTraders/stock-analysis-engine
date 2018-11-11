@@ -33,6 +33,7 @@ datasets from the redis pipeline:
     ``keys <TICKER>_*`` on large deployments.
 """
 
+import os
 import json
 import pandas as pd
 import analysis_engine.build_trade_history_entry as history_utils
@@ -40,6 +41,7 @@ import analysis_engine.build_buy_order as buy_utils
 import analysis_engine.build_sell_order as sell_utils
 import analysis_engine.publish as publish
 import analysis_engine.build_publish_request as build_publish_request
+import analysis_engine.load_algo_dataset_from_file as file_utils
 from analysis_engine.consts import NOT_RUN
 from analysis_engine.consts import INVALID
 from analysis_engine.consts import TRADE_FILLED
@@ -157,6 +159,7 @@ class BaseAlgo:
             name=None,
             use_key=None,
             auto_fill=True,
+            version=1,
             config_dict=None,
             output_dir=None,
             input_config=None,
@@ -168,8 +171,25 @@ class BaseAlgo:
             publish_input=True,
             publish_history=True,
             publish_report=True,
-            raise_on_err=False):
+            raise_on_err=False,
+            load_from_s3=None,
+            load_from_redis=None,
+            load_from_file=None,
+            load_compress=False,
+            **kwargs):
         """__init__
+
+        Build an analysis algorithm
+
+        Use an algorithm object to:
+
+        1) `Generate algorithm-ready datasets <https://gith
+        ub.com/AlgoTraders/stock-analysis-engine#extra
+        ct-algorithm-ready-datasets>`__
+        2) Backtest trading theories with offline
+        3) Issue trading alerts from the latest fetched datasets
+
+        **(Optional) Trading Parameters**
 
         :param ticker: single ticker string
         :param balance: starting capital balance
@@ -178,12 +198,40 @@ class BaseAlgo:
         :param tickers: optional - list of ticker strings
         :param name: optional - log tracking name
             or algo name
-        :param config_dict: optional - configuration dictionary
-            for passing complex attributes or properties for this
-            algo
+        :param use_key: optional - key for saving output
+            in s3, redis, file
         :param auto_fill: optional - boolean for auto filling
-            buy/sell orders for backtesting (default is
+            buy and sell orders for backtesting (default is
             ``True``)
+        :param version: optional - version tracking
+            value (default is ``1``)
+
+        **(Optional) Derived Config Loading**
+
+        :param config_dict: optional - dictionary that
+            can be passed to derived class implementations
+            of: ``def load_from_config(config_dict=config_dict):``
+
+        **(Optional) Load Algorithm From External Source**
+
+        :param output_dir: optional - string path to
+            auto-generated files from the algo
+        :param input_config: optional - dictionary
+            for setting member variables to publish
+            an algo ``input`` dataset (the contents of ``data``
+            from ``self.handle_data(data=data)``
+            Please note: this is **not** related to how datasets
+            are loaded for backtest processing, it's just for publishing
+            the entire data argument for ``handle_data(data=data)``
+            as a tool for debugging and tuning algorithms.
+        :param history_config: optional - dictionary
+            for setting member variables to publish
+            an algo ``trade history`` to s3, redis, a file
+            or slack
+        :param report_config: optional - dictionary
+            for setting member variables to publish
+            an algo ``result`` or ``performance``
+            to s3, redis, a file or slack
         :param publish_to_slack: optional - boolean for
             publishing to slack (coming soon)
         :param publish_to_s3: optional - boolean for
@@ -204,18 +252,27 @@ class BaseAlgo:
             ``analysis_engine.run_algo.run_algo`` helper.
             .. note:: When set to ``True`` exceptions will
                 are raised to the calling functions
-        :param input_config: dictionary for publishing
-            the algorithm's ``inputs`` to redis, s3, a file and
-            slack. This is **not** related to how datasets
-            are loaded for backtest processing, it's just for publishing
-            the entire data argument for ``handle_data(data=data)``
-            as a tool for debugging and tuning algorithms.
-        :param history_config: dictionary for publishing
-            the algorithm's ``trade history`` to redis, s3, a file and
-            slack
-        :param report_config: dictionary for publishing
-            the algorithm's ``generated output datasets`` to
-            redis, s3, a file and slack
+
+        **(Optional) Load Algorithm From Source**
+
+        :param load_from_s3: optional - string load the algo from an
+            a previously-created s3 key holding an
+            algorithm-ready dataset for use with:
+            ``handle_data``
+        :param load_from_redis: optional - string load the algo from a
+            a previously-created redis key holding an
+            algorithm-ready dataset for use with:
+            ``handle_data``
+        :param load_from_file: optional - string path to
+            a previously-created local file holding an
+            algorithm-ready dataset for use with:
+            ``handle_data``
+        :param load_compress: optional - booliean
+
+        **(Optional) Future Argument Placeholder**
+
+        :param kwargs: optional - dictionary of keyword
+            arguments
         """
         self.buys = []
         self.sells = []
@@ -292,7 +349,7 @@ class BaseAlgo:
 
         self.note = None
         self.debug_msg = ''
-        self.version = 1
+        self.version = version
 
         self.publish_to_slack = publish_to_slack
         self.publish_to_s3 = publish_to_s3
@@ -525,6 +582,13 @@ class BaseAlgo:
         self.report_verbose = report_config.get(
             'verbose', False)
 
+        self.load_from_s3 = load_from_s3
+        self.load_from_redis = load_from_redis
+        self.load_from_file = load_from_file
+        self.load_is_compress = load_compress
+
+        self.load_from_external_source()
+
         self.load_from_config(
             config_dict=config_dict)
     # end of __init__
@@ -670,6 +734,69 @@ class BaseAlgo:
                 reason='testing')
 
     # end of process
+
+    def load_from_external_source(
+            self,
+            path_to_file=None,
+            s3_key=None,
+            redis_key=None):
+        """load_from_external_source
+
+        Load an algorithm-ready dataset for ``handle_data`` backtesting
+        and trade performance analysis from:
+
+        - Local file
+        - S3 - coming soon
+        - Redis - coming soon
+
+        :param path_to_file: optional - path to local file
+        :param s3_key: optional - s3 key
+        :param redis_key: optional - redis key
+        """
+
+        if path_to_file:
+            self.load_from_file = path_to_file
+        if s3_key:
+            self.load_from_s3 = s3_key
+        if redis_key:
+            self.load_from_redis = redis_key
+
+        if self.load_from_s3:
+            self.debug_msg = (
+                'external load START - s3={}'.format(
+                    self.load_from_s3))
+            log.debug(self.debug_msg)
+        elif self.load_from_redis:
+            self.debug_msg = (
+                'external load START - redis={}'.format(
+                    self.load_from_redis))
+            log.debug(self.debug_msg)
+        elif self.load_from_file:
+            if os.path.exists(self.load_from_file):
+                self.debug_msg = (
+                    'external load START - file={}'.format(
+                        self.load_from_file))
+                log.debug(self.debug_msg)
+                self.loaded_dataset = file_utils.load_algo_dataset_from_file(
+                    path_to_file=self.load_from_file,
+                    compress=self.load_compress)
+                if self.loaded_dataset:
+                    self.debug_msg = (
+                        'external load SUCCESS - file={}'.format(
+                            self.load_from_file))
+                else:
+                    self.debug_msg = (
+                        'external load FAILED - file={}'.format(
+                            self.load_from_file))
+            else:
+                self.debug_msg = (
+                    'external load - did not find file={}'.format(
+                        self.load_from_file))
+                log.error(self.debug_msg)
+        # end of if supported external loader
+        log.debug(
+            'external load END')
+    # end of load_from_external_source
 
     def publish_report_datasets(
             self,
