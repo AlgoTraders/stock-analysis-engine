@@ -59,7 +59,8 @@ Table of Contents
 
    README
    scripts
-   api_reference
+   extract
+   fetch
    example_algos
    run_algo
    build_algo_request
@@ -72,19 +73,20 @@ Table of Contents
    build_exit_put_spread_details
    build_option_spread_details
    algorithm_api
+   publish
+   build_publish_request
+   api_reference
    iex_api
    yahoo_api
    finviz_api
    scrub_utils
-   extract_utils
    options_utils
    charts
    tasks
    mock_api
+   extract_utils
    slack_utils
    utils
-   publish
-   build_publish_request
 
 Indices and tables
 ==================
