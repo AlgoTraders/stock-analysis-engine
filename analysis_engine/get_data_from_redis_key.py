@@ -132,21 +132,19 @@ def get_data_from_redis_key(
 
             rec['data'] = data
 
-            res = build_result.build_result(
+            return build_result.build_result(
                 status=SUCCESS,
                 err=None,
                 rec=rec)
-            return res
         else:
             log.debug(
                 '{} no data key={}'.format(
                     log_id,
                     key))
-            res = build_result.build_result(
+            return build_result.build_result(
                 status=SUCCESS,
                 err=None,
                 rec=rec)
-            return res
     except Exception as e:
         err = (
             '{} failed - redis get from decoded={} data={} '
