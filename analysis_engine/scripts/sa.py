@@ -101,6 +101,7 @@ def extract_ticker_to_a_file_using_an_algo(
             ticker,
             extract_to_file))
     algo_res = run_algo.run_algo(
+        label='sa',
         ticker=ticker,
         start_date='2018-01-01 08:00:00',
         end_date=utc_now_str())

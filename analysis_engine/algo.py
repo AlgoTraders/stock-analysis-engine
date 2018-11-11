@@ -1239,7 +1239,7 @@ class BaseAlgo:
                             orient='records',
                             date_format='iso')
                     else:
-                        if not new_node['data'][ds_key]:
+                        if not data_val:
                             new_node['data'][ds_key] = empty_ds
                         else:
                             new_node['data'][ds_key] = json.dumps(
