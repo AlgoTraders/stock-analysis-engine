@@ -16,3 +16,5 @@ Algorithm API Reference
    build_entry_put_spread_details
    build_exit_put_spread_details
    build_option_spread_details
+   load_algo_dataset_from_file
+   prepare_dict_for_algo

@@ -18,7 +18,6 @@ from analysis_engine.consts import get_status
 from analysis_engine.consts import get_mb
 from spylunking.log.setup_logging import build_colorized_logger
 
-
 log = build_colorized_logger(
     name=__name__)
 
