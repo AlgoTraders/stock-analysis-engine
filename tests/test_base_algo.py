@@ -20,12 +20,14 @@ from analysis_engine.consts import COMMON_DATE_FORMAT
 from analysis_engine.consts import TRADE_SHARES
 from analysis_engine.consts import ppj
 from analysis_engine.consts import get_status
+from analysis_engine.consts import ev
 from analysis_engine.utils import get_last_close_str
 from analysis_engine.build_algo_request import build_algo_request
 from analysis_engine.build_buy_order import build_buy_order
 from analysis_engine.build_sell_order import build_sell_order
 from analysis_engine.build_trade_history_entry import build_trade_history_entry
 from analysis_engine.build_publish_request import build_publish_request
+from analysis_engine.get_data_from_redis_key import get_data_from_redis_key
 from analysis_engine.algo import BaseAlgo
 from analysis_engine.run_algo import run_algo
 from types import SimpleNamespace
@@ -38,7 +40,7 @@ def mock_write_to_file(
         'mock - mock_write_to_file('
         'output_file={}, data={})'.format(
             output_file,
-            data))
+            len(data)))
     return True
 # end of mock_write_to_file
 
@@ -50,7 +52,7 @@ def mock_write_to_file_failed(
         'mock - fail - mock_write_to_file('
         'output_file={}, data={})'.format(
             output_file,
-            data))
+            len(data)))
     return False
 # end of mock_write_to_file_failed
 
@@ -981,5 +983,101 @@ class TestBaseAlgo(BaseTestCase):
             get_status(status=store_input_status),
             'FILE_FAILED')
     # end of test_algo_can_save_all_input_datasets_to_file_failed
+
+    """
+    Integration Tests
+
+    Please ensure redis and minio are running and run this:
+
+    ::
+
+        export INT_TESTS=1
+
+    """
+
+    @mock.patch(
+        ('boto3.resource'),
+        new=build_boto3_resource)
+    @mock.patch(
+        ('requests.post'),
+        new=mock_request_success_result)
+    @mock.patch(
+        ('analysis_engine.write_to_file.write_to_file'),
+        new=mock_write_to_file)
+    def test_integration_algo_publish_input_dataset_to_redis(self):
+        """test_integration_algo_publish_input_dataset_to_redis"""
+        if ev('INT_TESTS', '0') == '0':
+            return
+
+        test_name = (
+            'test_integration_algo_publish_input_dataset_to_redis')
+        balance = self.balance
+        commission = 13.5
+        algo = BaseAlgo(
+            ticker=self.ticker,
+            balance=balance,
+            commission=commission,
+            name=test_name)
+        algo_res = run_algo(
+            ticker=self.ticker,
+            algo=algo,
+            label=test_name,
+            raise_on_err=True)
+        self.assertTrue(
+            len(algo_res['rec']['history']) > 30)
+        self.assertEqual(
+            algo.name,
+            test_name)
+        self.assertEqual(
+            algo.tickers,
+            [self.ticker])
+        output_file = '/opt/sa/tests/datasets/algo/{}.json'.format(
+            test_name)
+        redis_enabled = True
+        redis_key = '{}'.format(
+            test_name)
+        s3_enabled = True
+        s3_key = '{}.json'.format(
+            test_name)
+        compress = False
+        slack_enabled = True
+        slack_code_block = True
+        slack_full_width = False
+        verbose = True
+        store_input_req = build_publish_request(
+            label=test_name,
+            convert_to_json=True,
+            output_file=output_file,
+            compress=compress,
+            redis_enabled=redis_enabled,
+            redis_key=redis_key,
+            s3_enabled=s3_enabled,
+            s3_key=s3_key,
+            slack_enabled=slack_enabled,
+            slack_code_block=slack_code_block,
+            slack_full_width=slack_full_width,
+            verbose=verbose)
+        store_input_status, output_file = algo.store_input_datasets(
+            **store_input_req)
+        self.assertEqual(
+            get_status(status=store_input_status),
+            'SUCCESS')
+        redis_res = get_data_from_redis_key(
+            host=store_input_req['redis_address'].split(':')[0],
+            port=store_input_req['redis_address'].split(':')[1],
+            password=store_input_req['redis_password'],
+            db=store_input_req['redis_db'],
+            key=store_input_req['redis_key'],
+            serializer=store_input_req['redis_serializer'],
+            encoding=store_input_req['redis_encoding'])
+        self.assertEqual(
+            get_status(status=redis_res['status']),
+            'SUCCESS')
+        print('found data size={} in redis_key={}'.format(
+            len(redis_res['rec']['data']),
+            store_input_req['redis_key']))
+        self.assertTrue(
+            len(redis_res['rec']['data']) > 10)
+    # end of test_integration_algo_publish_input_dataset_to_redis
 
 # end of TestBaseAlgo

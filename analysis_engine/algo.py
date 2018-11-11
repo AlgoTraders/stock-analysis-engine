@@ -62,6 +62,7 @@ from analysis_engine.consts import ALGO_HISTORY_COMPRESS
 from analysis_engine.consts import ALGO_REPORT_COMPRESS
 from analysis_engine.consts import get_status
 from analysis_engine.consts import get_percent_done
+from analysis_engine.consts import get_mb
 from analysis_engine.utils import utc_now_str
 from spylunking.log.setup_logging import build_colorized_logger
 
@@ -266,25 +267,27 @@ class BaseAlgo:
         self.stop_loss = None
         self.trailing_stop_loss = None
 
+        self.last_handle_data = None
         self.last_ds_id = None
         self.last_ds_date = None
         self.last_ds_data = None
 
         self.ds_date = None
         self.ds_data = None
-        self.df_daily = pd.DataFrame([])
-        self.df_minute = pd.DataFrame([])
-        self.df_stats = pd.DataFrame([])
-        self.df_peers = pd.DataFrame([])
+        self.df_daily = pd.DataFrame([{}])
+        self.df_minute = pd.DataFrame([{}])
+        self.df_stats = pd.DataFrame([{}])
+        self.df_peers = pd.DataFrame([{}])
         self.df_financials = pd.DataFrame([])
-        self.df_earnings = pd.DataFrame([])
-        self.df_dividends = pd.DataFrame([])
-        self.df_quote = pd.DataFrame([])
-        self.df_company = pd.DataFrame([])
-        self.df_iex_news = pd.DataFrame([])
-        self.df_yahoo_news = pd.DataFrame([])
-        self.df_options = pd.DataFrame([])
-        self.empty_pd = pd.DataFrame([])
+        self.df_earnings = pd.DataFrame([{}])
+        self.df_dividends = pd.DataFrame([{}])
+        self.df_quote = pd.DataFrame([{}])
+        self.df_company = pd.DataFrame([{}])
+        self.df_iex_news = pd.DataFrame([{}])
+        self.df_yahoo_news = pd.DataFrame([{}])
+        self.df_options = pd.DataFrame([{}])
+        self.empty_pd = pd.DataFrame([{}])
+        self.empty_pd_str = '[{}]'
         self.df_pricing = {}
 
         self.note = None
@@ -1049,17 +1052,106 @@ class BaseAlgo:
             # end of if good to run
         # end of screening for returning early
 
-        if output_file:
+        log.debug('converting input df to json')
+
+        data_for_tickers = self.get_supported_tickers_in_data(
+            data=self.last_handle_data)
+
+        num_tickers = len(data_for_tickers)
+        if num_tickers > 0:
+            self.debug_msg = (
+                '{} handle - tickers={}'.format(
+                    self.name,
+                    json.dumps(data_for_tickers)))
+
+        output_record = {}
+        for ticker in data_for_tickers:
+            if ticker not in output_record:
+                output_record[ticker] = []
+            num_ticker_datasets = len(self.last_handle_data[ticker])
+            cur_idx = 1
+            for idx, node in enumerate(self.last_handle_data[ticker]):
+                track_label = self.build_progress_label(
+                    progress=cur_idx,
+                    total=num_ticker_datasets)
+                algo_id = 'ticker={} {}'.format(
+                    ticker,
+                    track_label)
+                log.info(
+                    '{} convert - {} - ds={}'.format(
+                        self.name,
+                        algo_id,
+                        node['date']))
+
+                new_node = {
+                    'id': node['id'],
+                    'date': node['date'],
+                    'data': {}
+                }
+
+                # parse the dataset node and set member variables
+                self.debug_msg = (
+                    '{} START - convert load dataset id={}'.format(
+                        ticker,
+                        node.get('id', 'missing-id')))
+                self.load_from_dataset(
+                    ds_data=node)
+                for ds_key in node['data']:
+                    empty_ds = self.empty_pd_str
+                    data_val = node['data'][ds_key]
+                    if ds_key not in new_node['data']:
+                        new_node['data'][ds_key] = empty_ds
+                    self.debug_msg = (
+                        'convert node={} ds_key={}'.format(
+                            node,
+                            ds_key))
+                    if hasattr(data_val, 'to_json'):
+                        new_node['data'][ds_key] = data_val.to_json(
+                            orient='records',
+                            date_format='iso')
+                    else:
+                        if not new_node['data'][ds_key]:
+                            new_node['data'][ds_key] = empty_ds
+                        else:
+                            new_node['data'][ds_key] = json.dumps(
+                                data_val)
+                    # if/else
+                # for all dataset values in data
+                self.debug_msg = (
+                    '{} END - convert load dataset id={}'.format(
+                        ticker,
+                        node.get('id', 'missing-id')))
+
+                output_record[ticker].append(new_node)
+            # end for all self.last_handle_data[ticker]
+        # end of converting dataset
+
+        if output_file or s3_enabled or redis_enabled or slack_enabled:
             log.info(
-                'input publish - START - '
+                'input build json - '
                 '{} - tickers={} file={}'.format(
                     self.name,
                     self.tickers,
                     output_file))
-            output_data = {
-                'test': 'hello'
-            }
-            use_data = json.dumps(output_data)
+            use_data = json.dumps(output_record)
+            num_bytes = len(use_data)
+            num_mb = get_mb(num_bytes)
+            log.info(
+                'input publish - START - '
+                '{} - tickers={} '
+                'file={} size={}MB '
+                's3={} s3_key={} '
+                'redis={} redis_key={} '
+                'slack={}'.format(
+                    self.name,
+                    self.tickers,
+                    output_file,
+                    num_mb,
+                    s3_enabled,
+                    s3_key,
+                    redis_enabled,
+                    redis_key,
+                    slack_enabled))
             publish_status = publish.publish(
                 data=use_data,
                 label=label,
@@ -1091,11 +1183,13 @@ class BaseAlgo:
 
             log.info(
                 'input publish - END - {} '
-                '{} - tickers={} file={}'.format(
+                '{} - tickers={} '
+                'file={} size={}MB'.format(
                     get_status(status=status),
                     self.name,
                     self.tickers,
-                    output_file))
+                    output_file,
+                    num_mb))
         # end of handling for publish
 
         return status, output_file
@@ -1861,6 +1955,9 @@ class BaseAlgo:
 
                 cur_idx += 1
         # for all supported tickers
+
+        # store the last handle dataset
+        self.last_handle_data = data
 
         self.debug_msg = (
             '{} handle - end tickers={}'.format(

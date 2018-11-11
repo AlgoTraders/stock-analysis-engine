@@ -256,6 +256,7 @@ FETCH_MODE_IEX = 1002
 
 # version of python
 IS_PY2 = sys.version[0] == '2'
+NUM_BYTES_IN_AN_MB = 1048576
 
 APP_NAME = ev(
     'APP_NAME',
@@ -682,6 +683,19 @@ def to_f(
     """
     return float(to_float_str(val))
 # end of to_f
+
+
+def get_mb(
+        num):
+    """get_mb
+
+    convert a the number of bytes (as an ``integer``)
+    to megabytes with 2 decimal points of precision
+
+    :param num: integer - number of bytes
+    """
+    return to_f(num / NUM_BYTES_IN_AN_MB)
+# end get_mb
 
 
 def get_percent_done(

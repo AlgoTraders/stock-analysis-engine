@@ -15,6 +15,7 @@ from analysis_engine.consts import INVALID
 from analysis_engine.consts import FILE_FAILED
 from analysis_engine.consts import REDIS_FAILED
 from analysis_engine.consts import get_status
+from analysis_engine.consts import get_mb
 from spylunking.log.setup_logging import build_colorized_logger
 
 
@@ -143,16 +144,18 @@ def publish(
             log.debug('compress end')
 
     num_bytes = len(use_data)
+    num_mb = get_mb(num_bytes)
 
     if verbose:
         log.info(
             'start - file={} s3_key={} redis_key={} slack={} '
-            'size={}'.format(
+            'compress={} size={}MB'.format(
                 output_file,
                 s3_key,
                 redis_key,
                 slack_enabled,
-                num_bytes))
+                compress,
+                num_mb))
 
     if s3_enabled:
         endpoint_url = 'http://{}'.format(
@@ -191,7 +194,7 @@ def publish(
         if verbose:
             log.info(
                 's3 upload start - bytes={} to {}:{} {}'.format(
-                    num_bytes,
+                    num_mb,
                     s3_bucket,
                     s3_key,
                     label))
@@ -204,7 +207,7 @@ def publish(
         if verbose:
             log.info(
                 's3 upload done - bytes={} to {}:{} {}'.format(
-                    num_bytes,
+                    num_mb,
                     s3_bucket,
                     s3_key,
                     label))
@@ -284,13 +287,14 @@ def publish(
     if verbose:
         log.info(
             'end - {} file={} s3_key={} redis_key={} slack={} '
-            'size={}'.format(
+            'compress={} size={}MB'.format(
                 get_status(status=status),
                 output_file,
                 s3_key,
                 redis_key,
                 slack_enabled,
-                num_bytes))
+                compress,
+                num_mb))
 
     return status
 # end of publish

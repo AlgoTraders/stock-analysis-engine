@@ -11,12 +11,6 @@ Example API Requests
 .. automodule:: analysis_engine.api_requests
    :members: get_ds_dict,build_get_new_pricing_request,build_publish_pricing_request,build_cache_ready_pricing_dataset,build_publish_from_s3_to_redis_request,build_prepare_dataset_request,build_analyze_dataset_request,build_screener_analysis_request
 
-Constants
-=========
-
-.. automodule:: analysis_engine.consts
-   :members: is_celery_disabled,ev,get_status
-
 Read from S3 as a String
 ========================
 
@@ -28,3 +22,11 @@ Get Task Results
 
 .. automodule:: analysis_engine.get_task_results
    :members: get_task_results
+   
+Constants
+=========
+
+Utility methods and constants
+
+.. automodule:: analysis_engine.consts
+   :members: is_celery_disabled,ev,to_float_str,get_percent_done,get_status,to_f,get_mb

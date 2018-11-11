@@ -168,7 +168,7 @@ class MockBotoS3Bucket:
         :param Body: new Payload in Key
         """
 
-        log.info(
+        log.debug(
             'mock - MockBotoS3Bucket.put_object(Key={}, '
             'Body={})'.format(
                 Key,
