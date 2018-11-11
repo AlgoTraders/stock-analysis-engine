@@ -14,6 +14,7 @@ import os
 import mock
 import pandas as pd
 import uuid
+import glob
 from analysis_engine.mocks.mock_boto3_s3 import \
     build_boto3_resource
 from analysis_engine.mocks.mock_redis import MockRedis
@@ -23,6 +24,7 @@ from analysis_engine.consts import TRADE_SHARES
 from analysis_engine.consts import ppj
 from analysis_engine.consts import get_status
 from analysis_engine.consts import ev
+from analysis_engine.consts import DEFAULT_SERIALIZED_DATASETS
 from analysis_engine.utils import get_last_close_str
 from analysis_engine.build_algo_request import build_algo_request
 from analysis_engine.build_buy_order import build_buy_order
@@ -138,6 +140,8 @@ class TestBaseAlgo(BaseTestCase):
         ]
         self.balance = 10000.00
         self.last_close_str = get_last_close_str(fmt=COMMON_DATE_FORMAT)
+        self.output_dir = (
+            '/opt/sa/tests/datasets/algo')
     # end of setUp
 
     def test_build_algo_request_daily(self):
@@ -1083,9 +1087,6 @@ class TestBaseAlgo(BaseTestCase):
     # end of test_integration_algo_publish_input_dataset_to_redis
 
     @mock.patch(
-        ('redis.Redis'),
-        new=MockRedis)
-    @mock.patch(
         ('boto3.resource'),
         new=build_boto3_resource)
     @mock.patch(
@@ -1152,6 +1153,118 @@ class TestBaseAlgo(BaseTestCase):
             get_status(status=publish_input_status),
             'SUCCESS')
         self.assertTrue(os.path.exists(test_should_create_this_file))
+        # now load it into an algo
     # end of test_integration_algo_publish_input_dataset_to_file
+
+    def test_integration_algo_load_from_file(self):
+        """test_integration_algo_load_from_file"""
+        if ev('INT_TESTS', '0') == '0':
+            return
+
+        # * means all if need specific format then *.csv
+        test_name = (
+            'test_integration_algo_load_from_file')
+        test_file_regex = (
+            '{}/test_integration_algo_load_from_file'
+            '*.json'.format(
+                self.output_dir))
+        files = sorted(
+            glob.iglob(test_file_regex),
+            key=os.path.getctime,
+            reverse=True)
+
+        latest_file = (
+            '/opt/sa/tests/datasets/algo/{}-{}.json'.format(
+                test_name,
+                str(uuid.uuid4())))
+        if len(files) == 0:
+            algo = BaseAlgo(
+                ticker=self.ticker,
+                balance=self.balance,
+                commission=6.0,
+                name=test_name)
+            run_algo(
+                ticker=self.ticker,
+                algo=algo,
+                label=test_name,
+                raise_on_err=True)
+            publish_input_req = build_publish_request(
+                label=test_name,
+                output_file=latest_file,
+                convert_to_json=True,
+                compress=False,
+                redis_enabled=False,
+                s3_enabled=False,
+                slack_enabled=False,
+                verbose=True)
+            publish_input_status, output_file = \
+                algo.publish_input_datasets(
+                    **publish_input_req)
+            self.assertEqual(
+                get_status(status=publish_input_status),
+                'SUCCESS')
+        else:
+            latest_file = files[0]
+        # end of create a file
+
+        self.assertTrue(os.path.exists(latest_file))
+
+        new_algo = BaseAlgo(
+            ticker=self.ticker,
+            balance=self.balance,
+            commission=6.0,
+            name='load-from-file_{}'.format(
+                test_name),
+            load_from_file=latest_file)
+
+        self.assertTrue(
+            self.ticker in new_algo.loaded_dataset)
+        self.assertTrue(
+            'id' in new_algo.loaded_dataset[self.ticker][0])
+        self.assertTrue(
+            'date' in new_algo.loaded_dataset[self.ticker][0])
+        self.assertTrue(
+            'data' in new_algo.loaded_dataset[self.ticker][0])
+
+        expected_datasets = DEFAULT_SERIALIZED_DATASETS
+        loaded_ds = new_algo.loaded_dataset[self.ticker]
+        print('-----------------------')
+        print('dates in the file: {}'.format(
+            latest_file))
+        for ds in new_algo.loaded_dataset[self.ticker]:
+            print(ds['date'])
+        print('')
+        print('ids in the file: {}'.format(
+            latest_file))
+        for ds in new_algo.loaded_dataset[self.ticker]:
+            print(ds['id'])
+        print('')
+        print('daily datasets in the file: {}'.format(
+            latest_file))
+        for ds in new_algo.loaded_dataset[self.ticker]:
+            print('date: ')
+            print(ds['date'])
+            print(ds['data']['daily'])
+        asdf
+        for ds in expected_datasets:
+            print(
+                'testing: {} in node={}'.format(
+                    ds,
+                    ))
+            self.assertTrue(
+                ds in loaded_ds)
+            self.assertTrue(
+                hasattr(
+                    loaded_ds,
+                    'empty'))
+            self.assertTrue(
+                hasattr(
+                    loaded_ds,
+                    'to_json'))
+            self.assertTrue(
+                hasattr(
+                    loaded_ds,
+                    'index'))
+    # end of test_integration_algo_load_from_file
 
 # end of TestBaseAlgo

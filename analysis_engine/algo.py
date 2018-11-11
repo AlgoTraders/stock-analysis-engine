@@ -23,6 +23,21 @@ datasets from the redis pipeline:
 - ``self.df_options``
 - ``self.df_pricing``
 
+**Recent Pricing Information**
+
+- self.latest_close
+- self.latest_high
+- self.latest_open
+- self.latest_low
+- self.latest_volume
+- self.ask
+- self.bid
+
+**Balance Information**
+
+- self.balance
+- self.prev_bal
+
 .. note:: If a key is not in the dataset, the
     algorithms's member variable will be an empty
     pandas DataFrame created with: ``pd.DataFrame([])``
@@ -586,6 +601,7 @@ class BaseAlgo:
         self.load_from_redis = load_from_redis
         self.load_from_file = load_from_file
         self.load_is_compress = load_compress
+        self.loaded_dataset = None
 
         self.load_from_external_source()
 
@@ -779,7 +795,7 @@ class BaseAlgo:
                 log.debug(self.debug_msg)
                 self.loaded_dataset = file_utils.load_algo_dataset_from_file(
                     path_to_file=self.load_from_file,
-                    compress=self.load_compress)
+                    compress=self.load_is_compress)
                 if self.loaded_dataset:
                     self.debug_msg = (
                         'external load SUCCESS - file={}'.format(
@@ -788,11 +804,14 @@ class BaseAlgo:
                     self.debug_msg = (
                         'external load FAILED - file={}'.format(
                             self.load_from_file))
+                    log.error(self.debug_msg)
+                    raise Exception(self.debug_msg)
             else:
                 self.debug_msg = (
                     'external load - did not find file={}'.format(
                         self.load_from_file))
                 log.error(self.debug_msg)
+                raise Exception(self.debug_msg)
         # end of if supported external loader
         log.debug(
             'external load END')
@@ -1956,6 +1975,23 @@ class BaseAlgo:
         # datasets
     # end of load_from_dataset
 
+    def reset_for_next_run(
+            self):
+        """reset_for_next_run
+
+        work in progress - clean up all internal member variables
+        for another run
+
+        .. note:: random or probablistic predictions may not
+            create the same trading history_output_file
+        """
+        self.debug_msg = ''
+        self.loaded_dataset = None
+        self.last_history_dict = None
+        self.last_handle_data = None
+        self.order_history = []
+    # end of reset_for_next_run
+
     def handle_data(
             self,
             data):
@@ -2004,6 +2040,16 @@ class BaseAlgo:
                 self.name))
 
         log.info(self.debug_msg)
+
+        if self.loaded_dataset:
+            log.info(
+                '{} handle - using existing dataset '
+                'file={} s3={} redis={}'.format(
+                    self.name,
+                    self.load_from_file,
+                    self.load_from_s3,
+                    self.load_from_redis))
+            data = self.loaded_dataset
 
         data_for_tickers = self.get_supported_tickers_in_data(
             data=data)

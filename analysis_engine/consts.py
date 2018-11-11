@@ -451,6 +451,21 @@ ALGO_HISTORY_COMPRESS = (ev(
 ALGO_REPORT_COMPRESS = (ev(
     'ALGO_REPORT_COMPRESS',
     '0') == '1')
+DEFAULT_SERIALIZED_DATASETS = [
+    'daily',
+    'minute',
+    'quote',
+    'stats',
+    'peers',
+    'iex_news',
+    'financials',
+    'earnings',
+    'dividends',
+    'company',
+    'yahoo_news',
+    'options',
+    'pricing'
+]
 
 
 ########################################
