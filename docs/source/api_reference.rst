@@ -5,12 +5,6 @@ These are documents for developing and understanding how the Stock Analysis Engi
 
 https://github.com/AlgoTraders/stock-analysis-engine/
 
-Getting Datasets for Stock Tickers
-==================================
-
-.. automodule:: analysis_engine.fetch
-   :members: fetch
-
 Example API Requests
 ====================
 
