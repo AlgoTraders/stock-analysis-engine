@@ -942,6 +942,21 @@ or with code:
     res = fv.fetch_tickers_from_screener(url=url)
     print(res)
 
+
+Algorithm Test - Input Dataset Publishing to Redis
+--------------------------------------------------
+
+::
+
+    python -m unittest tests.test_base_algo.TestBaseAlgo.test_integration_algo_publish_input_dataset_to_redis
+
+Algorithm Test - Input Dataset Publishing to File
+-------------------------------------------------
+
+::
+
+    python -m unittest tests.test_base_algo.TestBaseAlgo.test_integration_algo_publish_input_dataset_to_file
+
 Prepare a Dataset
 =================
 

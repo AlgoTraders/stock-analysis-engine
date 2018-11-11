@@ -10,8 +10,10 @@ Test file for classes and functions:
 
 """
 
-import pandas as pd
+import os
 import mock
+import pandas as pd
+import uuid
 from analysis_engine.mocks.mock_boto3_s3 import \
     build_boto3_resource
 from analysis_engine.mocks.mock_redis import MockRedis
@@ -1079,5 +1081,77 @@ class TestBaseAlgo(BaseTestCase):
         self.assertTrue(
             len(redis_res['rec']['data']) > 10)
     # end of test_integration_algo_publish_input_dataset_to_redis
+
+    @mock.patch(
+        ('redis.Redis'),
+        new=MockRedis)
+    @mock.patch(
+        ('boto3.resource'),
+        new=build_boto3_resource)
+    @mock.patch(
+        ('requests.post'),
+        new=mock_request_success_result)
+    def test_integration_algo_publish_input_dataset_to_file(self):
+        """test_integration_algo_publish_input_dataset_to_file"""
+        if ev('INT_TESTS', '0') == '0':
+            return
+
+        test_name = (
+            'test_integration_algo_publish_input_dataset_to_file')
+        balance = self.balance
+        commission = 13.5
+        algo = BaseAlgo(
+            ticker=self.ticker,
+            balance=balance,
+            commission=commission,
+            name=test_name)
+        algo_res = run_algo(
+            ticker=self.ticker,
+            algo=algo,
+            label=test_name,
+            raise_on_err=True)
+        self.assertTrue(
+            len(algo_res['rec']['history']) > 30)
+        self.assertEqual(
+            algo.name,
+            test_name)
+        self.assertEqual(
+            algo.tickers,
+            [self.ticker])
+        test_should_create_this_file = (
+            '/opt/sa/tests/datasets/algo/{}-{}.json'.format(
+                test_name,
+                str(uuid.uuid4())))
+        redis_enabled = True
+        redis_key = '{}'.format(
+            test_name)
+        s3_enabled = True
+        s3_key = '{}.json'.format(
+            test_name)
+        compress = False
+        slack_enabled = True
+        slack_code_block = True
+        slack_full_width = False
+        verbose = True
+        store_input_req = build_publish_request(
+            label=test_name,
+            convert_to_json=True,
+            output_file=test_should_create_this_file,
+            compress=compress,
+            redis_enabled=redis_enabled,
+            redis_key=redis_key,
+            s3_enabled=s3_enabled,
+            s3_key=s3_key,
+            slack_enabled=slack_enabled,
+            slack_code_block=slack_code_block,
+            slack_full_width=slack_full_width,
+            verbose=verbose)
+        store_input_status, output_file = algo.store_input_datasets(
+            **store_input_req)
+        self.assertEqual(
+            get_status(status=store_input_status),
+            'SUCCESS')
+        self.assertTrue(os.path.exists(test_should_create_this_file))
+    # end of test_integration_algo_publish_input_dataset_to_file
 
 # end of TestBaseAlgo
