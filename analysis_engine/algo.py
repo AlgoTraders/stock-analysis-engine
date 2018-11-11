@@ -165,7 +165,7 @@ class BaseAlgo:
             publish_to_slack=True,
             publish_to_s3=None,
             publish_to_redis=None,
-            publish_input_datasets=True,
+            publish_input=True,
             publish_history=True,
             publish_report=True,
             raise_on_err=False):
@@ -190,7 +190,7 @@ class BaseAlgo:
             publishing to s3 (coming soon)
         :param publish_to_redis: optional - boolean for
             publishing to redis (coming soon)
-        :param publish_input_datasets: boolean - toggle publishing
+        :param publish_input: boolean - toggle publishing
             all input datasets to s3 and redis
             (coming soon - default ``False``)
         :param publish_history: boolean - toggle publishing
@@ -299,7 +299,7 @@ class BaseAlgo:
         self.publish_to_redis = publish_to_redis
         self.publish_history = publish_history
         self.publish_report = publish_report
-        self.publish_input_datasets = publish_input_datasets
+        self.publish_input = publish_input
         self.raise_on_err = raise_on_err
 
         if not self.publish_to_s3:
@@ -671,15 +671,16 @@ class BaseAlgo:
 
     # end of process
 
-    def store_report_datasets(
+    def publish_report_datasets(
             self,
             **kwargs):
-        """store_report_datasets
+        """publish_report_datasets
 
-        publish generated datasets to caches (redis)
-        and archives (minio s3)
+        publish trade history datasets to caches (redis), archives
+        (minio s3), a local file (``output_file``) and slack
 
         :param kwargs: keyword argument dictionary
+        :return: tuple: ``status``, ``output_file``
         """
 
         # parse optional input args
@@ -813,17 +814,18 @@ class BaseAlgo:
         # end of handling for publish
 
         return status, output_file
-    # end of store_report_datasets
+    # end of publish_report_datasets
 
-    def store_trade_history(
+    def publish_trade_history(
             self,
             **kwargs):
-        """store_trade_history
+        """publish_trade_history
 
-        publish trade history to caches (redis)
-        and archives (minio s3)
+        publish trade history datasets to caches (redis), archives
+        (minio s3), a local file (``output_file``) and slack
 
         :param kwargs: keyword argument dictionary
+        :return: tuple: ``status``, ``output_file``
         """
 
         # parse optional input args
@@ -957,12 +959,12 @@ class BaseAlgo:
         # end of handling for publish
 
         return status, output_file
-    # end of store_trade_history
+    # end of start_datetore_trade_history
 
-    def store_input_datasets(
+    def publish_input_datasets(
             self,
             **kwargs):
-        """store_input_datasets
+        """publish_input_datasets
 
         publish input datasets to caches (redis), archives
         (minio s3), a local file (``output_file``) and slack
@@ -1033,7 +1035,7 @@ class BaseAlgo:
                         self.output_file_prefix))
         # if raising errors this is a unittest or development algo
 
-        if not self.publish_input_datasets:
+        if not self.publish_input:
             log.info(
                 'input publish - disabled - '
                 '{} - tickers={}'.format(
@@ -1123,6 +1125,7 @@ class BaseAlgo:
                         node.get('id', 'missing-id')))
 
                 output_record[ticker].append(new_node)
+                cur_idx += 1
             # end for all self.last_handle_data[ticker]
         # end of converting dataset
 
@@ -1193,7 +1196,7 @@ class BaseAlgo:
         # end of handling for publish
 
         return status, output_file
-    # end of store_input_datasets
+    # end of publish_input_datasets
 
     def get_ticker_positions(
             self,

@@ -8,16 +8,23 @@ Stock Analysis Command Line Tool
 How it works
 ------------
 
-- Preparing a dataset from s3 or redis. A prepared
+1) Get an algorithm-ready dataset
+
+- Fetch and extract algorithm-ready datasets
+- Optional - Preparing a dataset from s3 or redis. A prepared
   dataset can be used for analysis.
+
+2) Run an algorithm using the cached datasets
+
 - Coming Soon - Analyze datasets and store output (generated csvs)
   in s3 and redis.
 - Coming Soon - Make predictions using an analyzed dataset
 
 .. warning:: if the output redis key or s3 key already exists, this
-             process will overwrite the previously stored values
+    process will overwrite the previously stored values
 """
 
+import os
 import sys
 import datetime
 import argparse
@@ -26,11 +33,14 @@ import analysis_engine.work_tasks.prepare_pricing_dataset \
     as prepare_pricing_dataset
 import analysis_engine.iex.extract_df_from_redis \
     as extract_utils
+import analysis_engine.run_algo \
+    as run_algo
 from celery import signals
 from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.work_tasks.get_celery_app import get_celery_app
 from analysis_engine.api_requests import build_prepare_dataset_request
 from analysis_engine.consts import SA_MODE_PREPARE
+from analysis_engine.consts import SA_MODE_EXTRACT
 from analysis_engine.consts import LOG_CONFIG_PATH
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import TICKER_ID
@@ -60,6 +70,7 @@ from analysis_engine.consts import IEX_MINUTE_DATE_FORMAT
 from analysis_engine.consts import get_status
 from analysis_engine.consts import ppj
 from analysis_engine.consts import is_celery_disabled
+from analysis_engine.utils import utc_now_str
 
 
 # Disable celery log hijacking
@@ -72,6 +83,61 @@ def setup_celery_logging(**kwargs):
 log = build_colorized_logger(
     name='sa',
     log_config_path=LOG_CONFIG_PATH)
+
+
+def extract_ticker_to_a_file_using_an_algo(
+        ticker,
+        extract_to_file):
+    """extract_ticker_to_a_file_using_an_algo
+
+    Extract all ``ticker`` datasets to a local file
+
+    :param ticker: ticker to find
+    :param extract_to_file: save all datasets to this
+        file on disk
+    """
+    log.info(
+        'extract start - running algo - {} to {}'.format(
+            ticker,
+            extract_to_file))
+    algo_res = run_algo.run_algo(
+        ticker=ticker,
+        start_date='2018-01-01 08:00:00',
+        end_date=utc_now_str())
+    if algo_res['status'] != SUCCESS:
+        log.error(
+            'extract run - {} - {}'.format(
+                get_status(status=algo_res['status']),
+                algo_res['err']))
+        return
+    log.info(
+        'extract start - building dataset - {} to {}'.format(
+            ticker,
+            extract_to_file))
+    algo = algo_res['rec'].get(
+        'algo',
+        None)
+    if not algo:
+        log.error(
+            'extract missing created algo object - {} - {}'.format(
+                get_status(status=algo_res['status']),
+                algo_res['err']))
+        return
+    publish_status, output_file = algo.publish_input_datasets(
+        output_file=extract_to_file)
+    if not os.path.exists(output_file):
+        log.error(
+            'extract failed to save datasets to file={} '
+            'with status {}'.format(
+                extract_to_file,
+                get_status(status=publish_status)))
+        return
+    log.info(
+        'extract done - {} saved to {} - {}'.format(
+            ticker,
+            extract_to_file,
+            get_status(status=publish_status)))
+# end of extract_ticker_to_a_file_using_an_algo
 
 
 def run_sa_tool():
@@ -93,6 +159,13 @@ def run_sa_tool():
             'ticker'),
         required=True,
         dest='ticker')
+    parser.add_argument(
+        '-e',
+        help=(
+            'run in mode: file path to extract an '
+            'algorithm-ready datasets from redis'),
+        required=False,
+        dest='extract_to_file')
     parser.add_argument(
         '-f',
         help=(
@@ -293,6 +366,8 @@ def run_sa_tool():
     ignore_columns = None
     debug = False
 
+    extract_to_file = None
+
     if args.ticker:
         ticker = args.ticker.upper()
     if args.broker_url:
@@ -352,8 +427,15 @@ def run_sa_tool():
     if args.debug:
         debug = True
 
+    if args.extract_to_file:
+        extract_to_file = args.extract_to_file
+        mode = SA_MODE_EXTRACT
+
+    valid = False
+    required_task = False
     work = None
     task_name = None
+    work = {}
     path_to_tasks = 'analysis_engine.work_tasks'
     if mode == SA_MODE_PREPARE:
         task_name = (
@@ -368,15 +450,22 @@ def run_sa_tool():
         if output_redis_key:
             work['prepared_redis_key'] = output_redis_key
         work['ignore_columns'] = ignore_columns
+        valid = True
+        required_task = True
+    elif mode == SA_MODE_EXTRACT:
+        extract_ticker_to_a_file_using_an_algo(
+            ticker=ticker,
+            extract_to_file=extract_to_file)
+        sys.exit(0)
     # end of handling mode-specific arg assignments
 
     # sanity checking the work and task are valid
-    if not work:
+    if not valid:
         log.error(
             'usage error: missing a supported mode: '
             '-f (for prepare a dataset) ')
         sys.exit(1)
-    if not task_name:
+    if required_task and not task_name:
         log.error(
             'usage error: missing a supported task_name')
         sys.exit(1)

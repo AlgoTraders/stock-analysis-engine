@@ -192,6 +192,7 @@ def run_algo(
     # algo_data_req[ticker][list][dataset] = pd.DataFrame
     algo_data_req = {}
     extract_requests = []
+    return_algo = False  # return created algo objects for use by caller
     rec = {}
     msg = None
 
@@ -296,6 +297,7 @@ def run_algo(
 
     if not algo:
         algo = default_algo.BaseAlgo(
+            ticker=None,
             tickers=use_tickers,
             balance=balance,
             commission=commission,
@@ -305,6 +307,7 @@ def run_algo(
             publish_to_s3=publish_to_s3,
             publish_to_redis=publish_to_redis,
             raise_on_err=raise_on_err)
+        return_algo = True  # this will be in: res['rec']['algo']
 
     if not algo:
         msg = (
@@ -390,12 +393,17 @@ def run_algo(
     end_date_val = get_date_from_str(
         date_str=use_end_date_str,
         fmt=cache_freq_fmt)
+    start_date_val = None
 
     if not use_start_date_str:
         start_date_val = end_date_val - datetime.timedelta(
             days=60)
         use_start_date_str = start_date_val.strftime(
             cache_freq_fmt)
+    else:
+        start_date_val = datetime.datetime.strptime(
+            use_start_date_str,
+            COMMON_TICK_DATE_FORMAT)
 
     total_dates = (end_date_val - start_date_val).days
 
@@ -721,6 +729,9 @@ def run_algo(
                 err=msg,
                 rec=rec)
     # end of try/ex
+
+    if return_algo:
+        rec['algo'] = algo
 
     return build_result.build_result(
         status=status,
