@@ -245,6 +245,7 @@ SLACK_FAILED = 42
 SA_MODE_PREPARE = 100
 SA_MODE_ANALYZE = 101
 SA_MODE_PREDICT = 102
+SA_MODE_EXTRACT = 103
 
 PLOT_ACTION_SHOW = 900
 PLOT_ACTION_SAVE_TO_S3 = 901
@@ -563,6 +564,8 @@ def get_status(
         return 'SA_MODE_ANALYZE'
     elif status == SA_MODE_PREDICT:
         return 'SA_MODE_PREDICT'
+    elif status == SA_MODE_EXTRACT:
+        return 'SA_MODE_EXTRACT'
     elif status == PLOT_ACTION_SHOW:
         return 'PLOT_ACTION_SHOW'
     elif status == PLOT_ACTION_SAVE_TO_S3:

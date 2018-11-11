@@ -802,7 +802,7 @@ class TestBaseAlgo(BaseTestCase):
             commission=commission,
             publish_history=False,
             publish_report=False,
-            publish_input_datasets=False,
+            publish_input=False,
             name=test_name)
         algo_res = run_algo(
             ticker=self.ticker,
@@ -830,7 +830,7 @@ class TestBaseAlgo(BaseTestCase):
         slack_code_block = True
         slack_full_width = False
         verbose = True
-        store_input_req = build_publish_request(
+        publish_input_req = build_publish_request(
             label=test_name,
             convert_to_json=True,
             output_file=output_file,
@@ -843,10 +843,10 @@ class TestBaseAlgo(BaseTestCase):
             slack_code_block=slack_code_block,
             slack_full_width=slack_full_width,
             verbose=verbose)
-        store_input_status, output_file = algo.store_input_datasets(
-            **store_input_req)
+        publish_input_status, output_file = algo.publish_input_datasets(
+            **publish_input_req)
         self.assertEqual(
-            get_status(status=store_input_status),
+            get_status(status=publish_input_status),
             'NOT_RUN')
     # end of test_algo_can_save_all_input_datasets_publish_disabled
 
@@ -898,7 +898,7 @@ class TestBaseAlgo(BaseTestCase):
         slack_code_block = True
         slack_full_width = False
         verbose = True
-        store_input_req = build_publish_request(
+        publish_input_req = build_publish_request(
             label=test_name,
             convert_to_json=True,
             output_file=output_file,
@@ -911,10 +911,10 @@ class TestBaseAlgo(BaseTestCase):
             slack_code_block=slack_code_block,
             slack_full_width=slack_full_width,
             verbose=verbose)
-        store_input_status, output_file = algo.store_input_datasets(
-            **store_input_req)
+        publish_input_status, output_file = algo.publish_input_datasets(
+            **publish_input_req)
         self.assertEqual(
-            get_status(status=store_input_status),
+            get_status(status=publish_input_status),
             'SUCCESS')
     # end of test_algo_can_save_all_input_datasets_to_file
 
@@ -966,7 +966,7 @@ class TestBaseAlgo(BaseTestCase):
         slack_code_block = True
         slack_full_width = False
         verbose = True
-        store_input_req = build_publish_request(
+        publish_input_req = build_publish_request(
             label=test_name,
             convert_to_json=True,
             output_file=output_file,
@@ -979,10 +979,10 @@ class TestBaseAlgo(BaseTestCase):
             slack_code_block=slack_code_block,
             slack_full_width=slack_full_width,
             verbose=verbose)
-        store_input_status, output_file = algo.store_input_datasets(
-            **store_input_req)
+        publish_input_status, output_file = algo.publish_input_datasets(
+            **publish_input_req)
         self.assertEqual(
-            get_status(status=store_input_status),
+            get_status(status=publish_input_status),
             'FILE_FAILED')
     # end of test_algo_can_save_all_input_datasets_to_file_failed
 
@@ -1046,7 +1046,7 @@ class TestBaseAlgo(BaseTestCase):
         slack_code_block = True
         slack_full_width = False
         verbose = True
-        store_input_req = build_publish_request(
+        publish_input_req = build_publish_request(
             label=test_name,
             convert_to_json=True,
             output_file=output_file,
@@ -1059,25 +1059,25 @@ class TestBaseAlgo(BaseTestCase):
             slack_code_block=slack_code_block,
             slack_full_width=slack_full_width,
             verbose=verbose)
-        store_input_status, output_file = algo.store_input_datasets(
-            **store_input_req)
+        publish_input_status, output_file = algo.publish_input_datasets(
+            **publish_input_req)
         self.assertEqual(
-            get_status(status=store_input_status),
+            get_status(status=publish_input_status),
             'SUCCESS')
         redis_res = get_data_from_redis_key(
-            host=store_input_req['redis_address'].split(':')[0],
-            port=store_input_req['redis_address'].split(':')[1],
-            password=store_input_req['redis_password'],
-            db=store_input_req['redis_db'],
-            key=store_input_req['redis_key'],
-            serializer=store_input_req['redis_serializer'],
-            encoding=store_input_req['redis_encoding'])
+            host=publish_input_req['redis_address'].split(':')[0],
+            port=publish_input_req['redis_address'].split(':')[1],
+            password=publish_input_req['redis_password'],
+            db=publish_input_req['redis_db'],
+            key=publish_input_req['redis_key'],
+            serializer=publish_input_req['redis_serializer'],
+            encoding=publish_input_req['redis_encoding'])
         self.assertEqual(
             get_status(status=redis_res['status']),
             'SUCCESS')
         print('found data size={} in redis_key={}'.format(
             len(redis_res['rec']['data']),
-            store_input_req['redis_key']))
+            publish_input_req['redis_key']))
         self.assertTrue(
             len(redis_res['rec']['data']) > 10)
     # end of test_integration_algo_publish_input_dataset_to_redis
@@ -1133,7 +1133,7 @@ class TestBaseAlgo(BaseTestCase):
         slack_code_block = True
         slack_full_width = False
         verbose = True
-        store_input_req = build_publish_request(
+        publish_input_req = build_publish_request(
             label=test_name,
             convert_to_json=True,
             output_file=test_should_create_this_file,
@@ -1146,10 +1146,10 @@ class TestBaseAlgo(BaseTestCase):
             slack_code_block=slack_code_block,
             slack_full_width=slack_full_width,
             verbose=verbose)
-        store_input_status, output_file = algo.store_input_datasets(
-            **store_input_req)
+        publish_input_status, output_file = algo.publish_input_datasets(
+            **publish_input_req)
         self.assertEqual(
-            get_status(status=store_input_status),
+            get_status(status=publish_input_status),
             'SUCCESS')
         self.assertTrue(os.path.exists(test_should_create_this_file))
     # end of test_integration_algo_publish_input_dataset_to_file

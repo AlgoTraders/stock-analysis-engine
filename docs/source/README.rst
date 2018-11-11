@@ -546,6 +546,24 @@ After running the dataset collection container, the datasets should be auto-cach
     47) "NFLX_2018-10-06_stats"
     48) "NFLX_2018-10-06_news1"
 
+Extract Algorithm-Ready Datasets
+================================
+
+With cached data in redis, you can use the algorithm api to extract algorithm-ready datasets and save them to a local file on disk for offline historical backtest analysis. This also creates a local archive backup with everything in redis (in case something crashes).
+
+Extract an algorithm-ready dataset from Redis with:
+
+::
+
+    sa.py -t SPY -e ~/SPY-latest.json
+
+Create a Daily Backup in a File
+-------------------------------
+
+::
+
+    sa.py -t SPY -e ~/SPY-$(date +"%Y-%m-%d").json
+
 Publishing to Slack
 ===================
 
