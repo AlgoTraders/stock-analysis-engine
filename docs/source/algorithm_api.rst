@@ -17,4 +17,6 @@ Algorithm API Reference
    build_exit_put_spread_details
    build_option_spread_details
    load_algo_dataset_from_file
+   load_algo_dataset_from_s3
+   load_algo_dataset_from_redis
    prepare_dict_for_algo
