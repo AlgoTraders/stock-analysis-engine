@@ -4,6 +4,16 @@ Load an algorithm dataset from file, s3 or redis
 Supported Datasets:
 
 - ``SA_DATASET_TYPE_ALGO_READY`` - Algorithm-ready datasets
+
+**Supported environment variables**
+
+::
+
+    # to show debug, trace logging please export ``SHARED_LOG_CFG``
+    # to a debug logger json file. To turn on debugging for this
+    # library, you can export this variable to the repo's
+    # included file with the command:
+    export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
 """
 
 import os

@@ -1,7 +1,7 @@
 """
 Dataset Publishing API
 
-Debug with:
+**Supported environment variables**
 
 ::
 
@@ -10,7 +10,6 @@ Debug with:
     # library, you can export this variable to the repo's
     # included file with the command:
     export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
-
 """
 
 import json
