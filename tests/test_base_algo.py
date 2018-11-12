@@ -14,6 +14,8 @@ import os
 import mock
 import pandas as pd
 import uuid
+import glob
+import analysis_engine.show_dataset as show_dataset
 from analysis_engine.mocks.mock_boto3_s3 import \
     build_boto3_resource
 from analysis_engine.mocks.mock_redis import MockRedis
@@ -23,6 +25,7 @@ from analysis_engine.consts import TRADE_SHARES
 from analysis_engine.consts import ppj
 from analysis_engine.consts import get_status
 from analysis_engine.consts import ev
+from analysis_engine.consts import DEFAULT_SERIALIZED_DATASETS
 from analysis_engine.utils import get_last_close_str
 from analysis_engine.build_algo_request import build_algo_request
 from analysis_engine.build_buy_order import build_buy_order
@@ -138,7 +141,75 @@ class TestBaseAlgo(BaseTestCase):
         ]
         self.balance = 10000.00
         self.last_close_str = get_last_close_str(fmt=COMMON_DATE_FORMAT)
+        self.output_dir = (
+            '/opt/sa/tests/datasets/algo')
     # end of setUp
+
+    def validate_dataset_structure(
+            self,
+            cur_algo):
+        """validate_dataset_structure
+
+        validate an algo's ``self.loaded_dataset`` has a valid structure
+
+        :param cur_algo: ``analysis_engine.algo.BaseAlgo`` object
+        """
+        self.assertTrue(
+            self.ticker in cur_algo.loaded_dataset)
+        self.assertTrue(
+            'id' in cur_algo.loaded_dataset[self.ticker][0])
+        self.assertTrue(
+            'date' in cur_algo.loaded_dataset[self.ticker][0])
+        self.assertTrue(
+            'data' in cur_algo.loaded_dataset[self.ticker][0])
+
+        expected_datasets = DEFAULT_SERIALIZED_DATASETS
+        loaded_ds = cur_algo.loaded_dataset[self.ticker]
+        show_dataset.show_dataset(
+            algo_dataset=cur_algo.loaded_dataset)
+        """
+        print(
+            'testing: {} in node={}'.format(
+                self.ticker,
+                loaded_ds))
+        """
+        idx = 0
+        for ds_node in loaded_ds:
+            # print(str(ds_node)[0:40])
+            self.assertTrue(
+                'id' in ds_node)
+            self.assertTrue(
+                'date' in ds_node)
+            self.assertTrue(
+                'data' in ds_node)
+            ds_data = ds_node['data']
+            for ds_key in expected_datasets:
+                """
+                print(
+                    'checking {} is in cur_algo.load'
+                    'ed_dataset[{}][{}][\'data\']'.format(
+                        ds_key,
+                        self.ticker,
+                        idx))
+                """
+                self.assertTrue(
+                    ds_key in ds_data)
+                self.assertTrue(
+                    hasattr(
+                        ds_data[ds_key],
+                        'empty'))
+                self.assertTrue(
+                    hasattr(
+                        ds_data[ds_key],
+                        'to_json'))
+                self.assertTrue(
+                    hasattr(
+                        ds_data[ds_key],
+                        'index'))
+            # for all keys make sure the required fields exist
+            idx += 1
+        # for all ordered dataset nodes
+    # end of validate_dataset_structure
 
     def test_build_algo_request_daily(self):
         """test_build_algo_request_daily"""
@@ -1083,9 +1154,6 @@ class TestBaseAlgo(BaseTestCase):
     # end of test_integration_algo_publish_input_dataset_to_redis
 
     @mock.patch(
-        ('redis.Redis'),
-        new=MockRedis)
-    @mock.patch(
         ('boto3.resource'),
         new=build_boto3_resource)
     @mock.patch(
@@ -1152,6 +1220,279 @@ class TestBaseAlgo(BaseTestCase):
             get_status(status=publish_input_status),
             'SUCCESS')
         self.assertTrue(os.path.exists(test_should_create_this_file))
+        # now load it into an algo
     # end of test_integration_algo_publish_input_dataset_to_file
+
+    def test_integration_algo_load_from_file(self):
+        """test_integration_algo_load_from_file"""
+        if ev('INT_TESTS', '0') == '0':
+            return
+
+        test_name = (
+            'test_integration_algo_load_from_file')
+        test_file_regex = (
+            '{}/test_integration_algo_load_from_file'
+            '*.json'.format(
+                self.output_dir))
+        files = sorted(
+            glob.iglob(test_file_regex),
+            key=os.path.getctime,
+            reverse=True)
+
+        load_config_req = None
+        latest_file = (
+            '/opt/sa/tests/datasets/algo/{}-{}.json'.format(
+                test_name,
+                str(uuid.uuid4())))
+        if len(files) == 0:
+            algo = BaseAlgo(
+                ticker=self.ticker,
+                balance=self.balance,
+                commission=6.0,
+                name=test_name)
+            run_algo(
+                ticker=self.ticker,
+                algo=algo,
+                label=test_name,
+                raise_on_err=True)
+            publish_input_req = build_publish_request(
+                label=test_name,
+                output_file=latest_file,
+                convert_to_json=True,
+                compress=False,
+                redis_enabled=False,
+                s3_enabled=False,
+                slack_enabled=False,
+                verbose=True)
+            publish_input_status, output_file = \
+                algo.publish_input_datasets(
+                    **publish_input_req)
+            self.assertEqual(
+                get_status(status=publish_input_status),
+                'SUCCESS')
+        else:
+            latest_file = files[0]
+        # end of create a file
+
+        self.assertTrue(os.path.exists(latest_file))
+
+        load_config_req = build_publish_request(
+            label=test_name,
+            convert_to_json=True,
+            output_file=latest_file,
+            compress=False,
+            redis_enabled=False,
+            s3_enabled=False)
+        file_algo = BaseAlgo(
+            ticker=self.ticker,
+            balance=self.balance,
+            commission=6.0,
+            name='load-from-file_{}'.format(
+                test_name),
+            load_config=load_config_req)
+
+        print(file_algo.loaded_dataset)
+        self.validate_dataset_structure(cur_algo=file_algo)
+    # end of test_integration_algo_load_from_file
+
+    def test_integration_algo_publish_input_s3_and_load(self):
+        """test_integration_algo_publish_input_s3_and_load"""
+        if ev('INT_TESTS', '0') == '0':
+            return
+
+        test_name = (
+            'test_integration_algo_publish_input_s3_and_load')
+        balance = self.balance
+        commission = 13.5
+        algo = BaseAlgo(
+            ticker=self.ticker,
+            balance=balance,
+            commission=commission,
+            name=test_name)
+        algo_res = run_algo(
+            ticker=self.ticker,
+            algo=algo,
+            label=test_name,
+            raise_on_err=True)
+        self.assertTrue(
+            len(algo_res['rec']['history']) > 30)
+        self.assertEqual(
+            algo.name,
+            test_name)
+        self.assertEqual(
+            algo.tickers,
+            [self.ticker])
+        unique_id = str(uuid.uuid4())
+        test_should_create_this_file = (
+            '/opt/sa/tests/datasets/algo/{}-{}.json'.format(
+                test_name,
+                unique_id))
+        redis_enabled = True
+        redis_key = '{}:{}'.format(
+            test_name,
+            unique_id)
+        s3_enabled = True
+        s3_key = '{}-{}.json'.format(
+            test_name,
+            unique_id)
+        compress = False
+        slack_enabled = True
+        slack_code_block = True
+        slack_full_width = False
+        verbose = True
+        redis_db = 1
+        unittest_bucket = 'unittest-algo'
+        publish_input_req = build_publish_request(
+            label=test_name,
+            convert_to_json=True,
+            output_file=test_should_create_this_file,
+            compress=compress,
+            redis_enabled=redis_enabled,
+            redis_key=redis_key,
+            redis_db=redis_db,
+            s3_enabled=s3_enabled,
+            s3_key=s3_key,
+            s3_bucket=unittest_bucket,
+            slack_enabled=slack_enabled,
+            slack_code_block=slack_code_block,
+            slack_full_width=slack_full_width,
+            verbose=verbose)
+        load_config_req = build_publish_request(
+            label=test_name,
+            convert_to_json=True,
+            output_file=test_should_create_this_file,
+            compress=compress,
+            redis_enabled=redis_enabled,
+            redis_key=redis_key,
+            redis_db=redis_db,
+            s3_enabled=s3_enabled,
+            s3_key=s3_key,
+            s3_bucket=unittest_bucket,
+            slack_enabled=slack_enabled,
+            slack_code_block=slack_code_block,
+            slack_full_width=slack_full_width,
+            verbose=verbose)
+        publish_input_status, output_file = algo.publish_input_datasets(
+            **publish_input_req)
+        self.assertEqual(
+            get_status(status=publish_input_status),
+            'SUCCESS')
+        self.assertTrue(os.path.exists(test_should_create_this_file))
+        # now load it into an algo
+
+        print('')
+        print('---------------')
+        print('starting s3 load integration test')
+
+        load_config_req['s3_key'] = s3_key
+        s3_algo = BaseAlgo(
+            ticker=self.ticker,
+            balance=balance,
+            commission=commission,
+            name=test_name,
+            load_config=load_config_req)
+
+        self.validate_dataset_structure(cur_algo=s3_algo)
+    # end of test_integration_algo_publish_input_s3_and_load
+
+    def test_integration_algo_publish_input_redis_and_load(self):
+        """test_integration_algo_publish_input_redis_and_load"""
+        if ev('INT_TESTS', '0') == '0':
+            return
+
+        test_name = (
+            'test_integration_algo_publish_input_redis_and_load')
+        balance = self.balance
+        commission = 13.5
+        algo = BaseAlgo(
+            ticker=self.ticker,
+            balance=balance,
+            commission=commission,
+            name=test_name)
+        algo_res = run_algo(
+            ticker=self.ticker,
+            algo=algo,
+            label=test_name,
+            raise_on_err=True)
+        self.assertTrue(
+            len(algo_res['rec']['history']) > 30)
+        self.assertEqual(
+            algo.name,
+            test_name)
+        self.assertEqual(
+            algo.tickers,
+            [self.ticker])
+        unique_id = str(uuid.uuid4())
+        test_should_create_this_file = (
+            '/opt/sa/tests/datasets/algo/{}-{}.json'.format(
+                test_name,
+                unique_id))
+        redis_enabled = True
+        redis_key = '{}:{}'.format(
+            test_name,
+            unique_id)
+        s3_enabled = True
+        s3_key = '{}-{}.json'.format(
+            test_name,
+            unique_id)
+        compress = False
+        slack_enabled = True
+        slack_code_block = True
+        slack_full_width = False
+        verbose = True
+        redis_db = 1
+        unittest_bucket = 'unittest-algo'
+        publish_input_req = build_publish_request(
+            label=test_name,
+            convert_to_json=True,
+            output_file=test_should_create_this_file,
+            compress=compress,
+            redis_enabled=redis_enabled,
+            redis_key=redis_key,
+            redis_db=redis_db,
+            s3_enabled=s3_enabled,
+            s3_key=s3_key,
+            s3_bucket=unittest_bucket,
+            slack_enabled=slack_enabled,
+            slack_code_block=slack_code_block,
+            slack_full_width=slack_full_width,
+            verbose=verbose)
+        load_config_req = build_publish_request(
+            label=test_name,
+            convert_to_json=True,
+            output_file=test_should_create_this_file,
+            compress=compress,
+            redis_enabled=redis_enabled,
+            redis_key=redis_key,
+            redis_db=redis_db,
+            s3_enabled=s3_enabled,
+            s3_key=s3_key,
+            s3_bucket=unittest_bucket,
+            slack_enabled=slack_enabled,
+            slack_code_block=slack_code_block,
+            slack_full_width=slack_full_width,
+            verbose=verbose)
+        publish_input_status, output_file = algo.publish_input_datasets(
+            **publish_input_req)
+        self.assertEqual(
+            get_status(status=publish_input_status),
+            'SUCCESS')
+        self.assertTrue(os.path.exists(test_should_create_this_file))
+        # now load it into an algo
+
+        print('')
+        print('---------------')
+        print('starting redis publish integration test')
+
+        load_config_req['redis_key'] = s3_key
+        redis_algo = BaseAlgo(
+            ticker=self.ticker,
+            balance=balance,
+            commission=commission,
+            name=test_name,
+            load_config=load_config_req)
+
+        self.validate_dataset_structure(cur_algo=redis_algo)
+    # end of test_integration_algo_publish_input_redis_and_load
 
 # end of TestBaseAlgo

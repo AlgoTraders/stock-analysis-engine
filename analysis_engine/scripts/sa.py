@@ -35,12 +35,15 @@ import analysis_engine.iex.extract_df_from_redis \
     as extract_utils
 import analysis_engine.run_algo \
     as run_algo
+import analysis_engine.show_dataset \
+    as show_dataset
 from celery import signals
 from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.work_tasks.get_celery_app import get_celery_app
 from analysis_engine.api_requests import build_prepare_dataset_request
 from analysis_engine.consts import SA_MODE_PREPARE
 from analysis_engine.consts import SA_MODE_EXTRACT
+from analysis_engine.consts import SA_MODE_SHOW_DATASET
 from analysis_engine.consts import LOG_CONFIG_PATH
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import TICKER_ID
@@ -67,6 +70,8 @@ from analysis_engine.consts import PLOT_ACTION_SHOW
 from analysis_engine.consts import PLOT_ACTION_SAVE_TO_S3
 from analysis_engine.consts import PLOT_ACTION_SAVE_AS_FILE
 from analysis_engine.consts import IEX_MINUTE_DATE_FORMAT
+from analysis_engine.consts import DEFAULT_SERIALIZED_DATASETS
+from analysis_engine.consts import SA_DATASET_TYPE_ALGO_READY
 from analysis_engine.consts import get_status
 from analysis_engine.consts import ppj
 from analysis_engine.consts import is_celery_disabled
@@ -83,6 +88,52 @@ def setup_celery_logging(**kwargs):
 log = build_colorized_logger(
     name='sa',
     log_config_path=LOG_CONFIG_PATH)
+
+
+def examine_dataset_in_file(
+        path_to_file,
+        compress=False,
+        encoding='utf-8',
+        ticker=None,
+        dataset_type=SA_DATASET_TYPE_ALGO_READY,
+        serialize_datasets=DEFAULT_SERIALIZED_DATASETS,):
+    """examine_dataset_in_file
+
+    Show the internal dataset dictionary structure in dataset file
+
+    :param path_to_file: path to file
+    :param compress: optional - boolean flag for decompressing
+        the contents of the ``path_to_file`` if necessary
+        (default is ``False`` and algorithms
+        use ``zlib`` for compression)
+    :param encoding: optional - string for data encoding
+    :param ticker: optional - string ticker symbol
+        to verify is in the dataset
+    :param dataset_type: optional - dataset type
+        (default is ``SA_DATASET_TYPE_ALGO_READY``)
+    :param serialize_datasets: optional - list of dataset names to
+        deserialize in the dataset
+    """
+    if dataset_type == SA_DATASET_TYPE_ALGO_READY:
+        log.info(
+            'show start - load dataset from file={}'.format(
+                path_to_file))
+    else:
+        log.error(
+            'supported dataset type={} for file={}'.format(
+                dataset_type,
+                path_to_file))
+        return
+    show_dataset.show_dataset(
+        path_to_file=path_to_file,
+        compress=compress,
+        encoding=encoding,
+        dataset_type=dataset_type,
+        serialize_datasets=serialize_datasets)
+    log.info(
+        'show done - dataset in file={}'.format(
+            path_to_file))
+# end of examine_dataset_in_file
 
 
 def extract_ticker_to_a_file_using_an_algo(
@@ -168,6 +219,12 @@ def run_sa_tool():
         required=False,
         dest='extract_to_file')
     parser.add_argument(
+        '-l',
+        help=(
+            'run in mode: show dataset in this file'),
+        required=False,
+        dest='show_from_file')
+    parser.add_argument(
         '-f',
         help=(
             'run in mode: prepare dataset from '
@@ -194,12 +251,6 @@ def run_sa_tool():
             '-J show to open the image (good for debugging)'),
         required=False,
         dest='plot_action')
-    parser.add_argument(
-        '-l',
-        help=(
-            'optional - path to the log config file'),
-        required=False,
-        dest='log_config_path')
     parser.add_argument(
         '-b',
         help=(
@@ -368,6 +419,7 @@ def run_sa_tool():
     debug = False
 
     extract_to_file = None
+    show_from_file = None
 
     if args.ticker:
         ticker = args.ticker.upper()
@@ -431,6 +483,9 @@ def run_sa_tool():
     if args.extract_to_file:
         extract_to_file = args.extract_to_file
         mode = SA_MODE_EXTRACT
+    if args.show_from_file:
+        show_from_file = args.show_from_file
+        mode = SA_MODE_SHOW_DATASET
 
     valid = False
     required_task = False
@@ -457,6 +512,19 @@ def run_sa_tool():
         extract_ticker_to_a_file_using_an_algo(
             ticker=ticker,
             extract_to_file=extract_to_file)
+        log.info(
+            'done extracting {} dataset and saving to file={}'.format(
+                ticker,
+                show_from_file))
+        sys.exit(0)
+    elif mode == SA_MODE_SHOW_DATASET:
+        examine_dataset_in_file(
+            ticker=ticker,
+            path_to_file=show_from_file)
+        log.info(
+            'done showing {} dataset from file={}'.format(
+                ticker,
+                show_from_file))
         sys.exit(0)
     # end of handling mode-specific arg assignments
 

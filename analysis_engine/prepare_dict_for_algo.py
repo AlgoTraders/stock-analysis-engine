@@ -6,6 +6,7 @@ dataset
 import json
 import zlib
 import pandas as pd
+from analysis_engine.consts import DEFAULT_SERIALIZED_DATASETS
 from spylunking.log.setup_logging import build_colorized_logger
 
 log = build_colorized_logger(
@@ -15,7 +16,8 @@ log = build_colorized_logger(
 def prepare_dict_for_algo(
         data,
         compress=False,
-        encoding='utf-8'):
+        encoding='utf-8',
+        dataset_names=None):
     """prepare_dict_for_algo
 
     :param data: string holding contents of an algorithm-ready
@@ -25,6 +27,9 @@ def prepare_dict_for_algo(
         (default is ``False`` and algorithms
         use ``zlib`` for compression)
     :param encoding: optional - string for data encoding
+    :param dataset_names: optional - list of string keys
+        for each dataset node in:
+        ``dataset[ticker][0]['data'][dataset_names[0]]``
     """
     log.debug('start')
     use_data = None
@@ -44,7 +49,7 @@ def prepare_dict_for_algo(
         return None
 
     log.debug('loading as dict')
-    use_data = None
+    use_data = {}
     data_as_dict = json.loads(parsed_data)
     if len(data_as_dict) == 0:
         log.error(
@@ -53,7 +58,12 @@ def prepare_dict_for_algo(
 
     empty_pd = pd.DataFrame([{}])
 
-    log.info('converting')
+    use_serialized_datasets = dataset_names
+    if not use_serialized_datasets:
+        use_serialized_datasets = DEFAULT_SERIALIZED_DATASETS
+    log.info(
+        'converting serialized_datasets={}'.format(
+            use_serialized_datasets))
     num_datasets = 0
     for ticker in data_as_dict:
         if ticker not in use_data:
@@ -64,11 +74,12 @@ def prepare_dict_for_algo(
                 'date': node['date'],
                 'data': {}
             }
-
+            for key in use_serialized_datasets:
+                new_node['data'][key] = empty_pd
             for ds_key in node['data']:
-                new_node[ds_key] = empty_pd
+                new_node['data'][ds_key] = empty_pd
                 if node['data'][ds_key]:
-                    new_node[ds_key] = pd.read_json(
+                    new_node['data'][ds_key] = pd.read_json(
                         node['data'][ds_key],
                         orient='records')
                     num_datasets += 1

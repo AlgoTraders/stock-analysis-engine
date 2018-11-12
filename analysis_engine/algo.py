@@ -23,6 +23,21 @@ datasets from the redis pipeline:
 - ``self.df_options``
 - ``self.df_pricing``
 
+**Recent Pricing Information**
+
+- ``self.latest_close``
+- ``self.latest_high``
+- ``self.latest_open``
+- ``self.latest_low``
+- ``self.latest_volume``
+- ``self.ask``
+- ``self.bid``
+
+**Balance Information**
+
+- ``self.balance``
+- ``self.prev_bal``
+
 .. note:: If a key is not in the dataset, the
     algorithms's member variable will be an empty
     pandas DataFrame created with: ``pd.DataFrame([])``
@@ -41,7 +56,7 @@ import analysis_engine.build_buy_order as buy_utils
 import analysis_engine.build_sell_order as sell_utils
 import analysis_engine.publish as publish
 import analysis_engine.build_publish_request as build_publish_request
-import analysis_engine.load_algo_dataset_from_file as file_utils
+import analysis_engine.load_dataset as load_dataset
 from analysis_engine.consts import NOT_RUN
 from analysis_engine.consts import INVALID
 from analysis_engine.consts import TRADE_FILLED
@@ -57,6 +72,7 @@ from analysis_engine.consts import S3_REGION_NAME
 from analysis_engine.consts import S3_ADDRESS
 from analysis_engine.consts import S3_SECURE
 from analysis_engine.consts import ALGO_INPUT_DATASET_S3_BUCKET_NAME
+from analysis_engine.consts import ALGO_READY_DATASET_S3_BUCKET_NAME
 from analysis_engine.consts import ALGO_HISTORY_DATASET_S3_BUCKET_NAME
 from analysis_engine.consts import ALGO_REPORT_DATASET_S3_BUCKET_NAME
 from analysis_engine.consts import ALGO_INPUT_COMPRESS
@@ -175,6 +191,7 @@ class BaseAlgo:
             load_from_s3=None,
             load_from_redis=None,
             load_from_file=None,
+            load_config=None,
             load_compress=False,
             **kwargs):
         """__init__
@@ -267,6 +284,10 @@ class BaseAlgo:
             a previously-created local file holding an
             algorithm-ready dataset for use with:
             ``handle_data``
+        :param load_config: optional - dictionary
+            for setting member variables to load an
+            agorithm-ready dataset from
+            s3 or redis
         :param load_compress: optional - booliean
 
         **(Optional) Future Argument Placeholder**
@@ -411,6 +432,7 @@ class BaseAlgo:
         self.default_report_output_file = '{}/report-{}.json'.format(
             self.output_file_dir,
             self.save_as_key)
+        self.default_load_input_file = None
 
         self.default_input_redis_key = 'algo:input:{}'.format(
             self.default_redis_key)
@@ -425,6 +447,8 @@ class BaseAlgo:
             history_config = build_publish_request.build_publish_request()
         if not report_config:
             report_config = build_publish_request.build_publish_request()
+        if not load_config:
+            load_config = build_publish_request.build_publish_request()
 
         # Load the input dataset publishing member variables
         self.input_output_dir = input_config.get(
@@ -582,10 +606,59 @@ class BaseAlgo:
         self.report_verbose = report_config.get(
             'verbose', False)
 
-        self.load_from_s3 = load_from_s3
-        self.load_from_redis = load_from_redis
-        self.load_from_file = load_from_file
-        self.load_is_compress = load_compress
+        self.loaded_dataset = None
+
+        # load the algorithm-ready dataset input member variables
+        self.dsload_output_dir = load_config.get(
+            'output_dir', )
+        self.dsload_output_file = load_config.get(
+            'output_file', load_from_file)
+        self.dsload_label = load_config.get(
+            'label', self.name)
+        self.dsload_convert_to_json = load_config.get(
+            'convert_to_json', True)
+        self.dsload_compress = load_config.get(
+            'compress', load_compress)
+        self.dsload_redis_enabled = load_config.get(
+            'redis_enabled', self.publish_to_redis)
+        self.dsload_redis_address = load_config.get(
+            'redis_address', ENABLED_S3_UPLOAD)
+        self.dsload_redis_db = load_config.get(
+            'redis_db', REDIS_DB)
+        self.dsload_redis_password = load_config.get(
+            'redis_password', REDIS_PASSWORD)
+        self.dsload_redis_expire = load_config.get(
+            'redis_expire', REDIS_EXPIRE)
+        self.dsload_redis_serializer = load_config.get(
+            'redis_serializer', 'json')
+        self.dsload_redis_encoding = load_config.get(
+            'redis_encoding', 'utf-8')
+        self.dsload_s3_enabled = load_config.get(
+            's3_enabled', self.publish_to_s3)
+        self.dsload_s3_address = load_config.get(
+            's3_address', S3_ADDRESS)
+        self.dsload_s3_bucket = load_config.get(
+            's3_bucket', ALGO_READY_DATASET_S3_BUCKET_NAME)
+        self.dsload_s3_access_key = load_config.get(
+            's3_access_key', S3_ACCESS_KEY)
+        self.dsload_s3_secret_key = load_config.get(
+            's3_secret_key', S3_SECRET_KEY)
+        self.dsload_s3_region_name = load_config.get(
+            's3_region_name', S3_REGION_NAME)
+        self.dsload_s3_secure = load_config.get(
+            's3_secure', S3_SECURE)
+        self.dsload_slack_enabled = load_config.get(
+            'slack_enabled', False)
+        self.dsload_slack_code_block = load_config.get(
+            'slack_code_block', False)
+        self.dsload_slack_full_width = load_config.get(
+            'slack_full_width', False)
+        self.dsload_redis_key = load_config.get(
+            'redis_key', load_from_redis)
+        self.dsload_s3_key = load_config.get(
+            's3_key', load_from_s3)
+        self.dsload_verbose = load_config.get(
+            'verbose', False)
 
         self.load_from_external_source()
 
@@ -755,44 +828,104 @@ class BaseAlgo:
         """
 
         if path_to_file:
-            self.load_from_file = path_to_file
+            self.dsload_output_file = path_to_file
         if s3_key:
-            self.load_from_s3 = s3_key
+            self.dsload_s3_key = s3_key
+            self.dsload_s3_enabled = True
         if redis_key:
-            self.load_from_redis = redis_key
+            self.dsload_redis_key = redis_key
+            self.dsload_redis_enabled = True
 
-        if self.load_from_s3:
+        if self.dsload_s3_key and self.dsload_s3_enabled:
             self.debug_msg = (
-                'external load START - s3={}'.format(
-                    self.load_from_s3))
+                'external load START - s3={}:{}/{}'.format(
+                    self.dsload_s3_address,
+                    self.dsload_s3_bucket,
+                    self.dsload_s3_key))
             log.debug(self.debug_msg)
-        elif self.load_from_redis:
+            self.loaded_dataset = load_dataset.load_dataset(
+                s3_enabled=self.dsload_s3_enabled,
+                s3_address=self.dsload_s3_address,
+                s3_key=self.dsload_s3_key,
+                s3_bucket=self.dsload_s3_bucket,
+                s3_access_key=self.dsload_s3_access_key,
+                s3_secret_key=self.dsload_s3_secret_key,
+                s3_region_name=self.dsload_s3_region_name,
+                s3_secure=self.dsload_s3_secure,
+                compress=self.dsload_compress,
+                encoding=self.dsload_redis_encoding)
+            if self.loaded_dataset:
+                self.debug_msg = (
+                    'external load SUCCESS - s3={}:{}/{}'.format(
+                        self.dsload_s3_address,
+                        self.dsload_s3_bucket,
+                        self.dsload_s3_key))
+            else:
+                self.debug_msg = (
+                    'external load FAILED - s3={}:{}/{}'.format(
+                        self.dsload_s3_address,
+                        self.dsload_s3_bucket,
+                        self.dsload_s3_key))
+                log.error(self.debug_msg)
+                raise Exception(self.debug_msg)
+        elif self.dsload_redis_key and self.dsload_redis_enabled:
             self.debug_msg = (
-                'external load START - redis={}'.format(
-                    self.load_from_redis))
+                'external load START - redis={}:{}/{}'.format(
+                    self.dsload_redis_address,
+                    self.dsload_redis_db,
+                    self.dsload_redis_key))
             log.debug(self.debug_msg)
-        elif self.load_from_file:
-            if os.path.exists(self.load_from_file):
+            self.loaded_dataset = load_dataset.load_dataset(
+                redis_enabled=self.dsload_redis_enabled,
+                redis_address=self.dsload_redis_address,
+                redis_key=self.dsload_redis_key,
+                redis_db=self.dsload_redis_db,
+                redis_password=self.dsload_redis_password,
+                redis_expire=self.dsload_redis_expire,
+                redis_serializer=self.dsload_redis_serializer,
+                redis_encoding=self.dsload_redis_encoding,
+                compress=self.dsload_compress,
+                encoding=self.dsload_redis_encoding)
+            if self.loaded_dataset:
+                self.debug_msg = (
+                    'external load SUCCESS - redis={}:{}/{}'.format(
+                        self.dsload_redis_address,
+                        self.dsload_redis_db,
+                        self.dsload_redis_key))
+            else:
+                self.debug_msg = (
+                    'external load FAILED - redis={}:{}/{}'.format(
+                        self.dsload_redis_address,
+                        self.dsload_redis_db,
+                        self.dsload_redis_key))
+                log.error(self.debug_msg)
+                raise Exception(self.debug_msg)
+        elif self.dsload_output_file:
+            if os.path.exists(self.dsload_output_file):
                 self.debug_msg = (
                     'external load START - file={}'.format(
-                        self.load_from_file))
+                        self.dsload_output_file))
                 log.debug(self.debug_msg)
-                self.loaded_dataset = file_utils.load_algo_dataset_from_file(
-                    path_to_file=self.load_from_file,
-                    compress=self.load_compress)
+                self.loaded_dataset = load_dataset.load_dataset(
+                    path_to_file=self.dsload_output_file,
+                    compress=self.dsload_compress,
+                    encoding=self.input_redis_encoding)
                 if self.loaded_dataset:
                     self.debug_msg = (
                         'external load SUCCESS - file={}'.format(
-                            self.load_from_file))
+                            self.dsload_output_file))
                 else:
                     self.debug_msg = (
                         'external load FAILED - file={}'.format(
-                            self.load_from_file))
+                            self.dsload_output_file))
+                    log.error(self.debug_msg)
+                    raise Exception(self.debug_msg)
             else:
                 self.debug_msg = (
                     'external load - did not find file={}'.format(
-                        self.load_from_file))
+                        self.dsload_output_file))
                 log.error(self.debug_msg)
+                raise Exception(self.debug_msg)
         # end of if supported external loader
         log.debug(
             'external load END')
@@ -1415,7 +1548,7 @@ class BaseAlgo:
     def load_from_config(
             self,
             config_dict):
-        """load_config
+        """load_from_config
 
         support for replaying algorithms from a trading history
 
@@ -1956,6 +2089,23 @@ class BaseAlgo:
         # datasets
     # end of load_from_dataset
 
+    def reset_for_next_run(
+            self):
+        """reset_for_next_run
+
+        work in progress - clean up all internal member variables
+        for another run
+
+        .. note:: random or probablistic predictions may not
+            create the same trading history_output_file
+        """
+        self.debug_msg = ''
+        self.loaded_dataset = None
+        self.last_history_dict = None
+        self.last_handle_data = None
+        self.order_history = []
+    # end of reset_for_next_run
+
     def handle_data(
             self,
             data):
@@ -2004,6 +2154,16 @@ class BaseAlgo:
                 self.name))
 
         log.info(self.debug_msg)
+
+        if self.loaded_dataset:
+            log.info(
+                '{} handle - using existing dataset '
+                'file={} s3={} redis={}'.format(
+                    self.name,
+                    self.dsload_output_file,
+                    self.dsload_s3_key,
+                    self.dsload_redis_key))
+            data = self.loaded_dataset
 
         data_for_tickers = self.get_supported_tickers_in_data(
             data=data)
