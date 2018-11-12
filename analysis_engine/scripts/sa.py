@@ -2,11 +2,7 @@
 
 """
 
-Stock Analysis Command Line Tool
-================================
-
-How it works
-------------
+**Stock Analysis Command Line Tool**
 
 1) Get an algorithm-ready dataset
 
@@ -37,6 +33,8 @@ import analysis_engine.run_algo \
     as run_algo
 import analysis_engine.show_dataset \
     as show_dataset
+import analysis_engine.restore_dataset \
+    as restore_dataset
 from celery import signals
 from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.work_tasks.get_celery_app import get_celery_app
@@ -44,6 +42,7 @@ from analysis_engine.api_requests import build_prepare_dataset_request
 from analysis_engine.consts import SA_MODE_PREPARE
 from analysis_engine.consts import SA_MODE_EXTRACT
 from analysis_engine.consts import SA_MODE_SHOW_DATASET
+from analysis_engine.consts import SA_MODE_RESTORE_REDIS_DATASET
 from analysis_engine.consts import LOG_CONFIG_PATH
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import TICKER_ID
@@ -90,6 +89,81 @@ log = build_colorized_logger(
     log_config_path=LOG_CONFIG_PATH)
 
 
+def restore_missing_dataset_values_from_algo_ready_file(
+        ticker,
+        path_to_file,
+        redis_address,
+        redis_password,
+        redis_db=REDIS_DB,
+        output_redis_db=None,
+        compress=False,
+        encoding='utf-8',
+        dataset_type=SA_DATASET_TYPE_ALGO_READY,
+        serialize_datasets=DEFAULT_SERIALIZED_DATASETS,
+        show_summary=True):
+    """restore_missing_dataset_values_from_algo_ready_file
+
+    restore missing dataset nodes in redis from an algorithm-ready
+    dataset file on disk - use this to restore redis from scratch
+
+    :param ticker: string ticker
+    :param path_to_file: string path to file on disk
+    :param redis_address: redis server endpoint adddress with
+        format ``host:port``
+    :param redis_password: optional - string password for redis
+    :param redis_db: redis db (default is ``REDIS_DB``)
+    :param output_redis_db: optional - integer for different
+        redis database (default is ``None``)
+    :param compress: contents in algorithm-ready file are
+        compressed (default is ``False``)
+    :param encoding: byte encoding of algorithm-ready file
+        (default is ``utf-8``)
+    :param dataset_type: optional - dataset type
+        (default is ``SA_DATASET_TYPE_ALGO_READY``)
+    :param serialize_datasets: optional - list of dataset names to
+        deserialize in the dataset
+    :param show_summary: optional - show a summary of the algorithm-ready
+        dataset using ``analysis_engine.show_dataset.show_dataset``
+        (default is ``True``)
+    """
+    if not os.path.exists(path_to_file):
+        log.error(
+            'missing file={} for restore'.format(
+                path_to_file))
+        return
+
+    if dataset_type == SA_DATASET_TYPE_ALGO_READY:
+        log.info(
+            'restore start - load dataset from file={}'.format(
+                path_to_file))
+    else:
+        log.error(
+            'restore dataset unsupported type={} for file={}'.format(
+                dataset_type,
+                path_to_file))
+        return
+
+    if not output_redis_db:
+        output_redis_db = redis_db
+
+    restore_dataset.restore_dataset(
+        show_summary=show_summary,
+        path_to_file=path_to_file,
+        compress=compress,
+        encoding=encoding,
+        dataset_type=dataset_type,
+        serialize_datasets=serialize_datasets,
+        redis_address=redis_address,
+        redis_password=redis_password,
+        redis_db=redis_db,
+        redis_output_db=output_redis_db,
+        verbose=False)
+    log.info(
+        'restore done - dataset in file={}'.format(
+            path_to_file))
+# end of restore_missing_dataset_values_from_algo_ready_file
+
+
 def examine_dataset_in_file(
         path_to_file,
         compress=False,
@@ -120,7 +194,7 @@ def examine_dataset_in_file(
                 path_to_file))
     else:
         log.error(
-            'supported dataset type={} for file={}'.format(
+            'show unsupported dataset type={} for file={}'.format(
                 dataset_type,
                 path_to_file))
         return
@@ -214,16 +288,22 @@ def run_sa_tool():
     parser.add_argument(
         '-e',
         help=(
-            'run in mode: file path to extract an '
+            'file path to extract an '
             'algorithm-ready datasets from redis'),
         required=False,
         dest='extract_to_file')
     parser.add_argument(
         '-l',
         help=(
-            'run in mode: show dataset in this file'),
+            'show dataset in this file'),
         required=False,
         dest='show_from_file')
+    parser.add_argument(
+        '-L',
+        help=(
+            'restore an algorithm-ready dataset file back into redis'),
+        required=False,
+        dest='restore_algo_file')
     parser.add_argument(
         '-f',
         help=(
@@ -420,6 +500,7 @@ def run_sa_tool():
 
     extract_to_file = None
     show_from_file = None
+    restore_algo_file = None
 
     if args.ticker:
         ticker = args.ticker.upper()
@@ -486,6 +567,9 @@ def run_sa_tool():
     if args.show_from_file:
         show_from_file = args.show_from_file
         mode = SA_MODE_SHOW_DATASET
+    if args.restore_algo_file:
+        restore_algo_file = args.restore_algo_file
+        mode = SA_MODE_RESTORE_REDIS_DATASET
 
     valid = False
     required_task = False
@@ -525,6 +609,22 @@ def run_sa_tool():
             'done showing {} dataset from file={}'.format(
                 ticker,
                 show_from_file))
+        sys.exit(0)
+    elif mode == SA_MODE_RESTORE_REDIS_DATASET:
+        restore_missing_dataset_values_from_algo_ready_file(
+            ticker=ticker,
+            path_to_file=restore_algo_file,
+            redis_address=redis_address,
+            redis_password=redis_password,
+            redis_db=redis_db,
+            output_redis_db=redis_db,
+            dataset_type=SA_DATASET_TYPE_ALGO_READY,
+            serialize_datasets=DEFAULT_SERIALIZED_DATASETS)
+        log.info(
+            'done restoring {} dataset from file={} into redis_db={}'.format(
+                ticker,
+                restore_algo_file,
+                redis_db))
         sys.exit(0)
     # end of handling mode-specific arg assignments
 

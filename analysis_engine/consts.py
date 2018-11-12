@@ -247,6 +247,7 @@ SA_MODE_ANALYZE = 101
 SA_MODE_PREDICT = 102
 SA_MODE_EXTRACT = 103
 SA_MODE_SHOW_DATASET = 104
+SA_MODE_RESTORE_REDIS_DATASET = 105
 
 SA_DATASET_TYPE_ALGO_READY = 200
 
@@ -466,15 +467,17 @@ DEFAULT_SERIALIZED_DATASETS = [
     'quote',
     'stats',
     'peers',
-    'iex_news',
+    'news1',
     'financials',
     'earnings',
     'dividends',
     'company',
-    'yahoo_news',
-    'options',
+    'news',
+    'calls',
+    'puts',
     'pricing'
 ]
+EMPTY_DF_STR = '[{}]'
 
 
 ########################################
@@ -592,6 +595,8 @@ def get_status(
         return 'SA_MODE_EXTRACT'
     elif status == SA_MODE_SHOW_DATASET:
         return 'SA_MODE_SHOW_DATASET'
+    elif status == SA_MODE_RESTORE_REDIS_DATASET:
+        return 'SA_MODE_RESTORE_REDIS_DATASET'
     elif status == PLOT_ACTION_SHOW:
         return 'PLOT_ACTION_SHOW'
     elif status == PLOT_ACTION_SAVE_TO_S3:

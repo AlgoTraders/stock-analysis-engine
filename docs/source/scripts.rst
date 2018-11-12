@@ -31,7 +31,7 @@ Stock Analysis Command Line Tool
 This tool is for preparing, analyzing and using datasets to run predictions using the tensorflow and keras.
 
 .. automodule:: analysis_engine.scripts.sa
-   :members: examine_dataset_in_file,extract_ticker_to_a_file_using_an_algo,run_sa_tool
+   :members: restore_missing_dataset_values_from_algo_ready_file,examine_dataset_in_file,extract_ticker_to_a_file_using_an_algo,run_sa_tool
 
 Set S3 Environment Variables
 ============================

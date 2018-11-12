@@ -75,6 +75,7 @@ Table of Contents
    algorithm_api
    show_dataset
    load_dataset
+   restore_dataset
    publish
    build_publish_request
    api_reference

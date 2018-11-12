@@ -11,7 +11,10 @@ datasets from the redis pipeline:
 
 - ``self.df_daily``
 - ``self.df_minute``
+- ``self.df_calls``
+- ``self.df_puts``
 - ``self.df_quote``
+- ``self.df_pricing``
 - ``self.df_stats``
 - ``self.df_peers``
 - ``self.df_iex_news``
@@ -20,8 +23,6 @@ datasets from the redis pipeline:
 - ``self.df_dividends``
 - ``self.df_company``
 - ``self.df_yahoo_news``
-- ``self.df_options``
-- ``self.df_pricing``
 
 **Recent Pricing Information**
 
@@ -71,6 +72,7 @@ from analysis_engine.consts import S3_SECRET_KEY
 from analysis_engine.consts import S3_REGION_NAME
 from analysis_engine.consts import S3_ADDRESS
 from analysis_engine.consts import S3_SECURE
+from analysis_engine.consts import EMPTY_DF_STR
 from analysis_engine.consts import ALGO_INPUT_DATASET_S3_BUCKET_NAME
 from analysis_engine.consts import ALGO_READY_DATASET_S3_BUCKET_NAME
 from analysis_engine.consts import ALGO_HISTORY_DATASET_S3_BUCKET_NAME
@@ -148,10 +150,19 @@ class BaseAlgo:
                                 'date': '2018-11-05 15:59:59'
                             }
                         ]),
+                        'calls': pd.DataFrame([]),
+                        'puts': pd.DataFrame([]),
                         'minute': pd.DataFrame([]),
+                        'pricing': pd.DataFrame([]),
+                        'quote': pd.DataFrame([]),
                         'news': pd.DataFrame([]),
-                        'options': pd.DataFrame([])
-                        # etc
+                        'news1': pd.DataFrame([]),
+                        'dividends': pd.DataFrame([]),
+                        'earnings': pd.DataFrame([]),
+                        'financials': pd.DataFrame([]),
+                        'stats': pd.DataFrame([]),
+                        'peers': pd.DataFrame([]),
+                        'company': pd.DataFrame([])
                     }
                 }
             ]
@@ -363,9 +374,10 @@ class BaseAlgo:
         self.df_company = pd.DataFrame([{}])
         self.df_iex_news = pd.DataFrame([{}])
         self.df_yahoo_news = pd.DataFrame([{}])
-        self.df_options = pd.DataFrame([{}])
+        self.df_calls = pd.DataFrame([{}])
+        self.df_puts = pd.DataFrame([{}])
         self.empty_pd = pd.DataFrame([{}])
-        self.empty_pd_str = '[{}]'
+        self.empty_pd_str = EMPTY_DF_STR
         self.df_pricing = {}
 
         self.note = None
@@ -705,7 +717,8 @@ class BaseAlgo:
                         'financials': pd.DataFrame([]),
                         'earnings': pd.DataFrame([]),
                         'dividends': pd.DataFrame([]),
-                        'options': pd.DataFrame([]),
+                        'calls': pd.DataFrame([]),
+                        'puts': pd.DataFrame([]),
                         'pricing': dictionary,
                         'news': pd.DataFrame([])
                     }
@@ -721,7 +734,8 @@ class BaseAlgo:
                     'data': {
                         'daily': pd.DataFrame,
                         'minute': pd.DataFrame,
-                        'options': pd.DataFrame,
+                        'calls': pd.DataFrame,
+                        'puts': pd.DataFrame,
                         'news': pd.DataFrame
                     }
                 }
@@ -1944,7 +1958,10 @@ class BaseAlgo:
 
         - ``self.df_daily``
         - ``self.df_minute``
+        - ``self.df_calls``
+        - ``self.df_puts``
         - ``self.df_quote``
+        - ``self.df_pricing``
         - ``self.df_stats``
         - ``self.df_peers``
         - ``self.df_iex_news``
@@ -1953,8 +1970,6 @@ class BaseAlgo:
         - ``self.df_dividends``
         - ``self.df_company``
         - ``self.df_yahoo_news``
-        - ``self.df_options``
-        - ``self.df_pricing``
 
         .. note:: If a key is not in the dataset, the
             algorithms's member variable will be an empty
@@ -2017,8 +2032,11 @@ class BaseAlgo:
         self.df_yahoo_news = self.ds_data.get(
             'news',
             self.empty_pd)
-        self.df_options = self.ds_data.get(
-            'options',
+        self.df_calls = self.ds_data.get(
+            'calls',
+            self.empty_pd)
+        self.df_puts = self.ds_data.get(
+            'puts',
             self.empty_pd)
         self.df_pricing = self.ds_data.get(
             'pricing',
@@ -2046,8 +2064,10 @@ class BaseAlgo:
             self.df_iex_news = self.empty_pd
         if not hasattr(self.df_yahoo_news, 'empty'):
             self.df_yahoo_news = self.empty_pd
-        if not hasattr(self.df_options, 'empty'):
-            self.df_options = self.empty_pd
+        if not hasattr(self.df_calls, 'empty'):
+            self.df_calls = self.empty_pd
+        if not hasattr(self.df_puts, 'empty'):
+            self.df_puts = self.empty_pd
         if not hasattr(self.df_pricing, 'empty'):
             self.df_pricing = self.empty_pd
 
@@ -2145,7 +2165,8 @@ class BaseAlgo:
                                 'financials': pd.DataFrame([]),
                                 'earnings': pd.DataFrame([]),
                                 'dividends': pd.DataFrame([]),
-                                'options': pd.DataFrame([]),
+                                'calls': pd.DataFrame([]),
+                                'puts': pd.DataFrame([]),
                                 'pricing': dictionary,
                                 'news': pd.DataFrame([])
                             }

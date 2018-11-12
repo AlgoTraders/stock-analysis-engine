@@ -74,15 +74,15 @@ def prepare_dict_for_algo(
                 'date': node['date'],
                 'data': {}
             }
-            for key in use_serialized_datasets:
-                new_node['data'][key] = empty_pd
             for ds_key in node['data']:
-                new_node['data'][ds_key] = empty_pd
-                if node['data'][ds_key]:
-                    new_node['data'][ds_key] = pd.read_json(
-                        node['data'][ds_key],
-                        orient='records')
-                    num_datasets += 1
+                if ds_key in use_serialized_datasets:
+                    new_node['data'][ds_key] = empty_pd
+                    if node['data'][ds_key]:
+                        new_node['data'][ds_key] = pd.read_json(
+                            node['data'][ds_key],
+                            orient='records')
+                        num_datasets += 1
+                # if supported dataset key
             # end for all datasets in this node
             use_data[ticker].append(new_node)
         # end for all datasets on this date to load

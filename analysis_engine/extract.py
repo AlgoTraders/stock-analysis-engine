@@ -392,7 +392,7 @@ def extract(
                         'unable to extract iex_financials={}'.format(ticker))
         if 'earnings' in iex_datasets or extract_iex:
             iex_earnings_status, iex_earnings_df = \
-                iex_extract_utils.extract_dividends_dataset(
+                iex_extract_utils.extract_earnings_dataset(
                     extract_req)
             if iex_earnings_status != SUCCESS:
                 if verbose:
@@ -408,7 +408,7 @@ def extract(
                         'unable to extract iex_dividends={}'.format(ticker))
         if 'company' in iex_datasets or extract_iex:
             iex_company_status, iex_company_df = \
-                iex_extract_utils.extract_dividends_dataset(
+                iex_extract_utils.extract_company_dataset(
                     extract_req)
             if iex_company_status != SUCCESS:
                 if verbose:
