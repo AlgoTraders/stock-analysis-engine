@@ -1566,7 +1566,7 @@ class TestBaseAlgo(BaseTestCase):
             compress=compress,
             redis_enabled=redis_enabled,
             redis_key=redis_key,
-            redis_db=0,
+            redis_db=1,
             s3_enabled=s3_enabled,
             s3_key=s3_key,
             s3_bucket=unittest_bucket,
