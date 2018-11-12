@@ -448,9 +448,14 @@ def run_algo(
                 base_key=date_key,
                 ds_id=label,
                 service_dict=common_vals)
+            node_date_key = date_key.replace(
+                '{}_'.format(ticker),
+                '')
             extract_requests.append({
+                'id': date_key,
                 'ticker': ticker,
                 'date_key': date_key,
+                'date': node_date_key,
                 'req': date_req})
     # end of for all ticker in use_tickers
 
@@ -468,14 +473,13 @@ def run_algo(
     cur_idx = 1
     for idx, extract_node in enumerate(extract_requests):
         extract_ticker = extract_node['ticker']
-        extract_date = extract_node['date_key']
+        extract_date = extract_node['date']
         extract_req = extract_node['req']
+        dataset_node_id = extract_node['id']
         if not first_extract_date:
             first_extract_date = extract_date
         last_extract_date = extract_date
-        dataset_id = '{}_{}'.format(
-            ticker,
-            extract_date)
+        dataset_id = dataset_node_id
         percent_label = (
             '{} ticker={} date={} {} {}/{}'.format(
                 label,

@@ -131,7 +131,8 @@ def load_dataset(
     supported_type = False
     if dataset_type == SA_DATASET_TYPE_ALGO_READY:
         supported_type = True
-        if path_to_file:
+        if (path_to_file and
+                not use_ds):
             if not os.path.exists(path_to_file):
                 log.error('missing file: {}'.format(path_to_file))
             use_ds = file_utils.load_algo_dataset_from_file(
@@ -139,7 +140,8 @@ def load_dataset(
                 compress=compress,
                 encoding=redis_encoding,
                 serialize_datasets=serialize_datasets)
-        if s3_key and not use_ds:
+        elif (s3_key and
+                not use_ds):
             use_ds = s3_utils.load_algo_dataset_from_s3(
                 s3_key=s3_key,
                 s3_address=s3_address,
@@ -151,7 +153,8 @@ def load_dataset(
                 compress=compress,
                 encoding=redis_encoding,
                 serialize_datasets=serialize_datasets)
-        if redis_key and not use_ds:
+        elif (redis_key and
+                not use_ds):
             use_ds = redis_utils.load_algo_dataset_from_s3(
                 redis_key=redis_key,
                 redis_address=redis_address,
