@@ -571,7 +571,12 @@ Validate the Daily Backup by Examining the Dataset File
 
     sa.py -t SPY -l ~/SPY-$(date +"%Y-%m-%d").json
 
-Publishing to Slack
+Restore Backup into Redis
+-------------------------
+
+::
+
+    sa.py -t SPY -L ~/SPY-$(date +"%Y-%m-%d").json
 
 Publishing to Slack
 ===================
@@ -1000,6 +1005,22 @@ Algorithm Test - Publish Algorithm-Ready Dataset to S3 and Load from S3
 
     python -m unittest tests.test_base_algo.TestBaseAlgo.test_integration_algo_publish_input_redis_and_load
 
+Algorithm Test - Extract Algorithm-Ready Dataset from Redis DB 0 and Load into Redis DB 1
+-----------------------------------------------------------------------------------------
+
+Copying datasets between redis databases is part of the integration tests. Run it with:
+
+::
+
+    python -m unittest tests.test_base_algo.TestBaseAlgo.test_integration_algo_restore_ready_back_to_redis
+
+Algorithm Test - Test the Docs Example
+--------------------------------------
+
+::
+
+    python -m unittest tests.test_base_algo.TestBaseAlgo.test_sample_algo_code_in_docstring
+
 Prepare a Dataset
 =================
 
@@ -1047,6 +1068,18 @@ Linting and Other Tools
     ::
 
         docker pull jayjohnson/stock-analysis-jupyter && docker pull jayjohnson/stock-analysis-engine
+
+#.  Back up Docker Redis Database
+
+    ::
+
+        /opt/sa/tools/backup-redis.sh
+
+    View local redis backups with:
+
+    ::
+
+        ls -hlrt /opt/sa/tests/datasets/redis/redis-0-backup-*.rdb
 
 Deploy Fork Feature Branch to Running Containers
 ================================================

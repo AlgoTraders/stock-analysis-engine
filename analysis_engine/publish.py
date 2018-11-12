@@ -1,5 +1,16 @@
 """
 Dataset Publishing API
+
+Debug with:
+
+::
+
+    # to show debug, trace logging please export ``SHARED_LOG_CFG``
+    # to a debug logger json file. To turn on debugging for this
+    # library, you can export this variable to the repo's
+    # included file with the command:
+    export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
+
 """
 
 import json
@@ -26,6 +37,7 @@ def publish(
         data,
         label=None,
         convert_to_json=False,
+        is_df=False,
         output_file=None,
         compress=False,
         redis_enabled=True,
@@ -48,6 +60,7 @@ def publish(
         slack_code_block=False,
         slack_full_width=False,
         verbose=False,
+        silent=False,
         **kwargs):
     """publish
 
@@ -62,11 +75,19 @@ def publish(
     :param convert_to_json: convert ``data`` to a
         json-serialized string. this function will throw if
         ``json.dumps(data)`` fails
+    :param is_df: convert ``pd.DataFrame`` using
+        ``pd.DataFrame.to_json()`` to a
+        json-serialized string. this function will throw if
+        ``to_json()`` fails
     :param label: log tracking label
     :param output_file: path to save the data
         to a file
     :param compress: optional - compress before publishing
+        (default is ``False``)
     :param verbose: optional - boolean to log output
+        (default is ``False``)
+    :param silent: optional - boolean no log output
+        (default is ``False``)
     :param kwargs: optional - future argument support
 
     **(Optional) Redis connectivity arguments**
@@ -121,17 +142,24 @@ def publish(
 
     status = NOT_RUN
     use_data = data
-    if not use_data:
-        if verbose:
-            log.info('missing data')
+    if not is_df and not use_data:
+        log.info('missing data')
         return INVALID
 
-    if convert_to_json:
+    if convert_to_json and not is_df:
         if verbose:
             log.debug('start convert to json')
         use_data = json.dumps(data)
         if verbose:
             log.debug('done convert to json')
+    if is_df:
+        if verbose:
+            log.debug('start df to_json')
+        use_data = data.to_json(
+            orient='records',
+            date_format='iso')
+        if verbose:
+            log.debug('done df to_json')
 
     if compress:
         if verbose:
@@ -146,7 +174,7 @@ def publish(
     num_mb = get_mb(num_bytes)
 
     if verbose:
-        log.info(
+        log.debug(
             'start - file={} s3_key={} redis_key={} slack={} '
             'compress={} size={}MB'.format(
                 output_file,
@@ -164,7 +192,7 @@ def publish(
                 s3_address)
 
         if verbose:
-            log.info(
+            log.debug(
                 's3 start - {} endpoint_url={} '
                 'region={}'.format(
                     label,
@@ -183,7 +211,7 @@ def publish(
 
         if s3.Bucket(s3_bucket) not in s3.buckets.all():
             if verbose:
-                log.info(
+                log.debug(
                     's3 creating bucket={} {}'.format(
                         s3_bucket,
                         label))
@@ -191,7 +219,7 @@ def publish(
                 Bucket=s3_bucket)
 
         if verbose:
-            log.info(
+            log.debug(
                 's3 upload start - bytes={} to {}:{} {}'.format(
                     num_mb,
                     s3_bucket,
@@ -204,7 +232,7 @@ def publish(
                 Body=use_data)
 
         if verbose:
-            log.info(
+            log.debug(
                 's3 upload done - bytes={} to {}:{} {}'.format(
                     num_mb,
                     s3_bucket,
@@ -217,7 +245,7 @@ def publish(
         redis_split = redis_address.split(':')
         redis_host = redis_split[0]
         redis_port = int(redis_split[1])
-        log.info(
+        log.debug(
             'redis={}:{}@{} connect '
             'key={} expire={}'.format(
                 label,
@@ -284,7 +312,7 @@ def publish(
     status = SUCCESS
 
     if verbose:
-        log.info(
+        log.debug(
             'end - {} file={} s3_key={} redis_key={} slack={} '
             'compress={} size={}MB'.format(
                 get_status(status=status),

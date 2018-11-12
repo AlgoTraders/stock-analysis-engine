@@ -11,16 +11,18 @@ Test file for classes and functions:
 """
 
 import os
-import mock
-import pandas as pd
 import uuid
 import glob
+import datetime
+import pandas as pd
+import mock
 import analysis_engine.show_dataset as show_dataset
 from analysis_engine.mocks.mock_boto3_s3 import \
     build_boto3_resource
 from analysis_engine.mocks.mock_redis import MockRedis
 from analysis_engine.mocks.base_test import BaseTestCase
 from analysis_engine.consts import COMMON_DATE_FORMAT
+from analysis_engine.consts import COMMON_TICK_DATE_FORMAT
 from analysis_engine.consts import TRADE_SHARES
 from analysis_engine.consts import ppj
 from analysis_engine.consts import get_status
@@ -655,10 +657,20 @@ class TestBaseAlgo(BaseTestCase):
                                 'date': '2018-11-05 15:59:59'
                             }
                         ]),
+                        'calls': pd.DataFrame([]),
+                        'puts': pd.DataFrame([]),
                         'minute': pd.DataFrame([]),
+                        'pricing': pd.DataFrame([]),
+                        'quote': pd.DataFrame([]),
                         'news': pd.DataFrame([]),
-                        'options': pd.DataFrame([])
-                        # etc
+                        'news1': pd.DataFrame([]),
+                        'dividends': pd.DataFrame([]),
+                        'earnings': pd.DataFrame([]),
+                        'financials': pd.DataFrame([]),
+                        'stats': pd.DataFrame([]),
+                        'peers': pd.DataFrame([]),
+                        'company': pd.DataFrame([])
+                        # DEFAULT_SERIALIZED_DATASETS
                     }
                 }
             ]
@@ -684,6 +696,8 @@ class TestBaseAlgo(BaseTestCase):
         self.assertEqual(
             get_status(results['history'][0]['algo_status']),
             'ALGO_NOT_PROFITABLE')
+        demo_algo.loaded_dataset = demo_algo.last_handle_data
+        self.validate_dataset_structure(cur_algo=demo_algo)
     # end of test_sample_algo_code_in_docstring
 
     def test_trade_history_algo_not_trade_profitable(self):
@@ -799,8 +813,10 @@ class TestBaseAlgo(BaseTestCase):
                 self.daily_results.append(dataset)
 
                 assert(hasattr(self.df_daily, 'index'))
-                assert(hasattr(self.df_daily, 'index'))
                 assert(hasattr(self.df_minute, 'index'))
+                assert(hasattr(self.df_puts, 'index'))
+                assert(hasattr(self.df_calls, 'index'))
+                assert(hasattr(self.df_pricing, 'index'))
                 assert(hasattr(self.df_quote, 'index'))
                 assert(hasattr(self.df_stats, 'index'))
                 assert(hasattr(self.df_peers, 'index'))
@@ -810,8 +826,6 @@ class TestBaseAlgo(BaseTestCase):
                 assert(hasattr(self.df_dividends, 'index'))
                 assert(hasattr(self.df_company, 'index'))
                 assert(hasattr(self.df_yahoo_news, 'index'))
-                assert(hasattr(self.df_options, 'index'))
-                assert(hasattr(self.df_pricing, 'index'))
 
                 self.num_daily_found += len(self.df_daily.index)
             # end of process
@@ -1494,5 +1508,108 @@ class TestBaseAlgo(BaseTestCase):
 
         self.validate_dataset_structure(cur_algo=redis_algo)
     # end of test_integration_algo_publish_input_redis_and_load
+
+    def test_integration_algo_restore_ready_back_to_redis(self):
+        """test_integration_algo_restore_ready_back_to_redis"""
+        if ev('INT_TESTS', '0') == '0':
+            return
+
+        test_name = (
+            'test_integration_algo_restore_ready_back_to_redis')
+        balance = self.balance
+        commission = 13.5
+        start_date = (
+            datetime.datetime.now() - datetime.timedelta(days=6))
+        algo = BaseAlgo(
+            ticker=self.ticker,
+            balance=balance,
+            commission=commission,
+            name=test_name)
+
+        algo_res = run_algo(
+            ticker=self.ticker,
+            algo=algo,
+            start_date=start_date.strftime(COMMON_TICK_DATE_FORMAT),
+            label=test_name,
+            raise_on_err=True)
+        self.assertTrue(
+            len(algo_res['rec']['history']) >= 3)
+        self.assertEqual(
+            algo.name,
+            test_name)
+        self.assertEqual(
+            algo.tickers,
+            [self.ticker])
+        unique_id = str(uuid.uuid4())
+        test_should_create_this_file = (
+            '/opt/sa/tests/datasets/algo/{}-{}.json'.format(
+                test_name,
+                unique_id))
+        redis_enabled = True
+        redis_key = '{}:{}'.format(
+            test_name,
+            unique_id)
+        s3_enabled = True
+        s3_key = '{}-{}.json'.format(
+            test_name,
+            unique_id)
+        compress = False
+        slack_enabled = True
+        slack_code_block = True
+        slack_full_width = False
+        verbose = True
+        unittest_bucket = 'unittest-algo'
+        publish_input_req = build_publish_request(
+            label=test_name,
+            convert_to_json=True,
+            output_file=test_should_create_this_file,
+            compress=compress,
+            redis_enabled=redis_enabled,
+            redis_key=redis_key,
+            redis_db=0,
+            s3_enabled=s3_enabled,
+            s3_key=s3_key,
+            s3_bucket=unittest_bucket,
+            slack_enabled=slack_enabled,
+            slack_code_block=slack_code_block,
+            slack_full_width=slack_full_width,
+            verbose=verbose)
+        load_config_req = build_publish_request(
+            label=test_name,
+            convert_to_json=True,
+            output_file=test_should_create_this_file,
+            compress=compress,
+            redis_enabled=redis_enabled,
+            redis_key=redis_key,
+            redis_db=1,  # publish to the redis database 1
+            s3_enabled=s3_enabled,
+            s3_key=s3_key,
+            s3_bucket=unittest_bucket,
+            slack_enabled=slack_enabled,
+            slack_code_block=slack_code_block,
+            slack_full_width=slack_full_width,
+            verbose=verbose)
+        publish_input_status, output_file = algo.publish_input_datasets(
+            **publish_input_req)
+        self.assertEqual(
+            get_status(status=publish_input_status),
+            'SUCCESS')
+        self.assertTrue(os.path.exists(test_should_create_this_file))
+        # now load it into an algo
+
+        print('')
+        print('---------------')
+        print('starting redis publish integration test')
+
+        load_config_req['redis_key'] = s3_key
+        redis_algo = BaseAlgo(
+            ticker=self.ticker,
+            balance=balance,
+            commission=commission,
+            name=test_name,
+            load_config=load_config_req)
+
+        self.validate_dataset_structure(cur_algo=redis_algo)
+    # end of test_integration_algo_restore_ready_back_to_redis
 
 # end of TestBaseAlgo
