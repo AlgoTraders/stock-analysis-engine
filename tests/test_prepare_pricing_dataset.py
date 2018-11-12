@@ -29,19 +29,9 @@ from analysis_engine.mocks.mock_boto3_s3 import \
 from analysis_engine.mocks.mock_redis import MockRedis
 from analysis_engine.mocks.mock_redis import MockRedisFailToConnect
 from analysis_engine.mocks.base_test import BaseTestCase
-from analysis_engine.consts import S3_ACCESS_KEY
-from analysis_engine.consts import S3_SECRET_KEY
-from analysis_engine.consts import S3_REGION_NAME
-from analysis_engine.consts import S3_ADDRESS
-from analysis_engine.consts import S3_SECURE
-from analysis_engine.consts import REDIS_ADDRESS
-from analysis_engine.consts import REDIS_PASSWORD
-from analysis_engine.consts import REDIS_DB
-from analysis_engine.consts import REDIS_EXPIRE
 from analysis_engine.consts import SUCCESS
 from analysis_engine.consts import ERR
 from analysis_engine.consts import PREPARE_DATA_MIN_SIZE
-from analysis_engine.consts import ev
 from analysis_engine.api_requests \
     import build_cache_ready_pricing_dataset
 from analysis_engine.work_tasks.prepare_pricing_dataset \
@@ -616,62 +606,5 @@ class TestPreparePricingDataset(BaseTestCase):
         self.assertTrue(
             res['rec']['prepared_data'] is not None)
     # end of test_prepare_pricing_data_success
-
-    """
-    Integration Tests
-
-    Please ensure redis and minio are running and run this:
-
-    ::
-
-        export INT_TESTS=1
-
-    """
-
-    def test_integration_prepare_pricing_dataset(self):
-        """test_integration_prepare_pricing_dataset"""
-        if ev('INT_TESTS', '0') == '0':
-            return
-
-        # store data
-        os.environ.pop('TEST_S3_CONTENTS', None)
-        value = self.get_pricing_test_data()
-        value_str = json.dumps(value)
-        os.environ['TEST_S3_CONTENTS'] = value_str
-
-        work = build_prepare_dataset_request()
-        work['s3_enabled'] = 1
-        work['redis_enabled'] = 1
-        work['s3_access_key'] = S3_ACCESS_KEY
-        work['s3_secret_key'] = S3_SECRET_KEY
-        work['s3_region_name'] = S3_REGION_NAME
-        work['s3_address'] = S3_ADDRESS
-        work['s3_secure'] = S3_SECURE
-        work['redis_address'] = REDIS_ADDRESS
-        work['redis_db'] = REDIS_DB
-        work['redis_password'] = REDIS_PASSWORD
-        work['redis_expire'] = REDIS_EXPIRE
-        work['s3_bucket'] = 'pricing'
-        work['s3_key'] = 'SPY_demo'
-        work['redis_key'] = 'integration-tests-prepare-pricing-dataset-v1'
-        res = run_prepare_pricing_dataset(
-            work)
-        self.assertEqual(
-            res['status'],
-            SUCCESS)
-        self.assertEqual(
-            res['err'],
-            None)
-        self.assertTrue(
-            res['rec'] is not None)
-        self.assertTrue(
-            res['rec']['initial_size'] > 1000)
-        self.assertTrue(
-            res['rec']['initial_data'] is not None)
-        self.assertTrue(
-            res['rec']['prepared_size'] > 1000)
-        self.assertTrue(
-            res['rec']['prepared_data'] is not None)
-    # end of test_integration_prepare_pricing_dataset
 
 # end of TestPreparePricingDataset

@@ -181,9 +181,9 @@ class BaseAlgo:
             input_config=None,
             history_config=None,
             report_config=None,
-            publish_to_slack=True,
-            publish_to_s3=None,
-            publish_to_redis=None,
+            publish_to_slack=False,
+            publish_to_s3=False,
+            publish_to_redis=False,
             publish_input=True,
             publish_history=True,
             publish_report=True,
@@ -250,20 +250,20 @@ class BaseAlgo:
             an algo ``result`` or ``performance``
             to s3, redis, a file or slack
         :param publish_to_slack: optional - boolean for
-            publishing to slack (coming soon)
+            publishing to slack (default is ``False``)
         :param publish_to_s3: optional - boolean for
-            publishing to s3 (coming soon)
+            publishing to s3 (default is ``False``)
         :param publish_to_redis: optional - boolean for
-            publishing to redis (coming soon)
+            publishing to redis (default is ``False``)
         :param publish_input: boolean - toggle publishing
             all input datasets to s3 and redis
-            (coming soon - default ``False``)
+            (default ``True``)
         :param publish_history: boolean - toggle publishing
             the history to s3 and redis
-            (coming soon - default ``False``)
+            (default ``True``)
         :param publish_report: boolean - toggle publishing
             any generated datasets to s3 and redis
-            (coming soon - default ``False``)
+            (default ``True``)
         :param raise_on_err: optional - boolean for
             unittests and developing algorithms with the
             ``analysis_engine.run_algo.run_algo`` helper.
@@ -819,8 +819,8 @@ class BaseAlgo:
         and trade performance analysis from:
 
         - Local file
-        - S3 - coming soon
-        - Redis - coming soon
+        - S3
+        - Redis
 
         :param path_to_file: optional - path to local file
         :param s3_key: optional - s3 key
@@ -836,7 +836,9 @@ class BaseAlgo:
             self.dsload_redis_key = redis_key
             self.dsload_redis_enabled = True
 
-        if self.dsload_s3_key and self.dsload_s3_enabled:
+        if (self.dsload_s3_key and
+                self.dsload_s3_enabled and
+                not self.loaded_dataset):
             self.debug_msg = (
                 'external load START - s3={}:{}/{}'.format(
                     self.dsload_s3_address,
@@ -868,7 +870,9 @@ class BaseAlgo:
                         self.dsload_s3_key))
                 log.error(self.debug_msg)
                 raise Exception(self.debug_msg)
-        elif self.dsload_redis_key and self.dsload_redis_enabled:
+        elif (self.dsload_redis_key and
+                self.dsload_redis_enabled and
+                not self.loaded_dataset):
             self.debug_msg = (
                 'external load START - redis={}:{}/{}'.format(
                     self.dsload_redis_address,
@@ -900,7 +904,8 @@ class BaseAlgo:
                         self.dsload_redis_key))
                 log.error(self.debug_msg)
                 raise Exception(self.debug_msg)
-        elif self.dsload_output_file:
+        elif (self.dsload_output_file and
+                not self.loaded_dataset):
             if os.path.exists(self.dsload_output_file):
                 self.debug_msg = (
                     'external load START - file={}'.format(
@@ -2186,9 +2191,10 @@ class BaseAlgo:
                     ticker,
                     track_label)
                 log.info(
-                    '{} handle - {} - ds={}'.format(
+                    '{} handle - {} - id={} ds={}'.format(
                         self.name,
                         algo_id,
+                        node['id'],
                         node['date']))
 
                 self.ticker = ticker

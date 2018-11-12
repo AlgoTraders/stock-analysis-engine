@@ -1,7 +1,5 @@
-Here is the base algorithm class for building your own algorithms.
-
-Base Algo
-=========
+Build Custom Algorithms Using the Base Algorithm Class
+======================================================
 
 .. automodule:: analysis_engine.algo
    :members: BaseAlgo

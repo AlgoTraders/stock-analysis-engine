@@ -157,7 +157,7 @@ def publish_ticker_aggregate_from_s3(
             'updated',
             None)
         enable_s3_upload = work_dict.get(
-            's3_enabled',
+            's3_upload_enabled',
             ENABLED_S3_UPLOAD)
         enable_redis_publish = work_dict.get(
             'redis_enabled',

@@ -771,13 +771,6 @@ Publish from S3 to Redis
 
     python -m unittest tests.test_publish_from_s3_to_redis.TestPublishFromS3ToRedis.test_integration_publish_from_s3_to_redis
 
-Prepare Dataset
----------------
-
-::
-
-    python -m unittest tests.test_prepare_pricing_dataset.TestPreparePricingDataset.test_integration_prepare_pricing_dataset
-
 IEX Test - Fetching All Datasets
 --------------------------------
 
