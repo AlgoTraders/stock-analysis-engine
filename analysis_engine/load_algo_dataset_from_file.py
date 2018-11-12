@@ -3,6 +3,7 @@ Helper for loading datasets from a file
 """
 
 import analysis_engine.prepare_dict_for_algo as prepare_utils
+from analysis_engine.consts import DEFAULT_SERIALIZED_DATASETS
 from spylunking.log.setup_logging import build_colorized_logger
 
 log = build_colorized_logger(
@@ -11,6 +12,7 @@ log = build_colorized_logger(
 
 def load_algo_dataset_from_file(
         path_to_file,
+        serialize_datasets=DEFAULT_SERIALIZED_DATASETS,
         compress=False,
         encoding='utf-8'):
     """load_algo_dataset_from_file
@@ -20,6 +22,8 @@ def load_algo_dataset_from_file(
 
     :param path_to_file: string - path to file holding an
         algorithm-ready dataset
+    :param serialize_datasets: optional - list of dataset names to
+        deserialize in the dataset
     :param compress: optional - boolean flag for decompressing
         the contents of the ``path_to_file`` if necessary
         (default is ``False`` and algorithms

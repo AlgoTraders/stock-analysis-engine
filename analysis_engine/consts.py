@@ -246,6 +246,9 @@ SA_MODE_PREPARE = 100
 SA_MODE_ANALYZE = 101
 SA_MODE_PREDICT = 102
 SA_MODE_EXTRACT = 103
+SA_MODE_SHOW_DATASET = 104
+
+SA_DATASET_TYPE_ALGO_READY = 200
 
 PLOT_ACTION_SHOW = 900
 PLOT_ACTION_SAVE_TO_S3 = 901
@@ -355,6 +358,9 @@ ALGO_RESULT_S3_BUCKET_NAME = ev(
 ALGO_INPUT_DATASET_S3_BUCKET_NAME = ev(
     'ALGO_INPUT_DATASET_S3_BUCKET_NAME',
     'algoinput')
+ALGO_READY_DATASET_S3_BUCKET_NAME = ev(
+    'ALGO_READY_DATASET_S3_BUCKET_NAME',
+    'algoinput')  # note this is the same as the input bucket
 ALGO_HISTORY_DATASET_S3_BUCKET_NAME = ev(
     'ALGO_HISTORY_DATASET_S3_BUCKET_NAME',
     'algohistory')
@@ -444,6 +450,9 @@ SLACK_FINVIZ_COLUMNS = [
 ]
 ALGO_INPUT_COMPRESS = (ev(
     'ALGO_INPUT_COMPRESS',
+    '0') == '1')
+ALGO_LOAD_COMPRESS = (ev(
+    'ALGO_LOAD_COMPRESS',
     '0') == '1')
 ALGO_HISTORY_COMPRESS = (ev(
     'ALGO_HISTORY_COMPRESS',
@@ -581,6 +590,8 @@ def get_status(
         return 'SA_MODE_PREDICT'
     elif status == SA_MODE_EXTRACT:
         return 'SA_MODE_EXTRACT'
+    elif status == SA_MODE_SHOW_DATASET:
+        return 'SA_MODE_SHOW_DATASET'
     elif status == PLOT_ACTION_SHOW:
         return 'PLOT_ACTION_SHOW'
     elif status == PLOT_ACTION_SAVE_TO_S3:
@@ -655,6 +666,8 @@ def get_status(
         return 'FILE_FAILED'
     elif status == SLACK_FAILED:
         return 'SLACK_FAILED'
+    elif SA_DATASET_TYPE_ALGO_READY == SA_DATASET_TYPE_ALGO_READY:
+        return 'SA_DATASET_TYPE_ALGO_READY'
     else:
         return 'unsupported status={}'.format(
             status)

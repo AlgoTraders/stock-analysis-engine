@@ -73,6 +73,8 @@ Table of Contents
    build_exit_put_spread_details
    build_option_spread_details
    algorithm_api
+   show_dataset
+   load_dataset
    publish
    build_publish_request
    api_reference

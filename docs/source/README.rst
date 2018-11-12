@@ -564,6 +564,15 @@ Create a Daily Backup in a File
 
     sa.py -t SPY -e ~/SPY-$(date +"%Y-%m-%d").json
 
+Validate the Daily Backup by Examining the Dataset File
+-------------------------------------------------------
+
+::
+
+    sa.py -t SPY -l ~/SPY-$(date +"%Y-%m-%d").json
+
+Publishing to Slack
+
 Publishing to Slack
 ===================
 
@@ -960,6 +969,8 @@ or with code:
     res = fv.fetch_tickers_from_screener(url=url)
     print(res)
 
+Algorithm Testing
+=================
 
 Algorithm Test - Input Dataset Publishing to Redis
 --------------------------------------------------
@@ -974,6 +985,27 @@ Algorithm Test - Input Dataset Publishing to File
 ::
 
     python -m unittest tests.test_base_algo.TestBaseAlgo.test_integration_algo_publish_input_dataset_to_file
+
+Algorithm Test - Load Dataset From a File
+-----------------------------------------
+
+::
+
+    python -m unittest tests.test_base_algo.TestBaseAlgo.test_integration_algo_load_from_file
+
+Algorithm Test - Publish Algorithm-Ready Dataset to S3 and Load from S3
+-----------------------------------------------------------------------
+
+::
+
+    python -m unittest tests.test_base_algo.TestBaseAlgo.test_integration_algo_publish_input_s3_and_load
+
+Algorithm Test - Publish Algorithm-Ready Dataset to S3 and Load from S3
+-----------------------------------------------------------------------
+
+::
+
+    python -m unittest tests.test_base_algo.TestBaseAlgo.test_integration_algo_publish_input_redis_and_load
 
 Prepare a Dataset
 =================

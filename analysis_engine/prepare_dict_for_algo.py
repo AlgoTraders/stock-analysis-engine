@@ -77,9 +77,9 @@ def prepare_dict_for_algo(
             for key in use_serialized_datasets:
                 new_node['data'][key] = empty_pd
             for ds_key in node['data']:
-                new_node[ds_key] = empty_pd
+                new_node['data'][ds_key] = empty_pd
                 if node['data'][ds_key]:
-                    new_node[ds_key] = pd.read_json(
+                    new_node['data'][ds_key] = pd.read_json(
                         node['data'][ds_key],
                         orient='records')
                     num_datasets += 1
