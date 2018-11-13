@@ -57,6 +57,7 @@ from analysis_engine.consts import SUCCESS
 from analysis_engine.consts import NOT_RUN
 from analysis_engine.consts import ERR
 from analysis_engine.consts import TICKER
+from analysis_engine.consts import EMPTY_DF_STR
 from analysis_engine.consts import get_status
 from analysis_engine.consts import is_celery_disabled
 from analysis_engine.consts import ppj
@@ -123,6 +124,12 @@ def handle_pricing_update_task(
         pricing_data = work_dict['pricing']
         news_data = work_dict['news']
         options_data = work_dict['options']
+        calls_data = options_data.get(
+            'calls',
+            EMPTY_DF_STR)
+        puts_data = options_data.get(
+            'puts',
+            EMPTY_DF_STR)
         updated = work_dict['updated']
         label = work_dict.get(
             'label',
@@ -150,6 +157,18 @@ def handle_pricing_update_task(
                 ticker,
                 ticker_id,
                 cur_date_str))
+        calls_s3_key = work_dict.get(
+            'calls_s3_key',
+            'calls_ticker_{}_id_{}_date_{}'.format(
+                ticker,
+                ticker_id,
+                cur_date_str))
+        puts_s3_key = work_dict.get(
+            'puts_s3_key',
+            'puts_ticker_{}_id_{}_date_{}'.format(
+                ticker,
+                ticker_id,
+                cur_date_str))
 
         pricing_s3_bucket = work_dict.get(
             'pricing_s3_bucket',
@@ -173,6 +192,14 @@ def handle_pricing_update_task(
             'options_redis_key',
             'options_{}'.format(
                 ticker))
+        calls_by_ticker_redis_key = work_dict.get(
+            'calls_redis_key',
+            'calls_{}'.format(
+                ticker))
+        puts_by_ticker_redis_key = work_dict.get(
+            'puts_redis_key',
+            'puts_{}'.format(
+                ticker))
 
         pricing_size = len(str(
             pricing_data))
@@ -180,6 +207,10 @@ def handle_pricing_update_task(
             news_data))
         options_size = len(str(
             options_data))
+        calls_size = len(str(
+            calls_data))
+        puts_size = len(str(
+            puts_data))
 
         payloads_to_publish = [
             {
@@ -201,6 +232,28 @@ def handle_pricing_update_task(
                 'data': options_data,
                 'redis_key': options_by_ticker_redis_key,
                 'size': options_size,
+                'updated': updated,
+                'label': label
+            },
+            {
+                'ticker': ticker,
+                'ticker_id': ticker_id,
+                's3_bucket': options_s3_bucket,
+                's3_key': calls_s3_key,
+                'data': calls_data,
+                'redis_key': calls_by_ticker_redis_key,
+                'size': calls_size,
+                'updated': updated,
+                'label': label
+            },
+            {
+                'ticker': ticker,
+                'ticker_id': ticker_id,
+                's3_bucket': options_s3_bucket,
+                's3_key': puts_s3_key,
+                'data': puts_data,
+                'redis_key': puts_by_ticker_redis_key,
+                'size': puts_size,
                 'updated': updated,
                 'label': label
             },
