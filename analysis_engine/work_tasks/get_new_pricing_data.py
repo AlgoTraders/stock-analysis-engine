@@ -89,6 +89,7 @@ from analysis_engine.consts import ERR
 from analysis_engine.consts import NOT_SET
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import TICKER_ID
+from analysis_engine.consts import EMPTY_DF_STR
 from analysis_engine.consts import ENABLED_S3_UPLOAD
 from analysis_engine.consts import S3_ACCESS_KEY
 from analysis_engine.consts import S3_SECRET_KEY
@@ -151,6 +152,8 @@ def get_new_pricing_data(
     rec = {
         'pricing': None,
         'options': None,
+        'calls': None,
+        'puts': None,
         'news': None,
         'daily': None,
         'minute': None,
@@ -259,6 +262,8 @@ def get_new_pricing_data(
             'ticker': ticker,
             'pricing': None,
             'options': None,
+            'calls': None,
+            'puts': None,
             'news': None,
             'exp_date': None,
             'publish_pricing_update': None,
@@ -285,6 +290,8 @@ def get_new_pricing_data(
                 rec['pricing'] = yahoo_rec.get('pricing', '{}')
                 rec['news'] = yahoo_rec.get('news', '{}')
                 rec['options'] = yahoo_rec.get('options', '{}')
+                rec['calls'] = rec['options'].get('calls', EMPTY_DF_STR)
+                rec['puts'] = rec['options'].get('puts', EMPTY_DF_STR)
             else:
                 log.error(
                     '{} failed YAHOO ticker={} '

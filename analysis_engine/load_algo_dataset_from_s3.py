@@ -1,5 +1,15 @@
 """
 Helper for loading datasets from s3
+
+**Supported environment variables**
+
+::
+
+    # to show debug, trace logging please export ``SHARED_LOG_CFG``
+    # to a debug logger json file. To turn on debugging for this
+    # library, you can export this variable to the repo's
+    # included file with the command:
+    export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
 """
 
 import boto3

@@ -1,5 +1,5 @@
 """
-Resore an algorithm dataset from file, s3 or redis to redis
+Restore an algorithm dataset from file, s3 or redis to redis
 for ensuring all datasets are ready for Algorithmic backtesting
 
 Supported Datasets:

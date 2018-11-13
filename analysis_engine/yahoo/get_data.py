@@ -17,6 +17,7 @@ from analysis_engine.consts import NOT_RUN
 from analysis_engine.consts import ERR
 from analysis_engine.consts import NOT_SET
 from analysis_engine.consts import COMMON_TICK_DATE_FORMAT
+from analysis_engine.consts import EMPTY_DF_STR
 from analysis_engine.consts import get_status
 from analysis_engine.consts import ppj
 from analysis_engine.utils import get_last_close_str
@@ -53,6 +54,8 @@ def get_data_from_yahoo(
     rec = {
         'pricing': None,
         'options': None,
+        'calls': None,
+        'puts': None,
         'news': None,
         'exp_date': None,
         'publish_pricing_update': None,
@@ -313,6 +316,12 @@ def get_data_from_yahoo(
                     'num_calls': num_option_calls,
                     'num_puts': num_option_puts
                 }
+                rec['calls'] = rec['options'].get(
+                    'calls',
+                    EMPTY_DF_STR)
+                rec['puts'] = rec['options'].get(
+                    'puts',
+                    EMPTY_DF_STR)
             except Exception as f:
                 rec['options'] = '{}'
                 log.info(
@@ -353,6 +362,8 @@ def get_data_from_yahoo(
         fields_to_upload = [
             'pricing',
             'options',
+            'calls',
+            'puts',
             'news'
         ]
 

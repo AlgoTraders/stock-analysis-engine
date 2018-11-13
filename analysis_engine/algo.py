@@ -47,6 +47,16 @@ datasets from the redis pipeline:
     and cached the dataset in redis using a tool like
     ``redis-cli`` and a query of ``keys *`` or
     ``keys <TICKER>_*`` on large deployments.
+
+**Supported environment variables**
+
+::
+
+    # to show debug, trace logging please export ``SHARED_LOG_CFG``
+    # to a debug logger json file. To turn on debugging for this
+    # library, you can export this variable to the repo's
+    # included file with the command:
+    export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
 """
 
 import os

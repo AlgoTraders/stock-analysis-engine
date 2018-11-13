@@ -1,5 +1,26 @@
 """
 Run an Algo
+
+**Supported environment variables**
+
+::
+
+    export REDIS_ADDRESS="localhost:6379"
+    export REDIS_DB="0"
+    export S3_ADDRESS="localhost:9000"
+    export S3_BUCKET="dev"
+    export AWS_ACCESS_KEY_ID="trexaccesskey"
+    export AWS_SECRET_ACCESS_KEY="trex123321"
+    export AWS_DEFAULT_REGION="us-east-1"
+    export S3_SECURE="0"
+    export WORKER_BROKER_URL="redis://0.0.0.0:6379/13"
+    export WORKER_BACKEND_URL="redis://0.0.0.0:6379/14"
+
+    # to show debug, trace logging please export ``SHARED_LOG_CFG``
+    # to a debug logger json file. To turn on debugging for this
+    # library, you can export this variable to the repo's
+    # included file with the command:
+    export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
 """
 
 import os
@@ -71,12 +92,13 @@ def run_algo(
         1) Extract redis keys between dates
         2) Compile a data pipeline dictionary (call it ``data``)
         3) Call algorithm's ``myalgo.handle_data(data=data)``
-            a) If no ``algo`` is set, the
-               ``analysis_engine.algo.BaseAlgo`` algorithm
-               is used.
+
+    .. note:: If no ``algo`` is set, the
+        ``analysis_engine.algo.BaseAlgo`` algorithm
+        is used.
 
     .. note:: Please ensure Redis and Minio are running
-              before trying to extract tickers
+        before trying to extract tickers
 
     **Stock tickers to extract**
 
@@ -171,21 +193,6 @@ def run_algo(
         ``analysis_engine.run_algo.run_algo`` helper.
         When set to ``True`` exceptions will
         are raised to the calling functions
-
-    **Supported environment variables**
-
-    ::
-
-        export REDIS_ADDRESS="localhost:6379"
-        export REDIS_DB="0"
-        export S3_ADDRESS="localhost:9000"
-        export S3_BUCKET="dev"
-        export AWS_ACCESS_KEY_ID="trexaccesskey"
-        export AWS_SECRET_ACCESS_KEY="trex123321"
-        export AWS_DEFAULT_REGION="us-east-1"
-        export S3_SECURE="0"
-        export WORKER_BROKER_URL="redis://0.0.0.0:6379/13"
-        export WORKER_BACKEND_URL="redis://0.0.0.0:6379/14"
     """
 
     # dictionary structure with a list sorted on: ascending dates
