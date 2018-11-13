@@ -6,7 +6,7 @@
 Stock Analysis Engine
 =====================
 
-Analyze information about publicly traded companies from `Yahoo <https://finance.yahoo.com/>`__, `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__ and `FinViz <https://finviz.com>`__ (datafeeds supported: news, screeners, quotes, dividends, daily, intraday, statistics, financials, earnings, options, and more). Once collected the data is archived in s3 (using `minio <https://minio.io>`__) and automatically cached in redis. Deploys with `Kubernetes <https://github.com/AlgoTraders/stock-analysis-engine#running-on-kubernetes>`__ or docker compose with `support for publishing alerts to Slack <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro-Publishing-to-Slack.ipynb>`__.
+Analyze and run algorithms on publicly traded companies from `Yahoo <https://finance.yahoo.com/>`__, `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__ and `FinViz <https://finviz.com>`__ (datafeeds supported: news, screeners, quotes, dividends, daily, intraday, statistics, financials, earnings, options, and more). Once collected the data is archived in s3 (using `minio <https://minio.io>`__) and automatically cached in redis. Deploys with `Kubernetes <https://github.com/AlgoTraders/stock-analysis-engine#running-on-kubernetes>`__ or docker compose with `support for publishing alerts to Slack <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro-Publishing-to-Slack.ipynb>`__.
 
 .. image:: https://i.imgur.com/pH368gy.png
 
@@ -17,15 +17,15 @@ Building Your Own Algorithms
 
 With the stack running locally on your environment, you can fetch data on an intraday basis or have an `Algorithm-ready dataset already in redis <https://github.com/AlgoTraders/stock-analysis-engine#extract-algorithm-ready-datasets>`__, then you can start you run your own algorithms by building a derived class from the `analysis_engine.algo.BaseAlgo base class <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/algo.py>`__.
 
-Here is a `detailed example of building an algorithm that can processes live intraday, minutely datasets <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/mocks/example_algo_minute.py>`__ from `real-time pricing data from IEX <https://iextrading.com/developer>`__.
+Here is a `detailed example of building an algorithm that processes live intraday, minutely datasets <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/mocks/example_algo_minute.py>`__ with `real-time pricing data from IEX <https://iextrading.com/developer>`__.
 
-#.  Start Stack with the `integration.yml docker compose file (minio, redis, engine worker, jupyter) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/integration.yml>`__
+#.  Start the stack with the `integration.yml docker compose file (minio, redis, engine worker, jupyter) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/integration.yml>`__
 
     ::
 
         ./compose/start.sh -a
 
-#.  Start Dataset Collection Job with the `automation-dataset-collection.yml docker compose file (same image as engine workers) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/automation-dataset-collection.yml>`__:
+#.  Start the dataset collection job with the `automation-dataset-collection.yml docker compose file <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/automation-dataset-collection.yml>`__:
 
     ::
 
@@ -39,9 +39,9 @@ Here is a `detailed example of building an algorithm that can processes live int
 
 #.  Run the Intraday Minute Algorithm
 
-    To run the sample intraday algorithm against your live pricing datasets from the engine use:
-
     .. note:: Make sure to run through the `Getting Started before continuing <https://github.com/AlgoTraders/stock-analysis-engine#getting-started>`_.
+
+    To run the sample intraday algorithm against your live pricing datasets from the engine use:
 
     ::
 
@@ -56,7 +56,7 @@ Here is a `detailed example of building an algorithm that can processes live int
 Coming Soon
 -----------
 
-- Run an algorithm with only a algorithm-ready file so redis is not required to develop algorithms
+- Run an algorithm with only a local algorithm-ready file so redis is not required to develop algorithms
 - Need to figure out how to use private algorithm modules inside the container without a container rebuild which might end up being a tool like the `deploy from private fork support <https://github.com/AlgoTraders/stock-analysis-engine#deploy-fork-feature-branch-to-running-containers>`__
 
 Extract Algorithm-Ready Datasets
@@ -116,7 +116,6 @@ Once collected and cached, you can extract datasets:
         print('dataset key: {}\nvalue {}\n'.format(k, d['SPY'][k]))
 
 Please refer to the `Stock Analysis Intro Extracting Datasets Jupyter Notebook <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro-Extracting-Datasets.ipynb>`__ for the latest usage examples.
-
 
 .. list-table::
    :header-rows: 1
