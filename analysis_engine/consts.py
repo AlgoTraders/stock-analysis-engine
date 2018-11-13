@@ -43,13 +43,13 @@ Celery Environment Variables
     TRANSPORT_OPTIONS = {}
     WORKER_BROKER_URL = ev(
         'WORKER_BROKER_URL',
-        'redis://localhost:6379/13').strip()
+        'redis://localhost:6379/13')
     WORKER_BACKEND_URL = ev(
         'WORKER_BACKEND_URL',
-        'redis://localhost:6379/14').strip()
+        'redis://localhost:6379/14')
     WORKER_CELERY_CONFIG_MODULE = ev(
         'WORKER_CELERY_CONFIG_MODULE',
-        'analysis_engine.work_tasks.celery_config').strip()
+        'analysis_engine.work_tasks.celery_config')
     WORKER_TASKS = ev(
         'WORKER_TASKS',
         ('analysis_engine.work_tasks.get_new_pricing_data,'
@@ -150,6 +150,12 @@ Supported S3 Environment Variables
     SCREENER_S3_BUCKET_NAME = ev(
         'SCREENER_S3_BUCKET_NAME',
         'screener-data')
+    PRICING_S3_BUCKET_NAME = ev(
+        'PRICING_S3_BUCKET_NAME',
+        'pricing')
+    OPTIONS_S3_BUCKET_NAME = ev(
+        'OPTIONS_S3_BUCKET_NAME',
+        'options')
 
 Supported Redis Environment Variables
 -------------------------------------
@@ -274,13 +280,13 @@ SSL_OPTIONS = {}
 TRANSPORT_OPTIONS = {}
 WORKER_BROKER_URL = ev(
     'WORKER_BROKER_URL',
-    'redis://localhost:6379/13').strip()
+    'redis://localhost:6379/13')
 WORKER_BACKEND_URL = ev(
     'WORKER_BACKEND_URL',
-    'redis://localhost:6379/14').strip()
+    'redis://localhost:6379/14')
 WORKER_CELERY_CONFIG_MODULE = ev(
     'WORKER_CELERY_CONFIG_MODULE',
-    'analysis_engine.work_tasks.celery_config').strip()
+    'analysis_engine.work_tasks.celery_config')
 WORKER_TASKS = ev(
     'WORKER_TASKS',
     ('analysis_engine.work_tasks.get_new_pricing_data,'
@@ -372,6 +378,12 @@ ALGO_REPORT_DATASET_S3_BUCKET_NAME = ev(
 SCREENER_S3_BUCKET_NAME = ev(
     'SCREENER_S3_BUCKET_NAME',
     'screener-data')
+PRICING_S3_BUCKET_NAME = ev(
+    'PRICING_S3_BUCKET_NAME',
+    'pricing')
+OPTIONS_S3_BUCKET_NAME = ev(
+    'OPTIONS_S3_BUCKET_NAME',
+    'options')
 PREPARE_DATA_MIN_SIZE = 11
 PLOT_COLORS = {
     'red': '#E74C3C',

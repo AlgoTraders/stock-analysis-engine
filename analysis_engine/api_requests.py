@@ -30,6 +30,8 @@ from analysis_engine.consts import COMPANY_S3_BUCKET_NAME
 from analysis_engine.consts import PREPARE_S3_BUCKET_NAME
 from analysis_engine.consts import ANALYZE_S3_BUCKET_NAME
 from analysis_engine.consts import SCREENER_S3_BUCKET_NAME
+from analysis_engine.consts import PRICING_S3_BUCKET_NAME
+from analysis_engine.consts import OPTIONS_S3_BUCKET_NAME
 from analysis_engine.consts import S3_BUCKET
 from analysis_engine.consts import S3_COMPILED_BUCKET
 from analysis_engine.consts import SERVICE_VALS
@@ -98,19 +100,45 @@ def get_ds_dict(
     date_str = utc_date_str(fmt=COMMON_DATE_FORMAT)
     now_str = utc_now_str(fmt=COMMON_TICK_DATE_FORMAT)
 
-    daily_redis_key = '{}_daily'.format(use_base_key)
-    minute_redis_key = '{}_minute'.format(use_base_key)
-    quote_redis_key = '{}_quote'.format(use_base_key)
-    stats_redis_key = '{}_stats'.format(use_base_key)
-    peers_redis_key = '{}_peers'.format(use_base_key)
-    news_iex_redis_key = '{}_news1'.format(use_base_key)
-    financials_redis_key = '{}_financials'.format(use_base_key)
-    earnings_redis_key = '{}_earnings'.format(use_base_key)
-    dividends_redis_key = '{}_dividends'.format(use_base_key)
-    company_redis_key = '{}_company'.format(use_base_key)
-    options_yahoo_redis_key = '{}_options'.format(use_base_key)
-    pricing_yahoo_redis_key = '{}_pricing'.format(use_base_key)
-    news_yahoo_redis_key = '{}_news'.format(use_base_key)
+    daily_redis_key = '{}_{}'.format(
+        use_base_key,
+        DAILY_S3_BUCKET_NAME)
+    minute_redis_key = '{}_{}'.format(
+        use_base_key,
+        MINUTE_S3_BUCKET_NAME)
+    quote_redis_key = '{}_{}'.format(
+        use_base_key,
+        QUOTE_S3_BUCKET_NAME)
+    stats_redis_key = '{}_{}'.format(
+        use_base_key,
+        STATS_S3_BUCKET_NAME)
+    peers_redis_key = '{}_{}'.format(
+        use_base_key,
+        PEERS_S3_BUCKET_NAME)
+    news_iex_redis_key = '{}_{}1'.format(
+        use_base_key,
+        NEWS_S3_BUCKET_NAME)
+    financials_redis_key = '{}_{}'.format(
+        use_base_key,
+        FINANCIALS_S3_BUCKET_NAME)
+    earnings_redis_key = '{}_{}'.format(
+        use_base_key,
+        EARNINGS_S3_BUCKET_NAME)
+    dividends_redis_key = '{}_{}'.format(
+        use_base_key,
+        DIVIDENDS_S3_BUCKET_NAME)
+    company_redis_key = '{}_{}'.format(
+        use_base_key,
+        COMPANY_S3_BUCKET_NAME)
+    options_yahoo_redis_key = '{}_{}'.format(
+        use_base_key,
+        OPTIONS_S3_BUCKET_NAME)
+    pricing_yahoo_redis_key = '{}_{}'.format(
+        use_base_key,
+        PRICING_S3_BUCKET_NAME)
+    news_yahoo_redis_key = '{}_{}'.format(
+        use_base_key,
+        NEWS_S3_BUCKET_NAME)
 
     ds_cache_dict = {
         'daily': daily_redis_key,
