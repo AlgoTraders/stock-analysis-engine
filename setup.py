@@ -63,13 +63,18 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.2.1',
+    version='1.2.2',
     description=(
         'Stock Analysis Engine - '
-        'Use this to get pricing data for tickers '
-        '(news, quotes and options right now) and '
+        'Run your own algorithms with live '
+        'pricing data for publicly traded companies '
+        '(news, quotes, pricing, calls, puts, '
+        'options, dividends, earnings, '
+        'financials, stats, peers, and company '
+        'for right now) and '
         'archive it in s3 (using minio) and cache '
-        'it in redis. Analysis tasks coming soon!'),
+        'it in redis for backtesting and '
+        'algorithm trading performance tuning.'),
     long_description=long_description,
     author='Jay Johnson',
     author_email='jay.p.h.johnson@gmail.com',
