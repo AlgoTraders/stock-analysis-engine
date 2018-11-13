@@ -5,6 +5,7 @@ Algorithm API Reference
    :maxdepth: 2
    :caption: Available algorithm modules, functions and objects
 
+   example_algo_minute
    example_algos
    run_algo
    build_algo_request

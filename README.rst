@@ -12,9 +12,9 @@ Building Your Own Algorithms
 
 With the stack running locally on your environment, you can fetch data on an intraday basis or have an `Algorithm-ready dataset already in redis <https://github.com/AlgoTraders/stock-analysis-engine#extract-algorithm-ready-datasets>`__, then you can start you run your own algorithms by building a derived class from the `analysis_engine.algo.BaseAlgo base class <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/algo.py>`__.
 
-Here is a `detailed example of building an algorithm that can processes live intraday, minutely datasets <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/mocks/example_algo_minute.py>` from `real-time pricing data from IEX <https://iextrading.com/developer>`__.
+Here is a `detailed example of building an algorithm that can processes live intraday, minutely datasets <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/mocks/example_algo_minute.py>`__ from `real-time pricing data from IEX <https://iextrading.com/developer>`__.
 
-#.  Start Stack with the `integration.yml docker compose file (minio, redis, engine worker, jupyter) <https://github.com/AlgoTraders/stock-analysis-engine#deploy-fork-feature-branch-to-running-containers>`__
+#.  Start Stack with the `integration.yml docker compose file (minio, redis, engine worker, jupyter) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/integration.yml>`__
 
     ::
 
