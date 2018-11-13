@@ -2,8 +2,8 @@
 This is a wrapper for running your own custom algorithms
 
 .. note:: Please refer to the `sa.py <https://github.com/Algo
-Traders/stock-analysis-engine/blob/master/analysi
-s_engine/scripts/sa.py>`__ for the lastest usage examples.
+    Traders/stock-analysis-engine/blob/master/analysi
+    s_engine/scripts/sa.py>`__ for the lastest usage examples.
 
 Example with the command line tool:
 

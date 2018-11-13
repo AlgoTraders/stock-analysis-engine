@@ -12,6 +12,85 @@ Analyze information about publicly traded companies from `Yahoo <https://finance
 
 The engine provides an automated, horizontally scalable stock data collection and archive pipeline with a simple extraction interface above a redis datastore.
 
+Building Your Own Algorithms
+============================
+
+With the stack running locally on your environment, you can fetch data on an intraday basis or have an `Algorithm-ready dataset already in redis <https://github.com/AlgoTraders/stock-analysis-engine#extract-algorithm-ready-datasets>`__, then you can start you run your own algorithms by building a derived class from the `analysis_engine.algo.BaseAlgo base class <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/algo.py>`__.
+
+Here is a `detailed example of building an algorithm that can processes live intraday, minutely datasets <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/mocks/example_algo_minute.py>`__ from `real-time pricing data from IEX <https://iextrading.com/developer>`__.
+
+#.  Start Stack with the `integration.yml docker compose file (minio, redis, engine worker, jupyter) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/integration.yml>`__
+
+    ::
+
+        ./compose/start.sh -a
+
+#.  Start Dataset Collection Job with the `automation-dataset-collection.yml docker compose file (same image as engine workers) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/automation-dataset-collection.yml>`__:
+
+    ::
+
+        ./compose/start.sh -c
+
+    Wait for pricing engine logs to stop with ``ctrl+c``
+
+    ::
+
+        logs-workers.sh
+
+#.  Run the Intraday Minute Algorithm
+
+    To run the sample intraday algorithm against your live pricing datasets from the engine use:
+
+    .. note:: Make sure to run through the `Getting Started before continuing <https://github.com/AlgoTraders/stock-analysis-engine#getting-started>`_.
+
+    ::
+
+        sa.py -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
+
+    And to debug the algorithm's trading performance history add the ``-d`` debug flag:
+
+    ::
+
+        sa.py -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py -d
+
+Coming Soon
+-----------
+
+- Run an algorithm with only a algorithm-ready file so redis is not required to develop algorithms
+- Need to figure out how to use private algorithm modules inside the container without a container rebuild which might end up being a tool like the `deploy from private fork support <https://github.com/AlgoTraders/stock-analysis-engine#deploy-fork-feature-branch-to-running-containers>`__
+
+Extract Algorithm-Ready Datasets
+================================
+
+With cached data in redis, you can use the algorithm api to extract algorithm-ready datasets and save them to a local file on disk for offline historical backtest analysis. This also creates a local archive backup with everything in redis (in case something crashes).
+
+Extract an algorithm-ready dataset from Redis with:
+
+::
+
+    sa.py -t SPY -e ~/SPY-latest.json
+
+Create a Daily Backup in a File
+-------------------------------
+
+::
+
+    sa.py -t SPY -e ~/SPY-$(date +"%Y-%m-%d").json
+
+Validate the Daily Backup by Examining the Dataset File
+-------------------------------------------------------
+
+::
+
+    sa.py -t SPY -l ~/SPY-$(date +"%Y-%m-%d").json
+
+Restore Backup into Redis
+-------------------------
+
+::
+
+    sa.py -t SPY -L ~/SPY-$(date +"%Y-%m-%d").json
+
 Fetch
 -----
 
@@ -20,9 +99,9 @@ With redis and minio running (``./compose/start.sh``), you can fetch, cache, arc
 .. code-block:: python
 
     from analysis_engine.fetch import fetch
-    d = fetch(ticker='NFLX')
-    for k in d['NFLX']:
-        print('dataset key: {}\nvalue {}\n'.format(k, d['NFLX'][k]))
+    d = fetch(ticker='SPY')
+    for k in d['SPY']:
+        print('dataset key: {}\nvalue {}\n'.format(k, d['SPY'][k]))
 
 Extract
 -------
@@ -32,11 +111,12 @@ Once collected and cached, you can extract datasets:
 .. code-block:: python
 
     from analysis_engine.extract import extract
-    d = extract(ticker='NFLX')
-    for k in d['NFLX']:
-        print('dataset key: {}\nvalue {}\n'.format(k, d['NFLX'][k]))
+    d = extract(ticker='SPY')
+    for k in d['SPY']:
+        print('dataset key: {}\nvalue {}\n'.format(k, d['SPY'][k]))
 
 Please refer to the `Stock Analysis Intro Extracting Datasets Jupyter Notebook <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro-Extracting-Datasets.ipynb>`__ for the latest usage examples.
+
 
 .. list-table::
    :header-rows: 1
@@ -59,9 +139,9 @@ Table of Contents
 
    README
    scripts
-   extract
-   fetch
+   example_algo_minute
    example_algos
+   run_custom_algo
    run_algo
    build_algo_request
    build_sell_order
@@ -77,6 +157,8 @@ Table of Contents
    load_dataset
    restore_dataset
    publish
+   extract
+   fetch
    build_publish_request
    api_reference
    iex_api
