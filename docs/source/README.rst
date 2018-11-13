@@ -1,18 +1,19 @@
 Stock Analysis Engine
 =====================
 
-Analyze and run algorithms on publicly traded companies from `Yahoo <https://finance.yahoo.com/>`__, `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__ and `FinViz <https://finviz.com>`__ (datafeeds supported: news, screeners, quotes, dividends, daily, intraday, statistics, financials, earnings, options, and more). Once collected the data is archived in s3 (using `minio <https://minio.io>`__) and automatically cached in redis. Deploys with `Kubernetes <https://github.com/AlgoTraders/stock-analysis-engine#running-on-kubernetes>`__ or docker compose with `support for publishing alerts to Slack <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro-Publishing-to-Slack.ipynb>`__.
+Run algorithms on publicly traded companies with data from: `Yahoo <https://finance.yahoo.com/>`__, `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__ and `FinViz <https://finviz.com>`__ (default datafeeds: pricing, options, news, dividends, daily, intraday, screeners, statistics, financials, earnings, and more).
 
 .. image:: https://i.imgur.com/pH368gy.png
-
-The engine provides an automated, horizontally scalable stock data collection and archive pipeline with a simple extraction interface above a redis datastore.
 
 Building Your Own Algorithms
 ============================
 
-With the stack running locally on your environment, you can fetch data on an intraday basis or have an `Algorithm-ready dataset already in redis <https://github.com/AlgoTraders/stock-analysis-engine#extract-algorithm-ready-datasets>`__, then you can start you run your own algorithms by building a derived class from the `analysis_engine.algo.BaseAlgo base class <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/algo.py>`__.
+The engine supports running algorithms with live trading data or for backtesting. Use backtesting if you want to tune an algorithm's trading performance with `algorithm-ready datasets cached in redis <https://github.com/AlgoTraders/stock-analysis-engine#extract-algorithm-ready-datasets>`__. Algorithms work the same way for live trading and historical backtesting, and building your own algorithms is as simple as deriving the `base class analysis_engine.algo.BaseAlgo as needed <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/algo.py>`__.
 
-Here is a `detailed example of building an algorithm that processes live intraday, minutely datasets <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/mocks/example_algo_minute.py>`__ with `real-time pricing data from IEX <https://iextrading.com/developer>`__.
+As an example for building your own algorithms, please refer to the `minute-by-minute algorithm for live intraday trading analysis <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/mocks/example_algo_minute.py>`__ with `real-time pricing data from IEX <https://iextrading.com/developer>`__.
+
+Backtesting and Live Trading Workflow
+-------------------------------------
 
 #.  Start the stack with the `integration.yml docker compose file (minio, redis, engine worker, jupyter) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/integration.yml>`__
 
@@ -21,6 +22,8 @@ Here is a `detailed example of building an algorithm that processes live intrada
         ./compose/start.sh -a
 
 #.  Start the dataset collection job with the `automation-dataset-collection.yml docker compose file <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/automation-dataset-collection.yml>`__:
+
+    .. note:: Depending on how fast you want to run intraday algorithms, you can use this tool to collect recent pricing information with a cron or `Kubernetes job <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/k8/datasets/job.yml>`__
 
     ::
 
@@ -32,17 +35,17 @@ Here is a `detailed example of building an algorithm that processes live intrada
 
         logs-workers.sh
 
-#.  Run the Intraday Minute Algorithm
+#.  Run the Intraday Minute-by-Minute Algorithm
 
-    .. note:: Make sure to run through the `Getting Started before continuing <https://github.com/AlgoTraders/stock-analysis-engine#getting-started>`_.
+    .. note:: Make sure to run through the `Getting Started before trying to run the algorithm <https://github.com/AlgoTraders/stock-analysis-engine#getting-started>`__
 
-    To run the sample intraday algorithm against your live pricing datasets from the engine use:
+    To run the intraday algorithm with the latest pricing datasets use:
 
     ::
 
         sa.py -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
 
-    And to debug the algorithm's trading performance history add the ``-d`` debug flag:
+    And to debug an algorithm's historical trading performance add the ``-d`` debug flag:
 
     ::
 
@@ -51,22 +54,23 @@ Here is a `detailed example of building an algorithm that processes live intrada
 Coming Soon
 -----------
 
-- Run an algorithm with only a local algorithm-ready file so redis is not required to develop algorithms
+- Run an algorithm with a local algorithm-ready data file so redis is not required to develop and tune algorithms
 - Need to figure out how to use private algorithm modules inside the container without a container rebuild which might end up being a tool like the `deploy from private fork support <https://github.com/AlgoTraders/stock-analysis-engine#deploy-fork-feature-branch-to-running-containers>`__
 
 Extract Algorithm-Ready Datasets
 ================================
 
-With cached data in redis, you can use the algorithm api to extract algorithm-ready datasets and save them to a local file on disk for offline historical backtest analysis. This also creates a local archive backup with everything in redis (in case something crashes).
+With pricing data cached in redis, you can extract algorithm-ready datasets and save them to a local file for offline historical backtesting analysis. This also serves as a local backup where all cached data for a single ticker is in a single local file.
 
-Extract an algorithm-ready dataset from Redis with:
+Extract an Algorithm-Ready Dataset from Redis and Save it to a File
+-------------------------------------------------------------------
 
 ::
 
     sa.py -t SPY -e ~/SPY-latest.json
 
-Create a Daily Backup in a File
--------------------------------
+Create a Daily Backup
+---------------------
 
 ::
 
@@ -79,8 +83,12 @@ Validate the Daily Backup by Examining the Dataset File
 
     sa.py -t SPY -l ~/SPY-$(date +"%Y-%m-%d").json
 
-Restore Backup into Redis
--------------------------
+Restore Backup to Redis
+-----------------------
+
+Use this command to cache missing pricing datasets so algorithms have the correct data ready-to-go before making buy and sell predictions.
+
+.. note:: By default, this command will not overwrite existing datasets in redis. It was built as a tool for merging redis pricing datasets after a VM restarted and pricing data was missing from the past few days (gaps in pricing data is bad for algorithms).
 
 ::
 
@@ -127,14 +135,24 @@ Please refer to the `Stock Analysis Intro Extracting Datasets Jupyter Notebook <
 Getting Started
 ===============
 
-The engine uses `Celery workers to process all tasks <http://www.celeryproject.org/>`__ and is a horizontally scalable worker pool that `natively plugs into many transports and backends <https://github.com/celery/celery#transports-and-backends>`__
+This section outlines how to get the Stock Analysis stack running locally with:
 
-If your stack is already running, please refer to the `Intro Stock Analysis using Jupyter Notebook <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro.ipynb>`__ for getting started.
+- Redis
+- Minio (S3)
+- Stock Analysis engine
+- Jupyter
+
+For background, the stack provides a data pipeline that automatically archives pricing data in `minio (s3) <https://minio.io>`__ and caches pricing data in redis. Once cached or archived, custom algorithms can use the pricing information to determine buy or sell conditions and track internal trading performance across historical backtests.
+
+From a technical perspective, the engine uses `Celery workers to process heavyweight, asynchronous tasks <http://www.celeryproject.org/>`__ and scales horizontally `with support for many transports and backends depending on where you need to run it <https://github.com/celery/celery#transports-and-backends>`__. The stack deploys with `Kubernetes <https://github.com/AlgoTraders/stock-analysis-engine#running-on-kubernetes>`__ or docker compose and `supports publishing trading alerts to Slack <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro-Publishing-to-Slack.ipynb>`__.
+
+With the stack already running, please refer to the `Intro Stock Analysis using Jupyter Notebook <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro.ipynb>`__ for more getting started examples.
 
 #.  Clone
 
     ::
 
+        # most of the docs references /opt/sa as the repo directory
         git clone https://github.com/AlgoTraders/stock-analysis-engine.git /opt/sa
         cd /opt/sa
 
