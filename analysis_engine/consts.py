@@ -248,6 +248,7 @@ SA_MODE_PREDICT = 102
 SA_MODE_EXTRACT = 103
 SA_MODE_SHOW_DATASET = 104
 SA_MODE_RESTORE_REDIS_DATASET = 105
+SA_MODE_RUN_ALGO = 106
 
 SA_DATASET_TYPE_ALGO_READY = 200
 
@@ -597,6 +598,8 @@ def get_status(
         return 'SA_MODE_SHOW_DATASET'
     elif status == SA_MODE_RESTORE_REDIS_DATASET:
         return 'SA_MODE_RESTORE_REDIS_DATASET'
+    elif status == SA_MODE_RUN_ALGO:
+        return 'SA_MODE_RUN_ALGO'
     elif status == PLOT_ACTION_SHOW:
         return 'PLOT_ACTION_SHOW'
     elif status == PLOT_ACTION_SAVE_TO_S3:

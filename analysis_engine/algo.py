@@ -3,7 +3,7 @@ Algorithms automatically provide the following
 member variables to any custom algorithm that derives
 the ``analysis_engine.algo.BaseAlgo.process`` method.
 
-By deriving the ``process`` method using an inherited
+By deriving the ``process()`` member method using an inherited
 class, you can quickly build algorithms that
 determine **buy** and **sell** conditions from
 any of the automatically extracted
@@ -33,6 +33,13 @@ datasets from the redis pipeline:
 - ``self.latest_volume``
 - ``self.ask``
 - ``self.bid``
+
+**Latest Backtest Date and Intraday Minute**
+
+- ``self.latest_min`` - Latest minute row in ``self.df_minute``
+- ``self.backtest_date`` - Latest dataset date which is considered the
+    backtest date for historical testing with the data pipeline
+    structure (it's the ``date`` key in the dataset node root level)
 
 **Balance Information**
 
@@ -189,8 +196,8 @@ class BaseAlgo:
 
     def __init__(
             self,
-            ticker,
-            balance,
+            balance=5000.0,
+            ticker=None,
             commission=6.0,
             tickers=None,
             name=None,
@@ -231,6 +238,7 @@ class BaseAlgo:
 
         :param ticker: single ticker string
         :param balance: starting capital balance
+            (default is ``5000.00``)
         :param commission: cost for commission
             for a single buy or sell trade
         :param tickers: optional - list of ticker strings
@@ -325,6 +333,8 @@ class BaseAlgo:
                 self.tickers = [
                     ticker.upper()
                 ]
+            else:
+                raise Exception('BaseAlgo - please set a ticker to use')
         self.balance = balance
         self.starting_balance = balance
         self.starting_close = 0.0
@@ -340,6 +350,8 @@ class BaseAlgo:
         self.latest_open = 0.0
         self.latest_low = 0.0
         self.latest_volume = 0.0
+        self.latest_min = None
+        self.backtest_date = None
         self.ask = 0.0
         self.bid = 0.0
         self.prev_bal = None
@@ -417,7 +429,7 @@ class BaseAlgo:
             self.output_file_dir = '/opt/sa/tests/datasets/algo'
 
         if not self.name:
-            self.name = 'eqa'
+            self.name = 'myalgo'
 
         """
         Load tracking connectivity for recording
@@ -2052,33 +2064,39 @@ class BaseAlgo:
             'pricing',
             {})
 
-        if not hasattr(self.df_daily, 'empty'):
+        self.latest_min = None
+        self.backtest_date = self.ds_date
+
+        if not hasattr(self.df_daily, 'index'):
             self.df_daily = self.empty_pd
-        if not hasattr(self.df_minute, 'empty'):
+        if not hasattr(self.df_minute, 'index'):
             self.df_minute = self.empty_pd
-        if not hasattr(self.df_stats, 'empty'):
+        else:
+            if 'date' in self.df_minute:
+                self.latest_min = self.df_minute['date'].iloc[-1]
+        if not hasattr(self.df_stats, 'index'):
             self.df_stats = self.empty_pd
-        if not hasattr(self.df_peers, 'empty'):
+        if not hasattr(self.df_peers, 'index'):
             self.df_peers = self.empty_pd
-        if not hasattr(self.df_financials, 'empty'):
+        if not hasattr(self.df_financials, 'index'):
             self.df_financials = self.empty_pd
-        if not hasattr(self.df_earnings, 'empty'):
+        if not hasattr(self.df_earnings, 'index'):
             self.df_earnings = self.empty_pd
-        if not hasattr(self.df_dividends, 'empty'):
+        if not hasattr(self.df_dividends, 'index'):
             self.df_dividends = self.empty_pd
-        if not hasattr(self.df_quote, 'empty'):
+        if not hasattr(self.df_quote, 'index'):
             self.df_quote = self.empty_pd
-        if not hasattr(self.df_company, 'empty'):
+        if not hasattr(self.df_company, 'index'):
             self.df_company = self.empty_pd
-        if not hasattr(self.df_iex_news, 'empty'):
+        if not hasattr(self.df_iex_news, 'index'):
             self.df_iex_news = self.empty_pd
-        if not hasattr(self.df_yahoo_news, 'empty'):
+        if not hasattr(self.df_yahoo_news, 'index'):
             self.df_yahoo_news = self.empty_pd
-        if not hasattr(self.df_calls, 'empty'):
+        if not hasattr(self.df_calls, 'index'):
             self.df_calls = self.empty_pd
-        if not hasattr(self.df_puts, 'empty'):
+        if not hasattr(self.df_puts, 'index'):
             self.df_puts = self.empty_pd
-        if not hasattr(self.df_pricing, 'empty'):
+        if not hasattr(self.df_pricing, 'index'):
             self.df_pricing = self.empty_pd
 
         # set internal values:
@@ -2089,7 +2107,7 @@ class BaseAlgo:
         self.should_sell = False
 
         try:
-            if hasattr(self.df_daily, 'empty'):
+            if hasattr(self.df_daily, 'index'):
                 columns = self.df_daily.columns.values
                 if 'high' in columns:
                     self.latest_high = float(

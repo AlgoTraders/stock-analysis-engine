@@ -69,6 +69,7 @@ def run_algo(
         redis_db=None,
         redis_password=None,
         redis_expire=None,
+        redis_key=None,
         s3_enabled=True,
         s3_address=None,
         s3_bucket=None,
@@ -76,14 +77,19 @@ def run_algo(
         s3_secret_key=None,
         s3_region_name=None,
         s3_secure=False,
+        s3_key=None,
         celery_disabled=True,
         broker_url=None,
         result_backend=None,
         label=None,
+        name=None,
         verbose=False,
         publish_to_slack=True,
         publish_to_s3=True,
         publish_to_redis=True,
+        extract_datasets=None,
+        config_dict=None,
+        version=1,
         raise_on_err=False):
     """run_algo
 
@@ -146,6 +152,8 @@ def run_algo(
         (default is ``None``)
     :param redis_expire: optional - Redis expire value
         (default is ``None``)
+    :param redis_key: optional - redis key not used
+        (default is ``None``)
 
     **(Optional) Minio (S3) connectivity arguments**
 
@@ -164,6 +172,8 @@ def run_algo(
         (default is ``us-east-1``)
     :param s3_secure: Transmit using tls encryption
         (default is ``False``)
+    :param s3_key: optional s3 key not used
+        (default is ``None``)
 
     **(Optional) Celery worker broker connectivity arguments**
 

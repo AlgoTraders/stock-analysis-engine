@@ -16,8 +16,55 @@
   in s3 and redis.
 - Coming Soon - Make predictions using an analyzed dataset
 
-.. warning:: if the output redis key or s3 key already exists, this
-    process will overwrite the previously stored values
+**Supported Actions**
+
+#.  **Algorithm-Ready** Datasets
+
+    Algo-ready datasets were created by the Algorithm Extraction API.
+
+    You can tune algorithm performance by deriving your own algorithm
+    from the `analysis_engine.algo.BaseAlgo <ht
+    tps://github.com/AlgoTraders/stock-analysis-engine/blob/master/ana
+    lysis_engine/algo.py>`__ and then loading the dataset from
+    s3, redis or a file by passing the correct arguments.
+
+    Command line actions:
+
+    - **Extract** algorithm-ready datasets out of redis to a file
+
+        ::
+
+            sa.py -t SPY -e ~/SPY-$(date +"%Y-%m-%d").json
+
+    - **View** algorithm-ready datasets in a file
+
+        ::
+
+            sa.py -t SPY -l ~/SPY-$(date +"%Y-%m-%d").json
+
+    - **Restore** algorithm-ready datasets from a file to redis
+
+        This also works as a backup tool for archiving an entire
+        single ticker dataset from redis to a single file. (zlib compression
+        is code-complete but has not been debugged end-to-end)
+
+        ::
+
+            sa.py -t SPY -L ~/SPY-$(date +"%Y-%m-%d").json
+
+        .. warning:: if the output redis key or s3 key already exists, this
+            process will overwrite the previously stored values
+
+#.  **Run an Algorithm**
+
+    Please refer to the `included Minute Algorithm <https://github.com/Algo
+    Traders/stock-analysis-engine/blob/master/analysis_engine/mocks/e
+    xample_algo_minute.py>`__ for an up to date reference.
+
+    ::
+
+        sa.py -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
+
 """
 
 import os
@@ -25,16 +72,13 @@ import sys
 import datetime
 import argparse
 import analysis_engine.charts as ae_charts
+import analysis_engine.iex.extract_df_from_redis as extract_utils
+import analysis_engine.run_algo as run_algo
+import analysis_engine.show_dataset as show_dataset
+import analysis_engine.restore_dataset as restore_dataset
+import analysis_engine.run_custom_algo as run_custom_algo
 import analysis_engine.work_tasks.prepare_pricing_dataset \
     as prepare_pricing_dataset
-import analysis_engine.iex.extract_df_from_redis \
-    as extract_utils
-import analysis_engine.run_algo \
-    as run_algo
-import analysis_engine.show_dataset \
-    as show_dataset
-import analysis_engine.restore_dataset \
-    as restore_dataset
 from celery import signals
 from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.work_tasks.get_celery_app import get_celery_app
@@ -43,6 +87,7 @@ from analysis_engine.consts import SA_MODE_PREPARE
 from analysis_engine.consts import SA_MODE_EXTRACT
 from analysis_engine.consts import SA_MODE_SHOW_DATASET
 from analysis_engine.consts import SA_MODE_RESTORE_REDIS_DATASET
+from analysis_engine.consts import SA_MODE_RUN_ALGO
 from analysis_engine.consts import LOG_CONFIG_PATH
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import TICKER_ID
@@ -374,11 +419,26 @@ def run_sa_tool():
         required=False,
         dest='s3_bucket_name')
     parser.add_argument(
-        '-g',
+        '-G',
         help=(
             'optional - s3 region name'),
         required=False,
         dest='s3_region_name')
+    parser.add_argument(
+        '-g',
+        help=(
+            'Path to a custom algorithm module file '
+            'on disik. This module must have a single '
+            'class that inherits from: '
+            'https://github.com/AlgoTraders/stock-ana'
+            'lysis-engine/blob/master/'
+            'analysis_engine/algo.py Additionally you '
+            'can find the Example-Minute-Algorithm here: '
+            'https://github.com/AlgoTraders/stock-anal'
+            'ysis-engine/blob/master/analysis_engine/mocks/'
+            'example_algo_minute.py'),
+        required=False,
+        dest='run_algo_in_file')
     parser.add_argument(
         '-p',
         help=(
@@ -570,6 +630,8 @@ def run_sa_tool():
     if args.restore_algo_file:
         restore_algo_file = args.restore_algo_file
         mode = SA_MODE_RESTORE_REDIS_DATASET
+    if args.run_algo_in_file:
+        mode = SA_MODE_RUN_ALGO
 
     valid = False
     required_task = False
@@ -625,6 +687,70 @@ def run_sa_tool():
                 ticker,
                 restore_algo_file,
                 redis_db))
+        sys.exit(0)
+    elif mode == SA_MODE_RUN_ALGO:
+        use_balance = 5000.0
+        use_commission = 6.0
+        use_start_date = None
+        use_end_date = None
+        use_config_file = None
+        use_name = 'myalgo'
+
+        if not os.path.exists(args.run_algo_in_file):
+            log.error(
+                'missing algorithm module file: {}'.format(
+                    args.run_algo_in_file))
+            sys.exit(1)
+
+        algo_res = run_custom_algo.run_custom_algo(
+            mod_path=args.run_algo_in_file,
+            ticker=ticker,
+            balance=use_balance,
+            commission=use_commission,
+            start_date=use_start_date,
+            end_date=use_end_date,
+            config_file=use_config_file,
+            name=use_name)
+        if args.debug:
+            if algo_res['status'] == SUCCESS:
+                log.info(
+                    '{} - done running {} algo.name={} from '
+                    'file {} results: {}'.format(
+                        get_status(status=algo_res['status']),
+                        ticker,
+                        algo_res['algo'].name,
+                        args.run_algo_in_file,
+                        ppj(algo_res['rec'])))
+            else:
+                log.error(
+                    '{} - done running {} algo.name={} from '
+                    'file {} results: {}'.format(
+                        get_status(status=algo_res['status']),
+                        ticker,
+                        algo_res['algo'].name,
+                        args.run_algo_in_file,
+                        ppj(algo_res['rec'])))
+        else:
+            if algo_res['status'] == SUCCESS:
+                log.info(
+                    '{} - done running {} algo.name={} from '
+                    'file {} algorithm performance history '
+                    'records: {}'.format(
+                        get_status(status=algo_res['status']),
+                        ticker,
+                        algo_res['algo'].name,
+                        args.run_algo_in_file,
+                        len(algo_res['rec']['history'])))
+            else:
+                log.error(
+                    '{} - done running {} algo.name={} from '
+                    'file {} algorithm performance history '
+                    'records: {}'.format(
+                        get_status(status=algo_res['status']),
+                        ticker,
+                        algo_res['algo'].name,
+                        args.run_algo_in_file,
+                        len(algo_res['rec']['history'])))
         sys.exit(0)
     # end of handling mode-specific arg assignments
 
