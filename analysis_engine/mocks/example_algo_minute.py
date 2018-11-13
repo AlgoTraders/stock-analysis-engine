@@ -41,12 +41,15 @@ datasets from the redis pipeline:
 
 **Latest Backtest Date and Intraday Minute**
 
-- ``self.latest_min`` - Latest minute row in ``self.df_minute``
-- ``self.backtest_date`` - Latest dataset date which is considered the
+- ``self.latest_min``
+- ``self.backtest_date``
+
+.. note:: **self.latest_min** - Latest minute row in ``self.df_minute``
+
+.. note:: **self.backtest_date** - Latest dataset date which is considered the
     backtest date for historical testing with the data pipeline
     structure (it's the ``date`` key in the dataset node root level)
 
-**Balance Information**
 **Balance Information**
 
 - ``self.balance``
@@ -275,7 +278,7 @@ def get_algo(
     some help:
     https://github.com/AlgoTraders/stock-analysis-engine/issues
 
-    :param **kwargs: dictionary of keyword arguments
+    :param kwargs: dictionary of keyword arguments
     """
     log.info('getting algo')
     return ExampleMinuteAlgo(**kwargs)
