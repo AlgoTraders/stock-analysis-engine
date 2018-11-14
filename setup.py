@@ -37,8 +37,8 @@ with open(os.path.join(
     install_requires = f.read().split()
 
 # if not on readthedocs.io or travis ci get all the pips:
-if (os.getenv("READTHEDOCS", "") == ""
-        and os.getenv("TRAVIS", "") == ""):
+if (os.getenv('READTHEDOCS', '') == ''
+        and os.getenv('TRAVIS', '') == ''):
     install_requires = install_requires + requires_that_fail_on_rtd
 
 if sys.version_info < (3, 5):
@@ -63,7 +63,7 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.2.4',
+    version='1.2.5',
     description=(
         'Stock Analysis Engine - '
         'Run your own algorithms with live '
