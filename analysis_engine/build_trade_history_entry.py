@@ -36,6 +36,11 @@ def build_trade_history_entry(
         volume=None,
         ask=None,
         bid=None,
+        today_high=None,
+        today_low=None,
+        today_open_val=None,
+        today_close=None,
+        today_volume=None,
         stop_loss=None,
         trailing_stop_loss=None,
         buy_hold_units=None,
@@ -125,6 +130,16 @@ def build_trade_history_entry(
         stock (for buying ``shares``)
     :param bid: optional - float ``bid`` price of the
         stock (for selling ``shares``)
+    :param today_high: optional - float ``high`` from
+        the daily dataset (if available)
+    :param today_low: optional - float ``low`` from
+        the daily dataset (if available)
+    :param today_open_val: optional - float ``open`` from
+        the daily dataset (if available)
+    :param today_close: optional - float ``close`` from
+        the daily dataset (if available)
+    :param today_volume: optional - float ``volume`` from
+        the daily dataset (if available)
     :param stop_loss: optional - float ``stop_loss`` price of the
         stock/spread (for selling ``shares`` vs ``contracts``)
     :param trailing_stop_loss: optional - float ``trailing_stop_loss``
@@ -312,6 +327,11 @@ def build_trade_history_entry(
         'volume': volume,
         'ask': ask,
         'bid': bid,
+        'today_high': today_high,
+        'today_low': today_low,
+        'today_open_val': today_open_val,
+        'today_close': today_close,
+        'today_volume': today_volume,
         'stop_loss': stop_loss,
         'trailing_stop_loss': trailing_stop_loss,
         'buy_hold_units': buy_hold_units,

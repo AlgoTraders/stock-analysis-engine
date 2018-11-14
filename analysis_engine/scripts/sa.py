@@ -299,9 +299,10 @@ def extract_ticker_to_a_file_using_an_algo(
     if not os.path.exists(output_file):
         log.error(
             'extract failed to save datasets to file={} '
-            'with status {}'.format(
+            'with status {} output_file={}'.format(
                 extract_to_file,
-                get_status(status=publish_status)))
+                get_status(status=publish_status),
+                output_file))
         return
     log.info(
         'extract done - {} saved to {} - {}'.format(
@@ -379,9 +380,13 @@ def run_sa_tool():
     parser.add_argument(
         '-b',
         help=(
-            'optional - broker url for Celery'),
+            'run a backtest using the dataset in '
+            'a file path/s3 key/redis key formats: '
+            'file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
+            's3://algoready/SPY-latest.json or '
+            'redis:SPY-latest'),
         required=False,
-        dest='broker_url')
+        dest='backtest_uri')
     parser.add_argument(
         '-B',
         help=(
@@ -550,9 +555,11 @@ def run_sa_tool():
     redis_password = REDIS_PASSWORD
     redis_db = REDIS_DB
     redis_expire = REDIS_EXPIRE
-    output_s3_key = None
+    redis_serializer = 'json'
+    redis_encoding = 'utf-8'
     output_redis_key = None
     output_s3_bucket = None
+    output_s3_key = None
     s3_enabled = True
     redis_enabled = True
     ignore_columns = None
@@ -561,11 +568,10 @@ def run_sa_tool():
     extract_to_file = None
     show_from_file = None
     restore_algo_file = None
+    backtest_uri = None
 
     if args.ticker:
         ticker = args.ticker.upper()
-    if args.broker_url:
-        broker_url = args.broker_url
     if args.backend_url:
         backend_url = args.backend_url
     if args.s3_access_key:
@@ -691,16 +697,102 @@ def run_sa_tool():
     elif mode == SA_MODE_RUN_ALGO:
         use_balance = 5000.0
         use_commission = 6.0
+        auto_fill = True
         use_start_date = None
         use_end_date = None
         use_config_file = None
         use_name = 'myalgo'
+
+        dataset_type = SA_DATASET_TYPE_ALGO_READY
+        serialize_datasets = DEFAULT_SERIALIZED_DATASETS
+        s3_access_key = S3_ACCESS_KEY
+        s3_secret_key = S3_SECRET_KEY
+        s3_region_name = S3_REGION_NAME
+        s3_address = S3_ADDRESS
+        s3_secure = S3_SECURE
+        s3_bucket_name = S3_BUCKET
+        s3_key = S3_KEY
+        redis_address = REDIS_ADDRESS
+        redis_key = REDIS_KEY
+        redis_password = REDIS_PASSWORD
+        redis_db = REDIS_DB
+        redis_expire = REDIS_EXPIRE
+        output_redis_key = None
+        output_s3_bucket = None
+        output_s3_key = None
+        ignore_columns = None
+        compress = False
+        encoding = 'utf-8'
+        redis_enabled = True
+        s3_enabled = True
+        slack_enabled = False
+        slack_code_block = False
+        slack_full_width = False
+        verbose = False
+        debug = False
+
+        config_dict = None
+        load_from_s3_bucket = None
+        load_from_s3_key = None
+        load_from_redis_key = None
+        load_from_file = None
+        load_compress = False
+        load_publish = True
+        load_config = None
+        report_redis_key = None
+        report_s3_bucket = None
+        report_s3_key = None
+        report_file = None
+        report_compress = False
+        report_publish = True
+        report_config = None
+        history_redis_key = None
+        history_s3_bucket = None
+        history_s3_key = None
+        history_file = None
+        history_compress = False
+        history_publish = True
+        history_config = None
+        extract_redis_key = None
+        extract_s3_bucket = None
+        extract_s3_key = None
+        extract_file = None
+        extract_save_dir = None
+        extract_compress = False
+        extract_publish = True
+        extract_config = None
+        publish_to_slack = False
+        publish_to_s3 = False
+        publish_to_redis = False
+        dataset_type = SA_DATASET_TYPE_ALGO_READY
+        serialize_datasets = DEFAULT_SERIALIZED_DATASETS
 
         if not os.path.exists(args.run_algo_in_file):
             log.error(
                 'missing algorithm module file: {}'.format(
                     args.run_algo_in_file))
             sys.exit(1)
+
+        if args.backtest_uri:
+            backtest_uri = args.backtest_uri
+            if ('file:/' not in backtest_uri and
+                    's3://' not in backtest_uri and
+                    'redis://' not in backtest_uri):
+                log.error(
+                    'invalid -b <backtest dataset file> specified. '
+                    'please use either: '
+                    '-b file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
+                    '-b s3://algoready/SPY-latest.json or '
+                    '-b redis://SPY-latest')
+                sys.exit(1)
+            if 's3://' in backtest_uri:
+                load_from_s3_bucket = backtest_uri.split('/')[-2]
+                load_from_s3_key = backtest_uri.split('/')[-1]
+            elif 'redis://' in backtest_uri:
+                load_from_redis_key = backtest_uri.split('/')[-1]
+            elif 'file:/' in backtest_uri:
+                load_from_file = backtest_uri.split(':')[-1]
+        # end of parsing supported transport for loading
 
         algo_res = run_custom_algo.run_custom_algo(
             mod_path=args.run_algo_in_file,
@@ -710,7 +802,65 @@ def run_sa_tool():
             start_date=use_start_date,
             end_date=use_end_date,
             config_file=use_config_file,
-            name=use_name)
+            name=use_name,
+            auto_fill=auto_fill,
+            config_dict=config_dict,
+            load_from_s3_bucket=load_from_s3_bucket,
+            load_from_s3_key=load_from_s3_key,
+            load_from_redis_key=load_from_redis_key,
+            load_from_file=load_from_file,
+            load_compress=load_compress,
+            load_publish=load_publish,
+            load_config=load_config,
+            report_redis_key=report_redis_key,
+            report_s3_bucket=report_s3_bucket,
+            report_s3_key=report_s3_key,
+            report_file=report_file,
+            report_compress=report_compress,
+            report_publish=report_publish,
+            report_config=report_config,
+            history_redis_key=history_redis_key,
+            history_s3_bucket=history_s3_bucket,
+            history_s3_key=history_s3_key,
+            history_file=history_file,
+            history_compress=history_compress,
+            history_publish=history_publish,
+            history_config=history_config,
+            extract_redis_key=extract_redis_key,
+            extract_s3_bucket=extract_s3_bucket,
+            extract_s3_key=extract_s3_key,
+            extract_file=extract_file,
+            extract_save_dir=extract_save_dir,
+            extract_compress=extract_compress,
+            extract_publish=extract_publish,
+            extract_config=extract_config,
+            publish_to_slack=publish_to_slack,
+            publish_to_s3=publish_to_s3,
+            publish_to_redis=publish_to_redis,
+            dataset_type=dataset_type,
+            serialize_datasets=serialize_datasets,
+            compress=compress,
+            encoding=encoding,
+            redis_enabled=redis_enabled,
+            redis_key=redis_key,
+            redis_address=redis_address,
+            redis_db=redis_db,
+            redis_password=redis_password,
+            redis_expire=redis_expire,
+            redis_serializer=redis_serializer,
+            redis_encoding=redis_encoding,
+            s3_enabled=s3_enabled,
+            s3_key=s3_key,
+            s3_address=s3_address,
+            s3_bucket=s3_bucket_name,
+            s3_access_key=s3_access_key,
+            s3_secret_key=s3_secret_key,
+            s3_region_name=s3_region_name,
+            s3_secure=s3_secure,
+            slack_enabled=slack_enabled,
+            slack_code_block=slack_code_block,
+            slack_full_width=slack_full_width,
+            verbose=verbose)
         if args.debug:
             if algo_res['status'] == SUCCESS:
                 log.info(
