@@ -1,18 +1,6 @@
 Stock Analysis Engine
 =====================
 
-.. list-table::
-   :header-rows: 1
-
-   * - `Build <https://travis-ci.org/AlgoTraders/stock-analysis-engine>`__
-     - `Docs <https://stock-analysis-engine.readthedocs.io/en/latest/README.html>`__
-   * - .. image:: https://api.travis-ci.org/AlgoTraders/stock-analysis-engine.svg
-           :alt: Travis Tests
-           :target: https://travis-ci.org/AlgoTraders/stock-analysis-engine
-     - .. image:: https://readthedocs.org/projects/stock-analysis-engine/badge/?version=latest
-           :alt: Read the Docs Stock Analysis Engine
-           :target: https://stock-analysis-engine.readthedocs.io/en/latest/README.html
-
 Run algorithms on publicly traded companies with data from: `Yahoo <https://finance.yahoo.com/>`__, `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__ and `FinViz <https://finviz.com>`__ (default datafeeds: pricing, options, news, dividends, daily, intraday, screeners, statistics, financials, earnings, and more).
 
 .. image:: https://i.imgur.com/pH368gy.png
@@ -151,6 +139,18 @@ Once collected and cached, you can extract datasets:
         print('dataset key: {}\nvalue {}\n'.format(k, d['SPY'][k]))
 
 Please refer to the `Stock Analysis Intro Extracting Datasets Jupyter Notebook <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro-Extracting-Datasets.ipynb>`__ for the latest usage examples.
+
+.. list-table::
+   :header-rows: 1
+
+   * - `Build <https://travis-ci.org/AlgoTraders/stock-analysis-engine>`__
+     - `Docs <https://stock-analysis-engine.readthedocs.io/en/latest/README.html>`__
+   * - .. image:: https://api.travis-ci.org/AlgoTraders/stock-analysis-engine.svg
+           :alt: Travis Tests
+           :target: https://travis-ci.org/AlgoTraders/stock-analysis-engine
+     - .. image:: https://readthedocs.org/projects/stock-analysis-engine/badge/?version=latest
+           :alt: Read the Docs Stock Analysis Engine
+           :target: https://stock-analysis-engine.readthedocs.io/en/latest/README.html
 
 Getting Started
 ===============

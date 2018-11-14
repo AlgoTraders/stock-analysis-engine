@@ -48,7 +48,7 @@ def build_algo_request(
     :param commission: commission for buy or sell
     :param num_shares: optional - integer number of starting shares
     :param config_dict: optional - configuration dictionary
-        for builk assigning starting values for the new algo
+        for bulk assigning starting values for the new algo
     :param cache_freq: optional - cache frequency
         (``daily`` is default)
     :param label: optional - algo log tracking name
