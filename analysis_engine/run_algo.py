@@ -61,6 +61,10 @@ def run_algo(
         num_owned_dict=None,  # not supported
         cache_freq='daily',   # 'minute' not supported
         auto_fill=True,
+        load_config=None,
+        report_config=None,
+        history_config=None,
+        extract_config=None,
         use_key=None,
         extract_mode='all',
         iex_datasets=None,
@@ -132,6 +136,26 @@ def run_algo(
         object, by default ``analysis_engine.calendars.
         always_open.AlwaysOpen`` trading calendar
         # TradingCalendar by ``TFSExchangeCalendar``
+
+    **Algorithm Dataset Loading, Extracting, Reporting
+    and Trading History arguments**
+
+    :param load_config: optional - dictionary
+        for setting member variables to load an
+        agorithm-ready dataset from
+        a file, s3 or redis
+    :param report_config: optional - dictionary
+        for setting member variables to publish
+        an algo ``trading performance report`` to s3,
+        redis, a file or slack
+    :param history_config: optional - dictionary
+        for setting member variables to publish
+        an algo ``trade history`` to s3, redis, a file
+        or slack
+    :param extract_config: optional - dictionary
+        for setting member variables to publish
+        an algo ``trading performance report`` to s3,
+        redis, a file or slack
 
     **(Optional) Data sources, datafeeds and datasets to gather**
 

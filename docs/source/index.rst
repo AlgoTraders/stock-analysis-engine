@@ -56,6 +56,24 @@ Backtesting and Live Trading Workflow
 
         sa.py -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py -d
 
+#.  Run an Algorithm Backtest using an Algorithm-Ready Dataset in a File
+
+    ::
+
+        sa.py -t SPY -b file:/home/jay/SPY-latest.json -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
+
+#.  Run an Algorithm Backtest using an Algorithm-Ready Dataset in an S3 Key
+
+    ::
+
+        sa.py -t SPY -b s3://algoready/SPY-latest.json -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
+
+#.  Run an Algorithm Backtest using an Algorithm-Ready Dataset cached in a Redis Key
+
+    ::
+
+        sa.py -t SPY -b redis://SPY-latest.json -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
+
 Coming Soon
 -----------
 
