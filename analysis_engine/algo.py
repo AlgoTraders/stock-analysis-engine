@@ -31,6 +31,11 @@ datasets from the redis pipeline:
 - ``self.latest_open``
 - ``self.latest_low``
 - ``self.latest_volume``
+- ``self.today_close``
+- ``self.today_high``
+- ``self.today_open``
+- ``self.today_low``
+- ``self.today_volume``
 - ``self.ask``
 - ``self.bid``
 
@@ -101,6 +106,8 @@ from analysis_engine.consts import ALGO_REPORT_DATASET_S3_BUCKET_NAME
 from analysis_engine.consts import ALGO_INPUT_COMPRESS
 from analysis_engine.consts import ALGO_HISTORY_COMPRESS
 from analysis_engine.consts import ALGO_REPORT_COMPRESS
+from analysis_engine.consts import SA_DATASET_TYPE_ALGO_READY
+from analysis_engine.consts import DEFAULT_SERIALIZED_DATASETS
 from analysis_engine.consts import get_status
 from analysis_engine.consts import get_percent_done
 from analysis_engine.consts import get_mb
@@ -200,8 +207,8 @@ class BaseAlgo:
 
     def __init__(
             self,
-            balance=5000.0,
             ticker=None,
+            balance=5000.0,
             commission=6.0,
             tickers=None,
             name=None,
@@ -210,21 +217,44 @@ class BaseAlgo:
             version=1,
             config_dict=None,
             output_dir=None,
-            input_config=None,
-            history_config=None,
-            report_config=None,
             publish_to_slack=False,
             publish_to_s3=False,
             publish_to_redis=False,
             publish_input=True,
             publish_history=True,
             publish_report=True,
-            raise_on_err=False,
-            load_from_s3=None,
-            load_from_redis=None,
+            load_from_s3_bucket=None,
+            load_from_s3_key=None,
+            load_from_redis_key=None,
             load_from_file=None,
-            load_config=None,
             load_compress=False,
+            load_publish=True,
+            load_config=None,
+            report_redis_key=None,
+            report_s3_bucket=None,
+            report_s3_key=None,
+            report_file=None,
+            report_compress=False,
+            report_publish=True,
+            report_config=None,
+            history_redis_key=None,
+            history_s3_bucket=None,
+            history_s3_key=None,
+            history_file=None,
+            history_compress=False,
+            history_publish=True,
+            history_config=None,
+            extract_redis_key=None,
+            extract_s3_bucket=None,
+            extract_s3_key=None,
+            extract_file=None,
+            extract_save_dir=None,
+            extract_compress=False,
+            extract_publish=True,
+            extract_config=None,
+            dataset_type=SA_DATASET_TYPE_ALGO_READY,
+            serialize_datasets=DEFAULT_SERIALIZED_DATASETS,
+            raise_on_err=False,
             **kwargs):
         """__init__
 
@@ -256,32 +286,143 @@ class BaseAlgo:
         :param version: optional - version tracking
             value (default is ``1``)
 
-        **(Optional) Derived Config Loading**
+        **Derived Config Loading for Indicators**
 
         :param config_dict: optional - dictionary that
             can be passed to derived class implementations
             of: ``def load_from_config(config_dict=config_dict):``
 
-        **(Optional) Load Algorithm From External Source**
+        **Run a Backtest with an Algorithm-Ready Dataset in S3,
+        Redis or a File**
 
-        :param output_dir: optional - string path to
+        Use these arguments to load algorithm-ready datasets
+        from supported sources (s3, redis or a file)
+
+        :param load_from_s3_bucket: optional - string load the algo from an
+            a previously-created s3 bucket holding an s3 key with an
+            algorithm-ready dataset for use with:
+            ``handle_data``
+        :param load_from_s3_key: optional - string load the algo from an
+            a previously-created s3 key holding an
+            algorithm-ready dataset for use with:
+            ``handle_data``
+        :param load_from_redis_key: optional - string load the algo from a
+            a previously-created redis key holding an
+            algorithm-ready dataset for use with:
+            ``handle_data``
+        :param load_from_file: optional - string path to
+            a previously-created local file holding an
+            algorithm-ready dataset for use with:
+            ``handle_data``
+        :param load_compress: optional - boolean
+            flag for toggling to decompress
+            or not when loading an algorithm-ready
+            dataset (``True`` means the dataset
+            must be decompressed to load correctly inside
+            an algorithm to run a backtest)
+        :param load_publish: boolean - toggle publishing
+            the load progress to slack, s3, redis or a file
+            (default is ``True``)
+        :param load_config: optional - dictionary
+            for setting member variables to load
+            an algorithm-ready dataset for backtesting
+            (used by ``run_custom_algo``)
+
+        **Algorithm Trade History Arguments**
+
+        :param history_redis_key: optional - string
+            where the algorithm trading history will be stored in
+            an redis key
+        :param history_s3_bucket: optional - string
+            where the algorithm trading history will be stored in
+            an s3 bucket
+        :param history_s3_key: optional - string
+            where the algorithm trading history will be stored in
+            an s3 key
+        :param history_file: optional - string file path for saving
+            the ``trading history``
+        :param history_compress: optional - boolean
+            flag for toggling to decompress
+            or not when loading an algorithm-ready
+            dataset (``True`` means the dataset
+            will be compressed on publish)
+        :param history_publish: boolean - toggle publishing
+            the history to s3, redis or a file
+            (default is ``True``)
+        :param history_config: optional - dictionary
+            for setting member variables to publish
+            an algo ``trade history``
+            to s3, redis, a file or slack
+            (used by ``run_custom_algo``)
+
+        **Algorithm Trade Performance Report Arguments (Output Dataset)**
+
+        :param report_redis_key: optional - string
+            where the algorithm ``trading performance report`` (report)
+            will be stored in an redis key
+        :param report_s3_bucket: optional - string
+            where the algorithm report will be stored in
+            an s3 bucket
+        :param report_s3_key: optional - string
+            where the algorithm report will be stored in
+            an s3 key
+        :param report_file: optional - string file path for saving
+            the ``trading performance report``
+        :param report_compress: optional - boolean
+            flag for toggling to decompress
+            or not when loading an algorithm-ready
+            dataset (``True`` means the dataset
+            will be compressed on publish)
+        :param report_publish: boolean - toggle publishing
+            the ``trading performance report`` s3, redis or a file
+            (default is ``True``)
+        :param report_config: optional - dictionary
+            for setting member variables to publish
+            an algo ``result`` or
+            ``trading performance report``
+            to s3, redis, a file or slack
+            (used by ``run_custom_algo``)
+
+        **Extract an Algorithm-Ready Dataset Arguments**
+
+        :param extract_redis_key: optional - string
+            where the algorithm report will be stored in
+            an redis key
+        :param extract_s3_bucket: optional - string
+            where the algorithm report will be stored in
+            an s3 bucket
+        :param extract_s3_key: optional - string
+            where the algorithm report will be stored in
+            an s3 key
+        :param extract_file: optional - string file path for saving
+            the processed datasets as an``algorithm-ready`` dataset
+        :param extract_save_dir: optional - string path to
             auto-generated files from the algo
-        :param input_config: optional - dictionary
+        :param extract_compress: optional - boolean
+            flag for toggling to decompress
+            or not when loading an algorithm-ready
+            dataset (``True`` means the dataset
+            will be compressed on publish)
+        :param extract_publish: boolean - toggle publishing
+            the used ``algorithm-ready dataset`` to s3, redis or a file
+            (default is ``True``)
+        :param extract_config: optional - dictionary
             for setting member variables to publish
             an algo ``input`` dataset (the contents of ``data``
             from ``self.handle_data(data=data)``
-            Please note: this is **not** related to how datasets
-            are loaded for backtest processing, it's just for publishing
-            the entire data argument for ``handle_data(data=data)``
-            as a tool for debugging and tuning algorithms.
-        :param history_config: optional - dictionary
-            for setting member variables to publish
-            an algo ``trade history`` to s3, redis, a file
-            or slack
-        :param report_config: optional - dictionary
-            for setting member variables to publish
-            an algo ``result`` or ``performance``
-            to s3, redis, a file or slack
+            (used by ``run_custom_algo``)
+
+        **Dataset Arguments**
+
+        :param dataset_type: optional - dataset type
+            (default is ``SA_DATASET_TYPE_ALGO_READY``)
+        :param serialize_datasets: optional - list of dataset names to
+            deserialize in the dataset
+            (default is ``DEFAULT_SERIALIZED_DATASETS``)
+        :param encoding: optional - string for data encoding
+
+        **(Optional) Publishing arguments**
+
         :param publish_to_slack: optional - boolean for
             publishing to slack (default is ``False``)
         :param publish_to_s3: optional - boolean for
@@ -297,33 +438,18 @@ class BaseAlgo:
         :param publish_report: boolean - toggle publishing
             any generated datasets to s3 and redis
             (default ``True``)
+
+        **Debugging arguments**
+
         :param raise_on_err: optional - boolean for
             unittests and developing algorithms with the
             ``analysis_engine.run_algo.run_algo`` helper.
             .. note:: When set to ``True`` exceptions will
                 are raised to the calling functions
+        :param output_dir: optional - string path to
+            auto-generated files from the algo
 
-        **(Optional) Load Algorithm From Source**
-
-        :param load_from_s3: optional - string load the algo from an
-            a previously-created s3 key holding an
-            algorithm-ready dataset for use with:
-            ``handle_data``
-        :param load_from_redis: optional - string load the algo from a
-            a previously-created redis key holding an
-            algorithm-ready dataset for use with:
-            ``handle_data``
-        :param load_from_file: optional - string path to
-            a previously-created local file holding an
-            algorithm-ready dataset for use with:
-            ``handle_data``
-        :param load_config: optional - dictionary
-            for setting member variables to load an
-            agorithm-ready dataset from
-            s3 or redis
-        :param load_compress: optional - booliean
-
-        **(Optional) Future Argument Placeholder**
+        **Future Argument Placeholder**
 
         :param kwargs: optional - dictionary of keyword
             arguments
@@ -349,11 +475,16 @@ class BaseAlgo:
         self.num_buys = None
         self.num_sells = None
         self.trade_price = 0.0
+        self.today_high = 0.0
+        self.today_low = 0.0
+        self.today_open = 0.0
+        self.today_close = 0.0
+        self.today_volume = 0
         self.latest_close = 0.0
         self.latest_high = 0.0
         self.latest_open = 0.0
         self.latest_low = 0.0
-        self.latest_volume = 0.0
+        self.latest_volume = 0
         self.latest_min = None
         self.backtest_date = None
         self.ask = 0.0
@@ -461,7 +592,7 @@ class BaseAlgo:
         self.default_redis_key = '{}'.format(
             self.save_as_key)
 
-        self.default_input_output_file = '{}/input-{}.json'.format(
+        self.default_load_output_file = '{}/ready-{}.json'.format(
             self.output_file_dir,
             self.save_as_key)
         self.default_history_output_file = '{}/history-{}.json'.format(
@@ -470,81 +601,94 @@ class BaseAlgo:
         self.default_report_output_file = '{}/report-{}.json'.format(
             self.output_file_dir,
             self.save_as_key)
-        self.default_load_input_file = None
+        self.default_extract_output_file = '{}/extract-{}.json'.format(
+            self.output_file_dir,
+            self.save_as_key)
 
-        self.default_input_redis_key = 'algo:input:{}'.format(
+        self.default_load_redis_key = 'algo:ready:{}'.format(
             self.default_redis_key)
         self.default_history_redis_key = 'algo:history:{}'.format(
             self.default_redis_key)
         self.default_report_redis_key = 'algo:output:{}'.format(
             self.default_redis_key)
+        self.default_extract_redis_key = 'algo:extract:{}'.format(
+            self.default_redis_key)
 
-        if not input_config:
-            input_config = build_publish_request.build_publish_request()
+        if not load_config:
+            load_config = build_publish_request.build_publish_request()
+        if not extract_config:
+            extract_config = build_publish_request.build_publish_request()
         if not history_config:
             history_config = build_publish_request.build_publish_request()
         if not report_config:
             report_config = build_publish_request.build_publish_request()
-        if not load_config:
-            load_config = build_publish_request.build_publish_request()
+
+        if not load_from_s3_bucket:
+            load_from_s3_bucket = ALGO_INPUT_DATASET_S3_BUCKET_NAME
+        if not extract_s3_bucket:
+            extract_s3_bucket = ALGO_READY_DATASET_S3_BUCKET_NAME
+        if not history_s3_bucket:
+            history_s3_bucket = ALGO_HISTORY_DATASET_S3_BUCKET_NAME
+        if not report_s3_bucket:
+            report_s3_bucket = ALGO_REPORT_DATASET_S3_BUCKET_NAME
 
         # Load the input dataset publishing member variables
-        self.input_output_dir = input_config.get(
+        self.extract_output_dir = extract_config.get(
             'output_dir', self.output_file_dir)
-        self.input_output_file = input_config.get(
-            'output_file', self.default_input_output_file)
-        self.input_label = input_config.get(
+        self.extract_output_file = extract_config.get(
+            'output_file', extract_file)
+        self.extract_label = extract_config.get(
             'label', self.name)
-        self.input_convert_to_json = input_config.get(
+        self.extract_convert_to_json = extract_config.get(
             'convert_to_json', True)
-        self.input_compress = input_config.get(
+        self.extract_compress = extract_config.get(
             'compress', ALGO_INPUT_COMPRESS)
-        self.input_redis_enabled = input_config.get(
+        self.extract_redis_enabled = extract_config.get(
             'redis_enabled', self.publish_to_redis)
-        self.input_redis_address = input_config.get(
+        self.extract_redis_address = extract_config.get(
             'redis_address', ENABLED_S3_UPLOAD)
-        self.input_redis_db = input_config.get(
+        self.extract_redis_db = extract_config.get(
             'redis_db', REDIS_DB)
-        self.input_redis_password = input_config.get(
+        self.extract_redis_password = extract_config.get(
             'redis_password', REDIS_PASSWORD)
-        self.input_redis_expire = input_config.get(
+        self.extract_redis_expire = extract_config.get(
             'redis_expire', REDIS_EXPIRE)
-        self.input_redis_serializer = input_config.get(
+        self.extract_redis_serializer = extract_config.get(
             'redis_serializer', 'json')
-        self.input_redis_encoding = input_config.get(
+        self.extract_redis_encoding = extract_config.get(
             'redis_encoding', 'utf-8')
-        self.input_s3_enabled = input_config.get(
+        self.extract_s3_enabled = extract_config.get(
             's3_enabled', self.publish_to_s3)
-        self.input_s3_address = input_config.get(
+        self.extract_s3_address = extract_config.get(
             's3_address', S3_ADDRESS)
-        self.input_s3_bucket = input_config.get(
-            's3_bucket', ALGO_INPUT_DATASET_S3_BUCKET_NAME)
-        self.input_s3_access_key = input_config.get(
+        self.extract_s3_bucket = extract_config.get(
+            's3_bucket', extract_s3_bucket)
+        self.extract_s3_access_key = extract_config.get(
             's3_access_key', S3_ACCESS_KEY)
-        self.input_s3_secret_key = input_config.get(
+        self.extract_s3_secret_key = extract_config.get(
             's3_secret_key', S3_SECRET_KEY)
-        self.input_s3_region_name = input_config.get(
+        self.extract_s3_region_name = extract_config.get(
             's3_region_name', S3_REGION_NAME)
-        self.input_s3_secure = input_config.get(
+        self.extract_s3_secure = extract_config.get(
             's3_secure', S3_SECURE)
-        self.input_slack_enabled = input_config.get(
+        self.extract_slack_enabled = extract_config.get(
             'slack_enabled', False)
-        self.input_slack_code_block = input_config.get(
+        self.extract_slack_code_block = extract_config.get(
             'slack_code_block', False)
-        self.input_slack_full_width = input_config.get(
+        self.extract_slack_full_width = extract_config.get(
             'slack_full_width', False)
-        self.input_redis_key = input_config.get(
-            'redis_key', self.default_input_redis_key)
-        self.input_s3_key = input_config.get(
-            's3_key', self.default_s3_key)
-        self.input_verbose = input_config.get(
+        self.extract_redis_key = extract_config.get(
+            'redis_key', extract_redis_key)
+        self.extract_s3_key = extract_config.get(
+            's3_key', extract_s3_key)
+        self.extract_verbose = extract_config.get(
             'verbose', False)
 
         # load the trade history publishing member variables
         self.history_output_dir = history_config.get(
             'output_dir', self.output_file_dir)
         self.history_output_file = history_config.get(
-            'output_file', self.default_history_output_file)
+            'output_file', history_file)
         self.history_label = history_config.get(
             'label', self.name)
         self.history_convert_to_json = history_config.get(
@@ -570,7 +714,7 @@ class BaseAlgo:
         self.history_s3_address = history_config.get(
             's3_address', S3_ADDRESS)
         self.history_s3_bucket = history_config.get(
-            's3_bucket', ALGO_HISTORY_DATASET_S3_BUCKET_NAME)
+            's3_bucket', history_s3_bucket)
         self.history_s3_access_key = history_config.get(
             's3_access_key', S3_ACCESS_KEY)
         self.history_s3_secret_key = history_config.get(
@@ -586,9 +730,9 @@ class BaseAlgo:
         self.history_slack_full_width = history_config.get(
             'slack_full_width', False)
         self.history_redis_key = history_config.get(
-            'redis_key', self.default_history_redis_key)
+            'redis_key', history_redis_key)
         self.history_s3_key = history_config.get(
-            's3_key', self.default_s3_key)
+            's3_key', history_s3_key)
         self.history_verbose = history_config.get(
             'verbose', False)
 
@@ -596,7 +740,7 @@ class BaseAlgo:
         self.report_output_dir = report_config.get(
             'output_dir', self.output_file_dir)
         self.report_output_file = report_config.get(
-            'output_file', self.default_report_output_file)
+            'output_file', report_file)
         self.report_label = report_config.get(
             'label', self.name)
         self.report_convert_to_json = report_config.get(
@@ -622,7 +766,7 @@ class BaseAlgo:
         self.report_s3_address = report_config.get(
             's3_address', S3_ADDRESS)
         self.report_s3_bucket = report_config.get(
-            's3_bucket', ALGO_REPORT_DATASET_S3_BUCKET_NAME)
+            's3_bucket', report_s3_bucket)
         self.report_s3_access_key = report_config.get(
             's3_access_key', S3_ACCESS_KEY)
         self.report_s3_secret_key = report_config.get(
@@ -638,9 +782,9 @@ class BaseAlgo:
         self.report_slack_full_width = report_config.get(
             'slack_full_width', False)
         self.report_redis_key = report_config.get(
-            'redis_key', self.default_report_redis_key)
+            'redis_key', report_redis_key)
         self.report_s3_key = report_config.get(
-            's3_key', self.default_s3_key)
+            's3_key', report_s3_key)
         self.report_verbose = report_config.get(
             'verbose', False)
 
@@ -676,7 +820,7 @@ class BaseAlgo:
         self.dsload_s3_address = load_config.get(
             's3_address', S3_ADDRESS)
         self.dsload_s3_bucket = load_config.get(
-            's3_bucket', ALGO_READY_DATASET_S3_BUCKET_NAME)
+            's3_bucket', load_from_s3_bucket)
         self.dsload_s3_access_key = load_config.get(
             's3_access_key', S3_ACCESS_KEY)
         self.dsload_s3_secret_key = load_config.get(
@@ -692,9 +836,9 @@ class BaseAlgo:
         self.dsload_slack_full_width = load_config.get(
             'slack_full_width', False)
         self.dsload_redis_key = load_config.get(
-            'redis_key', load_from_redis)
+            'redis_key', load_from_redis_key)
         self.dsload_s3_key = load_config.get(
-            's3_key', load_from_s3)
+            's3_key', load_from_s3_key)
         self.dsload_verbose = load_config.get(
             'verbose', False)
 
@@ -954,7 +1098,7 @@ class BaseAlgo:
                 self.loaded_dataset = load_dataset.load_dataset(
                     path_to_file=self.dsload_output_file,
                     compress=self.dsload_compress,
-                    encoding=self.input_redis_encoding)
+                    encoding=self.extract_redis_encoding)
                 if self.loaded_dataset:
                     self.debug_msg = (
                         'external load SUCCESS - file={}'.format(
@@ -1282,53 +1426,53 @@ class BaseAlgo:
         output_dir = kwargs.get(
             'output_dir', self.output_file_dir)
         output_file = kwargs.get(
-            'output_file', self.input_output_file)
+            'output_file', self.extract_output_file)
         label = kwargs.get(
             'label', self.name)
         convert_to_json = kwargs.get(
-            'convert_to_json', self.input_convert_to_json)
+            'convert_to_json', self.extract_convert_to_json)
         compress = kwargs.get(
-            'compress', self.input_compress)
+            'compress', self.extract_compress)
         redis_enabled = kwargs.get(
-            'redis_enabled', self.input_redis_enabled)
+            'redis_enabled', self.extract_redis_enabled)
         redis_address = kwargs.get(
-            'redis_address', self.input_redis_address)
+            'redis_address', self.extract_redis_address)
         redis_db = kwargs.get(
-            'redis_db', self.input_redis_db)
+            'redis_db', self.extract_redis_db)
         redis_password = kwargs.get(
-            'redis_password', self.input_redis_password)
+            'redis_password', self.extract_redis_password)
         redis_expire = kwargs.get(
-            'redis_expire', self.input_redis_expire)
+            'redis_expire', self.extract_redis_expire)
         redis_serializer = kwargs.get(
-            'redis_serializer', self.input_redis_serializer)
+            'redis_serializer', self.extract_redis_serializer)
         redis_encoding = kwargs.get(
-            'redis_encoding', self.input_redis_encoding)
+            'redis_encoding', self.extract_redis_encoding)
         s3_enabled = kwargs.get(
-            's3_enabled', self.input_s3_enabled)
+            's3_enabled', self.extract_s3_enabled)
         s3_address = kwargs.get(
-            's3_address', self.input_s3_address)
+            's3_address', self.extract_s3_address)
         s3_bucket = kwargs.get(
-            's3_bucket', self.input_s3_bucket)
+            's3_bucket', self.extract_s3_bucket)
         s3_access_key = kwargs.get(
-            's3_access_key', self.input_s3_access_key)
+            's3_access_key', self.extract_s3_access_key)
         s3_secret_key = kwargs.get(
-            's3_secret_key', self.input_s3_secret_key)
+            's3_secret_key', self.extract_s3_secret_key)
         s3_region_name = kwargs.get(
-            's3_region_name', self.input_s3_region_name)
+            's3_region_name', self.extract_s3_region_name)
         s3_secure = kwargs.get(
-            's3_secure', self.input_s3_secure)
+            's3_secure', self.extract_s3_secure)
         slack_enabled = kwargs.get(
-            'slack_enabled', self.input_slack_enabled)
+            'slack_enabled', self.extract_slack_enabled)
         slack_code_block = kwargs.get(
-            'slack_code_block', self.input_slack_code_block)
+            'slack_code_block', self.extract_slack_code_block)
         slack_full_width = kwargs.get(
-            'slack_full_width', self.input_slack_full_width)
+            'slack_full_width', self.extract_slack_full_width)
         redis_key = kwargs.get(
-            'redis_key', self.input_redis_key)
+            'redis_key', self.extract_redis_key)
         s3_key = kwargs.get(
-            's3_key', self.input_s3_key)
+            's3_key', self.extract_s3_key)
         verbose = kwargs.get(
-            'verbose', self.input_verbose)
+            'verbose', self.extract_verbose)
 
         status = NOT_RUN
 
@@ -1567,6 +1711,11 @@ class BaseAlgo:
             low=self.latest_low,
             open_val=self.latest_open,
             volume=self.latest_volume,
+            today_high=self.today_high,
+            today_low=self.today_low,
+            today_open_val=self.today_open,
+            today_close=self.today_close,
+            today_volume=self.today_volume,
             ask=self.ask,
             bid=self.bid,
             stop_loss=self.stop_loss,
@@ -2114,23 +2263,43 @@ class BaseAlgo:
             if hasattr(self.df_daily, 'index'):
                 columns = self.df_daily.columns.values
                 if 'high' in columns:
-                    self.latest_high = float(
+                    self.today_high = float(
                         self.df_daily.iloc[-1]['high'])
                 if 'low' in columns:
-                    self.latest_low = float(
+                    self.today_low = float(
                         self.df_daily.iloc[-1]['low'])
                 if 'open' in columns:
-                    self.latest_open = float(
+                    self.today_open = float(
                         self.df_daily.iloc[-1]['open'])
                 if 'close' in columns:
-                    self.latest_close = float(
+                    self.today_close = float(
                         self.df_daily.iloc[-1]['close'])
+                    self.trade_price = self.today_close
+                    if not self.starting_close:
+                        self.starting_close = self.today_close
+                if 'volume' in columns:
+                    self.today_volume = int(
+                        self.df_daily.iloc[-1]['volume'])
+            if hasattr(self.df_minute, 'index'):
+                columns = self.df_minute.columns.values
+                if 'high' in columns:
+                    self.latest_high = float(
+                        self.df_minute.iloc[-1]['high'])
+                if 'low' in columns:
+                    self.latest_low = float(
+                        self.df_minute.iloc[-1]['low'])
+                if 'open' in columns:
+                    self.latest_open = float(
+                        self.df_minute.iloc[-1]['open'])
+                if 'close' in columns:
+                    self.latest_close = float(
+                        self.df_minute.iloc[-1]['close'])
                     self.trade_price = self.latest_close
                     if not self.starting_close:
                         self.starting_close = self.latest_close
                 if 'volume' in columns:
                     self.latest_volume = int(
-                        self.df_daily.iloc[-1]['volume'])
+                        self.df_minute.iloc[-1]['volume'])
         except Exception as e:
             self.debug_msg = (
                 '{} handle - FAILED getting latest prices '

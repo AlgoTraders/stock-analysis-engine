@@ -25,6 +25,10 @@ def build_algo_request(
         commission=None,
         num_shares=None,
         config_dict=None,
+        load_config=None,
+        history_config=None,
+        report_config=None,
+        extract_config=None,
         cache_freq='daily',
         label='algo'):
     """build_algo_request
@@ -48,6 +52,26 @@ def build_algo_request(
     :param cache_freq: optional - cache frequency
         (``daily`` is default)
     :param label: optional - algo log tracking name
+
+    **Algorithm Dataset Extraction, Loading and Publishing arguments**
+
+    :param load_config: optional - dictionary
+        for setting member variables to load an
+        agorithm-ready dataset from
+        a file, s3 or redis
+    :param history_config: optional - dictionary
+        for setting member variables to publish
+        an algo ``trade history`` to s3, redis, a file
+        or slack
+    :param report_config: optional - dictionary
+        for setting member variables to publish
+        an algo ``trading performance report`` to s3,
+        redis, a file or slack
+    :param extract_config: optional - dictionary
+        for setting member variables to publish
+        an algo ``trading performance report`` to s3,
+        redis, a file or slack
+
     """
     use_tickers = []
     if ticker:
@@ -77,6 +101,10 @@ def build_algo_request(
         'config_dict': config_dict,
         'balance': balance,
         'commission': commission,
+        'load_config': load_config,
+        'history_config': history_config,
+        'report_config': report_config,
+        'extract_config': extract_config,
         'version': 1,
         'label': label
     }

@@ -63,11 +63,31 @@ Backtesting and Live Trading Workflow
 
         sa.py -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py -d
 
-Coming Soon
------------
+Running Algorithm Backtests Offline
+===================================
 
-- Run an algorithm with a local algorithm-ready data file so redis is not required to develop and tune algorithms
-- Need to figure out how to use private algorithm modules inside the container without a container rebuild which might end up being a tool like the `deploy from private fork support <https://github.com/AlgoTraders/stock-analysis-engine#deploy-fork-feature-branch-to-running-containers>`__
+With `extracted Algorithm-Ready datasets <https://github.com/AlgoTraders/stock-analysis-engine#extract-algorithm-ready-datasets>`__ you can develop and tune your own algorithms offline without having redis, minio, the analysis engine, or jupyter running.
+
+Run a Custom Algorithm Backtest with a File
+-------------------------------------------
+
+::
+
+    sa.py -t SPY -b file:/home/jay/SPY-latest.json -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
+
+Run a Custom Algorithm Backtest with an S3 Key
+----------------------------------------------
+
+::
+
+    sa.py -t SPY -b s3://algoready/SPY-latest.json -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
+
+Run a Custom Algorithm Backtest with a Redis Key
+------------------------------------------------
+
+::
+
+    sa.py -t SPY -b redis://SPY-latest.json -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
 
 Extract Algorithm-Ready Datasets
 ================================
