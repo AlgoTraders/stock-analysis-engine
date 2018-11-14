@@ -11,7 +11,8 @@ ls /tmp/${pkg_name}
 
 echo "extracting /tmp/${pkg_name} to /opt"
 cd /opt
-tar xvf /tmp/${pkg_name}
+tar -xvf /tmp/${pkg_name}
+rm /tmp/${pkg_name}
 
 if [[ ! -e /opt/ta-lib ]]; then
     echo "failed to find /opt/ta-lib directory after extracting: tar xvf /tmp/${pkg_name}"
