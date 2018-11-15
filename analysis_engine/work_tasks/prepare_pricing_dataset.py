@@ -296,7 +296,7 @@ def prepare_pricing_dataset(
         if enable_s3 and not initial_data:
 
             log.info(
-                '{} failed to find redis_key={} trying s3'
+                '{} failed to find redis_key={} trying s3 '
                 'from s3_key={} s3_bucket={} s3_address={}'.format(
                     label,
                     redis_key,

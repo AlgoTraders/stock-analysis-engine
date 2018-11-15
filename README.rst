@@ -223,6 +223,7 @@ Running on Ubuntu and CentOS
 
         sudo su
         /opt/sa/tools/linux-install-talib.sh
+        exit
 
 #.  Create and Load Python 3 Virtual Environment
 

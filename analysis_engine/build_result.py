@@ -14,7 +14,7 @@ def build_result(
     Common result builder for helping standardize
     results per function and unittesting
 
-    :param status: starting status vaalue from ``consts.py``
+    :param status: starting status value from ``consts.py``
     :param err: optional error message
     :param rec: dictionary for the result
     """

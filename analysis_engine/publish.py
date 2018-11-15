@@ -245,9 +245,9 @@ def publish(
         redis_host = redis_split[0]
         redis_port = int(redis_split[1])
         log.debug(
-            'redis={}:{}@{} connect '
+            '{} redis={}:{}@{} connect '
             'key={} expire={}'.format(
-                label,
+                label if label else '',
                 redis_host,
                 redis_port,
                 redis_db,
