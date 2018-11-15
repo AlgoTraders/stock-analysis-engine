@@ -89,12 +89,25 @@ def load_algo_dataset_from_s3(
         config=boto3.session.Config(signature_version='s3v4'))
 
     # compressed files will not work with json.dumps
-    data_from_file = s3_utils.s3_read_contents_from_key(
-        s3=s3,
-        s3_bucket_name=s3_bucket,
-        s3_key=s3_key,
-        encoding=encoding,
-        convert_as_json=not compress)
+    try:
+        data_from_file = s3_utils.s3_read_contents_from_key(
+            s3=s3,
+            s3_bucket_name=s3_bucket,
+            s3_key=s3_key,
+            encoding=encoding,
+            convert_as_json=not compress)
+    except Exception as e:
+        if (
+                'An error occurred (NoSuchBucket) '
+                'when calling the GetObject operation') in str(e):
+            msg = (
+                'missing s3_bucket={} in s3_address={}'.format(
+                    s3_address,
+                    s3_bucket))
+            log.error(msg)
+            raise Exception(msg)
+        else:
+            raise Exception(e)
 
     if not data_from_file:
         log.error('missing data from s3={}:{}/{}'.format(

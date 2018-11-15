@@ -17,11 +17,12 @@ import inspect
 import types
 import importlib.machinery
 import datetime
+import analysis_engine.consts as sa_consts
 import analysis_engine.build_algo_request as build_algo_request
 import analysis_engine.build_publish_request as build_publish_request
 import analysis_engine.build_result as build_result
 import analysis_engine.run_algo as run_algo
-import analysis_engine.consts as sa_consts
+import analysis_engine.algo
 import spylunking.log.setup_logging as log_utils
 
 log = log_utils.build_colorized_logger(name=__name__)
@@ -95,6 +96,9 @@ def run_custom_algo(
         slack_full_width=False,
         verbose=False,
         debug=False,
+        dataset_publish_extract=False,
+        dataset_publish_history=False,
+        dataset_publish_report=False,
         raise_on_err=True):
     """run_custom_algo
 
@@ -271,6 +275,21 @@ def run_custom_algo(
         (default is ``DEFAULT_SERIALIZED_DATASETS``)
     :param encoding: optional - string for data encoding
 
+    **Publish Algorithm Datasets to S3, Redis or a File**
+
+    :param dataset_publish_extract: optional - bool
+        for publishing the algorithm's
+        ``algorithm-ready``
+        dataset to: s3, redis or file
+    :param dataset_publish_history: optional - bool
+        for publishing the algorithm's
+        ``trading history``
+        dataset to: s3, redis or file
+    :param dataset_publish_report: optional - bool
+        for publishing the algorithm's
+        ``trading performance report``
+        dataset to: s3, redis or file
+
     **Redis connectivity arguments**
 
     :param redis_enabled: bool - toggle for auto-caching all
@@ -331,11 +350,66 @@ def run_custom_algo(
         and your own algorithm are sent back out immediately exiting
         the backtest.
     """
-    module_name = mod_path.split('/')[-1]
-    loader = importlib.machinery.SourceFileLoader(
-        module_name, mod_path)
-    mod = types.ModuleType(loader.name)
-    loader.exec_module(mod)
+
+    module_name = 'BaseAlgo'
+    custom_algo_module = None
+    new_algo_object = None
+    use_custom_algo = False
+    found_algo_module = True
+    should_publish_extract_dataset = False
+    should_publish_history_dataset = False
+    should_publish_report_dataset = False
+
+    err = None
+    if mod_path:
+        module_name = mod_path.split('/')[-1]
+        loader = importlib.machinery.SourceFileLoader(
+            module_name,
+            mod_path)
+        custom_algo_module = types.ModuleType(
+            loader.name)
+        loader.exec_module(
+            custom_algo_module)
+        use_custom_algo = True
+
+        for member in inspect.getmembers(custom_algo_module):
+            if module_name in str(member):
+                found_algo_module = True
+                break
+        # for all members in this custom module file
+    # if loading a custom algorithm module from a file on disk
+
+    if not found_algo_module:
+        err = (
+            'unable to find custom algorithm module={}'.format(
+                custom_algo_module))
+        if mod_path:
+            err = (
+                'analysis_engine.run_custom_algo.run_custom_algo was unable '
+                'to find custom algorithm module={} with provided path to \n '
+                'file: {} \n'
+                '\n'
+                'Please confirm '
+                'that the class inherits from the BaseAlgo class like:\n'
+                '\n'
+                'import analysis_engine.algo\n'
+                'class MyAlgo(analysis_engine.algo.BaseAlgo):\n '
+                '\n'
+                'If it is then please file an issue on github:\n '
+                'https://github.com/AlgoTraders/stock-analysis-engine/'
+                'issues/new \n\nFor now this error results in a shutdown'
+                '\n'.format(
+                    custom_algo_module,
+                    mod_path))
+        # if mod_path set
+
+        if verbose or debug:
+            log.error(err)
+        return build_result.build_result(
+            status=sa_consts.ERR,
+            err=err,
+            rec=None)
+    # if not found_algo_module
 
     use_start_date = start_date
     use_end_date = end_date
@@ -380,9 +454,11 @@ def run_custom_algo(
             load_config['output_file'] = load_from_file
         if load_from_redis_key:
             load_config['redis_key'] = load_from_redis_key
+            load_config['redis_enabled'] = True
         if load_from_s3_bucket and load_from_s3_key:
             load_config['s3_bucket'] = load_from_s3_bucket
             load_config['s3_key'] = load_from_s3_key
+            load_config['s3_enabled'] = True
     # end of building load_config dictionary if not already set
 
     # Automatically save all datasets to an algorithm-ready:
@@ -415,11 +491,16 @@ def run_custom_algo(
             label='extract-{}'.format(name))
         if extract_file:
             extract_config['output_file'] = extract_file
+            should_publish_extract_dataset = True
         if extract_redis_key and publish_to_redis:
             extract_config['redis_key'] = extract_redis_key
+            extract_config['redis_enabled'] = True
+            should_publish_extract_dataset = True
         if extract_s3_bucket and extract_s3_key and publish_to_s3:
             extract_config['s3_bucket'] = extract_s3_bucket
             extract_config['s3_key'] = extract_s3_key
+            extract_config['s3_enabled'] = True
+            should_publish_extract_dataset = True
     # end of building extract_config dictionary if not already set
 
     # Automatically save the trading performance report:
@@ -452,11 +533,16 @@ def run_custom_algo(
             label='report-{}'.format(name))
         if report_file:
             report_config['output_file'] = report_file
+            should_publish_report_dataset = True
         if report_redis_key and publish_to_redis:
             report_config['redis_key'] = report_redis_key
+            report_config['redis_enabled'] = True
+            should_publish_report_dataset = True
         if report_s3_bucket and report_s3_key and publish_to_s3:
             report_config['s3_bucket'] = report_s3_bucket
             report_config['s3_key'] = report_s3_key
+            report_config['s3_enabled'] = True
+            should_publish_report_dataset = True
     # end of building report_config dictionary if not already set
 
     # Automatically save the trade history:
@@ -489,11 +575,16 @@ def run_custom_algo(
             label='history-{}'.format(name))
         if history_file:
             history_config['output_file'] = history_file
+            should_publish_history_dataset = True
         if history_redis_key and publish_to_redis:
             history_config['redis_key'] = history_redis_key
+            history_config['redis_enabled'] = True
+            should_publish_history_dataset = True
         if history_s3_bucket and history_s3_key and publish_to_s3:
             history_config['s3_bucket'] = history_s3_bucket
             history_config['s3_key'] = history_s3_key
+            history_config['s3_enabled'] = True
+            should_publish_history_dataset = True
     # end of building history_config dictionary if not already set
 
     if verbose:
@@ -514,6 +605,10 @@ def run_custom_algo(
         for k in history_config:
             if k not in remove_vals:
                 debug_history_config[k] = history_config[k]
+        debug_load_config = {}
+        for k in load_config:
+            if k not in remove_vals:
+                debug_load_config[k] = load_config[k]
         log.info(
             '{} {} using extract config {}'.format(
                 name,
@@ -529,6 +624,11 @@ def run_custom_algo(
                 name,
                 ticker,
                 sa_consts.ppj(debug_history_config)))
+        log.info(
+            '{} {} using load config {}'.format(
+                name,
+                ticker,
+                sa_consts.ppj(debug_load_config)))
         log.info(
             '{} {} - building algo request'.format(
                 name,
@@ -546,45 +646,318 @@ def run_custom_algo(
         report_config=report_config,
         extract_config=extract_config,
         label=name)
-    for member in inspect.getmembers(mod):
-        if module_name in str(member):
-            log.info(
-                'start {} with {}'.format(
-                    name,
-                    member[1]))
-            # heads up - logging this might have passwords in the algo_req
-            # log.debug(
-            #     '{} algorithm request: {}'.format(
-            #         name,
-            #         algo_req))
-            algo_req['name'] = name
-            custom_algo = member[1](
-                **algo_req)
-            log.debug(
-                '{} run'.format(
-                    name))
-            algo_res = run_algo.run_algo(
-                algo=custom_algo,
-                raise_on_err=raise_on_err,
-                **algo_req)
-            algo_res['algo'] = custom_algo
-            log.info(
-                'done algorithm: {} with name={} '
-                'from file={}'.format(
-                    module_name,
-                    name,
-                    mod_path))
-            return algo_res
-    # end of looking over the class definition but did not find it
 
-    log.error(
-        'missing a derive analysis_engine.algo.BaseAlgo '
-        'class in the module file={} for ticker={} algo_name={}'.format(
-            mod_path,
-            ticker,
-            name))
+    algo_req['name'] = name
 
-    return build_result.build_result(
-        status=sa_consts.ERR,
+    algo_res = build_result.build_result(
+        status=sa_consts.NOT_RUN,
+        err=None,
         rec=None)
+
+    if use_custom_algo:
+        log.info(
+            'inspecting {} for class {}'.format(
+                custom_algo_module,
+                module_name))
+        use_class_member_object = None
+        for member in inspect.getmembers(custom_algo_module):
+            if module_name in str(member):
+                log.info(
+                    'start {} with {}'.format(
+                        name,
+                        member[1]))
+                use_class_member_object = member
+                break
+        # end of looking over the class definition but did not find it
+
+        if use_class_member_object:
+            new_algo_object = member[1](
+                **algo_req)
+        else:
+            err = (
+                'did not find a derived analysis_engine.algo.BaseAlgo '
+                'class in the module file={} '
+                'for ticker={} algo_name={}'.format(
+                    mod_path,
+                    ticker,
+                    name))
+
+            if verbose or debug:
+                log.error(err)
+
+            return build_result.build_result(
+                status=sa_consts.ERR,
+                err=err,
+                rec=None)
+        # end of finding a valid algorithm object
+    else:
+        new_algo_object = analysis_engine.algo.BaseAlgo(
+            **algo_req)
+    # if using a custom module path or the BaseAlgo
+
+    if new_algo_object:
+        # heads up - logging this might have passwords in the algo_req
+        # log.debug(
+        #     '{} algorithm request: {}'.format(
+        #         name,
+        #         algo_req))
+        log.info(
+            '{} - run ticker={} from {} to {}'.format(
+                name,
+                ticker,
+                use_start_date,
+                use_end_date))
+        algo_res = run_algo.run_algo(
+            algo=new_algo_object,
+            raise_on_err=raise_on_err,
+            **algo_req)
+        algo_res['algo'] = new_algo_object
+        log.info(
+            '{} - run ticker={} from {} to {}'.format(
+                name,
+                ticker,
+                use_start_date,
+                use_end_date))
+        if custom_algo_module:
+            log.info(
+                '{} - done run_algo custom_algo_module={} module_name={} '
+                'ticker={} from {} to {}'.format(
+                    name,
+                    custom_algo_module,
+                    module_name,
+                    ticker,
+                    use_start_date,
+                    use_end_date))
+        else:
+            log.info(
+                '{} - done run_algo BaseAlgo ticker={} from {} to {}'.format(
+                    name,
+                    ticker,
+                    use_start_date,
+                    use_end_date))
+    else:
+        err = (
+            'missing a derived analysis_engine.algo.BaseAlgo '
+            'class in the module file={} for ticker={} algo_name={}'.format(
+                mod_path,
+                ticker,
+                name))
+        return build_result.build_result(
+            status=sa_consts.ERR,
+            err=err,
+            rec=None)
+    # end of finding a valid algorithm object
+
+    algo = algo_res.get(
+        'algo',
+        None)
+
+    if not algo:
+        err = (
+            'failed creating algorithm object - '
+            'ticker={} status={} error={}'
+            'algo name={} custom_algo_module={} module_name={} '
+            'from {} to {}'.format(
+                ticker,
+                sa_consts.get_status(status=algo_res['status']),
+                algo_res['err'],
+                name,
+                custom_algo_module,
+                module_name,
+                use_start_date,
+                use_end_date))
+        return build_result.build_result(
+            status=sa_consts.ERR,
+            err=err,
+            rec=None)
+
+    if should_publish_extract_dataset or dataset_publish_extract:
+        s3_log = ''
+        redis_log = ''
+        file_log = ''
+        use_log = 'published to:'
+
+        if (extract_config['redis_address'] and
+                extract_config['redis_db'] and
+                extract_config['redis_key']):
+            redis_log = 'redis://{}@{}/{}'.format(
+                extract_config['redis_address'],
+                extract_config['redis_db'],
+                extract_config['redis_key'])
+            use_log += ' {}'.format(
+                redis_log)
+        if (extract_config['s3_address'] and
+                extract_config['s3_bucket'] and
+                extract_config['s3_key']):
+            s3_log = 's3://{}/{}/{}'.format(
+                extract_config['s3_address'],
+                extract_config['s3_bucket'],
+                extract_config['s3_key'])
+            use_log += ' {}'.format(
+                s3_log)
+        if extract_config['output_file']:
+            file_log = 'file:{}'.format(
+                extract_config['output_file'])
+            use_log += ' {}'.format(
+                file_log)
+
+        log.info(
+            '{} - publish - start ticker={} algorithm-ready {}'
+            ''.format(
+                name,
+                ticker,
+                use_log))
+
+        publish_status, output_file = algo.publish_input_datasets(
+            **extract_config)
+        if publish_status != sa_consts.SUCCESS:
+            msg = (
+                'failed to publish algorithm-ready datasets '
+                'with status {} attempted to {}'.format(
+                    extract_file,
+                    sa_consts.get_status(status=publish_status),
+                    use_log))
+            log.error(msg)
+            return build_result.build_result(
+                status=sa_consts.ERR,
+                err=err,
+                rec=None)
+
+        log.info(
+            '{} - publish - done ticker={} algorithm-ready {}'
+            ''.format(
+                name,
+                ticker,
+                use_log))
+    # if publish the algorithm-ready dataset
+
+    if should_publish_history_dataset or dataset_publish_history:
+        s3_log = ''
+        redis_log = ''
+        file_log = ''
+        use_log = 'published to:'
+
+        if (history_config['redis_address'] and
+                history_config['redis_db'] and
+                history_config['redis_key']):
+            redis_log = 'redis://{}@{}/{}'.format(
+                history_config['redis_address'],
+                history_config['redis_db'],
+                history_config['redis_key'])
+            use_log += ' {}'.format(
+                redis_log)
+        if (history_config['s3_address'] and
+                history_config['s3_bucket'] and
+                history_config['s3_key']):
+            s3_log = 's3://{}/{}/{}'.format(
+                history_config['s3_address'],
+                history_config['s3_bucket'],
+                history_config['s3_key'])
+            use_log += ' {}'.format(
+                s3_log)
+        if history_config['output_file']:
+            file_log = 'file:{}'.format(
+                history_config['output_file'])
+            use_log += ' {}'.format(
+                file_log)
+
+        log.info(
+            '{} - publish - start ticker={} trading history {}'
+            ''.format(
+                name,
+                ticker,
+                use_log))
+
+        publish_status, output_file = algo.publish_trade_history(
+            **extract_config)
+        if publish_status != sa_consts.SUCCESS:
+            msg = (
+                'failed to publish trading history datasets '
+                'with status {} attempted to {}'.format(
+                    extract_file,
+                    sa_consts.get_status(status=publish_status),
+                    use_log))
+            log.error(msg)
+            return build_result.build_result(
+                status=sa_consts.ERR,
+                err=err,
+                rec=None)
+
+        log.info(
+            '{} - publish - done ticker={} trading history {}'
+            ''.format(
+                name,
+                ticker,
+                use_log))
+    # if publish an trading history dataset
+
+    if should_publish_report_dataset or dataset_publish_report:
+        s3_log = ''
+        redis_log = ''
+        file_log = ''
+        use_log = 'published to:'
+
+        if (report_config['redis_address'] and
+                report_config['redis_db'] and
+                report_config['redis_key']):
+            redis_log = 'redis://{}@{}/{}'.format(
+                report_config['redis_address'],
+                report_config['redis_db'],
+                report_config['redis_key'])
+            use_log += ' {}'.format(
+                redis_log)
+        if (report_config['s3_address'] and
+                report_config['s3_bucket'] and
+                report_config['s3_key']):
+            s3_log = 's3://{}/{}/{}'.format(
+                report_config['s3_address'],
+                report_config['s3_bucket'],
+                report_config['s3_key'])
+            use_log += ' {}'.format(
+                s3_log)
+        if report_config['output_file']:
+            file_log = ' file:{}'.format(
+                report_config['output_file'])
+            use_log += ' {}'.format(
+                file_log)
+
+        log.info(
+            '{} - publishing ticker={} trading performance report {}'
+            ''.format(
+                name,
+                ticker,
+                use_log))
+
+        publish_status, output_file = algo.publish_report_datasets(
+            **extract_config)
+        if publish_status != sa_consts.SUCCESS:
+            msg = (
+                'failed to publish trading performance report datasets '
+                'with status {} attempted to {}'.format(
+                    extract_file,
+                    sa_consts.get_status(status=publish_status),
+                    use_log))
+            log.error(msg)
+            return build_result.build_result(
+                status=sa_consts.ERR,
+                err=err,
+                rec=None)
+
+        log.info(
+            '{} - publish - done ticker={} trading performance report {}'
+            ''.format(
+                name,
+                ticker,
+                use_log))
+    # if publish an trading performance report dataset
+
+    log.info(
+        '{} - done publishing datasets for '
+        'ticker={} from {} to {}'.format(
+            name,
+            ticker,
+            use_start_date,
+            use_end_date))
+
+    return algo_res
 # end of run_custom_algo

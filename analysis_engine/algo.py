@@ -1021,6 +1021,7 @@ class BaseAlgo:
             self.dsload_redis_enabled = True
 
         if (self.dsload_s3_key and
+                self.dsload_s3_bucket and
                 self.dsload_s3_enabled and
                 not self.loaded_dataset):
             self.debug_msg = (
@@ -1028,7 +1029,7 @@ class BaseAlgo:
                     self.dsload_s3_address,
                     self.dsload_s3_bucket,
                     self.dsload_s3_key))
-            log.debug(self.debug_msg)
+            log.info(self.debug_msg)
             self.loaded_dataset = load_dataset.load_dataset(
                 s3_enabled=self.dsload_s3_enabled,
                 s3_address=self.dsload_s3_address,
