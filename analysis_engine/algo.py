@@ -85,7 +85,6 @@ import analysis_engine.publish as publish
 import analysis_engine.build_publish_request as build_publish_request
 import analysis_engine.load_dataset as load_dataset
 from analysis_engine.consts import NOT_RUN
-from analysis_engine.consts import INVALID
 from analysis_engine.consts import TRADE_FILLED
 from analysis_engine.consts import TRADE_SHARES
 from analysis_engine.consts import ENABLED_S3_UPLOAD
@@ -634,9 +633,9 @@ class BaseAlgo:
 
         # Load the input dataset publishing member variables
         self.extract_output_dir = extract_config.get(
-            'output_dir', self.output_file_dir)
+            'output_dir', None)
         self.extract_output_file = extract_config.get(
-            'output_file', extract_file)
+            'output_file', None)
         self.extract_label = extract_config.get(
             'label', self.name)
         self.extract_convert_to_json = extract_config.get(
@@ -644,7 +643,7 @@ class BaseAlgo:
         self.extract_compress = extract_config.get(
             'compress', ALGO_INPUT_COMPRESS)
         self.extract_redis_enabled = extract_config.get(
-            'redis_enabled', self.publish_to_redis)
+            'redis_enabled', False)
         self.extract_redis_address = extract_config.get(
             'redis_address', ENABLED_S3_UPLOAD)
         self.extract_redis_db = extract_config.get(
@@ -658,7 +657,7 @@ class BaseAlgo:
         self.extract_redis_encoding = extract_config.get(
             'redis_encoding', 'utf-8')
         self.extract_s3_enabled = extract_config.get(
-            's3_enabled', self.publish_to_s3)
+            's3_enabled', False)
         self.extract_s3_address = extract_config.get(
             's3_address', S3_ADDRESS)
         self.extract_s3_bucket = extract_config.get(
@@ -686,9 +685,9 @@ class BaseAlgo:
 
         # load the trade history publishing member variables
         self.history_output_dir = history_config.get(
-            'output_dir', self.output_file_dir)
+            'output_dir', None)
         self.history_output_file = history_config.get(
-            'output_file', history_file)
+            'output_file', None)
         self.history_label = history_config.get(
             'label', self.name)
         self.history_convert_to_json = history_config.get(
@@ -696,7 +695,7 @@ class BaseAlgo:
         self.history_compress = history_config.get(
             'compress', ALGO_HISTORY_COMPRESS)
         self.history_redis_enabled = history_config.get(
-            'redis_enabled', self.publish_to_redis)
+            'redis_enabled', False)
         self.history_redis_address = history_config.get(
             'redis_address', ENABLED_S3_UPLOAD)
         self.history_redis_db = history_config.get(
@@ -710,7 +709,7 @@ class BaseAlgo:
         self.history_redis_encoding = history_config.get(
             'redis_encoding', 'utf-8')
         self.history_s3_enabled = history_config.get(
-            's3_enabled', self.publish_to_s3)
+            's3_enabled', False)
         self.history_s3_address = history_config.get(
             's3_address', S3_ADDRESS)
         self.history_s3_bucket = history_config.get(
@@ -738,9 +737,9 @@ class BaseAlgo:
 
         # Load publishing for algorithm-generated report member variables
         self.report_output_dir = report_config.get(
-            'output_dir', self.output_file_dir)
+            'output_dir', None)
         self.report_output_file = report_config.get(
-            'output_file', report_file)
+            'output_file', None)
         self.report_label = report_config.get(
             'label', self.name)
         self.report_convert_to_json = report_config.get(
@@ -748,7 +747,7 @@ class BaseAlgo:
         self.report_compress = report_config.get(
             'compress', ALGO_REPORT_COMPRESS)
         self.report_redis_enabled = report_config.get(
-            'redis_enabled', self.publish_to_redis)
+            'redis_enabled', False)
         self.report_redis_address = report_config.get(
             'redis_address', ENABLED_S3_UPLOAD)
         self.report_redis_db = report_config.get(
@@ -762,7 +761,7 @@ class BaseAlgo:
         self.report_redis_encoding = report_config.get(
             'redis_encoding', 'utf-8')
         self.report_s3_enabled = report_config.get(
-            's3_enabled', self.publish_to_s3)
+            's3_enabled', False)
         self.report_s3_address = report_config.get(
             's3_address', S3_ADDRESS)
         self.report_s3_bucket = report_config.get(
@@ -792,9 +791,9 @@ class BaseAlgo:
 
         # load the algorithm-ready dataset input member variables
         self.dsload_output_dir = load_config.get(
-            'output_dir', )
+            'output_dir', None)
         self.dsload_output_file = load_config.get(
-            'output_file', load_from_file)
+            'output_file', None)
         self.dsload_label = load_config.get(
             'label', self.name)
         self.dsload_convert_to_json = load_config.get(
@@ -802,7 +801,7 @@ class BaseAlgo:
         self.dsload_compress = load_config.get(
             'compress', load_compress)
         self.dsload_redis_enabled = load_config.get(
-            'redis_enabled', self.publish_to_redis)
+            'redis_enabled', False)
         self.dsload_redis_address = load_config.get(
             'redis_address', ENABLED_S3_UPLOAD)
         self.dsload_redis_db = load_config.get(
@@ -816,7 +815,7 @@ class BaseAlgo:
         self.dsload_redis_encoding = load_config.get(
             'redis_encoding', 'utf-8')
         self.dsload_s3_enabled = load_config.get(
-            's3_enabled', self.publish_to_s3)
+            's3_enabled', False)
         self.dsload_s3_address = load_config.get(
             's3_address', S3_ADDRESS)
         self.dsload_s3_bucket = load_config.get(
@@ -995,6 +994,7 @@ class BaseAlgo:
     def load_from_external_source(
             self,
             path_to_file=None,
+            s3_bucket=None,
             s3_key=None,
             redis_key=None):
         """load_from_external_source
@@ -1007,6 +1007,7 @@ class BaseAlgo:
         - Redis
 
         :param path_to_file: optional - path to local file
+        :param s3_bucket: optional - s3 s3_bucket
         :param s3_key: optional - s3 key
         :param redis_key: optional - redis key
         """
@@ -1015,6 +1016,8 @@ class BaseAlgo:
             self.dsload_output_file = path_to_file
         if s3_key:
             self.dsload_s3_key = s3_key
+        if s3_bucket:
+            self.dsload_s3_bucket = s3_bucket
             self.dsload_s3_enabled = True
         if redis_key:
             self.dsload_redis_key = redis_key
@@ -1121,10 +1124,10 @@ class BaseAlgo:
             'external load END')
     # end of load_from_external_source
 
-    def publish_report_datasets(
+    def publish_report_dataset(
             self,
             **kwargs):
-        """publish_report_datasets
+        """publish_report_dataset
 
         publish trade history datasets to caches (redis), archives
         (minio s3), a local file (``output_file``) and slack
@@ -1134,10 +1137,8 @@ class BaseAlgo:
         """
 
         # parse optional input args
-        output_dir = kwargs.get(
-            'output_dir', self.output_file_dir)
         output_file = kwargs.get(
-            'output_file', self.report_output_file)
+            'output_file', None)
         label = kwargs.get(
             'label', self.name)
         convert_to_json = kwargs.get(
@@ -1145,7 +1146,7 @@ class BaseAlgo:
         compress = kwargs.get(
             'compress', self.report_compress)
         redis_enabled = kwargs.get(
-            'redis_enabled', self.report_redis_enabled)
+            'redis_enabled', False)
         redis_address = kwargs.get(
             'redis_address', self.report_redis_address)
         redis_db = kwargs.get(
@@ -1159,7 +1160,7 @@ class BaseAlgo:
         redis_encoding = kwargs.get(
             'redis_encoding', self.report_redis_encoding)
         s3_enabled = kwargs.get(
-            's3_enabled', self.report_s3_enabled)
+            's3_enabled', False)
         s3_address = kwargs.get(
             's3_address', self.report_s3_address)
         s3_bucket = kwargs.get(
@@ -1187,44 +1188,40 @@ class BaseAlgo:
 
         status = NOT_RUN
 
-        if self.raise_on_err:
-            if not output_file:
-                output_file = (
-                    '{}/report-{}.json'.format(
-                        output_dir,
-                        self.output_file_prefix))
-        # if raising errors this is a unittest or development algo
-
         if not self.publish_report:
             log.info(
                 'report publish - disabled - '
                 '{} - tickers={}'.format(
                     self.name,
                     self.tickers))
-            return status, output_file
-        else:
-            if not output_file:
-                log.debug(
-                    'report publish - invalid - '
-                    '{} - tickers={} missing output_file'.format(
-                        self.name,
-                        self.tickers))
-                status = INVALID
-                return status, output_file
-            # end of if good to run
-        # end of screening for returning early
+            return status
 
-        if output_file:
+        output_record = {}
+
+        if output_file or s3_enabled or redis_enabled or slack_enabled:
+            log.info(
+                'report build json - {} - tickers={}'.format(
+                    self.name,
+                    self.tickers))
+            use_data = json.dumps(output_record)
+            num_bytes = len(use_data)
+            num_mb = get_mb(num_bytes)
             log.info(
                 'report publish - START - '
-                '{} - tickers={} file={}'.format(
+                '{} - tickers={} '
+                'file={} size={}MB '
+                's3={} s3_key={} '
+                'redis={} redis_key={} '
+                'slack={}'.format(
                     self.name,
                     self.tickers,
-                    output_file))
-            output_data = {
-                'test': 'hello'
-            }
-            use_data = json.dumps(output_data)
+                    output_file,
+                    num_mb,
+                    s3_enabled,
+                    s3_key,
+                    redis_enabled,
+                    redis_key,
+                    slack_enabled))
             publish_status = publish.publish(
                 data=use_data,
                 label=label,
@@ -1256,20 +1253,24 @@ class BaseAlgo:
 
             log.info(
                 'report publish - END - {} '
-                '{} - tickers={} file={}'.format(
+                '{} - tickers={} '
+                'file={} s3={} redis={} size={}MB'.format(
                     get_status(status=status),
                     self.name,
                     self.tickers,
-                    output_file))
+                    output_file,
+                    s3_key,
+                    redis_key,
+                    num_mb))
         # end of handling for publish
 
-        return status, output_file
-    # end of publish_report_datasets
+        return status
+    # end of publish_report_dataset
 
-    def publish_trade_history(
+    def publish_trade_history_dataset(
             self,
             **kwargs):
-        """publish_trade_history
+        """publish_trade_history_dataset
 
         publish trade history datasets to caches (redis), archives
         (minio s3), a local file (``output_file``) and slack
@@ -1279,10 +1280,8 @@ class BaseAlgo:
         """
 
         # parse optional input args
-        output_dir = kwargs.get(
-            'output_dir', self.output_file_dir)
         output_file = kwargs.get(
-            'output_file', self.history_output_file)
+            'output_file', None)
         label = kwargs.get(
             'label', self.name)
         convert_to_json = kwargs.get(
@@ -1290,7 +1289,7 @@ class BaseAlgo:
         compress = kwargs.get(
             'compress', self.history_compress)
         redis_enabled = kwargs.get(
-            'redis_enabled', self.history_redis_enabled)
+            'redis_enabled', False)
         redis_address = kwargs.get(
             'redis_address', self.history_redis_address)
         redis_db = kwargs.get(
@@ -1304,7 +1303,7 @@ class BaseAlgo:
         redis_encoding = kwargs.get(
             'redis_encoding', self.history_redis_encoding)
         s3_enabled = kwargs.get(
-            's3_enabled', self.history_s3_enabled)
+            's3_enabled', False)
         s3_address = kwargs.get(
             's3_address', self.history_s3_address)
         s3_bucket = kwargs.get(
@@ -1332,44 +1331,41 @@ class BaseAlgo:
 
         status = NOT_RUN
 
-        if self.raise_on_err:
-            if not output_file:
-                output_file = (
-                    '{}/history-{}.json'.format(
-                        output_dir,
-                        self.output_file_prefix))
-        # if raising errors this is a unittest or development algo
-
         if not self.publish_history:
             log.info(
                 'history publish - disabled - '
                 '{} - tickers={}'.format(
                     self.name,
                     self.tickers))
-            return status, output_file
-        else:
-            if not output_file:
-                log.debug(
-                    'history publish - invalid - '
-                    '{} - tickers={} missing output_file'.format(
-                        self.name,
-                        self.tickers))
-                status = INVALID
-                return status, output_file
-            # end of if good to run
+            return status
         # end of screening for returning early
 
-        if output_file:
+        output_record = {}
+
+        if output_file or s3_enabled or redis_enabled or slack_enabled:
+            log.info(
+                'history build json - {} - tickers={}'.format(
+                    self.name,
+                    self.tickers))
+            use_data = json.dumps(output_record)
+            num_bytes = len(use_data)
+            num_mb = get_mb(num_bytes)
             log.info(
                 'history publish - START - '
-                '{} - tickers={} file={}'.format(
+                '{} - tickers={} '
+                'file={} size={}MB '
+                's3={} s3_key={} '
+                'redis={} redis_key={} '
+                'slack={}'.format(
                     self.name,
                     self.tickers,
-                    output_file))
-            output_data = {
-                'test': 'hello'
-            }
-            use_data = json.dumps(output_data)
+                    output_file,
+                    num_mb,
+                    s3_enabled,
+                    s3_key,
+                    redis_enabled,
+                    redis_key,
+                    slack_enabled))
             publish_status = publish.publish(
                 data=use_data,
                 label=label,
@@ -1401,20 +1397,24 @@ class BaseAlgo:
 
             log.info(
                 'history publish - END - {} '
-                '{} - tickers={} file={}'.format(
+                '{} - tickers={} '
+                'file={} s3={} redis={} size={}MB'.format(
                     get_status(status=status),
                     self.name,
                     self.tickers,
-                    output_file))
+                    output_file,
+                    s3_key,
+                    redis_key,
+                    num_mb))
         # end of handling for publish
 
-        return status, output_file
-    # end of start_datetore_trade_history
+        return status
+    # end of publish_trade_history_dataset
 
-    def publish_input_datasets(
+    def publish_input_dataset(
             self,
             **kwargs):
-        """publish_input_datasets
+        """publish_input_dataset
 
         publish input datasets to caches (redis), archives
         (minio s3), a local file (``output_file``) and slack
@@ -1424,10 +1424,8 @@ class BaseAlgo:
         """
 
         # parse optional input args
-        output_dir = kwargs.get(
-            'output_dir', self.output_file_dir)
         output_file = kwargs.get(
-            'output_file', self.extract_output_file)
+            'output_file', None)
         label = kwargs.get(
             'label', self.name)
         convert_to_json = kwargs.get(
@@ -1435,7 +1433,7 @@ class BaseAlgo:
         compress = kwargs.get(
             'compress', self.extract_compress)
         redis_enabled = kwargs.get(
-            'redis_enabled', self.extract_redis_enabled)
+            'redis_enabled', False)
         redis_address = kwargs.get(
             'redis_address', self.extract_redis_address)
         redis_db = kwargs.get(
@@ -1449,7 +1447,7 @@ class BaseAlgo:
         redis_encoding = kwargs.get(
             'redis_encoding', self.extract_redis_encoding)
         s3_enabled = kwargs.get(
-            's3_enabled', self.extract_s3_enabled)
+            's3_enabled', False)
         s3_address = kwargs.get(
             's3_address', self.extract_s3_address)
         s3_bucket = kwargs.get(
@@ -1477,32 +1475,13 @@ class BaseAlgo:
 
         status = NOT_RUN
 
-        if self.raise_on_err:
-            if not output_file:
-                output_file = (
-                    '{}/input-{}.json'.format(
-                        output_dir,
-                        self.output_file_prefix))
-        # if raising errors this is a unittest or development algo
-
         if not self.publish_input:
             log.info(
                 'input publish - disabled - '
                 '{} - tickers={}'.format(
                     self.name,
                     self.tickers))
-            return status, output_file
-        else:
-            if not output_file:
-                log.debug(
-                    'input publish - invalid - '
-                    '{} - tickers={} missing output_file'.format(
-                        self.name,
-                        self.tickers))
-                status = INVALID
-                return status, output_file
-            # end of if good to run
-        # end of screening for returning early
+            return status
 
         log.debug('converting input df to json')
 
@@ -1581,11 +1560,9 @@ class BaseAlgo:
 
         if output_file or s3_enabled or redis_enabled or slack_enabled:
             log.info(
-                'input build json - '
-                '{} - tickers={} file={}'.format(
+                'input build json - {} - tickers={}'.format(
                     self.name,
-                    self.tickers,
-                    output_file))
+                    self.tickers))
             use_data = json.dumps(output_record)
             num_bytes = len(use_data)
             num_mb = get_mb(num_bytes)
@@ -1637,16 +1614,18 @@ class BaseAlgo:
             log.info(
                 'input publish - END - {} '
                 '{} - tickers={} '
-                'file={} size={}MB'.format(
+                'file={} s3={} redis={} size={}MB'.format(
                     get_status(status=status),
                     self.name,
                     self.tickers,
                     output_file,
+                    s3_key,
+                    redis_key,
                     num_mb))
         # end of handling for publish
 
-        return status, output_file
-    # end of publish_input_datasets
+        return status
+    # end of publish_input_dataset
 
     def get_ticker_positions(
             self,

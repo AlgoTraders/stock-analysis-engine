@@ -63,7 +63,7 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.2.8',
+    version='1.2.9',
     description=(
         'Stock Analysis Engine - '
         'Run your own algorithms with live '
@@ -106,6 +106,11 @@ setup(
         'tools/ssh-workers.sh',
         'tools/update-stack.sh'
     ],
+    entry_points={
+        'console_scripts': [
+            'sa = sa:run_sa_tool',
+        ],
+    },
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',

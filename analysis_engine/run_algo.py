@@ -26,26 +26,17 @@ Run an Algo
 import os
 import datetime
 import json
+import analysis_engine.consts as ae_consts
+import analysis_engine.utils as ae_utils
 import analysis_engine.build_algo_request as algo_utils
 import analysis_engine.iex.extract_df_from_redis as iex_extract_utils
 import analysis_engine.yahoo.extract_df_from_redis as yahoo_extract_utils
 import analysis_engine.algo as default_algo
 import analysis_engine.build_result as build_result
-from analysis_engine.consts import SUCCESS
-from analysis_engine.consts import ERR
-from analysis_engine.consts import NOT_RUN
-from analysis_engine.consts import FAILED
-from analysis_engine.consts import EMPTY
-from analysis_engine.consts import COMMON_TICK_DATE_FORMAT
-from analysis_engine.consts import get_percent_done
-from analysis_engine.utils import last_close
-from analysis_engine.utils import get_last_close_str
-from analysis_engine.utils import get_date_from_str
-from analysis_engine.api_requests import get_ds_dict
-from spylunking.log.setup_logging import build_colorized_logger
+import analysis_engine.api_requests as api_requests
+import spylunking.log.setup_logging as log_utils
 
-
-log = build_colorized_logger(
+log = log_utils.build_colorized_logger(
     name=__name__)
 
 
@@ -315,7 +306,7 @@ def run_algo(
         label = 'run-algo'
 
     num_tickers = len(use_tickers)
-    last_close_str = get_last_close_str()
+    last_close_str = ae_utils.get_last_close_str()
 
     if iex_datasets:
         log.info(
@@ -356,7 +347,7 @@ def run_algo(
                 label))
         log.error(msg)
         return build_result.build_result(
-                status=EMPTY,
+                status=ae_consts.EMPTY,
                 err=msg,
                 rec=rec)
 
@@ -391,19 +382,19 @@ def run_algo(
     Extract Datasets
     """
 
-    iex_daily_status = FAILED
-    iex_minute_status = FAILED
-    iex_quote_status = FAILED
-    iex_stats_status = FAILED
-    iex_peers_status = FAILED
-    iex_news_status = FAILED
-    iex_financials_status = FAILED
-    iex_earnings_status = FAILED
-    iex_dividends_status = FAILED
-    iex_company_status = FAILED
-    yahoo_news_status = FAILED
-    yahoo_options_status = FAILED
-    yahoo_pricing_status = FAILED
+    iex_daily_status = ae_consts.FAILED
+    iex_minute_status = ae_consts.FAILED
+    iex_quote_status = ae_consts.FAILED
+    iex_stats_status = ae_consts.FAILED
+    iex_peers_status = ae_consts.FAILED
+    iex_news_status = ae_consts.FAILED
+    iex_financials_status = ae_consts.FAILED
+    iex_earnings_status = ae_consts.FAILED
+    iex_dividends_status = ae_consts.FAILED
+    iex_company_status = ae_consts.FAILED
+    yahoo_news_status = ae_consts.FAILED
+    yahoo_options_status = ae_consts.FAILED
+    yahoo_pricing_status = ae_consts.FAILED
 
     iex_daily_df = None
     iex_minute_df = None
@@ -422,16 +413,16 @@ def run_algo(
 
     use_start_date_str = start_date
     use_end_date_str = end_date
-    last_close_date = last_close()
+    last_close_date = ae_utils.last_close()
     end_date_val = None
 
-    cache_freq_fmt = COMMON_TICK_DATE_FORMAT
+    cache_freq_fmt = ae_consts.COMMON_TICK_DATE_FORMAT
 
     if not use_end_date_str:
         use_end_date_str = last_close_date.strftime(
             cache_freq_fmt)
 
-    end_date_val = get_date_from_str(
+    end_date_val = ae_utils.get_date_from_str(
         date_str=use_end_date_str,
         fmt=cache_freq_fmt)
     start_date_val = None
@@ -444,7 +435,7 @@ def run_algo(
     else:
         start_date_val = datetime.datetime.strptime(
             use_start_date_str,
-            COMMON_TICK_DATE_FORMAT)
+            ae_consts.COMMON_TICK_DATE_FORMAT)
 
     total_dates = (end_date_val - start_date_val).days
 
@@ -484,7 +475,7 @@ def run_algo(
         common_vals['s3_key'] = ticker_key
 
         for date_key in req['extract_datasets']:
-            date_req = get_ds_dict(
+            date_req = api_requests.get_ds_dict(
                 ticker=ticker,
                 base_key=date_key,
                 ds_id=label,
@@ -526,7 +517,7 @@ def run_algo(
                 label,
                 extract_ticker,
                 extract_date,
-                get_percent_done(
+                ae_consts.get_percent_done(
                     progress=cur_idx,
                     total=total_extract_requests),
                 idx,
@@ -538,7 +529,7 @@ def run_algo(
             iex_daily_status, iex_daily_df = \
                 iex_extract_utils.extract_daily_dataset(
                     extract_req)
-            if iex_daily_status != SUCCESS:
+            if iex_daily_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
                         'unable to extract iex_daily={}'.format(ticker))
@@ -546,7 +537,7 @@ def run_algo(
             iex_minute_status, iex_minute_df = \
                 iex_extract_utils.extract_minute_dataset(
                     extract_req)
-            if iex_minute_status != SUCCESS:
+            if iex_minute_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
                         'unable to extract iex_minute={}'.format(ticker))
@@ -554,7 +545,7 @@ def run_algo(
             iex_quote_status, iex_quote_df = \
                 iex_extract_utils.extract_quote_dataset(
                     extract_req)
-            if iex_quote_status != SUCCESS:
+            if iex_quote_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
                         'unable to extract iex_quote={}'.format(ticker))
@@ -562,7 +553,7 @@ def run_algo(
             iex_stats_df, iex_stats_df = \
                 iex_extract_utils.extract_stats_dataset(
                     extract_req)
-            if iex_stats_status != SUCCESS:
+            if iex_stats_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
                         'unable to extract iex_stats={}'.format(ticker))
@@ -570,7 +561,7 @@ def run_algo(
             iex_peers_df, iex_peers_df = \
                 iex_extract_utils.extract_peers_dataset(
                     extract_req)
-            if iex_peers_status != SUCCESS:
+            if iex_peers_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
                         'unable to extract iex_peers={}'.format(ticker))
@@ -578,7 +569,7 @@ def run_algo(
             iex_news_status, iex_news_df = \
                 iex_extract_utils.extract_news_dataset(
                     extract_req)
-            if iex_news_status != SUCCESS:
+            if iex_news_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
                         'unable to extract iex_news={}'.format(ticker))
@@ -586,7 +577,7 @@ def run_algo(
             iex_financials_status, iex_financials_df = \
                 iex_extract_utils.extract_financials_dataset(
                     extract_req)
-            if iex_financials_status != SUCCESS:
+            if iex_financials_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
                         'unable to extract iex_financials={}'.format(ticker))
@@ -594,7 +585,7 @@ def run_algo(
             iex_earnings_status, iex_earnings_df = \
                 iex_extract_utils.extract_earnings_dataset(
                     extract_req)
-            if iex_earnings_status != SUCCESS:
+            if iex_earnings_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
                         'unable to extract iex_earnings={}'.format(ticker))
@@ -602,7 +593,7 @@ def run_algo(
             iex_dividends_status, iex_dividends_df = \
                 iex_extract_utils.extract_dividends_dataset(
                     extract_req)
-            if iex_dividends_status != SUCCESS:
+            if iex_dividends_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
                         'unable to extract iex_dividends={}'.format(ticker))
@@ -610,7 +601,7 @@ def run_algo(
             iex_company_status, iex_company_df = \
                 iex_extract_utils.extract_company_dataset(
                     extract_req)
-            if iex_company_status != SUCCESS:
+            if iex_company_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
                         'unable to extract iex_company={}'.format(ticker))
@@ -623,21 +614,21 @@ def run_algo(
             yahoo_options_status, yahoo_option_puts_df = \
                 yahoo_extract_utils.extract_option_puts_dataset(
                     extract_req)
-            if yahoo_options_status != SUCCESS:
+            if yahoo_options_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
                         'unable to extract yahoo_options={}'.format(ticker))
             yahoo_pricing_status, yahoo_pricing_df = \
                 yahoo_extract_utils.extract_pricing_dataset(
                     extract_req)
-            if yahoo_pricing_status != SUCCESS:
+            if yahoo_pricing_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
                         'unable to extract yahoo_pricing={}'.format(ticker))
             yahoo_news_status, yahoo_news_df = \
                 yahoo_extract_utils.extract_yahoo_news_dataset(
                     extract_req)
-            if yahoo_news_status != SUCCESS:
+            if yahoo_news_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
                         'unable to extract yahoo_news={}'.format(ticker))
@@ -677,7 +668,7 @@ def run_algo(
     # end of for service_dict in extract_requests
 
     # this could be a separate celery task
-    status = NOT_RUN
+    status = ae_consts.NOT_RUN
     if len(algo_data_req) == 0:
         msg = (
             '{} - nothing to test - no data found for tickers={} '
@@ -688,7 +679,7 @@ def run_algo(
                 last_extract_date))
         log.info(msg)
         return build_result.build_result(
-            status=EMPTY,
+            status=ae_consts.EMPTY,
             err=msg,
             rec=rec)
 
@@ -729,7 +720,7 @@ def run_algo(
         else:
             log.error(msg)
             return build_result.build_result(
-                status=ERR,
+                status=ae_consts.ERR,
                 err=msg,
                 rec=rec)
     # end of try/ex
@@ -742,7 +733,7 @@ def run_algo(
                 first_extract_date,
                 last_extract_date))
         rec = algo.get_result()
-        status = SUCCESS
+        status = ae_consts.SUCCESS
         log.info(
             'get_result END - {} from {} to {}'.format(
                 percent_label,
@@ -771,7 +762,7 @@ def run_algo(
         else:
             log.error(msg)
             return build_result.build_result(
-                status=ERR,
+                status=ae_consts.ERR,
                 err=msg,
                 rec=rec)
     # end of try/ex

@@ -43,13 +43,13 @@ Backtesting and Live Trading Workflow
 
     ::
 
-        sa.py -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
+        sa -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
 
     And to debug an algorithm's historical trading performance add the ``-d`` debug flag:
 
     ::
 
-        sa.py -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py -d
+        sa -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py -d
 
 Running Algorithm Backtests Offline
 ===================================
@@ -61,21 +61,47 @@ Run a Custom Algorithm Backtest with a File
 
 ::
 
-    sa.py -t SPY -b file:/home/jay/SPY-latest.json -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
+    sa -t SPY -b file:/home/jay/SPY-latest.json -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
 
 Run a Custom Algorithm Backtest with an S3 Key
 ----------------------------------------------
 
 ::
 
-    sa.py -t SPY -b s3://algoready/SPY-latest.json -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
+    sa -t SPY -b s3://algoready/SPY-latest.json -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
 
 Run a Custom Algorithm Backtest with a Redis Key
 ------------------------------------------------
 
 ::
 
-    sa.py -t SPY -b redis://SPY-latest.json -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
+    sa -t SPY -b redis://SPY-latest.json -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
+
+Run a Custom Algo with Dates and Publish Trading Report, Trading History and Algorithm-Ready Dataset
+====================================================================================================
+
+::
+
+    num_days_back=60
+    ./tools/run-algo-with-publishing.sh SPY ${num_days_back}
+
+Or manually with:
+
+::
+
+    ticker=SPY
+    num_days_back=60
+    use_date=$(date +"%Y-%m-%d")
+    ticker_dataset="${ticker}-${use_date}.json"
+    echo "creating ${ticker} dataset: ${ticker_dataset}"
+    history_loc="s3://algohistory/${ticker_dataset}"
+    report_loc="s3://algoreport/${ticker_dataset}"
+    extract_loc="s3://algoready/${ticker_dataset}"
+    backtest_loc="file:/tmp/${ticker_dataset}"
+    start_date=$(date --date="${num_days_back} day ago" +"%Y-%m-%d")
+    echo "running algo with:"
+    echo "sa -t SPY -p ${history_loc} -o ${report_loc} -w ${extract_loc} -b ${backtest_loc} -s ${start_date} -n ${use_date}"
+    sa -t SPY -p ${history_loc} -o ${report_loc} -e ${extract_loc} -b ${backtest_loc} -s ${start_date} -n ${use_date}
 
 Extract Algorithm-Ready Datasets
 ================================
@@ -87,21 +113,21 @@ Extract an Algorithm-Ready Dataset from Redis and Save it to a File
 
 ::
 
-    sa.py -t SPY -e ~/SPY-latest.json
+    sa -t SPY -e ~/SPY-latest.json
 
 Create a Daily Backup
 ---------------------
 
 ::
 
-    sa.py -t SPY -e ~/SPY-$(date +"%Y-%m-%d").json
+    sa -t SPY -e ~/SPY-$(date +"%Y-%m-%d").json
 
 Validate the Daily Backup by Examining the Dataset File
 -------------------------------------------------------
 
 ::
 
-    sa.py -t SPY -l ~/SPY-$(date +"%Y-%m-%d").json
+    sa -t SPY -l ~/SPY-$(date +"%Y-%m-%d").json
 
 Restore Backup to Redis
 -----------------------
@@ -112,7 +138,7 @@ Use this command to cache missing pricing datasets so algorithms have the correc
 
 ::
 
-    sa.py -t SPY -L ~/SPY-$(date +"%Y-%m-%d").json
+    sa -t SPY -L ~/SPY-$(date +"%Y-%m-%d").json
 
 Fetch
 -----
@@ -1113,7 +1139,7 @@ Prepare a Dataset
 ::
 
     ticker=SPY
-    sa.py -t ${ticker} -f -o ${ticker}_latest_v1 -j prepared -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 0 -n ${ticker}_demo
+    sa -t ${ticker} -f -o ${ticker}_latest_v1 -j prepared -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 0 -n ${ticker}_demo
 
 Debugging
 =========
@@ -1128,7 +1154,7 @@ Most of the scripts support running without Celery workers. To run without worke
 
     ticker=SPY
     publish_from_s3_to_redis.py -t ${ticker} -u integration-tests -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 0 -n integration-test-v1
-    sa.py -t ${ticker} -f -o ${ticker}_latest_v1 -j prepared -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 0 -n ${ticker}_demo
+    sa -t ${ticker} -f -o ${ticker}_latest_v1 -j prepared -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 0 -n ${ticker}_demo
     run_ticker_analysis.py -t ${ticker} -g all -e 2018-10-19 -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 0 -n ${ticker}_demo -P 1 -N 1 -O 1 -U 1 -R 1
     run_ticker_analysis.py -A scn -L 'https://finviz.com/screener.ashx?v=111&f=cap_midunder,exch_nyse,fa_div_o6,idx_sp500&ft=4|https://finviz.com/screener.ashx?v=111&f=cap_midunder,exch_nyse,fa_div_o8,idx_sp500&ft=4'
 
