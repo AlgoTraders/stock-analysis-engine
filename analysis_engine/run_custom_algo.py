@@ -9,7 +9,7 @@ Example with the command line tool:
 
 ::
 
-    sa.py -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
+    sa -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
 
 """
 
@@ -17,7 +17,7 @@ import inspect
 import types
 import importlib.machinery
 import datetime
-import analysis_engine.consts as sa_consts
+import analysis_engine.consts as ae_consts
 import analysis_engine.build_algo_request as build_algo_request
 import analysis_engine.build_publish_request as build_publish_request
 import analysis_engine.build_result as build_result
@@ -68,11 +68,11 @@ def run_custom_algo(
         extract_compress=False,
         extract_publish=True,
         extract_config=None,
-        publish_to_slack=False,
-        publish_to_s3=False,
-        publish_to_redis=False,
-        dataset_type=sa_consts.SA_DATASET_TYPE_ALGO_READY,
-        serialize_datasets=sa_consts.DEFAULT_SERIALIZED_DATASETS,
+        publish_to_s3=True,
+        publish_to_redis=True,
+        publish_to_slack=True,
+        dataset_type=ae_consts.SA_DATASET_TYPE_ALGO_READY,
+        serialize_datasets=ae_consts.DEFAULT_SERIALIZED_DATASETS,
         compress=False,
         encoding='utf-8',
         redis_enabled=True,
@@ -172,16 +172,13 @@ def run_custom_algo(
 
     :param publish_to_s3: optional - boolean for
         toggling publishing to s3 on/off
-        (default is ``False``)
+        (default is ``True``)
     :param publish_to_redis: optional - boolean for
         publishing to redis on/off
-        (default is ``False``)
-    :param publish_report: boolean - toggle publishing
-        any generated datasets to s3 and redis
-        (default ``True``)
+        (default is ``True``)
     :param publish_to_slack: optional - boolean for
         publishing to slack
-        (default is ``False``)
+        (default is ``True``)
 
     **Algorithm Trade History Arguments**
 
@@ -406,7 +403,7 @@ def run_custom_algo(
         if verbose or debug:
             log.error(err)
         return build_result.build_result(
-            status=sa_consts.ERR,
+            status=ae_consts.ERR,
             err=err,
             rec=None)
     # if not found_algo_module
@@ -416,11 +413,11 @@ def run_custom_algo(
     if not use_end_date:
         end_date = datetime.datetime.utcnow()
         use_end_date = end_date.strftime(
-            sa_consts.COMMON_TICK_DATE_FORMAT)
+            ae_consts.COMMON_TICK_DATE_FORMAT)
     if not use_start_date:
         start_date = end_date - datetime.timedelta(days=75)
         use_start_date = start_date.strftime(
-            sa_consts.COMMON_TICK_DATE_FORMAT)
+            ae_consts.COMMON_TICK_DATE_FORMAT)
 
     # Load an algorithm-ready dataset from:
     # file, s3, or redis
@@ -613,22 +610,22 @@ def run_custom_algo(
             '{} {} using extract config {}'.format(
                 name,
                 ticker,
-                sa_consts.ppj(debug_extract_config)))
+                ae_consts.ppj(debug_extract_config)))
         log.info(
             '{} {} using report config {}'.format(
                 name,
                 ticker,
-                sa_consts.ppj(debug_report_config)))
+                ae_consts.ppj(debug_report_config)))
         log.info(
             '{} {} using trade history config {}'.format(
                 name,
                 ticker,
-                sa_consts.ppj(debug_history_config)))
+                ae_consts.ppj(debug_history_config)))
         log.info(
             '{} {} using load config {}'.format(
                 name,
                 ticker,
-                sa_consts.ppj(debug_load_config)))
+                ae_consts.ppj(debug_load_config)))
         log.info(
             '{} {} - building algo request'.format(
                 name,
@@ -650,7 +647,7 @@ def run_custom_algo(
     algo_req['name'] = name
 
     algo_res = build_result.build_result(
-        status=sa_consts.NOT_RUN,
+        status=ae_consts.NOT_RUN,
         err=None,
         rec=None)
 
@@ -686,7 +683,7 @@ def run_custom_algo(
                 log.error(err)
 
             return build_result.build_result(
-                status=sa_consts.ERR,
+                status=ae_consts.ERR,
                 err=err,
                 rec=None)
         # end of finding a valid algorithm object
@@ -743,7 +740,7 @@ def run_custom_algo(
                 ticker,
                 name))
         return build_result.build_result(
-            status=sa_consts.ERR,
+            status=ae_consts.ERR,
             err=err,
             rec=None)
     # end of finding a valid algorithm object
@@ -759,7 +756,7 @@ def run_custom_algo(
             'algo name={} custom_algo_module={} module_name={} '
             'from {} to {}'.format(
                 ticker,
-                sa_consts.get_status(status=algo_res['status']),
+                ae_consts.get_status(status=algo_res['status']),
                 algo_res['err'],
                 name,
                 custom_algo_module,
@@ -767,7 +764,7 @@ def run_custom_algo(
                 use_start_date,
                 use_end_date))
         return build_result.build_result(
-            status=sa_consts.ERR,
+            status=ae_consts.ERR,
             err=err,
             rec=None)
 
@@ -775,7 +772,7 @@ def run_custom_algo(
         s3_log = ''
         redis_log = ''
         file_log = ''
-        use_log = 'published to:'
+        use_log = 'publish'
 
         if (extract_config['redis_address'] and
                 extract_config['redis_db'] and
@@ -786,6 +783,8 @@ def run_custom_algo(
                 extract_config['redis_key'])
             use_log += ' {}'.format(
                 redis_log)
+        else:
+            extract_config['redis_enabled'] = False
         if (extract_config['s3_address'] and
                 extract_config['s3_bucket'] and
                 extract_config['s3_key']):
@@ -795,6 +794,8 @@ def run_custom_algo(
                 extract_config['s3_key'])
             use_log += ' {}'.format(
                 s3_log)
+        else:
+            extract_config['s3_enabled'] = False
         if extract_config['output_file']:
             file_log = 'file:{}'.format(
                 extract_config['output_file'])
@@ -808,18 +809,17 @@ def run_custom_algo(
                 ticker,
                 use_log))
 
-        publish_status, output_file = algo.publish_input_datasets(
+        publish_status = algo.publish_input_dataset(
             **extract_config)
-        if publish_status != sa_consts.SUCCESS:
+        if publish_status != ae_consts.SUCCESS:
             msg = (
                 'failed to publish algorithm-ready datasets '
                 'with status {} attempted to {}'.format(
-                    extract_file,
-                    sa_consts.get_status(status=publish_status),
+                    ae_consts.get_status(status=publish_status),
                     use_log))
             log.error(msg)
             return build_result.build_result(
-                status=sa_consts.ERR,
+                status=ae_consts.ERR,
                 err=err,
                 rec=None)
 
@@ -835,7 +835,7 @@ def run_custom_algo(
         s3_log = ''
         redis_log = ''
         file_log = ''
-        use_log = 'published to:'
+        use_log = 'publish'
 
         if (history_config['redis_address'] and
                 history_config['redis_db'] and
@@ -868,18 +868,17 @@ def run_custom_algo(
                 ticker,
                 use_log))
 
-        publish_status, output_file = algo.publish_trade_history(
-            **extract_config)
-        if publish_status != sa_consts.SUCCESS:
+        publish_status = algo.publish_trade_history_dataset(
+            **history_config)
+        if publish_status != ae_consts.SUCCESS:
             msg = (
                 'failed to publish trading history datasets '
                 'with status {} attempted to {}'.format(
-                    extract_file,
-                    sa_consts.get_status(status=publish_status),
+                    ae_consts.get_status(status=publish_status),
                     use_log))
             log.error(msg)
             return build_result.build_result(
-                status=sa_consts.ERR,
+                status=ae_consts.ERR,
                 err=err,
                 rec=None)
 
@@ -895,7 +894,7 @@ def run_custom_algo(
         s3_log = ''
         redis_log = ''
         file_log = ''
-        use_log = 'published to:'
+        use_log = 'publish'
 
         if (report_config['redis_address'] and
                 report_config['redis_db'] and
@@ -928,18 +927,17 @@ def run_custom_algo(
                 ticker,
                 use_log))
 
-        publish_status, output_file = algo.publish_report_datasets(
-            **extract_config)
-        if publish_status != sa_consts.SUCCESS:
+        publish_status = algo.publish_report_dataset(
+            **report_config)
+        if publish_status != ae_consts.SUCCESS:
             msg = (
                 'failed to publish trading performance report datasets '
                 'with status {} attempted to {}'.format(
-                    extract_file,
-                    sa_consts.get_status(status=publish_status),
+                    ae_consts.get_status(status=publish_status),
                     use_log))
             log.error(msg)
             return build_result.build_result(
-                status=sa_consts.ERR,
+                status=ae_consts.ERR,
                 err=err,
                 rec=None)
 
@@ -952,8 +950,7 @@ def run_custom_algo(
     # if publish an trading performance report dataset
 
     log.info(
-        '{} - done publishing datasets for '
-        'ticker={} from {} to {}'.format(
+        '{} - done publishing datasets for ticker={} from {} to {}'.format(
             name,
             ticker,
             use_start_date,

@@ -34,13 +34,13 @@
 
         ::
 
-            sa.py -t SPY -e ~/SPY-$(date +"%Y-%m-%d").json
+            sa -t SPY -e ~/SPY-$(date +"%Y-%m-%d").json
 
     - **View** algorithm-ready datasets in a file
 
         ::
 
-            sa.py -t SPY -l ~/SPY-$(date +"%Y-%m-%d").json
+            sa -t SPY -l ~/SPY-$(date +"%Y-%m-%d").json
 
     - **Restore** algorithm-ready datasets from a file to redis
 
@@ -50,7 +50,7 @@
 
         ::
 
-            sa.py -t SPY -L ~/SPY-$(date +"%Y-%m-%d").json
+            sa -t SPY -L ~/SPY-$(date +"%Y-%m-%d").json
 
         .. warning:: if the output redis key or s3 key already exists, this
             process will overwrite the previously stored values
@@ -63,7 +63,7 @@
 
     ::
 
-        sa.py -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
+        sa -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
 
 """
 
@@ -72,7 +72,7 @@ import sys
 import datetime
 import argparse
 import celery
-import analysis_engine.consts as sa_consts
+import analysis_engine.consts as ae_consts
 import analysis_engine.charts as ae_charts
 import analysis_engine.iex.extract_df_from_redis as extract_utils
 import analysis_engine.show_dataset as show_dataset
@@ -81,7 +81,7 @@ import analysis_engine.work_tasks.prepare_pricing_dataset as prep_dataset
 import analysis_engine.work_tasks.get_celery_app as get_celery_app
 import analysis_engine.api_requests as api_requests
 import analysis_engine.run_custom_algo as run_custom_algo
-import spylunking.log.setup_logging as setup_logging
+import spylunking.log.setup_logging as log_utils
 
 
 # Disable celery log hijacking
@@ -91,9 +91,9 @@ def setup_celery_logging(**kwargs):
     pass
 
 
-log = setup_logging.build_colorized_logger(
+log = log_utils.build_colorized_logger(
     name='sa',
-    log_config_path=sa_consts.LOG_CONFIG_PATH)
+    log_config_path=ae_consts.LOG_CONFIG_PATH)
 
 
 def restore_missing_dataset_values_from_algo_ready_file(
@@ -101,12 +101,12 @@ def restore_missing_dataset_values_from_algo_ready_file(
         path_to_file,
         redis_address,
         redis_password,
-        redis_db=sa_consts.REDIS_DB,
+        redis_db=ae_consts.REDIS_DB,
         output_redis_db=None,
         compress=False,
         encoding='utf-8',
-        dataset_type=sa_consts.SA_DATASET_TYPE_ALGO_READY,
-        serialize_datasets=sa_consts.DEFAULT_SERIALIZED_DATASETS,
+        dataset_type=ae_consts.SA_DATASET_TYPE_ALGO_READY,
+        serialize_datasets=ae_consts.DEFAULT_SERIALIZED_DATASETS,
         show_summary=True):
     """restore_missing_dataset_values_from_algo_ready_file
 
@@ -139,7 +139,7 @@ def restore_missing_dataset_values_from_algo_ready_file(
                 path_to_file))
         return
 
-    if dataset_type == sa_consts.SA_DATASET_TYPE_ALGO_READY:
+    if dataset_type == ae_consts.SA_DATASET_TYPE_ALGO_READY:
         log.info(
             'restore start - load dataset from file={}'.format(
                 path_to_file))
@@ -176,8 +176,8 @@ def examine_dataset_in_file(
         compress=False,
         encoding='utf-8',
         ticker=None,
-        dataset_type=sa_consts.SA_DATASET_TYPE_ALGO_READY,
-        serialize_datasets=sa_consts.DEFAULT_SERIALIZED_DATASETS,):
+        dataset_type=ae_consts.SA_DATASET_TYPE_ALGO_READY,
+        serialize_datasets=ae_consts.DEFAULT_SERIALIZED_DATASETS,):
     """examine_dataset_in_file
 
     Show the internal dataset dictionary structure in dataset file
@@ -195,7 +195,7 @@ def examine_dataset_in_file(
     :param serialize_datasets: optional - list of dataset names to
         deserialize in the dataset
     """
-    if dataset_type == sa_consts.SA_DATASET_TYPE_ALGO_READY:
+    if dataset_type == ae_consts.SA_DATASET_TYPE_ALGO_READY:
         log.info(
             'show start - load dataset from file={}'.format(
                 path_to_file))
@@ -218,7 +218,7 @@ def examine_dataset_in_file(
 
 
 def run_sa_tool():
-    """sa_tool
+    """run_sa_tool
 
     Run buy and sell analysis on a stock to send alerts to subscribed
     users
@@ -242,7 +242,7 @@ def run_sa_tool():
             'file path to extract an '
             'algorithm-ready datasets from redis'),
         required=False,
-        dest='extract_to_uri')
+        dest='algo_extract_loc')
     parser.add_argument(
         '-l',
         help=(
@@ -264,18 +264,6 @@ def run_sa_tool():
         dest='prepare_mode',
         action='store_true')
     parser.add_argument(
-        '-o',
-        help=(
-            'output s3 and redis key'),
-        dest='output_key')
-    parser.add_argument(
-        '-j',
-        help=(
-            'output s3 bucket - default bucket is named '
-            'prepared'),
-        required=False,
-        dest='output_s3_bucket')
-    parser.add_argument(
         '-J',
         help=(
             'plot action - after preparing you can use: '
@@ -291,7 +279,7 @@ def run_sa_tool():
             's3://algoready/SPY-latest.json or '
             'redis:SPY-latest'),
         required=False,
-        dest='backtest_uri')
+        dest='backtest_loc')
     parser.add_argument(
         '-B',
         help=(
@@ -305,7 +293,7 @@ def run_sa_tool():
         required=False,
         dest='s3_access_key')
     parser.add_argument(
-        '-s',
+        '-K',
         help=(
             'optional - s3 secret key'),
         required=False,
@@ -317,11 +305,23 @@ def run_sa_tool():
         required=False,
         dest='s3_address')
     parser.add_argument(
-        '-S',
+        '-Z',
         help=(
-            'optional - s3 ssl or not'),
+            'optional - s3 secure: default False'),
         required=False,
         dest='s3_secure')
+    parser.add_argument(
+        '-s',
+        help=(
+            'optional - start date: YYYY-MM-DD'),
+        required=False,
+        dest='start_date')
+    parser.add_argument(
+        '-n',
+        help=(
+            'optional - end date: YYYY-MM-DD'),
+        required=False,
+        dest='end_date')
     parser.add_argument(
         '-u',
         help=(
@@ -352,9 +352,15 @@ def run_sa_tool():
     parser.add_argument(
         '-p',
         help=(
-            'optional - redis_password'),
+            'optional - s3 bucket/file for trading history'),
         required=False,
-        dest='redis_password')
+        dest='algo_history_loc')
+    parser.add_argument(
+        '-o',
+        help=(
+            'optional - s3 bucket/file for trading performance report'),
+        required=False,
+        dest='algo_report_loc')
     parser.add_argument(
         '-r',
         help=(
@@ -362,7 +368,7 @@ def run_sa_tool():
         required=False,
         dest='redis_address')
     parser.add_argument(
-        '-n',
+        '-R',
         help=(
             'optional - redis and s3 key name'),
         required=False,
@@ -410,20 +416,6 @@ def run_sa_tool():
         required=False,
         dest='get_options')
     parser.add_argument(
-        '-U',
-        help=(
-            'optional - s3 enabled for publishing if "1" or '
-            '"0" is disabled'),
-        required=False,
-        dest='s3_enabled')
-    parser.add_argument(
-        '-R',
-        help=(
-            'optional - redis enabled for publishing if "1" or '
-            '"0" is disabled'),
-        required=False,
-        dest='redis_enabled')
-    parser.add_argument(
         '-i',
         help=(
             'optional - ignore column names (comma separated)'),
@@ -439,27 +431,27 @@ def run_sa_tool():
     args = parser.parse_args()
 
     mode = 'prepare'
-    plot_action = sa_consts.PLOT_ACTION_SHOW
-    ticker = sa_consts.TICKER
-    ticker_id = sa_consts.TICKER_ID
-    ssl_options = sa_consts.SSL_OPTIONS
-    transport_options = sa_consts.TRANSPORT_OPTIONS
-    broker_url = sa_consts.WORKER_BROKER_URL
-    backend_url = sa_consts.WORKER_BACKEND_URL
-    celery_config_module = sa_consts.WORKER_CELERY_CONFIG_MODULE
-    include_tasks = sa_consts.INCLUDE_TASKS
-    s3_access_key = sa_consts.S3_ACCESS_KEY
-    s3_secret_key = sa_consts.S3_SECRET_KEY
-    s3_region_name = sa_consts.S3_REGION_NAME
-    s3_address = sa_consts.S3_ADDRESS
-    s3_secure = sa_consts.S3_SECURE
-    s3_bucket_name = sa_consts.S3_BUCKET
-    s3_key = sa_consts.S3_KEY
-    redis_address = sa_consts.REDIS_ADDRESS
-    redis_key = sa_consts.REDIS_KEY
-    redis_password = sa_consts.REDIS_PASSWORD
-    redis_db = sa_consts.REDIS_DB
-    redis_expire = sa_consts.REDIS_EXPIRE
+    plot_action = ae_consts.PLOT_ACTION_SHOW
+    ticker = ae_consts.TICKER
+    ticker_id = ae_consts.TICKER_ID
+    ssl_options = ae_consts.SSL_OPTIONS
+    transport_options = ae_consts.TRANSPORT_OPTIONS
+    broker_url = ae_consts.WORKER_BROKER_URL
+    backend_url = ae_consts.WORKER_BACKEND_URL
+    celery_config_module = ae_consts.WORKER_CELERY_CONFIG_MODULE
+    include_tasks = ae_consts.INCLUDE_TASKS
+    s3_access_key = ae_consts.S3_ACCESS_KEY
+    s3_secret_key = ae_consts.S3_SECRET_KEY
+    s3_region_name = ae_consts.S3_REGION_NAME
+    s3_address = ae_consts.S3_ADDRESS
+    s3_secure = ae_consts.S3_SECURE
+    s3_bucket_name = ae_consts.S3_BUCKET
+    s3_key = ae_consts.S3_KEY
+    redis_address = ae_consts.REDIS_ADDRESS
+    redis_key = ae_consts.REDIS_KEY
+    redis_password = ae_consts.REDIS_PASSWORD
+    redis_db = ae_consts.REDIS_DB
+    redis_expire = ae_consts.REDIS_EXPIRE
     redis_serializer = 'json'
     redis_encoding = 'utf-8'
     output_redis_key = None
@@ -472,8 +464,11 @@ def run_sa_tool():
 
     show_from_file = None
     restore_algo_file = None
-    backtest_uri = None
+    backtest_loc = None
     use_custom_algo = False
+    algo_history_loc = 's3://algohistory'
+    algo_report_loc = 's3://algoreport'
+    algo_extract_loc = 's3://algoready'
 
     use_balance = 5000.0
     use_commission = 6.0
@@ -504,35 +499,24 @@ def run_sa_tool():
         redis_key = args.keyname
     if args.redis_address:
         redis_address = args.redis_address
-    if args.redis_password:
-        redis_password = args.redis_password
     if args.redis_db:
         redis_db = args.redis_db
     if args.redis_expire:
         redis_expire = args.redis_expire
-    if args.s3_enabled:
-        s3_enabled = args.s3_enabled == '1'
-    if args.redis_enabled:
-        redis_enabled = args.redis_enabled == '1'
     if args.prepare_mode:
-        mode = sa_consts.SA_MODE_PREPARE
-    if args.output_key:
-        output_s3_key = args.output_key
-        output_redis_key = args.output_key
-    if args.output_s3_bucket:
-        output_s3_bucket = args.output_s3_bucket
+        mode = ae_consts.SA_MODE_PREPARE
     if args.ignore_columns:
         ignore_columns_org = args.ignore_columns
         ignore_columns = ignore_columns_org.split(",")
     if args.plot_action:
         if str(args.plot_action).lower() == 'show':
-            plot_action = sa_consts.PLOT_ACTION_SHOW
+            plot_action = ae_consts.PLOT_ACTION_SHOW
         elif str(args.plot_action).lower() == 's3':
-            plot_action = sa_consts.PLOT_ACTION_SAVE_TO_S3
+            plot_action = ae_consts.PLOT_ACTION_SAVE_TO_S3
         elif str(args.plot_action).lower() == 'save':
-            plot_action = sa_consts.PLOT_ACTION_SAVE_AS_FILE
+            plot_action = ae_consts.PLOT_ACTION_SAVE_AS_FILE
         else:
-            plot_action = sa_consts.PLOT_ACTION_SHOW
+            plot_action = ae_consts.PLOT_ACTION_SHOW
             log.warning(
                 'unsupported plot_action: {}'.format(
                     args.plot_action))
@@ -540,33 +524,69 @@ def run_sa_tool():
     if args.debug:
         debug = True
 
-    if args.extract_to_uri:
-        mode = sa_consts.SA_MODE_EXTRACT
+    if args.algo_extract_loc:
+        mode = ae_consts.SA_MODE_EXTRACT
     if args.show_from_file:
         show_from_file = args.show_from_file
-        mode = sa_consts.SA_MODE_SHOW_DATASET
+        mode = ae_consts.SA_MODE_SHOW_DATASET
     if args.restore_algo_file:
         restore_algo_file = args.restore_algo_file
-        mode = sa_consts.SA_MODE_RESTORE_REDIS_DATASET
+        mode = ae_consts.SA_MODE_RESTORE_REDIS_DATASET
     if args.run_algo_in_file:
-        mode = sa_consts.SA_MODE_RUN_ALGO
-    if args.backtest_uri:
-        mode = sa_consts.SA_MODE_RUN_ALGO
+        mode = ae_consts.SA_MODE_RUN_ALGO
+    if args.backtest_loc:
+        mode = ae_consts.SA_MODE_RUN_ALGO
+    if args.start_date:
+        try:
+            use_start_date = '{} 00:00:00'.format(
+                str(args.start_date))
+            datetime.datetime.strptime(
+                args.start_date,
+                ae_consts.COMMON_DATE_FORMAT)
+        except Exception as e:
+            msg = (
+                'please use a start date formatted as: {}'
+                '\n'
+                'error was: {}'.format(
+                    ae_consts.COMMON_DATE_FORMAT,
+                    e))
+            log.error(msg)
+            sys.exit(1)
+        # end of testing for a valid date
+    # end of args.start_date
+    if args.end_date:
+        try:
+            use_end_date = '{} 00:00:00'.format(
+                str(args.end_date))
+            datetime.datetime.strptime(
+                args.end_date,
+                ae_consts.COMMON_DATE_FORMAT)
+        except Exception as e:
+            msg = (
+                'please use an end date formatted as: {}'
+                '\n'
+                'error was: {}'.format(
+                    ae_consts.COMMON_DATE_FORMAT,
+                    e))
+            log.error(msg)
+            sys.exit(1)
+        # end of testing for a valid date
+    # end of args.end_date
 
-    dataset_type = sa_consts.SA_DATASET_TYPE_ALGO_READY
-    serialize_datasets = sa_consts.DEFAULT_SERIALIZED_DATASETS
-    s3_access_key = sa_consts.S3_ACCESS_KEY
-    s3_secret_key = sa_consts.S3_SECRET_KEY
-    s3_region_name = sa_consts.S3_REGION_NAME
-    s3_address = sa_consts.S3_ADDRESS
-    s3_secure = sa_consts.S3_SECURE
-    s3_bucket_name = sa_consts.S3_BUCKET
-    s3_key = sa_consts.S3_KEY
-    redis_address = sa_consts.REDIS_ADDRESS
-    redis_key = sa_consts.REDIS_KEY
-    redis_password = sa_consts.REDIS_PASSWORD
-    redis_db = sa_consts.REDIS_DB
-    redis_expire = sa_consts.REDIS_EXPIRE
+    dataset_type = ae_consts.SA_DATASET_TYPE_ALGO_READY
+    serialize_datasets = ae_consts.DEFAULT_SERIALIZED_DATASETS
+    s3_access_key = ae_consts.S3_ACCESS_KEY
+    s3_secret_key = ae_consts.S3_SECRET_KEY
+    s3_region_name = ae_consts.S3_REGION_NAME
+    s3_address = ae_consts.S3_ADDRESS
+    s3_secure = ae_consts.S3_SECURE
+    s3_bucket_name = ae_consts.S3_BUCKET
+    s3_key = ae_consts.S3_KEY
+    redis_address = ae_consts.REDIS_ADDRESS
+    redis_key = ae_consts.REDIS_KEY
+    redis_password = ae_consts.REDIS_PASSWORD
+    redis_db = ae_consts.REDIS_DB
+    redis_expire = ae_consts.REDIS_EXPIRE
     output_redis_key = None
     output_s3_bucket = None
     output_s3_key = None
@@ -611,11 +631,11 @@ def run_sa_tool():
     extract_compress = False
     extract_publish = True
     extract_config = None
-    publish_to_slack = False
-    publish_to_s3 = False
-    publish_to_redis = False
-    dataset_type = sa_consts.SA_DATASET_TYPE_ALGO_READY
-    serialize_datasets = sa_consts.DEFAULT_SERIALIZED_DATASETS
+    publish_to_slack = True
+    publish_to_s3 = True
+    publish_to_redis = True
+    dataset_type = ae_consts.SA_DATASET_TYPE_ALGO_READY
+    serialize_datasets = ae_consts.DEFAULT_SERIALIZED_DATASETS
 
     valid = False
     required_task = False
@@ -623,7 +643,7 @@ def run_sa_tool():
     task_name = None
     work = {}
     path_to_tasks = 'analysis_engine.work_tasks'
-    if mode == sa_consts.SA_MODE_PREPARE:
+    if mode == ae_consts.SA_MODE_PREPARE:
         task_name = (
             '{}.'
             'prepare_pricing_dataset.prepare_pricing_dataset').format(
@@ -638,12 +658,12 @@ def run_sa_tool():
         work['ignore_columns'] = ignore_columns
         valid = True
         required_task = True
-    elif mode == sa_consts.SA_MODE_EXTRACT:
-        if args.extract_to_uri:
-            extract_to_uri = args.extract_to_uri
-            if ('file:/' not in extract_to_uri and
-                    's3://' not in extract_to_uri and
-                    'redis://' not in extract_to_uri):
+    elif mode == ae_consts.SA_MODE_EXTRACT:
+        if args.algo_extract_loc:
+            algo_extract_loc = args.algo_extract_loc
+            if ('file:/' not in algo_extract_loc and
+                    's3://' not in algo_extract_loc and
+                    'redis://' not in algo_extract_loc):
                 log.error(
                     'invalid -e <extract_to_file_or_s3_key_or_redis_key> '
                     'specified. please use either: '
@@ -651,17 +671,17 @@ def run_sa_tool():
                     '-e s3://algoready/SPY-latest.json or '
                     '-e redis://SPY-latest')
                 sys.exit(1)
-            if 's3://' in extract_to_uri:
-                extract_s3_bucket = extract_to_uri.split('/')[-2]
-                extract_s3_key = extract_to_uri.split('/')[-1]
-            elif 'redis://' in extract_to_uri:
-                extract_redis_key = extract_to_uri.split('/')[-1]
-            elif 'file:/' in extract_to_uri:
-                extract_file = extract_to_uri.split(':')[-1]
+            if 's3://' in algo_extract_loc:
+                extract_s3_bucket = algo_extract_loc.split('/')[-2]
+                extract_s3_key = algo_extract_loc.split('/')[-1]
+            elif 'redis://' in algo_extract_loc:
+                extract_redis_key = algo_extract_loc.split('/')[-1]
+            elif 'file:/' in algo_extract_loc:
+                extract_file = algo_extract_loc.split(':')[-1]
         # end of parsing supported transport for loading
 
         use_custom_algo = True
-    elif mode == sa_consts.SA_MODE_SHOW_DATASET:
+    elif mode == ae_consts.SA_MODE_SHOW_DATASET:
         examine_dataset_in_file(
             ticker=ticker,
             path_to_file=show_from_file)
@@ -670,7 +690,7 @@ def run_sa_tool():
                 ticker,
                 show_from_file))
         sys.exit(0)
-    elif mode == sa_consts.SA_MODE_RESTORE_REDIS_DATASET:
+    elif mode == ae_consts.SA_MODE_RESTORE_REDIS_DATASET:
         restore_missing_dataset_values_from_algo_ready_file(
             ticker=ticker,
             path_to_file=restore_algo_file,
@@ -678,15 +698,15 @@ def run_sa_tool():
             redis_password=redis_password,
             redis_db=redis_db,
             output_redis_db=redis_db,
-            dataset_type=sa_consts.SA_DATASET_TYPE_ALGO_READY,
-            serialize_datasets=sa_consts.DEFAULT_SERIALIZED_DATASETS)
+            dataset_type=ae_consts.SA_DATASET_TYPE_ALGO_READY,
+            serialize_datasets=ae_consts.DEFAULT_SERIALIZED_DATASETS)
         log.info(
             'done restoring {} dataset from file={} into redis_db={}'.format(
                 ticker,
                 restore_algo_file,
                 redis_db))
         sys.exit(0)
-    elif mode == sa_consts.SA_MODE_RUN_ALGO:
+    elif mode == ae_consts.SA_MODE_RUN_ALGO:
         if args.run_algo_in_file:
             if not os.path.exists(args.run_algo_in_file):
                 log.error(
@@ -694,11 +714,11 @@ def run_sa_tool():
                         args.run_algo_in_file))
                 sys.exit(1)
 
-        if args.backtest_uri:
-            backtest_uri = args.backtest_uri
-            if ('file:/' not in backtest_uri and
-                    's3://' not in backtest_uri and
-                    'redis://' not in backtest_uri):
+        if args.backtest_loc:
+            backtest_loc = args.backtest_loc
+            if ('file:/' not in backtest_loc and
+                    's3://' not in backtest_loc and
+                    'redis://' not in backtest_loc):
                 log.error(
                     'invalid -b <backtest dataset file> specified. '
                     'please use either: '
@@ -706,19 +726,87 @@ def run_sa_tool():
                     '-b s3://algoready/SPY-latest.json or '
                     '-b redis://SPY-latest')
                 sys.exit(1)
-            if 's3://' in backtest_uri:
-                load_from_s3_bucket = backtest_uri.split('/')[-2]
-                load_from_s3_key = backtest_uri.split('/')[-1]
-            elif 'redis://' in backtest_uri:
-                load_from_redis_key = backtest_uri.split('/')[-1]
-            elif 'file:/' in backtest_uri:
-                load_from_file = backtest_uri.split(':')[-1]
-        # end of parsing supported transport for loading
+            if 's3://' in backtest_loc:
+                load_from_s3_bucket = backtest_loc.split('/')[-2]
+                load_from_s3_key = backtest_loc.split('/')[-1]
+            elif 'redis://' in backtest_loc:
+                load_from_redis_key = backtest_loc.split('/')[-1]
+            elif 'file:/' in backtest_loc:
+                load_from_file = backtest_loc.split(':')[-1]
+            load_publish = True
+        # end of parsing supported transport - loading an algo-ready
+
+        if args.algo_history_loc:
+            algo_history_loc = args.algo_history_loc
+            if ('file:/' not in algo_history_loc and
+                    's3://' not in algo_history_loc and
+                    'redis://' not in algo_history_loc):
+                log.error(
+                    'invalid -b <backtest dataset file> specified. '
+                    'please use either: '
+                    '-p file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
+                    '-p s3://algoready/SPY-latest.json or '
+                    '-p redis://SPY-latest')
+                sys.exit(1)
+            if 's3://' in algo_history_loc:
+                history_s3_bucket = algo_history_loc.split('/')[-2]
+                history_s3_key = algo_history_loc.split('/')[-1]
+            elif 'redis://' in algo_history_loc:
+                history_redis_key = algo_history_loc.split('/')[-1]
+            elif 'file:/' in algo_history_loc:
+                history_file = algo_history_loc.split(':')[-1]
+            history_publish = True
+        # end of parsing supported transport - trading history
+
+        if args.algo_report_loc:
+            algo_report_loc = args.algo_report_loc
+            if ('file:/' not in algo_report_loc and
+                    's3://' not in algo_report_loc and
+                    'redis://' not in algo_report_loc):
+                log.error(
+                    'invalid -b <backtest dataset file> specified. '
+                    'please use either: '
+                    '-o file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
+                    '-o s3://algoready/SPY-latest.json or '
+                    '-o redis://SPY-latest')
+                sys.exit(1)
+            if 's3://' in algo_report_loc:
+                report_s3_bucket = algo_report_loc.split('/')[-2]
+                report_s3_key = algo_report_loc.split('/')[-1]
+            elif 'redis://' in algo_report_loc:
+                report_redis_key = algo_report_loc.split('/')[-1]
+            elif 'file:/' in algo_report_loc:
+                report_file = algo_report_loc.split(':')[-1]
+            report_publish = True
+        # end of parsing supported transport - trading performance report
+
+        if args.algo_extract_loc:
+            algo_extract_loc = args.algo_extract_loc
+            if ('file:/' not in algo_extract_loc and
+                    's3://' not in algo_extract_loc and
+                    'redis://' not in algo_extract_loc):
+                log.error(
+                    'invalid -b <backtest dataset file> specified. '
+                    'please use either: '
+                    '-e file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
+                    '-e s3://algoready/SPY-latest.json or '
+                    '-e redis://SPY-latest')
+                sys.exit(1)
+            if 's3://' in algo_extract_loc:
+                extract_s3_bucket = algo_extract_loc.split('/')[-2]
+                extract_s3_key = algo_extract_loc.split('/')[-1]
+            elif 'redis://' in algo_extract_loc:
+                extract_redis_key = algo_extract_loc.split('/')[-1]
+            elif 'file:/' in algo_extract_loc:
+                extract_file = algo_extract_loc.split(':')[-1]
+            extract_publish = True
+        # end of parsing supported transport - extract algorithm-ready
 
         use_custom_algo = True
     # end of set up for backtest
 
     if use_custom_algo:
+
         log.info('starting algo')
         algo_res = run_custom_algo.run_custom_algo(
             mod_path=args.run_algo_in_file,
@@ -786,33 +874,36 @@ def run_sa_tool():
             slack_enabled=slack_enabled,
             slack_code_block=slack_code_block,
             slack_full_width=slack_full_width,
+            dataset_publish_extract=extract_publish,
+            dataset_publish_history=history_publish,
+            dataset_publish_report=report_publish,
             verbose=verbose)
         if args.debug:
-            if algo_res['status'] == sa_consts.SUCCESS:
+            if algo_res['status'] == ae_consts.SUCCESS:
                 log.info(
                     '{} - done running {} algo.name={} from '
                     'file {} results: {}'.format(
-                        sa_consts.get_status(status=algo_res['status']),
+                        ae_consts.get_status(status=algo_res['status']),
                         ticker,
                         algo_res['algo'].name,
                         args.run_algo_in_file,
-                        sa_consts.ppj(algo_res['rec'])))
+                        ae_consts.ppj(algo_res['rec'])))
             else:
                 log.error(
                     '{} - done running {} algo.name={} from '
                     'file {} results: {}'.format(
-                        sa_consts.get_status(status=algo_res['status']),
+                        ae_consts.get_status(status=algo_res['status']),
                         ticker,
                         algo_res['algo'].name,
                         args.run_algo_in_file,
-                        sa_consts.ppj(algo_res['rec'])))
+                        ae_consts.ppj(algo_res['rec'])))
         else:
-            if algo_res['status'] == sa_consts.SUCCESS:
+            if algo_res['status'] == ae_consts.SUCCESS:
                 log.info(
                     '{} - done running {} algo.name={} from '
                     'file {} algorithm performance history '
                     'records: {}'.format(
-                        sa_consts.get_status(status=algo_res['status']),
+                        ae_consts.get_status(status=algo_res['status']),
                         ticker,
                         algo_res['algo'].name,
                         args.run_algo_in_file,
@@ -824,9 +915,9 @@ def run_sa_tool():
                 sys.exit(1)
         # end of running the custom algo handler
 
-        if mode == sa_consts.SA_MODE_EXTRACT:
+        if mode == ae_consts.SA_MODE_EXTRACT:
             log.info('done extracting dataset - {}'.format(ticker))
-        elif mode == sa_consts.SA_MODE_RUN_ALGO:
+        elif mode == ae_consts.SA_MODE_RUN_ALGO:
             log.info('done running algo - {}'.format(ticker))
 
         sys.exit(0)
@@ -865,12 +956,12 @@ def run_sa_tool():
         ticker)
 
     task_res = None
-    if sa_consts.is_celery_disabled():
+    if ae_consts.is_celery_disabled():
         work['celery_disabled'] = True
         log.debug(
             'starting without celery work={}'.format(
-                sa_consts.ppj(work)))
-        if mode == sa_consts.SA_MODE_PREPARE:
+                ae_consts.ppj(work)))
+        if mode == ae_consts.SA_MODE_PREPARE:
             task_res = prep_dataset.prepare_pricing_dataset(
                 work)
 
@@ -879,9 +970,9 @@ def run_sa_tool():
                 'done - result={} '
                 'task={} status={} '
                 'err={} label={}'.format(
-                    sa_consts.ppj(task_res),
+                    ae_consts.ppj(task_res),
                     task_name,
-                    sa_consts.get_status(status=task_res['status']),
+                    ae_consts.get_status(status=task_res['status']),
                     task_res['err'],
                     work['label']))
         else:
@@ -890,15 +981,15 @@ def run_sa_tool():
                 'task={} status={} '
                 'err={} label={}'.format(
                     task_name,
-                    sa_consts.get_status(status=task_res['status']),
+                    ae_consts.get_status(status=task_res['status']),
                     task_res['err'],
                     work['label']))
 
-        if task_res['status'] == sa_consts.SUCCESS:
+        if task_res['status'] == ae_consts.SUCCESS:
             image_res = None
             label = work['label']
             ticker = work['ticker']
-            if plot_action == sa_consts.PLOT_ACTION_SHOW:
+            if plot_action == ae_consts.PLOT_ACTION_SHOW:
                 log.info(
                     'showing plot')
                 """
@@ -929,7 +1020,7 @@ def run_sa_tool():
                 extract_status, minute_df = \
                     extract_utils.extract_minute_dataset(
                         work_dict=work)
-                if extract_status == sa_consts.SUCCESS:
+                if extract_status == ae_consts.SUCCESS:
                     log.info(
                         '{} - ticker={} creating chart date={}'.format(
                             label,
@@ -941,7 +1032,7 @@ def run_sa_tool():
                     image_res = ae_charts.plot_overlay_pricing_and_volume(
                         log_label=label,
                         ticker=ticker,
-                        date_format=sa_consts.IEX_MINUTE_DATE_FORMAT,
+                        date_format=ae_consts.IEX_MINUTE_DATE_FORMAT,
                         df=minute_df,
                         show_plot=True)
 
@@ -981,17 +1072,17 @@ def run_sa_tool():
                         ylabel='Pricing',
                         show_plot=True)
                     """
-            elif plot_action == sa_consts.PLOT_ACTION_SAVE_TO_S3:
+            elif plot_action == ae_consts.PLOT_ACTION_SAVE_TO_S3:
                 log.info(
                     'coming soon - support to save to s3')
-            elif plot_action == sa_consts.PLOT_ACTION_SAVE_AS_FILE:
+            elif plot_action == ae_consts.PLOT_ACTION_SAVE_AS_FILE:
                 log.info(
                     'coming soon - support to save as file')
             if image_res:
                 log.info(
                     '{} show plot - status={} err={}'.format(
                         label,
-                        sa_consts.get_status(image_res['status']),
+                        ae_consts.get_status(image_res['status']),
                         image_res['err']))
     else:
         log.info(
@@ -1012,7 +1103,7 @@ def run_sa_tool():
         log.info(
             'calling task={} - work={}'.format(
                 task_name,
-                sa_consts.ppj(work)))
+                ae_consts.ppj(work)))
         job_id = app.send_task(
             task_name,
             (work,))

@@ -928,7 +928,7 @@ class TestBaseAlgo(BaseTestCase):
             slack_code_block=slack_code_block,
             slack_full_width=slack_full_width,
             verbose=verbose)
-        publish_input_status, output_file = algo.publish_input_datasets(
+        publish_input_status = algo.publish_input_dataset(
             **publish_input_req)
         self.assertEqual(
             get_status(status=publish_input_status),
@@ -996,7 +996,7 @@ class TestBaseAlgo(BaseTestCase):
             slack_code_block=slack_code_block,
             slack_full_width=slack_full_width,
             verbose=verbose)
-        publish_input_status, output_file = algo.publish_input_datasets(
+        publish_input_status = algo.publish_input_dataset(
             **publish_input_req)
         self.assertEqual(
             get_status(status=publish_input_status),
@@ -1064,7 +1064,7 @@ class TestBaseAlgo(BaseTestCase):
             slack_code_block=slack_code_block,
             slack_full_width=slack_full_width,
             verbose=verbose)
-        publish_input_status, output_file = algo.publish_input_datasets(
+        publish_input_status = algo.publish_input_dataset(
             **publish_input_req)
         self.assertEqual(
             get_status(status=publish_input_status),
@@ -1144,7 +1144,7 @@ class TestBaseAlgo(BaseTestCase):
             slack_code_block=slack_code_block,
             slack_full_width=slack_full_width,
             verbose=verbose)
-        publish_input_status, output_file = algo.publish_input_datasets(
+        publish_input_status = algo.publish_input_dataset(
             **publish_input_req)
         self.assertEqual(
             get_status(status=publish_input_status),
@@ -1228,7 +1228,7 @@ class TestBaseAlgo(BaseTestCase):
             slack_code_block=slack_code_block,
             slack_full_width=slack_full_width,
             verbose=verbose)
-        publish_input_status, output_file = algo.publish_input_datasets(
+        publish_input_status = algo.publish_input_dataset(
             **publish_input_req)
         self.assertEqual(
             get_status(status=publish_input_status),
@@ -1278,8 +1278,8 @@ class TestBaseAlgo(BaseTestCase):
                 s3_enabled=False,
                 slack_enabled=False,
                 verbose=True)
-            publish_input_status, output_file = \
-                algo.publish_input_datasets(
+            publish_input_status = \
+                algo.publish_input_dataset(
                     **publish_input_req)
             self.assertEqual(
                 get_status(status=publish_input_status),
@@ -1386,7 +1386,7 @@ class TestBaseAlgo(BaseTestCase):
             slack_code_block=slack_code_block,
             slack_full_width=slack_full_width,
             verbose=verbose)
-        publish_input_status, output_file = algo.publish_input_datasets(
+        publish_input_status = algo.publish_input_dataset(
             **publish_input_req)
         self.assertEqual(
             get_status(status=publish_input_status),
@@ -1486,7 +1486,7 @@ class TestBaseAlgo(BaseTestCase):
             slack_code_block=slack_code_block,
             slack_full_width=slack_full_width,
             verbose=verbose)
-        publish_input_status, output_file = algo.publish_input_datasets(
+        publish_input_status = algo.publish_input_dataset(
             **publish_input_req)
         self.assertEqual(
             get_status(status=publish_input_status),
@@ -1589,7 +1589,7 @@ class TestBaseAlgo(BaseTestCase):
             slack_code_block=slack_code_block,
             slack_full_width=slack_full_width,
             verbose=verbose)
-        publish_input_status, output_file = algo.publish_input_datasets(
+        publish_input_status = algo.publish_input_dataset(
             **publish_input_req)
         self.assertEqual(
             get_status(status=publish_input_status),

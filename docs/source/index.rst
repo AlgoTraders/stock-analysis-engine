@@ -48,13 +48,13 @@ Backtesting and Live Trading Workflow
 
     ::
 
-        sa.py -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
+        sa -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
 
     And to debug an algorithm's historical trading performance add the ``-d`` debug flag:
 
     ::
 
-        sa.py -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py -d
+        sa -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py -d
 
 Running Algorithm Backtests Offline
 ===================================
@@ -66,21 +66,48 @@ Run a Custom Algorithm Backtest with a File
 
 ::
 
-    sa.py -t SPY -b file:/home/jay/SPY-latest.json -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
+    sa -t SPY -b file:/home/jay/SPY-latest.json -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
 
 Run a Custom Algorithm Backtest with an S3 Key
 ----------------------------------------------
 
 ::
 
-    sa.py -t SPY -b s3://algoready/SPY-latest.json -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
+    sa -t SPY -b s3://algoready/SPY-latest.json -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
 
 Run a Custom Algorithm Backtest with a Redis Key
 ------------------------------------------------
 
 ::
 
-    sa.py -t SPY -b redis://SPY-latest.json -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
+    sa -t SPY -b redis://SPY-latest.json -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
+
+Run a Custom Algo with Dates and Publish Trading Report, Trading History and Algorithm-Ready Dataset
+====================================================================================================
+
+::
+
+    num_days_back=60
+    ./tools/run-algo-with-publishing.sh SPY ${num_days_back}
+
+Or manually with:
+
+::
+
+    ticker=SPY
+    num_days_back=60
+    use_date=$(date +"%Y-%m-%d")
+    ticker_dataset="${ticker}-${use_date}.json"
+    echo "creating ${ticker} dataset: ${ticker_dataset}"
+    report_loc="s3://algoreports/${ticker_dataset}"
+    history_loc="s3://algohistory/${ticker_dataset}"
+    report_loc="s3://algoreport/${ticker_dataset}"
+    extract_loc="s3://algoready/${ticker_dataset}"
+    backtest_loc="file:/tmp/${ticker_dataset}"
+    start_date=$(date --date="${num_days_back} day ago" +"%Y-%m-%d")
+    echo "running algo with:"
+    echo "sa -t SPY -e ${report_loc} -p ${history_loc} -o ${report_loc} -w ${extract_loc} -b ${backtest_loc} -s ${start_date} -n ${use_date}"
+    sa -t SPY -p ${history_loc} -o ${report_loc} -e ${extract_loc} -b ${backtest_loc} -s ${start_date} -n ${use_date}
 
 Extract Algorithm-Ready Datasets
 ================================
@@ -92,21 +119,21 @@ Extract an Algorithm-Ready Dataset from Redis and Save it to a File
 
 ::
 
-    sa.py -t SPY -e ~/SPY-latest.json
+    sa -t SPY -e ~/SPY-latest.json
 
 Create a Daily Backup
 ---------------------
 
 ::
 
-    sa.py -t SPY -e ~/SPY-$(date +"%Y-%m-%d").json
+    sa -t SPY -e ~/SPY-$(date +"%Y-%m-%d").json
 
 Validate the Daily Backup by Examining the Dataset File
 -------------------------------------------------------
 
 ::
 
-    sa.py -t SPY -l ~/SPY-$(date +"%Y-%m-%d").json
+    sa -t SPY -l ~/SPY-$(date +"%Y-%m-%d").json
 
 Restore Backup to Redis
 -----------------------
@@ -117,7 +144,7 @@ Use this command to cache missing pricing datasets so algorithms have the correc
 
 ::
 
-    sa.py -t SPY -L ~/SPY-$(date +"%Y-%m-%d").json
+    sa -t SPY -L ~/SPY-$(date +"%Y-%m-%d").json
 
 Fetch
 -----
