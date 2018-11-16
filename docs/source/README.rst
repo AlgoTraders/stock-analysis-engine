@@ -94,14 +94,13 @@ Or manually with:
     use_date=$(date +"%Y-%m-%d")
     ticker_dataset="${ticker}-${use_date}.json"
     echo "creating ${ticker} dataset: ${ticker_dataset}"
-    report_loc="s3://algoreports/${ticker_dataset}"
     history_loc="s3://algohistory/${ticker_dataset}"
     report_loc="s3://algoreport/${ticker_dataset}"
     extract_loc="s3://algoready/${ticker_dataset}"
     backtest_loc="file:/tmp/${ticker_dataset}"
     start_date=$(date --date="${num_days_back} day ago" +"%Y-%m-%d")
     echo "running algo with:"
-    echo "sa -t SPY -e ${report_loc} -p ${history_loc} -o ${report_loc} -w ${extract_loc} -b ${backtest_loc} -s ${start_date} -n ${use_date}"
+    echo "sa -t SPY -p ${history_loc} -o ${report_loc} -w ${extract_loc} -b ${backtest_loc} -s ${start_date} -n ${use_date}"
     sa -t SPY -p ${history_loc} -o ${report_loc} -e ${extract_loc} -b ${backtest_loc} -s ${start_date} -n ${use_date}
 
 Extract Algorithm-Ready Datasets
