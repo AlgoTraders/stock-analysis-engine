@@ -295,7 +295,9 @@ WORKER_TASKS = ev(
      'analysis_engine.work_tasks.publish_from_s3_to_redis,'
      'analysis_engine.work_tasks.publish_pricing_update,'
      'analysis_engine.work_tasks.task_screener_analysis,'
-     'analysis_engine.work_tasks.publish_ticker_aggregate_from_s3'))
+     'analysis_engine.work_tasks.run_distributed_algorithm,'
+     'analysis_engine.work_tasks.publish_ticker_aggregate_from_s3'
+     ''))
 INCLUDE_TASKS = WORKER_TASKS.split(',')
 CELERY_DISABLED = ev('CELERY_DISABLED', '0') == '1'
 

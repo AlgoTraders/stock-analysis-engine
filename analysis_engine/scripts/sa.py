@@ -283,9 +283,23 @@ def run_sa_tool():
     parser.add_argument(
         '-B',
         help=(
-            'optional - backend url for Celery'),
+            'optional - broker url for Celery'),
+        required=False,
+        dest='broker_url')
+    parser.add_argument(
+        '-C',
+        help=(
+            'optional - broker url for Celery'),
         required=False,
         dest='backend_url')
+    parser.add_argument(
+        '-w',
+        help=(
+            'optional - flag for publishing an algorithm job '
+            'using Celery to the analysis_engine workers'),
+        required=False,
+        dest='run_on_engine',
+        action='store_true')
     parser.add_argument(
         '-k',
         help=(
@@ -394,9 +408,11 @@ def run_sa_tool():
     parser.add_argument(
         '-c',
         help=(
-            'optional - contract type "C" for calls "P" for puts'),
+            'optional - algorithm config_file path for setting '
+            'up internal algorithm trading strategies and '
+            'indicators'),
         required=False,
-        dest='contract_type')
+        dest='config_file')
     parser.add_argument(
         '-P',
         help=(
@@ -438,7 +454,7 @@ def run_sa_tool():
     transport_options = ae_consts.TRANSPORT_OPTIONS
     broker_url = ae_consts.WORKER_BROKER_URL
     backend_url = ae_consts.WORKER_BACKEND_URL
-    celery_config_module = ae_consts.WORKER_CELERY_CONFIG_MODULE
+    path_to_config_module = ae_consts.WORKER_CELERY_CONFIG_MODULE
     include_tasks = ae_consts.INCLUDE_TASKS
     s3_access_key = ae_consts.S3_ACCESS_KEY
     s3_secret_key = ae_consts.S3_SECRET_KEY
@@ -462,6 +478,7 @@ def run_sa_tool():
     ignore_columns = None
     debug = False
 
+    run_on_engine = False
     show_from_file = None
     restore_algo_file = None
     backtest_loc = None
@@ -480,6 +497,8 @@ def run_sa_tool():
 
     if args.ticker:
         ticker = args.ticker.upper()
+    if args.broker_url:
+        broker_url = args.broker_url
     if args.backend_url:
         backend_url = args.backend_url
     if args.s3_access_key:
@@ -807,7 +826,12 @@ def run_sa_tool():
 
     if use_custom_algo:
 
-        log.info('starting algo')
+        if args.run_on_engine:
+            run_on_engine = True
+            log.info('starting algo on the engine')
+        else:
+            log.info('starting algo')
+
         algo_res = run_custom_algo.run_custom_algo(
             mod_path=args.run_algo_in_file,
             ticker=ticker,
@@ -877,37 +901,69 @@ def run_sa_tool():
             dataset_publish_extract=extract_publish,
             dataset_publish_history=history_publish,
             dataset_publish_report=report_publish,
+            run_on_engine=run_on_engine,
+            auth_url=broker_url,
+            backend_url=backend_url,
+            include_tasks=include_tasks,
+            ssl_options=ssl_options,
+            transport_options=transport_options,
+            path_to_config_module=path_to_config_module,
             verbose=verbose)
+
+        show_label = 'algo.name={}'.format(
+            use_name)
+        show_extract = '{}'.format(
+            algo_extract_loc)
+        show_history = '{}'.format(
+            algo_history_loc)
+        show_report = '{}'.format(
+            algo_report_loc)
+        base_label = (
+            'load={} '
+            'extract={} '
+            'history={} '
+            'report={}'.format(
+                args.run_algo_in_file,
+                show_extract,
+                show_history,
+                show_report))
+        show_label = (
+            '{} running in engine task_id={} {}'.format(
+                ticker,
+                algo_res['rec'].get(
+                    'task_id',
+                    'missing-task-id'),
+                base_label))
+        if not run_on_engine:
+            algo_trade_history_recs = algo_res['rec'].get(
+                'history',
+                [])
+            show_label = (
+                '{} algo.name={} {} trade_history_len={}'.format(
+                    ticker,
+                    use_name,
+                    base_label,
+                    len(algo_trade_history_recs)))
         if args.debug:
+            log.info(
+                'algo_res={}'.format(
+                    algo_res))
             if algo_res['status'] == ae_consts.SUCCESS:
                 log.info(
-                    '{} - done running {} algo.name={} from '
-                    'file {} results: {}'.format(
+                    '{} - done running {}'.format(
                         ae_consts.get_status(status=algo_res['status']),
-                        ticker,
-                        algo_res['algo'].name,
-                        args.run_algo_in_file,
-                        ae_consts.ppj(algo_res['rec'])))
+                        show_label))
             else:
                 log.error(
-                    '{} - done running {} algo.name={} from '
-                    'file {} results: {}'.format(
+                    '{} - done running {}'.format(
                         ae_consts.get_status(status=algo_res['status']),
-                        ticker,
-                        algo_res['algo'].name,
-                        args.run_algo_in_file,
-                        ae_consts.ppj(algo_res['rec'])))
+                        show_label))
         else:
             if algo_res['status'] == ae_consts.SUCCESS:
                 log.info(
-                    '{} - done running {} algo.name={} from '
-                    'file {} algorithm performance history '
-                    'records: {}'.format(
+                    '{} - done running {}'.format(
                         ae_consts.get_status(status=algo_res['status']),
-                        ticker,
-                        algo_res['algo'].name,
-                        args.run_algo_in_file,
-                        len(algo_res['rec']['history'])))
+                        show_label))
             else:
                 log.error(
                     'run_custom_algo returned error: {}'.format(
@@ -1095,7 +1151,7 @@ def run_sa_tool():
             name=__name__,
             auth_url=broker_url,
             backend_url=backend_url,
-            path_to_config_module=celery_config_module,
+            path_to_config_module=path_to_config_module,
             ssl_options=ssl_options,
             transport_options=transport_options,
             include_tasks=include_tasks)
