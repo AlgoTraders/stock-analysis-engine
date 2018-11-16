@@ -43,30 +43,33 @@ def get_celery_app(
       ery_config
 
     .. note:: Jupyter notebooks need to use the
-              ``WORKER_CELERY_CONFIG_MODULE=analysis_engine.work_tasks.celery
-              service_config`` value which uses resolvable hostnames with
-              docker compose:
+        ``WORKER_CELERY_CONFIG_MODULE=analysis_engine.work_tasks.celery
+        service_config`` value which uses resolvable hostnames with
+        docker compose:
 
-              - export WORKER_BROKER_URL=redis://redis:6379/13
-              - export WORKER_BACKEND_URL=redis://redis:6379/14
+        - export WORKER_BROKER_URL=redis://redis:6379/13
+        - export WORKER_BACKEND_URL=redis://redis:6379/14
 
     :param name: name for this app
-    :param auth_url: celery broker ``redis://localhost:6379/13``
-                     by default
-                     or ``WORKER_BROKER_URL`` environment variable
-    :param backend_url: celery backend ``redis://localhost:6379/14``
-                        by default
-                        or ``WORKER_BACKEND_URL``
-                        environment variable
+    :param auth_url: Celery broker address
+        (default is ``redis://localhost:6379/13``
+        or ``analysis_engine.consts.WORKER_BROKER_URL``
+        environment variable)
+        this is required for distributing algorithms
+    :param backend_url: Celery backend address
+        (default is ``redis://localhost:6379/14``
+        or ``analysis_engine.consts.WORKER_BACKEND_URL``
+        environment variable)
+        this is required for distributing algorithms
     :param include_tasks: list of modules containing tasks to add
     :param ssl_options: security options dictionary
+        (default is ``analysis_engine.consts.SSL_OPTIONS``)
     :param trasport_options: transport options dictionary
-    :param path_to_config_module: config module
-                                  ``analysis_engine.work_ta
-                                  sks.celery_config``
-                                  by default or ``WORKER_CELERY_CONFI
-                                  G_MODULE``
-                                  environment variable
+        (default is ``analysis_engine.consts.TRANSPORT_OPTIONS``)
+    :param path_to_config_module: config module for advanced
+        Celery worker connectivity requirements
+        (default is ``analysis_engine.work_tasks.celery_config``
+        or ``analysis_engine.consts.WORKER_CELERY_CONFIG_MODULE``)
     :param worker_log_format: format for logs
     """
 

@@ -6,12 +6,12 @@
 Stock Analysis Engine
 =====================
 
-Run algorithms on publicly traded companies with data from: `Yahoo <https://finance.yahoo.com/>`__, `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__ and `FinViz <https://finviz.com>`__ (default datafeeds: pricing, options, news, dividends, daily, intraday, screeners, statistics, financials, earnings, and more).
+A distributed, scalable platform for running many backtests and live-trading algorithms at the same time on publicly traded companies with automated datafeeds from: `Yahoo <https://finance.yahoo.com/>`__, `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__ and `FinViz <https://finviz.com>`__ (includes: pricing, options, news, dividends, daily, intraday, screeners, statistics, financials, earnings, and more).
 
 .. image:: https://i.imgur.com/pH368gy.png
 
-Building Your Own Algorithms
-============================
+Building Your Own Trading Algorithms
+====================================
 
 The engine supports running algorithms with live trading data or for backtesting. Use backtesting if you want to tune an algorithm's trading performance with `algorithm-ready datasets cached in redis <https://github.com/AlgoTraders/stock-analysis-engine#extract-algorithm-ready-datasets>`__. Algorithms work the same way for live trading and historical backtesting, and building your own algorithms is as simple as deriving the `base class analysis_engine.algo.BaseAlgo as needed <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/algo.py>`__.
 
@@ -56,34 +56,20 @@ Backtesting and Live Trading Workflow
 
         sa -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py -d
 
-Running Algorithm Backtests Offline
-===================================
+Run a Distributed 60-day Backtest on SPY and Publish the Trading Report, Trading History and Algorithm-Ready Dataset to S3
+==========================================================================================================================
 
-With `extracted Algorithm-Ready datasets <https://github.com/AlgoTraders/stock-analysis-engine#extract-algorithm-ready-datasets>`__ you can develop and tune your own algorithms offline without having redis, minio, the analysis engine, or jupyter running.
+Publish backtests and live trading algorithms to the engine's workers for running many algorithms at the same time. Once done, the algorithm will publish results to s3, redis or a local file. By default, the included example below publishes all datasets into minio (s3) where they can be downloaded for offline backtests or restored back into redis.
 
-Run a Custom Algorithm Backtest with a File
--------------------------------------------
-
-::
-
-    sa -t SPY -b file:/home/jay/SPY-latest.json -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
-
-Run a Custom Algorithm Backtest with an S3 Key
-----------------------------------------------
+.. note:: Running distributed algorithmic workloads requires redis, minio, and the engine running
 
 ::
 
-    sa -t SPY -b s3://algoready/SPY-latest.json -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
+    num_days_back=60
+    ./tools/run-algo-with-publishing.sh SPY ${num_days_back} -w
 
-Run a Custom Algorithm Backtest with a Redis Key
-------------------------------------------------
-
-::
-
-    sa -t SPY -b redis://SPY-latest.json -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
-
-Run a Custom Algo with Dates and Publish Trading Report, Trading History and Algorithm-Ready Dataset
-====================================================================================================
+Run a Local 60-day Backtest on SPY and Publish Trading Report, Trading History and Algorithm-Ready Dataset to S3
+================================================================================================================
 
 ::
 
@@ -107,6 +93,18 @@ Or manually with:
     echo "running algo with:"
     echo "sa -t SPY -p ${history_loc} -o ${report_loc} -w ${extract_loc} -b ${backtest_loc} -s ${start_date} -n ${use_date}"
     sa -t SPY -p ${history_loc} -o ${report_loc} -e ${extract_loc} -b ${backtest_loc} -s ${start_date} -n ${use_date}
+
+Running Algorithm Backtests Offline
+===================================
+
+With `extracted Algorithm-Ready datasets in minio (s3), redis or a file <https://github.com/AlgoTraders/stock-analysis-engine#extract-algorithm-ready-datasets>`__ you can develop and tune your own algorithms offline without having redis, minio, the analysis engine, or jupyter running locally.
+
+Run a Custom Algorithm Backtest with a File
+-------------------------------------------
+
+::
+
+    sa -t SPY -b file:/home/jay/SPY-latest.json -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
 
 Extract Algorithm-Ready Datasets
 ================================
@@ -193,9 +191,10 @@ Table of Contents
    README
    scripts
    example_algo_minute
-   example_algos
+   run_distributed_algorithms
    run_custom_algo
    run_algo
+   example_algos
    build_algo_request
    build_sell_order
    build_buy_order

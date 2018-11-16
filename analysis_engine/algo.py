@@ -1196,7 +1196,7 @@ class BaseAlgo:
                     self.tickers))
             return status
 
-        output_record = {}
+        output_record = self.create_report_dataset()
 
         if output_file or s3_enabled or redis_enabled or slack_enabled:
             log.info(
@@ -1267,223 +1267,18 @@ class BaseAlgo:
         return status
     # end of publish_report_dataset
 
-    def publish_trade_history_dataset(
-            self,
-            **kwargs):
-        """publish_trade_history_dataset
+    def create_report_dataset(
+            self):
+        """create_report_dataset
 
-        publish trade history datasets to caches (redis), archives
-        (minio s3), a local file (``output_file``) and slack
-
-        :param kwargs: keyword argument dictionary
-        :return: tuple: ``status``, ``output_file``
+        Create the ``Trading Performance Report`` dataset
+        during the ``self.publish_input_dataset()`` member method.
+        Inherited Algorithm classes can derive how they build a
+        custom ``Trading Performance Report`` dataset before publishing
+        by implementing this method in the derived class.
         """
 
-        # parse optional input args
-        output_file = kwargs.get(
-            'output_file', None)
-        label = kwargs.get(
-            'label', self.name)
-        convert_to_json = kwargs.get(
-            'convert_to_json', self.history_convert_to_json)
-        compress = kwargs.get(
-            'compress', self.history_compress)
-        redis_enabled = kwargs.get(
-            'redis_enabled', False)
-        redis_address = kwargs.get(
-            'redis_address', self.history_redis_address)
-        redis_db = kwargs.get(
-            'redis_db', self.history_redis_db)
-        redis_password = kwargs.get(
-            'redis_password', self.history_redis_password)
-        redis_expire = kwargs.get(
-            'redis_expire', self.history_redis_expire)
-        redis_serializer = kwargs.get(
-            'redis_serializer', self.history_redis_serializer)
-        redis_encoding = kwargs.get(
-            'redis_encoding', self.history_redis_encoding)
-        s3_enabled = kwargs.get(
-            's3_enabled', False)
-        s3_address = kwargs.get(
-            's3_address', self.history_s3_address)
-        s3_bucket = kwargs.get(
-            's3_bucket', self.history_s3_bucket)
-        s3_access_key = kwargs.get(
-            's3_access_key', self.history_s3_access_key)
-        s3_secret_key = kwargs.get(
-            's3_secret_key', self.history_s3_secret_key)
-        s3_region_name = kwargs.get(
-            's3_region_name', self.history_s3_region_name)
-        s3_secure = kwargs.get(
-            's3_secure', self.history_s3_secure)
-        slack_enabled = kwargs.get(
-            'slack_enabled', self.history_slack_enabled)
-        slack_code_block = kwargs.get(
-            'slack_code_block', self.history_slack_code_block)
-        slack_full_width = kwargs.get(
-            'slack_full_width', self.history_slack_full_width)
-        redis_key = kwargs.get(
-            'redis_key', self.history_redis_key)
-        s3_key = kwargs.get(
-            's3_key', self.history_s3_key)
-        verbose = kwargs.get(
-            'verbose', self.history_verbose)
-
-        status = NOT_RUN
-
-        if not self.publish_history:
-            log.info(
-                'history publish - disabled - '
-                '{} - tickers={}'.format(
-                    self.name,
-                    self.tickers))
-            return status
-        # end of screening for returning early
-
-        output_record = {}
-
-        if output_file or s3_enabled or redis_enabled or slack_enabled:
-            log.info(
-                'history build json - {} - tickers={}'.format(
-                    self.name,
-                    self.tickers))
-            use_data = json.dumps(output_record)
-            num_bytes = len(use_data)
-            num_mb = get_mb(num_bytes)
-            log.info(
-                'history publish - START - '
-                '{} - tickers={} '
-                'file={} size={}MB '
-                's3={} s3_key={} '
-                'redis={} redis_key={} '
-                'slack={}'.format(
-                    self.name,
-                    self.tickers,
-                    output_file,
-                    num_mb,
-                    s3_enabled,
-                    s3_key,
-                    redis_enabled,
-                    redis_key,
-                    slack_enabled))
-            publish_status = publish.publish(
-                data=use_data,
-                label=label,
-                convert_to_json=convert_to_json,
-                output_file=output_file,
-                compress=compress,
-                redis_enabled=redis_enabled,
-                redis_key=redis_key,
-                redis_address=redis_address,
-                redis_db=redis_db,
-                redis_password=redis_password,
-                redis_expire=redis_expire,
-                redis_serializer=redis_serializer,
-                redis_encoding=redis_encoding,
-                s3_enabled=s3_enabled,
-                s3_key=s3_key,
-                s3_address=s3_address,
-                s3_bucket=s3_bucket,
-                s3_access_key=s3_access_key,
-                s3_secret_key=s3_secret_key,
-                s3_region_name=s3_region_name,
-                s3_secure=s3_secure,
-                slack_enabled=slack_enabled,
-                slack_code_block=slack_code_block,
-                slack_full_width=slack_full_width,
-                verbose=verbose)
-
-            status = publish_status
-
-            log.info(
-                'history publish - END - {} '
-                '{} - tickers={} '
-                'file={} s3={} redis={} size={}MB'.format(
-                    get_status(status=status),
-                    self.name,
-                    self.tickers,
-                    output_file,
-                    s3_key,
-                    redis_key,
-                    num_mb))
-        # end of handling for publish
-
-        return status
-    # end of publish_trade_history_dataset
-
-    def publish_input_dataset(
-            self,
-            **kwargs):
-        """publish_input_dataset
-
-        publish input datasets to caches (redis), archives
-        (minio s3), a local file (``output_file``) and slack
-
-        :param kwargs: keyword argument dictionary
-        :return: tuple: ``status``, ``output_file``
-        """
-
-        # parse optional input args
-        output_file = kwargs.get(
-            'output_file', None)
-        label = kwargs.get(
-            'label', self.name)
-        convert_to_json = kwargs.get(
-            'convert_to_json', self.extract_convert_to_json)
-        compress = kwargs.get(
-            'compress', self.extract_compress)
-        redis_enabled = kwargs.get(
-            'redis_enabled', False)
-        redis_address = kwargs.get(
-            'redis_address', self.extract_redis_address)
-        redis_db = kwargs.get(
-            'redis_db', self.extract_redis_db)
-        redis_password = kwargs.get(
-            'redis_password', self.extract_redis_password)
-        redis_expire = kwargs.get(
-            'redis_expire', self.extract_redis_expire)
-        redis_serializer = kwargs.get(
-            'redis_serializer', self.extract_redis_serializer)
-        redis_encoding = kwargs.get(
-            'redis_encoding', self.extract_redis_encoding)
-        s3_enabled = kwargs.get(
-            's3_enabled', False)
-        s3_address = kwargs.get(
-            's3_address', self.extract_s3_address)
-        s3_bucket = kwargs.get(
-            's3_bucket', self.extract_s3_bucket)
-        s3_access_key = kwargs.get(
-            's3_access_key', self.extract_s3_access_key)
-        s3_secret_key = kwargs.get(
-            's3_secret_key', self.extract_s3_secret_key)
-        s3_region_name = kwargs.get(
-            's3_region_name', self.extract_s3_region_name)
-        s3_secure = kwargs.get(
-            's3_secure', self.extract_s3_secure)
-        slack_enabled = kwargs.get(
-            'slack_enabled', self.extract_slack_enabled)
-        slack_code_block = kwargs.get(
-            'slack_code_block', self.extract_slack_code_block)
-        slack_full_width = kwargs.get(
-            'slack_full_width', self.extract_slack_full_width)
-        redis_key = kwargs.get(
-            'redis_key', self.extract_redis_key)
-        s3_key = kwargs.get(
-            's3_key', self.extract_s3_key)
-        verbose = kwargs.get(
-            'verbose', self.extract_verbose)
-
-        status = NOT_RUN
-
-        if not self.publish_input:
-            log.info(
-                'input publish - disabled - '
-                '{} - tickers={}'.format(
-                    self.name,
-                    self.tickers))
-            return status
-
-        log.debug('converting input df to json')
+        log.info('algo-ready - create start')
 
         data_for_tickers = self.get_supported_tickers_in_data(
             data=self.last_handle_data)
@@ -1558,6 +1353,316 @@ class BaseAlgo:
             # end for all self.last_handle_data[ticker]
         # end of converting dataset
 
+        return output_record
+    # end of create_report_dataset
+
+    def publish_trade_history_dataset(
+            self,
+            **kwargs):
+        """publish_trade_history_dataset
+
+        publish trade history datasets to caches (redis), archives
+        (minio s3), a local file (``output_file``) and slack
+
+        :param kwargs: keyword argument dictionary
+        :return: tuple: ``status``, ``output_file``
+        """
+
+        # parse optional input args
+        output_file = kwargs.get(
+            'output_file', None)
+        label = kwargs.get(
+            'label', self.name)
+        convert_to_json = kwargs.get(
+            'convert_to_json', self.history_convert_to_json)
+        compress = kwargs.get(
+            'compress', self.history_compress)
+        redis_enabled = kwargs.get(
+            'redis_enabled', False)
+        redis_address = kwargs.get(
+            'redis_address', self.history_redis_address)
+        redis_db = kwargs.get(
+            'redis_db', self.history_redis_db)
+        redis_password = kwargs.get(
+            'redis_password', self.history_redis_password)
+        redis_expire = kwargs.get(
+            'redis_expire', self.history_redis_expire)
+        redis_serializer = kwargs.get(
+            'redis_serializer', self.history_redis_serializer)
+        redis_encoding = kwargs.get(
+            'redis_encoding', self.history_redis_encoding)
+        s3_enabled = kwargs.get(
+            's3_enabled', False)
+        s3_address = kwargs.get(
+            's3_address', self.history_s3_address)
+        s3_bucket = kwargs.get(
+            's3_bucket', self.history_s3_bucket)
+        s3_access_key = kwargs.get(
+            's3_access_key', self.history_s3_access_key)
+        s3_secret_key = kwargs.get(
+            's3_secret_key', self.history_s3_secret_key)
+        s3_region_name = kwargs.get(
+            's3_region_name', self.history_s3_region_name)
+        s3_secure = kwargs.get(
+            's3_secure', self.history_s3_secure)
+        slack_enabled = kwargs.get(
+            'slack_enabled', self.history_slack_enabled)
+        slack_code_block = kwargs.get(
+            'slack_code_block', self.history_slack_code_block)
+        slack_full_width = kwargs.get(
+            'slack_full_width', self.history_slack_full_width)
+        redis_key = kwargs.get(
+            'redis_key', self.history_redis_key)
+        s3_key = kwargs.get(
+            's3_key', self.history_s3_key)
+        verbose = kwargs.get(
+            'verbose', self.history_verbose)
+
+        status = NOT_RUN
+
+        if not self.publish_history:
+            log.info(
+                'history publish - disabled - '
+                '{} - tickers={}'.format(
+                    self.name,
+                    self.tickers))
+            return status
+        # end of screening for returning early
+
+        output_record = self.create_history_dataset()
+
+        if output_file or s3_enabled or redis_enabled or slack_enabled:
+            log.info(
+                'history build json - {} - tickers={}'.format(
+                    self.name,
+                    self.tickers))
+            use_data = json.dumps(output_record)
+            num_bytes = len(use_data)
+            num_mb = get_mb(num_bytes)
+            log.info(
+                'history publish - START - '
+                '{} - tickers={} '
+                'file={} size={}MB '
+                's3={} s3_key={} '
+                'redis={} redis_key={} '
+                'slack={}'.format(
+                    self.name,
+                    self.tickers,
+                    output_file,
+                    num_mb,
+                    s3_enabled,
+                    s3_key,
+                    redis_enabled,
+                    redis_key,
+                    slack_enabled))
+            publish_status = publish.publish(
+                data=use_data,
+                label=label,
+                convert_to_json=convert_to_json,
+                output_file=output_file,
+                compress=compress,
+                redis_enabled=redis_enabled,
+                redis_key=redis_key,
+                redis_address=redis_address,
+                redis_db=redis_db,
+                redis_password=redis_password,
+                redis_expire=redis_expire,
+                redis_serializer=redis_serializer,
+                redis_encoding=redis_encoding,
+                s3_enabled=s3_enabled,
+                s3_key=s3_key,
+                s3_address=s3_address,
+                s3_bucket=s3_bucket,
+                s3_access_key=s3_access_key,
+                s3_secret_key=s3_secret_key,
+                s3_region_name=s3_region_name,
+                s3_secure=s3_secure,
+                slack_enabled=slack_enabled,
+                slack_code_block=slack_code_block,
+                slack_full_width=slack_full_width,
+                verbose=verbose)
+
+            status = publish_status
+
+            log.info(
+                'history publish - END - {} '
+                '{} - tickers={} '
+                'file={} s3={} redis={} size={}MB'.format(
+                    get_status(status=status),
+                    self.name,
+                    self.tickers,
+                    output_file,
+                    s3_key,
+                    redis_key,
+                    num_mb))
+        # end of handling for publish
+
+        return status
+    # end of publish_trade_history_dataset
+
+    def create_history_dataset(
+            self):
+        """create_history_dataset
+
+        Create the ``Trading History`` dataset
+        during the ``self.publish_trade_history_dataset()`` member method.
+        Inherited Algorithm classes can derive how they build a
+        custom ``Trading History`` dataset before publishing
+        by implementing this method in the derived class.
+        """
+
+        log.info('history - create start')
+
+        data_for_tickers = self.get_supported_tickers_in_data(
+            data=self.last_handle_data)
+
+        num_tickers = len(data_for_tickers)
+        if num_tickers > 0:
+            self.debug_msg = (
+                '{} handle - tickers={}'.format(
+                    self.name,
+                    json.dumps(data_for_tickers)))
+
+        output_record = {}
+        for ticker in data_for_tickers:
+            if ticker not in output_record:
+                output_record[ticker] = []
+            num_ticker_datasets = len(self.last_handle_data[ticker])
+            cur_idx = 1
+            for idx, node in enumerate(self.last_handle_data[ticker]):
+                track_label = self.build_progress_label(
+                    progress=cur_idx,
+                    total=num_ticker_datasets)
+                algo_id = 'ticker={} {}'.format(
+                    ticker,
+                    track_label)
+                log.info(
+                    '{} convert - {} - ds={}'.format(
+                        self.name,
+                        algo_id,
+                        node['date']))
+
+                new_node = {
+                    'id': node['id'],
+                    'date': node['date'],
+                    'data': {}
+                }
+
+                # parse the dataset node and set member variables
+                self.debug_msg = (
+                    '{} START - convert load dataset id={}'.format(
+                        ticker,
+                        node.get('id', 'missing-id')))
+                self.load_from_dataset(
+                    ds_data=node)
+                for ds_key in node['data']:
+                    empty_ds = self.empty_pd_str
+                    data_val = node['data'][ds_key]
+                    if ds_key not in new_node['data']:
+                        new_node['data'][ds_key] = empty_ds
+                    self.debug_msg = (
+                        'convert node={} ds_key={}'.format(
+                            node,
+                            ds_key))
+                    if hasattr(data_val, 'to_json'):
+                        new_node['data'][ds_key] = data_val.to_json(
+                            orient='records',
+                            date_format='iso')
+                    else:
+                        if not data_val:
+                            new_node['data'][ds_key] = empty_ds
+                        else:
+                            new_node['data'][ds_key] = json.dumps(
+                                data_val)
+                    # if/else
+                # for all dataset values in data
+                self.debug_msg = (
+                    '{} END - convert load dataset id={}'.format(
+                        ticker,
+                        node.get('id', 'missing-id')))
+
+                output_record[ticker].append(new_node)
+                cur_idx += 1
+            # end for all self.last_handle_data[ticker]
+        # end of converting dataset
+
+        return output_record
+    # end of create_history_dataset
+
+    def publish_input_dataset(
+            self,
+            **kwargs):
+        """publish_input_dataset
+
+        publish input datasets to caches (redis), archives
+        (minio s3), a local file (``output_file``) and slack
+
+        :param kwargs: keyword argument dictionary
+        :return: tuple: ``status``, ``output_file``
+        """
+
+        # parse optional input args
+        output_file = kwargs.get(
+            'output_file', None)
+        label = kwargs.get(
+            'label', self.name)
+        convert_to_json = kwargs.get(
+            'convert_to_json', self.extract_convert_to_json)
+        compress = kwargs.get(
+            'compress', self.extract_compress)
+        redis_enabled = kwargs.get(
+            'redis_enabled', False)
+        redis_address = kwargs.get(
+            'redis_address', self.extract_redis_address)
+        redis_db = kwargs.get(
+            'redis_db', self.extract_redis_db)
+        redis_password = kwargs.get(
+            'redis_password', self.extract_redis_password)
+        redis_expire = kwargs.get(
+            'redis_expire', self.extract_redis_expire)
+        redis_serializer = kwargs.get(
+            'redis_serializer', self.extract_redis_serializer)
+        redis_encoding = kwargs.get(
+            'redis_encoding', self.extract_redis_encoding)
+        s3_enabled = kwargs.get(
+            's3_enabled', False)
+        s3_address = kwargs.get(
+            's3_address', self.extract_s3_address)
+        s3_bucket = kwargs.get(
+            's3_bucket', self.extract_s3_bucket)
+        s3_access_key = kwargs.get(
+            's3_access_key', self.extract_s3_access_key)
+        s3_secret_key = kwargs.get(
+            's3_secret_key', self.extract_s3_secret_key)
+        s3_region_name = kwargs.get(
+            's3_region_name', self.extract_s3_region_name)
+        s3_secure = kwargs.get(
+            's3_secure', self.extract_s3_secure)
+        slack_enabled = kwargs.get(
+            'slack_enabled', self.extract_slack_enabled)
+        slack_code_block = kwargs.get(
+            'slack_code_block', self.extract_slack_code_block)
+        slack_full_width = kwargs.get(
+            'slack_full_width', self.extract_slack_full_width)
+        redis_key = kwargs.get(
+            'redis_key', self.extract_redis_key)
+        s3_key = kwargs.get(
+            's3_key', self.extract_s3_key)
+        verbose = kwargs.get(
+            'verbose', self.extract_verbose)
+
+        status = NOT_RUN
+
+        if not self.publish_input:
+            log.info(
+                'input publish - disabled - '
+                '{} - tickers={}'.format(
+                    self.name,
+                    self.tickers))
+            return status
+
+        output_record = self.create_algorithm_ready_dataset()
+
         if output_file or s3_enabled or redis_enabled or slack_enabled:
             log.info(
                 'input build json - {} - tickers={}'.format(
@@ -1626,6 +1731,95 @@ class BaseAlgo:
 
         return status
     # end of publish_input_dataset
+
+    def create_algorithm_ready_dataset(
+            self):
+        """create_algorithm_ready_dataset
+
+        Create the ``Algorithm-Ready`` dataset
+        during the ``self.publish_input_dataset()`` member method.
+        Inherited Algorithm classes can derive how they build a
+        custom ``Algorithm-Ready`` dataset before publishing
+        by implementing this method in the derived class.
+        """
+
+        log.info('algo-ready - create start')
+
+        data_for_tickers = self.get_supported_tickers_in_data(
+            data=self.last_handle_data)
+
+        num_tickers = len(data_for_tickers)
+        if num_tickers > 0:
+            self.debug_msg = (
+                '{} handle - tickers={}'.format(
+                    self.name,
+                    json.dumps(data_for_tickers)))
+
+        output_record = {}
+        for ticker in data_for_tickers:
+            if ticker not in output_record:
+                output_record[ticker] = []
+            num_ticker_datasets = len(self.last_handle_data[ticker])
+            cur_idx = 1
+            for idx, node in enumerate(self.last_handle_data[ticker]):
+                track_label = self.build_progress_label(
+                    progress=cur_idx,
+                    total=num_ticker_datasets)
+                algo_id = 'ticker={} {}'.format(
+                    ticker,
+                    track_label)
+                log.info(
+                    '{} convert - {} - ds={}'.format(
+                        self.name,
+                        algo_id,
+                        node['date']))
+
+                new_node = {
+                    'id': node['id'],
+                    'date': node['date'],
+                    'data': {}
+                }
+
+                # parse the dataset node and set member variables
+                self.debug_msg = (
+                    '{} START - convert load dataset id={}'.format(
+                        ticker,
+                        node.get('id', 'missing-id')))
+                self.load_from_dataset(
+                    ds_data=node)
+                for ds_key in node['data']:
+                    empty_ds = self.empty_pd_str
+                    data_val = node['data'][ds_key]
+                    if ds_key not in new_node['data']:
+                        new_node['data'][ds_key] = empty_ds
+                    self.debug_msg = (
+                        'convert node={} ds_key={}'.format(
+                            node,
+                            ds_key))
+                    if hasattr(data_val, 'to_json'):
+                        new_node['data'][ds_key] = data_val.to_json(
+                            orient='records',
+                            date_format='iso')
+                    else:
+                        if not data_val:
+                            new_node['data'][ds_key] = empty_ds
+                        else:
+                            new_node['data'][ds_key] = json.dumps(
+                                data_val)
+                    # if/else
+                # for all dataset values in data
+                self.debug_msg = (
+                    '{} END - convert load dataset id={}'.format(
+                        ticker,
+                        node.get('id', 'missing-id')))
+
+                output_record[ticker].append(new_node)
+                cur_idx += 1
+            # end for all self.last_handle_data[ticker]
+        # end of converting dataset
+
+        return output_record
+    # end of create_algorithm_ready_dataset
 
     def get_ticker_positions(
             self,

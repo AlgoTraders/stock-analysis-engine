@@ -21,8 +21,9 @@ import analysis_engine.consts as ae_consts
 import analysis_engine.build_algo_request as build_algo_request
 import analysis_engine.build_publish_request as build_publish_request
 import analysis_engine.build_result as build_result
+import analysis_engine.algo as ae_algo
 import analysis_engine.run_algo as run_algo
-import analysis_engine.algo
+import analysis_engine.work_tasks.get_celery_app as get_celery_app
 import spylunking.log.setup_logging as log_utils
 
 log = log_utils.build_colorized_logger(name=__name__)
@@ -99,6 +100,13 @@ def run_custom_algo(
         dataset_publish_extract=False,
         dataset_publish_history=False,
         dataset_publish_report=False,
+        run_on_engine=False,
+        auth_url=ae_consts.WORKER_BROKER_URL,
+        backend_url=ae_consts.WORKER_BACKEND_URL,
+        include_tasks=ae_consts.INCLUDE_TASKS,
+        ssl_options=ae_consts.SSL_OPTIONS,
+        transport_options=ae_consts.TRANSPORT_OPTIONS,
+        path_to_config_module=ae_consts.WORKER_CELERY_CONFIG_MODULE,
         raise_on_err=True):
     """run_custom_algo
 
@@ -132,6 +140,35 @@ def run_custom_algo(
     :param config_file: path to a json file
         containing custom algorithm object
         member values
+
+    **Running Distributed Algorithms on the Engine Workers**
+
+    :param run_on_engine: optional - boolean
+        flag for publishing custom algorithms
+        to Celery analysis_engine workers for distributing
+        algorithm workloads
+        (default is ``False`` which will run algos locally)
+        this is required for distributing algorithms
+    :param auth_url: Celery broker address
+        (default is ``redis://localhost:6379/13``
+        or ``analysis_engine.consts.WORKER_BROKER_URL``
+        environment variable)
+        this is required for distributing algorithms
+    :param backend_url: Celery backend address
+        (default is ``redis://localhost:6379/14``
+        or ``analysis_engine.consts.WORKER_BACKEND_URL``
+        environment variable)
+        this is required for distributing algorithms
+    :param include_tasks: list of modules containing tasks to add
+        (default is ``analysis_engine.consts.INCLUDE_TASKS``)
+    :param ssl_options: security options dictionary
+        (default is ``analysis_engine.consts.SSL_OPTIONS``)
+    :param trasport_options: transport options dictionary
+        (default is ``analysis_engine.consts.TRANSPORT_OPTIONS``)
+    :param path_to_config_module: config module for advanced
+        Celery worker connectivity requirements
+        (default is ``analysis_engine.work_tasks.celery_config``
+        or ``analysis_engine.consts.WORKER_CELERY_CONFIG_MODULE``)
 
     **Load Algorithm-Ready Dataset From Source**
 
@@ -651,6 +688,60 @@ def run_custom_algo(
         err=None,
         rec=None)
 
+    if run_on_engine:
+        rec = {
+            'algo_req': algo_req,
+            'task_id': None
+        }
+        task_name = (
+            'analysis_engine.work_tasks.'
+            'run_distributed_algorithm.run_distributed_algorithm')
+        log.info(
+            'starting distributed algo task={}'.format(
+                task_name))
+        if verbose or debug:
+            log.info(
+                'starting distributed algo by publishing to '
+                'task={} broker={} backend={}'.format(
+                    task_name,
+                    auth_url,
+                    backend_url))
+
+        # Get the Celery app
+        app = get_celery_app.get_celery_app(
+            name=__name__,
+            auth_url=auth_url,
+            backend_url=backend_url,
+            path_to_config_module=path_to_config_module,
+            ssl_options=ssl_options,
+            transport_options=transport_options,
+            include_tasks=include_tasks)
+
+        if verbose or debug:
+            log.info(
+                'calling distributed algo task={} request={}'.format(
+                    task_name,
+                    ae_consts.ppj(algo_req)))
+        else:
+            log.info(
+                'calling distributed algo task={}'.format(
+                    task_name))
+
+        job_id = app.send_task(
+            task_name,
+            (algo_req,))
+        log.info(
+            'calling task={} - success job_id={}'.format(
+                task_name,
+                job_id))
+        rec['task_id'] = job_id
+        algo_res = build_result.build_result(
+            status=ae_consts.SUCCESS,
+            err=None,
+            rec=rec)
+        return algo_res
+    # end of run_on_engine
+
     if use_custom_algo:
         log.info(
             'inspecting {} for class {}'.format(
@@ -688,7 +779,7 @@ def run_custom_algo(
                 rec=None)
         # end of finding a valid algorithm object
     else:
-        new_algo_object = analysis_engine.algo.BaseAlgo(
+        new_algo_object = ae_algo.BaseAlgo(
             **algo_req)
     # if using a custom module path or the BaseAlgo
 

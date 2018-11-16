@@ -13,6 +13,11 @@ if [[ "${2}" != "" ]]; then
     backtest_start_date=$(date --date="${2} day ago" +"%Y-%m-%d")
 fi
 
+distribute_to_workers=""
+if [[ "${3}" != "" ]]; then
+    distribute_to_workers="-w"
+fi
+
 use_date=$(date +"%Y-%m-%d")
 ticker_dataset="${ticker}-${use_date}.json"
 history_loc="s3://algohistory/${ticker_dataset}"
@@ -22,7 +27,7 @@ backtest_loc="file:/tmp/${ticker_dataset}"
 
 echo "creating ${ticker} dataset: ${ticker_dataset} dates: ${backtest_start_date} to ${use_date}"
 echo "running algo with:"
-echo "sa -t ${ticker} -p ${history_loc} -o ${report_loc} -w ${extract_loc} -b ${backtest_loc} -s ${backtest_start_date} -n ${use_date}"
+echo "sa -t ${ticker} -p ${history_loc} -o ${report_loc} -e ${extract_loc} -b ${backtest_loc} -s ${backtest_start_date} -n ${use_date} ${distribute_to_workers}"
 
 test_exists=$(which sa)
 if [[ "${test_exists}" == "" ]]; then
@@ -38,6 +43,6 @@ if [[ "${test_exists}" == "" ]]; then
     fi
 fi
 
-sa -t ${ticker} -p ${history_loc} -o ${report_loc} -e ${extract_loc} -b ${backtest_loc} -s ${backtest_start_date} -n ${use_date}
+sa -t ${ticker} -p ${history_loc} -o ${report_loc} -e ${extract_loc} -b ${backtest_loc} -s ${backtest_start_date} -n ${use_date} ${distribute_to_workers}
 
 exit 0

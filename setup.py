@@ -63,18 +63,16 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.2.9',
+    version='1.3.0',
     description=(
-        'Stock Analysis Engine - '
-        'Run your own algorithms with live '
-        'pricing data for publicly traded companies '
-        '(news, quotes, pricing, calls, puts, '
-        'options, dividends, earnings, '
-        'financials, stats, peers, and company '
-        'for right now) and '
-        'archive it in s3 (using minio) and cache '
-        'it in redis for backtesting and '
-        'algorithm trading performance tuning.'),
+        'A distributed, scalable platform for '
+        'running many backtests and live-trading '
+        'algorithms at the same time on publicly '
+        'traded companies with automated datafeeds '
+        'from: Yahoo, IEX Real-Time Price, and FinViz '
+        '(datafeeds include: pricing, options, news, '
+        'dividends, daily, intraday, screeners, '
+        'statistics, financials, earnings, and more)'),
     long_description=long_description,
     author='Jay Johnson',
     author_email='jay.p.h.johnson@gmail.com',

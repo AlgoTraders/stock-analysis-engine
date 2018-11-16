@@ -6,8 +6,9 @@ Algorithm API Reference
    :caption: Available algorithm modules, functions and objects
 
    example_algo_minute
-   example_algos
+   run_distributed_algorithms
    run_algo
+   example_algos
    build_algo_request
    build_sell_order
    build_buy_order
