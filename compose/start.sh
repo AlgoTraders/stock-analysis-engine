@@ -56,7 +56,7 @@ case "$os_type" in
         ;;
     *)
         warn "Unsupported OS, exiting."
-        exit 0
+        exit 1
         ;;
 esac
 

@@ -76,9 +76,11 @@ As an example for building your own algorithms, please refer to the `minute-by-m
 Running the Full Stack
 ----------------------
 
+While not required for backtesting, running the full stack is required for running algorithms during a live trading session. Here is how to deploy the full stack locally using docker compose.
+
 #.  Start the stack with the `integration.yml docker compose file (minio, redis, engine worker, jupyter) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/integration.yml>`__
 
-    .. note:: This can take a few minutes as the Analysis Engine containers are large:
+    .. note:: The containers are set up to run price point predictions using AI with Tensorflow and Keras. Including these in the container image is easier for deployment, but inflated the docker image size to over ``2.8 GB``. Please wait while the images download as it can take a few minutes depending on your internet speed.
         ::
 
             (venv) jay@home1:/opt/sa$ docker images

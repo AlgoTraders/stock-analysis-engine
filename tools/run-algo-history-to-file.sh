@@ -4,11 +4,12 @@ algo_module_path=/opt/sa/analysis_engine/mocks/example_algo_minute.py
 algo_name=$(echo ${algo_module_path} | sed -e 's|/| |g' | awk '{print $NF}' | sed -e 's/\.py//g')
 algo_version=1
 
-
 ticker=SPY
 use_date=$(date +"%Y-%m-%d")
 ds_id=$(uuidgen | sed -e 's/-//g')
-backtest_start_date=$(date --date="1 day ago" +"%Y-%m-%d")
+backtest_start_date=${use_date}
+num_days_to_set_start_date="60"
+os_type=`uname -s`
 
 if [[ "${1}" != "" ]]; then
     ticker="${1}"
@@ -17,7 +18,7 @@ fi
 # this should be an integer for the number of days back
 # to set as the backtest start date
 if [[ "${2}" != "" ]]; then
-    backtest_start_date=$(date --date="${2} day ago" +"%Y-%m-%d")
+    num_days_to_set_start_date="${2}"
 fi
 
 if [[ "${3}" != "" ]]; then
@@ -29,6 +30,19 @@ distribute_to_workers=""
 if [[ "${4}" != "" ]]; then
     distribute_to_workers="-w"
 fi
+
+case "$os_type" in
+    Linux*)
+        backtest_start_date=$(date --date="${num_days_to_set_start_date} day ago" +"%Y-%m-%d")
+        ;;
+    Darwin*)
+        backtest_start_date=$(date -v -${num_days_to_set_start_date}d +"%Y-%m-%d")
+        ;;
+    *)
+        warn "Unsupported OS, exiting."
+        exit 1
+        ;;
+esac
 
 if [[ -z "${S3_ACCESS_KEY}" ]]; then
     S3_ACCESS_KEY=trexaccesskey
