@@ -197,17 +197,17 @@ Run a Offline Custom Algorithm Backtest with an Algorithm-Ready File
 Run the Intraday Minute-by-Minute Algorithm and Publish the Algorithm-Ready Dataset to S3
 -----------------------------------------------------------------------------------------
 
-    Run the intraday algorithm with the latest pricing datasets use:
+Run the `included intraday algorithm <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/mocks/example_algo_minute.py>`__ with the latest pricing datasets use:
 
-    ::
+::
 
-        sa -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py -e s3://algoready/SPY-$(date +"%Y-%m-%d").json
+    sa -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py -e s3://algoready/SPY-$(date +"%Y-%m-%d").json
 
-    And to debug an algorithm's historical trading performance add the ``-d`` debug flag:
+And to debug an algorithm's historical trading performance add the ``-d`` debug flag:
 
-    ::
+::
 
-        sa -d -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py -e s3://algoready/SPY-$(date +"%Y-%m-%d").json
+    sa -d -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py -e s3://algoready/SPY-$(date +"%Y-%m-%d").json
 
 Extract Algorithm-Ready Datasets
 ================================
