@@ -1,7 +1,11 @@
 #!/bin/bash
 
 ticker=SPY
-backtest_start_date=$(date --date="1 day ago" +"%Y-%m-%d")
+use_date=$(date +"%Y-%m-%d")
+ds_id=$(uuidgen | sed -e 's/-//g')
+backtest_start_date=${use_date}
+num_days_to_set_start_date="60"
+os_type=`uname -s`
 
 if [[ "${1}" != "" ]]; then
     ticker="${1}"
@@ -10,7 +14,7 @@ fi
 # this should be an integer for the number of days back
 # to set as the backtest start date
 if [[ "${2}" != "" ]]; then
-    backtest_start_date=$(date --date="${2} day ago" +"%Y-%m-%d")
+    num_days_to_set_start_date=${2}
 fi
 
 distribute_to_workers=""
@@ -18,15 +22,26 @@ if [[ "${3}" != "" ]]; then
     distribute_to_workers="-w"
 fi
 
-use_date=$(date +"%Y-%m-%d")
-ds_id=$(uuidgen | sed -e 's/-//g')
+case "$os_type" in
+    Linux*)
+        backtest_start_date=$(date --date="${num_days_to_set_start_date} day ago" +"%Y-%m-%d")
+        ;;
+    Darwin*)
+        backtest_start_date=$(date -v -${num_days_to_set_start_date}d +"%Y-%m-%d")
+        ;;
+    *)
+        warn "Unsupported OS, exiting."
+        exit 1
+        ;;
+esac
+
 ticker_dataset="${ticker}-${use_date}_${ds_id}.json"
 extract_loc="s3://algoready/${ticker_dataset}"
 history_loc="s3://algohistory/${ticker_dataset}"
 report_loc="s3://algoreport/${ticker_dataset}"
 backtest_loc="s3://algoready/${ticker_dataset}"  # same as the extract_loc
 processed_loc="s3://algoprocessed/${ticker_dataset}"  # archive it when done
-start_date=$(date --date="${num_days_back} day ago" +"%Y-%m-%d")
+start_date=${backtest_start_date}
 
 test_exists=$(which sa)
 if [[ "${test_exists}" == "" ]]; then

@@ -10,35 +10,23 @@ Build and tune your own investment algorithms using a distributed, fault-resilie
 
 .. image:: https://i.imgur.com/pH368gy.png
 
-Building Your Own Trading Algorithms
-====================================
+Clone and Start Redis and Minio
+-------------------------------
 
-The engine supports running algorithms with live trading data or for backtesting. Use backtesting if you want to tune an algorithm's trading performance with `algorithm-ready datasets cached in redis <https://github.com/AlgoTraders/stock-analysis-engine#extract-algorithm-ready-datasets>`__. Algorithms work the same way for live trading and historical backtesting, and building your own algorithms is as simple as deriving the `base class analysis_engine.algo.BaseAlgo as needed <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/algo.py>`__.
+::
 
-As an example for building your own algorithms, please refer to the `minute-by-minute algorithm for live intraday trading analysis <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/mocks/example_algo_minute.py>`__ with `real-time pricing data from IEX <https://iextrading.com/developer>`__.
+    git clone https://github.com/AlgoTraders/stock-analysis-engine.git /opt/sa
+    cd /opt/sa
+    ./compose/start.sh
 
-Backtesting and Live Trading Workflow
--------------------------------------
+Fetch Stock Pricing for a Ticker Symbol
+=======================================
 
-#.  Start the stack with the `integration.yml docker compose file (minio, redis, engine worker, jupyter) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/integration.yml>`__
+.. note:: Make sure to run through the `Getting Started before running fetch and algorithms <https://github.com/AlgoTraders/stock-analysis-engine#getting-started>`__
 
-    ::
+::
 
-        ./compose/start.sh -a
-
-#.  Start the dataset collection job with the `automation-dataset-collection.yml docker compose file <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/automation-dataset-collection.yml>`__:
-
-    .. note:: Depending on how fast you want to run intraday algorithms, you can use this tool to collect recent pricing information with a cron or `Kubernetes job <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/k8/datasets/job.yml>`__
-
-    ::
-
-        ./compose/start.sh -c
-
-    Wait for pricing engine logs to stop with ``ctrl+c``
-
-    ::
-
-        logs-workers.sh
+    fetch -t SPY
 
 Run and Publish Trading Performance Report for a Custom Algorithm
 =================================================================
@@ -77,6 +65,48 @@ Write the Trading History to Minio (s3)
 ::
 
     run-algo-history-to-s3.sh SPY 60 /opt/sa/analysis_engine/mocks/example_algo_minute.py
+
+Building Your Own Trading Algorithms
+====================================
+
+The engine supports running algorithms with live trading data or for backtesting. Use backtesting if you want to tune an algorithm's trading performance with `algorithm-ready datasets cached in redis <https://github.com/AlgoTraders/stock-analysis-engine#extract-algorithm-ready-datasets>`__. Algorithms work the same way for live trading and historical backtesting, and building your own algorithms is as simple as deriving the `base class analysis_engine.algo.BaseAlgo as needed <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/algo.py>`__.
+
+As an example for building your own algorithms, please refer to the `minute-by-minute algorithm for live intraday trading analysis <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/mocks/example_algo_minute.py>`__ with `real-time pricing data from IEX <https://iextrading.com/developer>`__.
+
+Running the Full Stack
+----------------------
+
+While not required for backtesting, running the full stack is required for running algorithms during a live trading session. Here is how to deploy the full stack locally using docker compose.
+
+#.  Start the stack with the `integration.yml docker compose file (minio, redis, engine worker, jupyter) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/integration.yml>`__
+
+    .. note:: The containers are set up to run price point predictions using AI with Tensorflow and Keras. Including these in the container image is easier for deployment, but inflated the docker image size to over ``2.8 GB``. Please wait while the images download as it can take a few minutes depending on your internet speed.
+        ::
+
+            (venv) jay@home1:/opt/sa$ docker images
+            REPOSITORY                          TAG                 IMAGE ID            CREATED             SIZE
+            jayjohnson/stock-analysis-jupyter   latest              071f97d2517e        12 hours ago        2.94GB
+            jayjohnson/stock-analysis-engine    latest              1cf690880894        12 hours ago        2.94GB
+            minio/minio                         latest              3a3963612183        6 weeks ago         35.8MB
+            redis                               4.0.9-alpine        494c839f5bb5        5 months ago        27.8MB
+
+    ::
+
+        ./compose/start.sh -a
+
+#.  Start the dataset collection job with the `automation-dataset-collection.yml docker compose file <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/automation-dataset-collection.yml>`__:
+
+    .. note:: Depending on how fast you want to run intraday algorithms, you can use this tool to collect recent pricing information with a cron or `Kubernetes job <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/k8/datasets/job.yml>`__
+
+    ::
+
+        ./compose/start.sh -c
+
+    Wait for pricing engine logs to stop with ``ctrl+c``
+
+    ::
+
+        logs-workers.sh
 
 Run a Distributed 60-day Backtest on SPY and Publish the Trading Report, Trading History and Algorithm-Ready Dataset to S3
 ==========================================================================================================================
@@ -167,8 +197,6 @@ Run a Offline Custom Algorithm Backtest with an Algorithm-Ready File
 Run the Intraday Minute-by-Minute Algorithm and Publish the Algorithm-Ready Dataset to S3
 -----------------------------------------------------------------------------------------
 
-    .. note:: Make sure to run through the `Getting Started before trying to run the algorithm <https://github.com/AlgoTraders/stock-analysis-engine#getting-started>`__
-
     Run the intraday algorithm with the latest pricing datasets use:
 
     ::
@@ -199,6 +227,13 @@ Create a Daily Backup
 ::
 
     sa -t SPY -e ~/SPY-$(date +"%Y-%m-%d").json
+
+Validate the Daily Backup by Examining the Dataset File
+-------------------------------------------------------
+
+::
+
+    sa -t SPY -l ~/SPY-$(date +"%Y-%m-%d").json
 
 Validate the Daily Backup by Examining the Dataset File
 -------------------------------------------------------

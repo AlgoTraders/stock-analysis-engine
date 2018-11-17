@@ -63,7 +63,7 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.3.1',
+    version='1.3.2',
     description=(
         'Build and tune your own investment '
         'algorithms using a distributed, scalable '
@@ -99,7 +99,7 @@ setup(
     scripts=[
         'analysis_engine/scripts/publish_from_s3_to_redis.py',
         'analysis_engine/scripts/publish_ticker_aggregate_from_s3.py',
-        'analysis_engine/scripts/run_ticker_analysis.py',
+        'analysis_engine/scripts/fetch_new_stock_datasets.py',
         'analysis_engine/scripts/sa.py',
         'tools/logs-dataset-collection.sh',
         'tools/logs-jupyter.sh',
@@ -115,6 +115,7 @@ setup(
     entry_points={
         'console_scripts': [
             'sa = sa:run_sa_tool',
+            'fetch = fetch_new_stock_datasets:fetch_new_stock_datasets',
         ],
     },
     classifiers=[
