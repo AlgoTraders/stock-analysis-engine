@@ -68,6 +68,39 @@ The engine supports running algorithms with live trading data or for backtesting
 
 As an example for building your own algorithms, please refer to the `minute-by-minute algorithm for live intraday trading analysis <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/mocks/example_algo_minute.py>`__ with `real-time pricing data from IEX <https://iextrading.com/developer>`__.
 
+Running the Full Stack
+----------------------
+
+#.  Start the stack with the `integration.yml docker compose file (minio, redis, engine worker, jupyter) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/integration.yml>`__
+
+    .. note:: This can take a few minutes as the Analysis Engine containers are large:
+        ::
+
+            (venv) jay@home1:/opt/sa$ docker images
+            REPOSITORY                          TAG                 IMAGE ID            CREATED             SIZE
+            jayjohnson/stock-analysis-jupyter   latest              071f97d2517e        12 hours ago        2.94GB
+            jayjohnson/stock-analysis-engine    latest              1cf690880894        12 hours ago        2.94GB
+            minio/minio                         latest              3a3963612183        6 weeks ago         35.8MB
+            redis                               4.0.9-alpine        494c839f5bb5        5 months ago        27.8MB
+
+    ::
+
+        ./compose/start.sh -a
+
+#.  Start the dataset collection job with the `automation-dataset-collection.yml docker compose file <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/automation-dataset-collection.yml>`__:
+
+    .. note:: Depending on how fast you want to run intraday algorithms, you can use this tool to collect recent pricing information with a cron or `Kubernetes job <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/k8/datasets/job.yml>`__
+
+    ::
+
+        ./compose/start.sh -c
+
+    Wait for pricing engine logs to stop with ``ctrl+c``
+
+    ::
+
+        logs-workers.sh
+
 Run a Distributed 60-day Backtest on SPY and Publish the Trading Report, Trading History and Algorithm-Ready Dataset to S3
 ==========================================================================================================================
 
@@ -238,39 +271,6 @@ Once collected and cached, you can extract datasets:
         print('dataset key: {}\nvalue {}\n'.format(k, d['SPY'][k]))
 
 Please refer to the `Stock Analysis Intro Extracting Datasets Jupyter Notebook <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro-Extracting-Datasets.ipynb>`__ for the latest usage examples.
-
-Full Stack Automation Backtesting and Live Trading
-==================================================
-
-#.  Start the stack with the `integration.yml docker compose file (minio, redis, engine worker, jupyter) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/integration.yml>`__
-
-    .. note:: This can take a few minutes as the Analysis Engine containers are large:
-        ::
-
-            (venv) jay@home1:/opt/sa$ docker images
-            REPOSITORY                          TAG                 IMAGE ID            CREATED             SIZE
-            jayjohnson/stock-analysis-jupyter   latest              071f97d2517e        12 hours ago        2.94GB
-            jayjohnson/stock-analysis-engine    latest              1cf690880894        12 hours ago        2.94GB
-            minio/minio                         latest              3a3963612183        6 weeks ago         35.8MB
-            redis                               4.0.9-alpine        494c839f5bb5        5 months ago        27.8MB
-
-    ::
-
-        ./compose/start.sh -a
-
-#.  Start the dataset collection job with the `automation-dataset-collection.yml docker compose file <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/automation-dataset-collection.yml>`__:
-
-    .. note:: Depending on how fast you want to run intraday algorithms, you can use this tool to collect recent pricing information with a cron or `Kubernetes job <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/k8/datasets/job.yml>`__
-
-    ::
-
-        ./compose/start.sh -c
-
-    Wait for pricing engine logs to stop with ``ctrl+c``
-
-    ::
-
-        logs-workers.sh
 
 .. list-table::
    :header-rows: 1
