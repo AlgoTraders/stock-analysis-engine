@@ -81,5 +81,6 @@ def load_algo_dataset_from_redis(
     return prepare_utils.prepare_dict_for_algo(
         data=data_from_file,
         compress=compress,
+        convert_to_dict=True,
         encoding=encoding)
 # end of load_algo_dataset_from_redis

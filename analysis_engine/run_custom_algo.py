@@ -455,6 +455,11 @@ def run_custom_algo(
         start_date = end_date - datetime.timedelta(days=75)
         use_start_date = start_date.strftime(
             ae_consts.COMMON_TICK_DATE_FORMAT)
+        log.info(
+            '{} {} setting default start_date={}'.format(
+                name,
+                ticker,
+                use_start_date))
 
     # Load an algorithm-ready dataset from:
     # file, s3, or redis
@@ -523,6 +528,7 @@ def run_custom_algo(
             slack_full_width=slack_full_width,
             verbose=verbose,
             label='extract-{}'.format(name))
+        should_publish_extract_dataset = False
         if extract_file:
             extract_config['output_file'] = extract_file
             should_publish_extract_dataset = True
@@ -565,6 +571,7 @@ def run_custom_algo(
             slack_full_width=slack_full_width,
             verbose=verbose,
             label='report-{}'.format(name))
+        should_publish_report_dataset = False
         if report_file:
             report_config['output_file'] = report_file
             should_publish_report_dataset = True
@@ -607,6 +614,7 @@ def run_custom_algo(
             slack_full_width=slack_full_width,
             verbose=verbose,
             label='history-{}'.format(name))
+        should_publish_history_dataset = False
         if history_file:
             history_config['output_file'] = history_file
             should_publish_history_dataset = True
@@ -859,7 +867,7 @@ def run_custom_algo(
             err=err,
             rec=None)
 
-    if should_publish_extract_dataset or dataset_publish_extract:
+    if should_publish_extract_dataset and dataset_publish_extract:
         s3_log = ''
         redis_log = ''
         file_log = ''
@@ -922,7 +930,7 @@ def run_custom_algo(
                 use_log))
     # if publish the algorithm-ready dataset
 
-    if should_publish_history_dataset or dataset_publish_history:
+    if should_publish_history_dataset and dataset_publish_history:
         s3_log = ''
         redis_log = ''
         file_log = ''
@@ -937,6 +945,8 @@ def run_custom_algo(
                 history_config['redis_key'])
             use_log += ' {}'.format(
                 redis_log)
+        else:
+            history_config['redis_enabled'] = False
         if (history_config['s3_address'] and
                 history_config['s3_bucket'] and
                 history_config['s3_key']):
@@ -946,6 +956,8 @@ def run_custom_algo(
                 history_config['s3_key'])
             use_log += ' {}'.format(
                 s3_log)
+        else:
+            history_config['s3_enabled'] = False
         if history_config['output_file']:
             file_log = 'file:{}'.format(
                 history_config['output_file'])
@@ -981,7 +993,7 @@ def run_custom_algo(
                 use_log))
     # if publish an trading history dataset
 
-    if should_publish_report_dataset or dataset_publish_report:
+    if should_publish_report_dataset and dataset_publish_report:
         s3_log = ''
         redis_log = ''
         file_log = ''
@@ -996,6 +1008,8 @@ def run_custom_algo(
                 report_config['redis_key'])
             use_log += ' {}'.format(
                 redis_log)
+        else:
+            report_config['redis_enabled'] = False
         if (report_config['s3_address'] and
                 report_config['s3_bucket'] and
                 report_config['s3_key']):
@@ -1005,6 +1019,8 @@ def run_custom_algo(
                 report_config['s3_key'])
             use_log += ' {}'.format(
                 s3_log)
+        else:
+            report_config['s3_enabled'] = False
         if report_config['output_file']:
             file_log = ' file:{}'.format(
                 report_config['output_file'])

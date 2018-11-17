@@ -65,14 +65,18 @@ setup(
     cmdclass={'build_py': build_py},
     version='1.3.1',
     description=(
-        'A distributed, scalable platform for '
+        'Build and tune your own investment '
+        'algorithms using a distributed, scalable '
+        'platform capable of '
         'running many backtests and live-trading '
         'algorithms at the same time on publicly '
         'traded companies with automated datafeeds '
         'from: Yahoo, IEX Real-Time Price, and FinViz '
         '(datafeeds include: pricing, options, news, '
         'dividends, daily, intraday, screeners, '
-        'statistics, financials, earnings, and more)'),
+        'statistics, financials, earnings, and more). '
+        'Runs on Kubernetes and docker-compose.'
+        ''),
     long_description=long_description,
     author='Jay Johnson',
     author_email='jay.p.h.johnson@gmail.com',
@@ -100,6 +104,10 @@ setup(
         'tools/logs-dataset-collection.sh',
         'tools/logs-jupyter.sh',
         'tools/logs-workers.sh',
+        'tools/run-algo-history-to-file.sh',
+        'tools/run-algo-history-to-s3.sh',
+        'tools/run-algo-report-to-file.sh',
+        'tools/run-algo-report-to-s3.sh',
         'tools/ssh-jupyter.sh',
         'tools/ssh-workers.sh',
         'tools/update-stack.sh'

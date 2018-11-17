@@ -1,7 +1,7 @@
 Stock Analysis Engine
 =====================
 
-A distributed, scalable platform for running many backtests and live-trading algorithms at the same time on publicly traded companies with automated datafeeds from: `Yahoo <https://finance.yahoo.com/>`__, `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__ and `FinViz <https://finviz.com>`__ (includes: pricing, options, news, dividends, daily, intraday, screeners, statistics, financials, earnings, and more).
+Build and tune your own investment algorithms using a distributed, fault-resilient approach capable of running many backtests and live-trading algorithms at the same time on publicly traded companies with automated datafeeds from: `Yahoo <https://finance.yahoo.com/>`__, `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__ and `FinViz <https://finviz.com>`__ (includes: pricing, options, news, dividends, daily, intraday, screeners, statistics, financials, earnings, and more). Runs on Kubernetes and docker-compose.
 
 .. image:: https://i.imgur.com/pH368gy.png
 
@@ -35,21 +35,43 @@ Backtesting and Live Trading Workflow
 
         logs-workers.sh
 
-#.  Run the Intraday Minute-by-Minute Algorithm
+Run and Publish Trading Performance Report for a Custom Algorithm
+=================================================================
 
-    .. note:: Make sure to run through the `Getting Started before trying to run the algorithm <https://github.com/AlgoTraders/stock-analysis-engine#getting-started>`__
+This will run a full backtest across the past 60 days in order and run the `minute-by-minute algorithm <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/mocks/example_algo_minute.py>`__. Once done it will publish the trading performance report to a file or minio (s3).
 
-    To run the intraday algorithm with the latest pricing datasets use:
+Write the Trading Performance Report to a Local File
+----------------------------------------------------
 
-    ::
+::
 
-        sa -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
+    run-algo-report-to-file.sh SPY 60 /opt/sa/analysis_engine/mocks/example_algo_minute.py
 
-    And to debug an algorithm's historical trading performance add the ``-d`` debug flag:
+Write the Trading Performance Report to Minio (s3)
+--------------------------------------------------
 
-    ::
+::
 
-        sa -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py -d
+    run-algo-report-to-s3.sh SPY 60 /opt/sa/analysis_engine/mocks/example_algo_minute.py
+
+Run and Publish Trading History for a Custom Algorithm
+======================================================
+
+This will run a full backtest across the past 60 days in order and run the `minute-by-minute algorithm <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/mocks/example_algo_minute.py>`__. Once done it will publish the trading history to a file or minio (s3).
+
+Write the Trading History to a Local File
+-----------------------------------------
+
+::
+
+    run-algo-history-to-file.sh SPY 60 /opt/sa/analysis_engine/mocks/example_algo_minute.py
+
+Write the Trading History to Minio (s3)
+---------------------------------------
+
+::
+
+    run-algo-history-to-s3.sh SPY 60 /opt/sa/analysis_engine/mocks/example_algo_minute.py
 
 Run a Distributed 60-day Backtest on SPY and Publish the Trading Report, Trading History and Algorithm-Ready Dataset to S3
 ==========================================================================================================================
@@ -78,16 +100,228 @@ Or manually with:
     ticker=SPY
     num_days_back=60
     use_date=$(date +"%Y-%m-%d")
-    ticker_dataset="${ticker}-${use_date}.json"
+    ds_id=$(uuidgen | sed -e 's/-//g')
+    ticker_dataset="${ticker}-${use_date}_${ds_id}.json"
     echo "creating ${ticker} dataset: ${ticker_dataset}"
+    extract_loc="s3://algoready/${ticker_dataset}"
     history_loc="s3://algohistory/${ticker_dataset}"
     report_loc="s3://algoreport/${ticker_dataset}"
-    extract_loc="s3://algoready/${ticker_dataset}"
-    backtest_loc="file:/tmp/${ticker_dataset}"
+    backtest_loc="s3://algoready/${ticker_dataset}"  # same as the extract_loc
+    processed_loc="s3://algoprocessed/${ticker_dataset}"  # archive it when done
     start_date=$(date --date="${num_days_back} day ago" +"%Y-%m-%d")
-    echo "running algo with:"
-    echo "sa -t SPY -p ${history_loc} -o ${report_loc} -w ${extract_loc} -b ${backtest_loc} -s ${start_date} -n ${use_date}"
-    sa -t SPY -p ${history_loc} -o ${report_loc} -e ${extract_loc} -b ${backtest_loc} -s ${start_date} -n ${use_date}
+    echo ""
+    echo "extracting algorithm-ready dataset: ${extract_loc}"
+    echo "sa -t SPY -e ${extract_loc} -s ${start_date} -n ${use_date}"
+    sa -t SPY -e ${extract_loc} -s ${start_date} -n ${use_date}
+    echo ""
+    echo "running algo with: ${backtest_loc}"
+    echo "sa -t SPY -p ${history_loc} -o ${report_loc} -b ${backtest_loc} -e ${processed_loc} -s ${start_date} -n ${use_date}"
+    sa -t SPY -p ${history_loc} -o ${report_loc} -b ${backtest_loc} -e ${processed_loc} -s ${start_date} -n ${use_date}
+
+View Algorithm-Ready Datasets
+-----------------------------
+
+With the AWS cli configured you can view available algorithm-ready datasets in your minio (s3) bucket with the command:
+
+::
+
+    aws --endpoint-url http://localhost:9000 s3 ls s3://algoready
+
+View Trading History Datasets
+-----------------------------
+
+With the AWS cli configured you can view available trading history datasets in your minio (s3) bucket with the command:
+
+::
+
+    aws --endpoint-url http://localhost:9000 s3 ls s3://algohistory
+
+View Trading History Datasets
+-----------------------------
+
+With the AWS cli configured you can view available trading performance report datasets in your minio (s3) bucket with the command:
+
+::
+
+    aws --endpoint-url http://localhost:9000 s3 ls s3://algoreport
+
+Advanced - Running Algorithm Backtests Offline
+==============================================
+
+With `extracted Algorithm-Ready datasets in minio (s3), redis or a file <https://github.com/AlgoTraders/stock-analysis-engine#extract-algorithm-ready-datasets>`__ you can develop and tune your own algorithms offline without having redis, minio, the analysis engine, or jupyter running locally.
+
+Run a Offline Custom Algorithm Backtest with an Algorithm-Ready File
+--------------------------------------------------------------------
+
+::
+
+    # extract with:
+    sa -t SPY -e file:/tmp/SPY-latest.json
+    sa -t SPY -b file:/tmp/SPY-latest.json -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
+
+Run the Intraday Minute-by-Minute Algorithm and Publish the Algorithm-Ready Dataset to S3
+-----------------------------------------------------------------------------------------
+
+    .. note:: Make sure to run through the `Getting Started before trying to run the algorithm <https://github.com/AlgoTraders/stock-analysis-engine#getting-started>`__
+
+    Run the intraday algorithm with the latest pricing datasets use:
+
+    ::
+
+        sa -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py -e s3://algoready/SPY-$(date +"%Y-%m-%d").json
+
+    And to debug an algorithm's historical trading performance add the ``-d`` debug flag:
+
+    ::
+
+        sa -d -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py -e s3://algoready/SPY-$(date +"%Y-%m-%d").json
+
+Extract Algorithm-Ready Datasets
+================================
+
+With pricing data cached in redis, you can extract algorithm-ready datasets and save them to a local file for offline historical backtesting analysis. This also serves as a local backup where all cached data for a single ticker is in a single local file.
+
+Extract an Algorithm-Ready Dataset from Redis and Save it to a File
+-------------------------------------------------------------------
+
+::
+
+    sa -t SPY -e ~/SPY-latest.json
+
+Create a Daily Backup
+---------------------
+
+::
+
+    sa -t SPY -e ~/SPY-$(date +"%Y-%m-%d").json
+
+Validate the Daily Backup by Examining the Dataset File
+-------------------------------------------------------
+
+::
+
+    sa -t SPY -l ~/SPY-$(date +"%Y-%m-%d").json
+
+
+.. image:: https://i.imgur.com/pH368gy.png
+
+Building Your Own Trading Algorithms
+====================================
+
+The engine supports running algorithms with live trading data or for backtesting. Use backtesting if you want to tune an algorithm's trading performance with `algorithm-ready datasets cached in redis <https://github.com/AlgoTraders/stock-analysis-engine#extract-algorithm-ready-datasets>`__. Algorithms work the same way for live trading and historical backtesting, and building your own algorithms is as simple as deriving the `base class analysis_engine.algo.BaseAlgo as needed <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/algo.py>`__.
+
+As an example for building your own algorithms, please refer to the `minute-by-minute algorithm for live intraday trading analysis <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/mocks/example_algo_minute.py>`__ with `real-time pricing data from IEX <https://iextrading.com/developer>`__.
+
+Backtesting and Live Trading Workflow
+-------------------------------------
+
+#.  Start the stack with the `integration.yml docker compose file (minio, redis, engine worker, jupyter) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/integration.yml>`__
+
+    ::
+
+        ./compose/start.sh -a
+
+#.  Start the dataset collection job with the `automation-dataset-collection.yml docker compose file <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/automation-dataset-collection.yml>`__:
+
+    .. note:: Depending on how fast you want to run intraday algorithms, you can use this tool to collect recent pricing information with a cron or `Kubernetes job <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/k8/datasets/job.yml>`__
+
+    ::
+
+        ./compose/start.sh -c
+
+    Wait for pricing engine logs to stop with ``ctrl+c``
+
+    ::
+
+        logs-workers.sh
+
+#.  Run the Intraday Minute-by-Minute Algorithm and Publish the Algorithm-Ready Dataset to S3
+
+    .. note:: Make sure to run through the `Getting Started before trying to run the algorithm <https://github.com/AlgoTraders/stock-analysis-engine#getting-started>`__
+
+    Run the intraday algorithm with the latest pricing datasets use:
+
+    ::
+
+        sa -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py -e s3://algoready/SPY-$(date +"%Y-%m-%d").json
+
+    And to debug an algorithm's historical trading performance add the ``-d`` debug flag:
+
+    ::
+
+        sa -d -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py -e s3://algoready/SPY-$(date +"%Y-%m-%d").json
+
+Run a Distributed 60-day Backtest on SPY and Publish the Trading Report, Trading History and Algorithm-Ready Dataset to S3
+==========================================================================================================================
+
+Publish backtests and live trading algorithms to the engine's workers for running many algorithms at the same time. Once done, the algorithm will publish results to s3, redis or a local file. By default, the included example below publishes all datasets into minio (s3) where they can be downloaded for offline backtests or restored back into redis.
+
+.. note:: Running distributed algorithmic workloads requires redis, minio, and the engine running
+
+::
+
+    num_days_back=60
+    ./tools/run-algo-with-publishing.sh SPY ${num_days_back} -w
+
+Run a Local 60-day Backtest on SPY and Publish Trading Report, Trading History and Algorithm-Ready Dataset to S3
+================================================================================================================
+
+::
+
+    num_days_back=60
+    ./tools/run-algo-with-publishing.sh SPY ${num_days_back}
+
+Or manually with:
+
+::
+
+    ticker=SPY
+    num_days_back=60
+    use_date=$(date +"%Y-%m-%d")
+    ds_id=$(uuidgen | sed -e 's/-//g')
+    ticker_dataset="${ticker}-${use_date}_${ds_id}.json"
+    echo "creating ${ticker} dataset: ${ticker_dataset}"
+    extract_loc="s3://algoready/${ticker_dataset}"
+    history_loc="s3://algohistory/${ticker_dataset}"
+    report_loc="s3://algoreport/${ticker_dataset}"
+    backtest_loc="s3://algoready/${ticker_dataset}"  # same as the extract_loc
+    processed_loc="s3://algoprocessed/${ticker_dataset}"  # archive it when done
+    start_date=$(date --date="${num_days_back} day ago" +"%Y-%m-%d")
+    echo ""
+    echo "extracting algorithm-ready dataset: ${extract_loc}"
+    echo "sa -t SPY -e ${extract_loc} -s ${start_date} -n ${use_date}"
+    sa -t SPY -e ${extract_loc} -s ${start_date} -n ${use_date}
+    echo ""
+    echo "running algo with: ${backtest_loc}"
+    echo "sa -t SPY -p ${history_loc} -o ${report_loc} -b ${backtest_loc} -e ${processed_loc} -s ${start_date} -n ${use_date}"
+    sa -t SPY -p ${history_loc} -o ${report_loc} -b ${backtest_loc} -e ${processed_loc} -s ${start_date} -n ${use_date}
+
+View Algorithm-Ready Datasets
+-----------------------------
+
+With the AWS cli configured you can view available algorithm-ready datasets in your minio (s3) bucket with the command:
+
+::
+
+    aws --endpoint-url http://localhost:9000 s3 ls s3://algoready
+
+View Trading History Datasets
+-----------------------------
+
+With the AWS cli configured you can view available trading history datasets in your minio (s3) bucket with the command:
+
+::
+
+    aws --endpoint-url http://localhost:9000 s3 ls s3://algohistory
+
+View Trading History Datasets
+-----------------------------
+
+With the AWS cli configured you can view available trading performance report datasets in your minio (s3) bucket with the command:
+
+::
+
+    aws --endpoint-url http://localhost:9000 s3 ls s3://algoreport
 
 Running Algorithm Backtests Offline
 ===================================

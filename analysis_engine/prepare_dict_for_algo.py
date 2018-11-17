@@ -17,6 +17,7 @@ def prepare_dict_for_algo(
         data,
         compress=False,
         encoding='utf-8',
+        convert_to_dict=False,
         dataset_names=None):
     """prepare_dict_for_algo
 
@@ -26,6 +27,8 @@ def prepare_dict_for_algo(
         the contents of the ``data`` if necessary
         (default is ``False`` and algorithms
         use ``zlib`` for compression)
+    :param convert_to_dict: optional - bool for s3 use ``False``
+        and for files use ``True``
     :param encoding: optional - string for data encoding
     :param dataset_names: optional - list of string keys
         for each dataset node in:
@@ -50,7 +53,10 @@ def prepare_dict_for_algo(
 
     log.debug('loading as dict')
     use_data = {}
-    data_as_dict = json.loads(parsed_data)
+    if convert_to_dict:
+        data_as_dict = json.loads(parsed_data)
+    else:
+        data_as_dict = parsed_data
     if len(data_as_dict) == 0:
         log.error(
             'empty algorithm-ready dictionary')

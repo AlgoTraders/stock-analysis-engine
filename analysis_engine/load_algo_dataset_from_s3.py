@@ -119,5 +119,6 @@ def load_algo_dataset_from_s3(
     return prepare_utils.prepare_dict_for_algo(
         data=data_from_file,
         compress=compress,
+        convert_to_dict=False,
         encoding=encoding)
 # end of load_algo_dataset_from_s3
