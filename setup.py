@@ -63,7 +63,7 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.3.0',
+    version='1.3.1',
     description=(
         'A distributed, scalable platform for '
         'running many backtests and live-trading '
