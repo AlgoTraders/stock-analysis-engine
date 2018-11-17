@@ -34,6 +34,7 @@ Write the Trading Performance Report to a Local File
 ::
 
     run-algo-report-to-file.sh SPY 60 /opt/sa/analysis_engine/mocks/example_algo_minute.py
+    # run-algo-report-to-file.sh <TICKER> <NUM_DAYS_BACK> <CUSTOM_ALGO_MODULE>
 
 Write the Trading Performance Report to Minio (s3)
 --------------------------------------------------
