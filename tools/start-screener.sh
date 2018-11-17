@@ -21,13 +21,27 @@ if [[ -e /opt/sa/analysis_engine/scripts/print_last_close_date.py ]]; then
     use_date=$(echo ${use_date_str} | awk '{print $1}')
 fi
 
+test_exists=$(which fetch)
+if [[ "${test_exists}" == "" ]]; then
+    source /opt/venv/bin/activate
+    test_exists=$(which fetch)
+    if [[ "${test_exists}" == "" ]]; then
+        echo "Error: unable to find the stock analysis command line tool: fetch"
+        echo ""
+        echo "Please confirm it is is installed from:"
+        echo "https://github.com/AlgoTraders/stock-analysis-engine#getting-started"
+        echo ""
+        exit 1
+    fi
+fi
+
 # separate urls with | character:
 # export SCREENER_URLS="<url>|<url>|<url>"
 if [[ "${SCREENER_URLS}" != "" ]]; then
     echo ""
     echo "starting screeners:"
-    echo "run_ticker_analysis.py -A scn -L ${SCREENER_URLS} -e ${exp_date}"
-    run_ticker_analysis.py -A scn -L ${SCREENER_URLS} -e ${exp_date}
+    echo "fetch -A scn -L ${SCREENER_URLS} -e ${exp_date}"
+    fetch -A scn -L ${SCREENER_URLS} -e ${exp_date}
     echo ""
 else
     echo "Please set SCREENER_URLS as an environment variable."

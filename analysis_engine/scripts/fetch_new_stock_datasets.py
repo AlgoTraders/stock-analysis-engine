@@ -2,65 +2,36 @@
 
 """
 
-Run buy and sell analysis on a stock to send alerts to subscribed
-users
+Fetch new pricing datasets for a single or multiple tickers at once or
+pull screeners from FinViz.
 
-Steps:
-
-1) Parse arguments
-2) Get pricing data as a Celery task
-3) Publish pricing data as a Celery tasks
-4) Coming Soon - Start buy/sell analysis as Celery task(s)
+1) Fetch pricing data or FinViz screeners results
+2) Publish pricing data to redis and minio
 
 """
 
 import os
 import argparse
+import celery
 import analysis_engine.api_requests as api_requests
 import analysis_engine.work_tasks.get_new_pricing_data as task_pricing
 import analysis_engine.work_tasks.task_screener_analysis as screener_utils
-from celery import signals
-from spylunking.log.setup_logging import build_colorized_logger
-from analysis_engine.work_tasks.get_celery_app import get_celery_app
-from analysis_engine.consts import LOG_CONFIG_PATH
-from analysis_engine.consts import TICKER
-from analysis_engine.consts import TICKER_ID
-from analysis_engine.consts import COMMON_DATE_FORMAT
-from analysis_engine.consts import NEXT_EXP_STR
-from analysis_engine.consts import WORKER_BROKER_URL
-from analysis_engine.consts import WORKER_BACKEND_URL
-from analysis_engine.consts import WORKER_CELERY_CONFIG_MODULE
-from analysis_engine.consts import INCLUDE_TASKS
-from analysis_engine.consts import SSL_OPTIONS
-from analysis_engine.consts import TRANSPORT_OPTIONS
-from analysis_engine.consts import S3_ACCESS_KEY
-from analysis_engine.consts import S3_SECRET_KEY
-from analysis_engine.consts import S3_REGION_NAME
-from analysis_engine.consts import S3_ADDRESS
-from analysis_engine.consts import S3_SECURE
-from analysis_engine.consts import S3_BUCKET
-from analysis_engine.consts import S3_KEY
-from analysis_engine.consts import REDIS_ADDRESS
-from analysis_engine.consts import REDIS_KEY
-from analysis_engine.consts import REDIS_PASSWORD
-from analysis_engine.consts import REDIS_DB
-from analysis_engine.consts import REDIS_EXPIRE
-from analysis_engine.consts import ppj
-from analysis_engine.consts import is_celery_disabled
-from analysis_engine.consts import get_status
-from analysis_engine.utils import last_close
+import spylunking.log.setup_logging as log_utils
+import analysis_engine.work_tasks.get_celery_app as get_celery_app
+import analysis_engine.consts as ae_consts
+import analysis_engine.utils as ae_utils
 
 
 # Disable celery log hijacking
 # https://github.com/celery/celery/issues/2509
-@signals.setup_logging.connect
+@celery.signals.setup_logging.connect
 def setup_celery_logging(**kwargs):
     pass
 
 
-log = build_colorized_logger(
-    name='run-analysis',
-    log_config_path=LOG_CONFIG_PATH)
+log = log_utils.build_colorized_logger(
+    name='fetch',
+    log_config_path=ae_consts.LOG_CONFIG_PATH)
 
 
 def start_screener_analysis(
@@ -95,37 +66,31 @@ def start_screener_analysis(
 # end of start_screener_analysis
 
 
-def run_ticker_analysis():
-    """run_ticker_analysis
+def fetch_new_stock_datasets():
+    """fetch_new_stock_datasets
 
     Collect all datasets for the ticker **SPY**:
 
     ::
 
-        run_ticker_analysis.py -t SPY
+        fetch_new_stock_datasets.py -t SPY
 
     .. note:: This requires the following services are listening on:
 
         - redis ``localhost:6379``
         - minio ``localhost:9000``
 
-    **Coming Soon**
-
-    Run buy and sell analysis on a stock to send alerts to subscribed
-    users
-
     """
-
     log.info(
-        'start - run_ticker_analysis')
+        'start - fetch_new_stock_datasets')
 
     parser = argparse.ArgumentParser(
         description=(
             'Download and store the latest stock pricing, '
             'news, and options chain data '
-            'and store it in S3 and Redis. '
-            'Once stored, this will also '
-            'start the buy and sell trading analysis.'))
+            'and store it in Minio (S3) and Redis. '
+            'Also includes support for getting FinViz '
+            'screener tickers'))
     parser.add_argument(
         '-t',
         help=(
@@ -297,6 +262,13 @@ def run_ticker_analysis():
         required=False,
         dest='urls')
     parser.add_argument(
+        '-Z',
+        help=(
+            'disable run without an engine for local testing and demos'),
+        required=False,
+        dest='celery_enabled',
+        action='store_true')
+    parser.add_argument(
         '-d',
         help=(
             'debug'),
@@ -305,28 +277,29 @@ def run_ticker_analysis():
         action='store_true')
     args = parser.parse_args()
 
-    ticker = TICKER
-    ticker_id = TICKER_ID
+    run_offline = True
+    ticker = ae_consts.TICKER
+    ticker_id = ae_consts.TICKER_ID
     fetch_mode = 'all'
-    exp_date_str = NEXT_EXP_STR
-    ssl_options = SSL_OPTIONS
-    transport_options = TRANSPORT_OPTIONS
-    broker_url = WORKER_BROKER_URL
-    backend_url = WORKER_BACKEND_URL
-    celery_config_module = WORKER_CELERY_CONFIG_MODULE
-    include_tasks = INCLUDE_TASKS
-    s3_access_key = S3_ACCESS_KEY
-    s3_secret_key = S3_SECRET_KEY
-    s3_region_name = S3_REGION_NAME
-    s3_address = S3_ADDRESS
-    s3_secure = S3_SECURE
-    s3_bucket_name = S3_BUCKET
-    s3_key = S3_KEY
-    redis_address = REDIS_ADDRESS
-    redis_key = REDIS_KEY
-    redis_password = REDIS_PASSWORD
-    redis_db = REDIS_DB
-    redis_expire = REDIS_EXPIRE
+    exp_date_str = ae_consts.NEXT_EXP_STR
+    ssl_options = ae_consts.SSL_OPTIONS
+    transport_options = ae_consts.TRANSPORT_OPTIONS
+    broker_url = ae_consts.WORKER_BROKER_URL
+    backend_url = ae_consts.WORKER_BACKEND_URL
+    celery_config_module = ae_consts.WORKER_CELERY_CONFIG_MODULE
+    include_tasks = ae_consts.INCLUDE_TASKS
+    s3_access_key = ae_consts.S3_ACCESS_KEY
+    s3_secret_key = ae_consts.S3_SECRET_KEY
+    s3_region_name = ae_consts.S3_REGION_NAME
+    s3_address = ae_consts.S3_ADDRESS
+    s3_secure = ae_consts.S3_SECURE
+    s3_bucket_name = ae_consts.S3_BUCKET
+    s3_key = ae_consts.S3_KEY
+    redis_address = ae_consts.REDIS_ADDRESS
+    redis_key = ae_consts.REDIS_KEY
+    redis_password = ae_consts.REDIS_PASSWORD
+    redis_db = ae_consts.REDIS_DB
+    redis_expire = ae_consts.REDIS_EXPIRE
     strike = None
     contract_type = None
     get_pricing = True
@@ -342,7 +315,7 @@ def run_ticker_analysis():
     if args.ticker_id:
         ticker_id = args.ticker_id
     if args.exp_date_str:
-        exp_date_str = NEXT_EXP_STR
+        exp_date_str = ae_consts.NEXT_EXP_STR
     if args.broker_url:
         broker_url = args.broker_url
     if args.backend_url:
@@ -388,6 +361,8 @@ def run_ticker_analysis():
         fetch_mode = str(args.fetch_mode).lower()
     if args.analysis_type:
         analysis_type = str(args.analysis_type).lower()
+    if args.celery_enabled:
+        run_offline = False
     if args.debug:
         debug = True
 
@@ -439,24 +414,27 @@ def run_ticker_analysis():
     # end of analysis_type
     else:
         if not args.keyname:
-            last_close_date = last_close()
+            last_close_date = ae_utils.last_close()
             work['s3_key'] = '{}_{}'.format(
                 work['ticker'],
-                last_close_date.strftime(COMMON_DATE_FORMAT))
+                last_close_date.strftime(
+                    ae_consts.COMMON_DATE_FORMAT))
             work['redis_key'] = '{}_{}'.format(
                 work['ticker'],
-                last_close_date.strftime(COMMON_DATE_FORMAT))
+                last_close_date.strftime(
+                    ae_consts.COMMON_DATE_FORMAT))
 
         path_to_tasks = 'analysis_engine.work_tasks'
         task_name = (
             '{}.get_new_pricing_data.get_new_pricing_data'.format(
                 path_to_tasks))
         task_res = None
-        if is_celery_disabled():
+        if ae_consts.is_celery_disabled() or run_offline:
             work['celery_disabled'] = True
             log.debug(
-                'starting without celery work={}'.format(
-                    ppj(work)))
+                'starting without celery work={} offline={}'.format(
+                    ae_consts.ppj(work),
+                    run_offline))
             task_res = task_pricing.get_new_pricing_data(
                 work)
 
@@ -465,9 +443,9 @@ def run_ticker_analysis():
                     'done - result={} '
                     'task={} status={} '
                     'err={} label={}'.format(
-                        ppj(task_res),
+                        ae_consts.ppj(task_res),
                         task_name,
-                        get_status(status=task_res['status']),
+                        ae_consts.get_status(status=task_res['status']),
                         task_res['err'],
                         work['label']))
             else:
@@ -476,7 +454,7 @@ def run_ticker_analysis():
                     'task={} status={} '
                     'err={} label={}'.format(
                         task_name,
-                        get_status(status=task_res['status']),
+                        ae_consts.get_status(status=task_res['status']),
                         task_res['err'],
                         work['label']))
             # if/else debug
@@ -487,7 +465,7 @@ def run_ticker_analysis():
                     backend_url))
 
             # Get the Celery app
-            app = get_celery_app(
+            app = get_celery_app.get_celery_app(
                 name=__name__,
                 auth_url=broker_url,
                 backend_url=backend_url,
@@ -499,7 +477,7 @@ def run_ticker_analysis():
             log.info(
                 'calling task={} - work={}'.format(
                     task_name,
-                    ppj(work)))
+                    ae_consts.ppj(work)))
             job_id = app.send_task(
                 task_name,
                 (work,))
@@ -509,8 +487,8 @@ def run_ticker_analysis():
                     job_id))
         # end of if/else
     # end of supported modes
-# end of run_ticker_analysis
+# end of fetch_new_stock_datasets
 
 
 if __name__ == '__main__':
-    run_ticker_analysis()
+    fetch_new_stock_datasets()

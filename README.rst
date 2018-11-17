@@ -5,35 +5,23 @@ Build and tune your own investment algorithms using a distributed, fault-resilie
 
 .. image:: https://i.imgur.com/pH368gy.png
 
-Building Your Own Trading Algorithms
-====================================
+Clone and Start Redis and Minio
+-------------------------------
 
-The engine supports running algorithms with live trading data or for backtesting. Use backtesting if you want to tune an algorithm's trading performance with `algorithm-ready datasets cached in redis <https://github.com/AlgoTraders/stock-analysis-engine#extract-algorithm-ready-datasets>`__. Algorithms work the same way for live trading and historical backtesting, and building your own algorithms is as simple as deriving the `base class analysis_engine.algo.BaseAlgo as needed <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/algo.py>`__.
+::
 
-As an example for building your own algorithms, please refer to the `minute-by-minute algorithm for live intraday trading analysis <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/mocks/example_algo_minute.py>`__ with `real-time pricing data from IEX <https://iextrading.com/developer>`__.
+    git clone https://github.com/AlgoTraders/stock-analysis-engine.git /opt/sa
+    cd /opt/sa
+    ./compose/start.sh
 
-Backtesting and Live Trading Workflow
--------------------------------------
+Fetch Stock Pricing for a Ticker Symbol
+=======================================
 
-#.  Start the stack with the `integration.yml docker compose file (minio, redis, engine worker, jupyter) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/integration.yml>`__
+.. note:: Make sure to run through the `Getting Started before running fetch and algorithms <https://github.com/AlgoTraders/stock-analysis-engine#getting-started>`__
 
-    ::
+::
 
-        ./compose/start.sh -a
-
-#.  Start the dataset collection job with the `automation-dataset-collection.yml docker compose file <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/automation-dataset-collection.yml>`__:
-
-    .. note:: Depending on how fast you want to run intraday algorithms, you can use this tool to collect recent pricing information with a cron or `Kubernetes job <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/k8/datasets/job.yml>`__
-
-    ::
-
-        ./compose/start.sh -c
-
-    Wait for pricing engine logs to stop with ``ctrl+c``
-
-    ::
-
-        logs-workers.sh
+    fetch -t SPY
 
 Run and Publish Trading Performance Report for a Custom Algorithm
 =================================================================
@@ -72,6 +60,13 @@ Write the Trading History to Minio (s3)
 ::
 
     run-algo-history-to-s3.sh SPY 60 /opt/sa/analysis_engine/mocks/example_algo_minute.py
+
+Building Your Own Trading Algorithms
+====================================
+
+The engine supports running algorithms with live trading data or for backtesting. Use backtesting if you want to tune an algorithm's trading performance with `algorithm-ready datasets cached in redis <https://github.com/AlgoTraders/stock-analysis-engine#extract-algorithm-ready-datasets>`__. Algorithms work the same way for live trading and historical backtesting, and building your own algorithms is as simple as deriving the `base class analysis_engine.algo.BaseAlgo as needed <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/algo.py>`__.
+
+As an example for building your own algorithms, please refer to the `minute-by-minute algorithm for live intraday trading analysis <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/mocks/example_algo_minute.py>`__ with `real-time pricing data from IEX <https://iextrading.com/developer>`__.
 
 Run a Distributed 60-day Backtest on SPY and Publish the Trading Report, Trading History and Algorithm-Ready Dataset to S3
 ==========================================================================================================================
@@ -162,8 +157,6 @@ Run a Offline Custom Algorithm Backtest with an Algorithm-Ready File
 Run the Intraday Minute-by-Minute Algorithm and Publish the Algorithm-Ready Dataset to S3
 -----------------------------------------------------------------------------------------
 
-    .. note:: Make sure to run through the `Getting Started before trying to run the algorithm <https://github.com/AlgoTraders/stock-analysis-engine#getting-started>`__
-
     Run the intraday algorithm with the latest pricing datasets use:
 
     ::
@@ -201,158 +194,6 @@ Validate the Daily Backup by Examining the Dataset File
 ::
 
     sa -t SPY -l ~/SPY-$(date +"%Y-%m-%d").json
-
-
-.. image:: https://i.imgur.com/pH368gy.png
-
-Building Your Own Trading Algorithms
-====================================
-
-The engine supports running algorithms with live trading data or for backtesting. Use backtesting if you want to tune an algorithm's trading performance with `algorithm-ready datasets cached in redis <https://github.com/AlgoTraders/stock-analysis-engine#extract-algorithm-ready-datasets>`__. Algorithms work the same way for live trading and historical backtesting, and building your own algorithms is as simple as deriving the `base class analysis_engine.algo.BaseAlgo as needed <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/algo.py>`__.
-
-As an example for building your own algorithms, please refer to the `minute-by-minute algorithm for live intraday trading analysis <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/mocks/example_algo_minute.py>`__ with `real-time pricing data from IEX <https://iextrading.com/developer>`__.
-
-Backtesting and Live Trading Workflow
--------------------------------------
-
-#.  Start the stack with the `integration.yml docker compose file (minio, redis, engine worker, jupyter) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/integration.yml>`__
-
-    ::
-
-        ./compose/start.sh -a
-
-#.  Start the dataset collection job with the `automation-dataset-collection.yml docker compose file <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/automation-dataset-collection.yml>`__:
-
-    .. note:: Depending on how fast you want to run intraday algorithms, you can use this tool to collect recent pricing information with a cron or `Kubernetes job <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/k8/datasets/job.yml>`__
-
-    ::
-
-        ./compose/start.sh -c
-
-    Wait for pricing engine logs to stop with ``ctrl+c``
-
-    ::
-
-        logs-workers.sh
-
-#.  Run the Intraday Minute-by-Minute Algorithm and Publish the Algorithm-Ready Dataset to S3
-
-    .. note:: Make sure to run through the `Getting Started before trying to run the algorithm <https://github.com/AlgoTraders/stock-analysis-engine#getting-started>`__
-
-    Run the intraday algorithm with the latest pricing datasets use:
-
-    ::
-
-        sa -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py -e s3://algoready/SPY-$(date +"%Y-%m-%d").json
-
-    And to debug an algorithm's historical trading performance add the ``-d`` debug flag:
-
-    ::
-
-        sa -d -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py -e s3://algoready/SPY-$(date +"%Y-%m-%d").json
-
-Run a Distributed 60-day Backtest on SPY and Publish the Trading Report, Trading History and Algorithm-Ready Dataset to S3
-==========================================================================================================================
-
-Publish backtests and live trading algorithms to the engine's workers for running many algorithms at the same time. Once done, the algorithm will publish results to s3, redis or a local file. By default, the included example below publishes all datasets into minio (s3) where they can be downloaded for offline backtests or restored back into redis.
-
-.. note:: Running distributed algorithmic workloads requires redis, minio, and the engine running
-
-::
-
-    num_days_back=60
-    ./tools/run-algo-with-publishing.sh SPY ${num_days_back} -w
-
-Run a Local 60-day Backtest on SPY and Publish Trading Report, Trading History and Algorithm-Ready Dataset to S3
-================================================================================================================
-
-::
-
-    num_days_back=60
-    ./tools/run-algo-with-publishing.sh SPY ${num_days_back}
-
-Or manually with:
-
-::
-
-    ticker=SPY
-    num_days_back=60
-    use_date=$(date +"%Y-%m-%d")
-    ds_id=$(uuidgen | sed -e 's/-//g')
-    ticker_dataset="${ticker}-${use_date}_${ds_id}.json"
-    echo "creating ${ticker} dataset: ${ticker_dataset}"
-    extract_loc="s3://algoready/${ticker_dataset}"
-    history_loc="s3://algohistory/${ticker_dataset}"
-    report_loc="s3://algoreport/${ticker_dataset}"
-    backtest_loc="s3://algoready/${ticker_dataset}"  # same as the extract_loc
-    processed_loc="s3://algoprocessed/${ticker_dataset}"  # archive it when done
-    start_date=$(date --date="${num_days_back} day ago" +"%Y-%m-%d")
-    echo ""
-    echo "extracting algorithm-ready dataset: ${extract_loc}"
-    echo "sa -t SPY -e ${extract_loc} -s ${start_date} -n ${use_date}"
-    sa -t SPY -e ${extract_loc} -s ${start_date} -n ${use_date}
-    echo ""
-    echo "running algo with: ${backtest_loc}"
-    echo "sa -t SPY -p ${history_loc} -o ${report_loc} -b ${backtest_loc} -e ${processed_loc} -s ${start_date} -n ${use_date}"
-    sa -t SPY -p ${history_loc} -o ${report_loc} -b ${backtest_loc} -e ${processed_loc} -s ${start_date} -n ${use_date}
-
-View Algorithm-Ready Datasets
------------------------------
-
-With the AWS cli configured you can view available algorithm-ready datasets in your minio (s3) bucket with the command:
-
-::
-
-    aws --endpoint-url http://localhost:9000 s3 ls s3://algoready
-
-View Trading History Datasets
------------------------------
-
-With the AWS cli configured you can view available trading history datasets in your minio (s3) bucket with the command:
-
-::
-
-    aws --endpoint-url http://localhost:9000 s3 ls s3://algohistory
-
-View Trading History Datasets
------------------------------
-
-With the AWS cli configured you can view available trading performance report datasets in your minio (s3) bucket with the command:
-
-::
-
-    aws --endpoint-url http://localhost:9000 s3 ls s3://algoreport
-
-Running Algorithm Backtests Offline
-===================================
-
-With `extracted Algorithm-Ready datasets in minio (s3), redis or a file <https://github.com/AlgoTraders/stock-analysis-engine#extract-algorithm-ready-datasets>`__ you can develop and tune your own algorithms offline without having redis, minio, the analysis engine, or jupyter running locally.
-
-Run a Custom Algorithm Backtest with a File
--------------------------------------------
-
-::
-
-    sa -t SPY -b file:/home/jay/SPY-latest.json -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
-
-Extract Algorithm-Ready Datasets
-================================
-
-With pricing data cached in redis, you can extract algorithm-ready datasets and save them to a local file for offline historical backtesting analysis. This also serves as a local backup where all cached data for a single ticker is in a single local file.
-
-Extract an Algorithm-Ready Dataset from Redis and Save it to a File
--------------------------------------------------------------------
-
-::
-
-    sa -t SPY -e ~/SPY-latest.json
-
-Create a Daily Backup
----------------------
-
-::
-
-    sa -t SPY -e ~/SPY-$(date +"%Y-%m-%d").json
 
 Validate the Daily Backup by Examining the Dataset File
 -------------------------------------------------------
@@ -398,6 +239,39 @@ Once collected and cached, you can extract datasets:
 
 Please refer to the `Stock Analysis Intro Extracting Datasets Jupyter Notebook <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro-Extracting-Datasets.ipynb>`__ for the latest usage examples.
 
+Full Stack Automation Backtesting and Live Trading
+==================================================
+
+#.  Start the stack with the `integration.yml docker compose file (minio, redis, engine worker, jupyter) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/integration.yml>`__
+
+    .. note:: This can take a few minutes as the Analysis Engine containers are large:
+        ::
+
+            (venv) jay@home1:/opt/sa$ docker images
+            REPOSITORY                          TAG                 IMAGE ID            CREATED             SIZE
+            jayjohnson/stock-analysis-jupyter   latest              071f97d2517e        12 hours ago        2.94GB
+            jayjohnson/stock-analysis-engine    latest              1cf690880894        12 hours ago        2.94GB
+            minio/minio                         latest              3a3963612183        6 weeks ago         35.8MB
+            redis                               4.0.9-alpine        494c839f5bb5        5 months ago        27.8MB
+
+    ::
+
+        ./compose/start.sh -a
+
+#.  Start the dataset collection job with the `automation-dataset-collection.yml docker compose file <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/automation-dataset-collection.yml>`__:
+
+    .. note:: Depending on how fast you want to run intraday algorithms, you can use this tool to collect recent pricing information with a cron or `Kubernetes job <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/k8/datasets/job.yml>`__
+
+    ::
+
+        ./compose/start.sh -c
+
+    Wait for pricing engine logs to stop with ``ctrl+c``
+
+    ::
+
+        logs-workers.sh
+
 .. list-table::
    :header-rows: 1
 
@@ -425,14 +299,6 @@ For background, the stack provides a data pipeline that automatically archives p
 From a technical perspective, the engine uses `Celery workers to process heavyweight, asynchronous tasks <http://www.celeryproject.org/>`__ and scales horizontally `with support for many transports and backends depending on where you need to run it <https://github.com/celery/celery#transports-and-backends>`__. The stack deploys with `Kubernetes <https://github.com/AlgoTraders/stock-analysis-engine#running-on-kubernetes>`__ or docker compose and `supports publishing trading alerts to Slack <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro-Publishing-to-Slack.ipynb>`__.
 
 With the stack already running, please refer to the `Intro Stock Analysis using Jupyter Notebook <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro.ipynb>`__ for more getting started examples.
-
-#.  Clone
-
-    ::
-
-        # most of the docs references /opt/sa as the repo directory
-        git clone https://github.com/AlgoTraders/stock-analysis-engine.git /opt/sa
-        cd /opt/sa
 
 #.  Start Redis and Minio
 
@@ -568,10 +434,10 @@ Please refer to the lastest API docs in the repo:
 
 https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/api_requests.py
 
-Run Ticker Analysis
-===================
+Fetch New Stock Datasets
+========================
 
-Run the ticker analysis using the `./analysis_engine/scripts/run_ticker_analysis.py <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/run_ticker_analysis.py>`__:
+Run the ticker analysis using the `./analysis_engine/scripts/fetch_new_stock_datasets.py <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/fetch_new_stock_datasets.py>`__:
 
 Collect all datasets for a Ticker or Symbol
 -------------------------------------------
@@ -580,7 +446,7 @@ Collect all datasets for the ticker **SPY**:
 
 ::
 
-    run_ticker_analysis.py -t SPY
+    fetch -t SPY
 
 .. note:: This requires the following services are listening on:
 
@@ -603,14 +469,14 @@ Please set these values as needed to publish and archive the dataset artifacts i
 
 ::
 
-    run_ticker_analysis.py -t SPY -a minio-${USER}:9000 -r redis-${USER}:6379
+    fetch -t SPY -a minio-${USER}:9000 -r redis-${USER}:6379
 
 .. warning:: It is not recommended sharing the same Redis server with multiple engine workers from inside docker containers and outside docker. This is because the ``REDIS_ADDRESS`` and ``S3_ADDRESS`` can only be one string value at the moment. So if a job is picked up by the wrong engine (which cannot connect to the correct Redis and Minio), then it can lead to data not being cached or archived correctly and show up as connectivity failures.
 
 Detailed Usage Example
 ----------------------
 
-The `run_ticker_analysis.py script <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/run_ticker_analysis.py#L65>`__ supports many parameters. Here is how to set it up if you have custom ``redis`` and ``minio`` deployments like on kubernetes as `minio-service:9000 <https://github.com/AlgoTraders/stock-analysis-engine/blob/7323ad4007b44eaa511d448c8eb500cec9fe3848/k8/engine/deployment.yml#L80-L81>`__ and `redis-master:6379 <https://github.com/AlgoTraders/stock-analysis-engine/blob/7323ad4007b44eaa511d448c8eb500cec9fe3848/k8/engine/deployment.yml#L88-L89>`__:
+The `fetch_new_stock_datasets.py script <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/fetch_new_stock_datasets.py>`__ supports many parameters. Here is how to set it up if you have custom ``redis`` and ``minio`` deployments like on kubernetes as `minio-service:9000 <https://github.com/AlgoTraders/stock-analysis-engine/blob/7323ad4007b44eaa511d448c8eb500cec9fe3848/k8/engine/deployment.yml#L80-L81>`__ and `redis-master:6379 <https://github.com/AlgoTraders/stock-analysis-engine/blob/7323ad4007b44eaa511d448c8eb500cec9fe3848/k8/engine/deployment.yml#L88-L89>`__:
 
 - S3 authentication (``-k`` and ``-s``)
 - S3 endpoint (``-a``)
@@ -619,66 +485,66 @@ The `run_ticker_analysis.py script <https://github.com/AlgoTraders/stock-analysi
 
 ::
 
-    run_ticker_analysis.py -t SPY -g all -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 0 -n SPY_demo -P 1 -N 1 -O 1 -U 1 -R 1
+    fetch -t SPY -g all -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 0 -n SPY_demo -P 1 -N 1 -O 1 -U 1 -R 1
 
 Usage
 -----
 
-Please refer to the `run_ticker_analysis.py script <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/run_ticker_analysis.py#L65>`__ for the latest supported usage if some of these are out of date:
+Please refer to the `fetch_new_stock_datasets.py script <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/fetch_new_stock_datasets.py>`__ for the latest supported usage if some of these are out of date:
 
 ::
 
-    usage: run_ticker_analysis.py [-h] [-t TICKER] [-g FETCH_MODE] [-i TICKER_ID]
-                              [-e EXP_DATE_STR] [-l LOG_CONFIG_PATH]
-                              [-b BROKER_URL] [-B BACKEND_URL]
-                              [-k S3_ACCESS_KEY] [-s S3_SECRET_KEY]
-                              [-a S3_ADDRESS] [-S S3_SECURE]
-                              [-u S3_BUCKET_NAME] [-G S3_REGION_NAME]
-                              [-p REDIS_PASSWORD] [-r REDIS_ADDRESS]
-                              [-n KEYNAME] [-m REDIS_DB] [-x REDIS_EXPIRE]
-                              [-z STRIKE] [-c CONTRACT_TYPE] [-P GET_PRICING]
-                              [-N GET_NEWS] [-O GET_OPTIONS] [-U S3_ENABLED]
-                              [-R REDIS_ENABLED] [-A ANALYSIS_TYPE] [-L URLS]
-                              [-d DEBUG]
+    fetch -h
+    2018-11-17 16:20:41,524 - fetch - INFO - start - fetch_new_stock_datasets
+    usage: fetch [-h] [-t TICKER] [-g FETCH_MODE] [-i TICKER_ID] [-e EXP_DATE_STR]
+                [-l LOG_CONFIG_PATH] [-b BROKER_URL] [-B BACKEND_URL]
+                [-k S3_ACCESS_KEY] [-s S3_SECRET_KEY] [-a S3_ADDRESS]
+                [-S S3_SECURE] [-u S3_BUCKET_NAME] [-G S3_REGION_NAME]
+                [-p REDIS_PASSWORD] [-r REDIS_ADDRESS] [-n KEYNAME] [-m REDIS_DB]
+                [-x REDIS_EXPIRE] [-z STRIKE] [-c CONTRACT_TYPE] [-P GET_PRICING]
+                [-N GET_NEWS] [-O GET_OPTIONS] [-U S3_ENABLED] [-R REDIS_ENABLED]
+                [-A ANALYSIS_TYPE] [-L URLS] [-Z] [-d]
 
     Download and store the latest stock pricing, news, and options chain data and
-    store it in S3 and Redis. Once stored, this will also start the buy and sell
-    trading analysis.
+    store it in Minio (S3) and Redis. Also includes support for getting FinViz
+    screener tickers
 
     optional arguments:
-      -h, --help          show this help message and exit
-      -t TICKER           ticker
-      -g FETCH_MODE       optional - fetch mode: all = fetch from all data sources
-                           (default), yahoo = fetch from just Yahoo sources, iex =
-                           fetch from just IEX sources
-      -i TICKER_ID        optional - ticker id not used without a database
-      -e EXP_DATE_STR     optional - options expiration date
-      -l LOG_CONFIG_PATH  optional - path to the log config file
-      -b BROKER_URL       optional - broker url for Celery
-      -B BACKEND_URL      optional - backend url for Celery
-      -k S3_ACCESS_KEY    optional - s3 access key
-      -s S3_SECRET_KEY    optional - s3 secret key
-      -a S3_ADDRESS       optional - s3 address format: <host:port>
-      -S S3_SECURE        optional - s3 ssl or not
-      -u S3_BUCKET_NAME   optional - s3 bucket name
-      -G S3_REGION_NAME   optional - s3 region name
-      -p REDIS_PASSWORD   optional - redis_password
-      -r REDIS_ADDRESS    optional - redis_address format: <host:port>
-      -n KEYNAME          optional - redis and s3 key name
-      -m REDIS_DB         optional - redis database number (0 by default)
-      -x REDIS_EXPIRE     optional - redis expiration in seconds
-      -z STRIKE           optional - strike price
-      -c CONTRACT_TYPE    optional - contract type "C" for calls "P" for puts
-      -P GET_PRICING      optional - get pricing data if "1" or "0" disabled
-      -N GET_NEWS         optional - get news data if "1" or "0" disabled
-      -O GET_OPTIONS      optional - get options data if "1" or "0" disabled
-      -U S3_ENABLED       optional - s3 enabled for publishing if "1" or "0" is
-                           disabled
-      -R REDIS_ENABLED    optional - redis enabled for publishing if "1" or "0" is
-                           disabled
-      -A ANALYSIS_TYPE    optional - run an analysis supported modes: scn
-      -L URLS             optional - screener urls to pull tickers for analysis
-      -d                  debug
+    -h, --help          show this help message and exit
+    -t TICKER           ticker
+    -g FETCH_MODE       optional - fetch mode: all = fetch from all data sources
+                        (default), yahoo = fetch from just Yahoo sources, iex =
+                        fetch from just IEX sources
+    -i TICKER_ID        optional - ticker id not used without a database
+    -e EXP_DATE_STR     optional - options expiration date
+    -l LOG_CONFIG_PATH  optional - path to the log config file
+    -b BROKER_URL       optional - broker url for Celery
+    -B BACKEND_URL      optional - backend url for Celery
+    -k S3_ACCESS_KEY    optional - s3 access key
+    -s S3_SECRET_KEY    optional - s3 secret key
+    -a S3_ADDRESS       optional - s3 address format: <host:port>
+    -S S3_SECURE        optional - s3 ssl or not
+    -u S3_BUCKET_NAME   optional - s3 bucket name
+    -G S3_REGION_NAME   optional - s3 region name
+    -p REDIS_PASSWORD   optional - redis_password
+    -r REDIS_ADDRESS    optional - redis_address format: <host:port>
+    -n KEYNAME          optional - redis and s3 key name
+    -m REDIS_DB         optional - redis database number (0 by default)
+    -x REDIS_EXPIRE     optional - redis expiration in seconds
+    -z STRIKE           optional - strike price
+    -c CONTRACT_TYPE    optional - contract type "C" for calls "P" for puts
+    -P GET_PRICING      optional - get pricing data if "1" or "0" disabled
+    -N GET_NEWS         optional - get news data if "1" or "0" disabled
+    -O GET_OPTIONS      optional - get options data if "1" or "0" disabled
+    -U S3_ENABLED       optional - s3 enabled for publishing if "1" or "0" is
+                        disabled
+    -R REDIS_ENABLED    optional - redis enabled for publishing if "1" or "0" is
+                        disabled
+    -A ANALYSIS_TYPE    optional - run an analysis supported modes: scn
+    -L URLS             optional - screener urls to pull tickers for analysis
+    -Z                  disable run without an engine for local testing and
+                        demos
+    -d                  debug
 
 Run FinViz Screener-driven Analysis
 ===================================
@@ -701,7 +567,7 @@ https://finviz.com/screener.ashx?v=111&f=cap_midunder,exch_nyse,fa_div_o8,idx_sp
 
 ::
 
-    run_ticker_analysis.py -A scn -L 'https://finviz.com/screener.ashx?v=111&f=cap_midunder,exch_nyse,fa_div_o6,idx_sp500&ft=4|https://finviz.com/screener.ashx?v=111&f=cap_midunder,exch_nyse,fa_div_o8,idx_sp500&ft=4'
+    fetch -A scn -L 'https://finviz.com/screener.ashx?v=111&f=cap_midunder,exch_nyse,fa_div_o6,idx_sp500&ft=4|https://finviz.com/screener.ashx?v=111&f=cap_midunder,exch_nyse,fa_div_o8,idx_sp500&ft=4'
 
 Run Publish from an Existing S3 Key to Redis
 ============================================
@@ -1387,8 +1253,8 @@ Most of the scripts support running without Celery workers. To run without worke
     ticker=SPY
     publish_from_s3_to_redis.py -t ${ticker} -u integration-tests -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 0 -n integration-test-v1
     sa -t ${ticker} -f -o ${ticker}_latest_v1 -j prepared -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 0 -n ${ticker}_demo
-    run_ticker_analysis.py -t ${ticker} -g all -e 2018-10-19 -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 0 -n ${ticker}_demo -P 1 -N 1 -O 1 -U 1 -R 1
-    run_ticker_analysis.py -A scn -L 'https://finviz.com/screener.ashx?v=111&f=cap_midunder,exch_nyse,fa_div_o6,idx_sp500&ft=4|https://finviz.com/screener.ashx?v=111&f=cap_midunder,exch_nyse,fa_div_o8,idx_sp500&ft=4'
+    fetch -t ${ticker} -g all -e 2018-10-19 -u pricing -k trexaccesskey -s trex123321 -a localhost:9000 -r localhost:6379 -m 0 -n ${ticker}_demo -P 1 -N 1 -O 1 -U 1 -R 1
+    fetch -A scn -L 'https://finviz.com/screener.ashx?v=111&f=cap_midunder,exch_nyse,fa_div_o6,idx_sp500&ft=4|https://finviz.com/screener.ashx?v=111&f=cap_midunder,exch_nyse,fa_div_o8,idx_sp500&ft=4'
 
 Linting and Other Tools
 -----------------------

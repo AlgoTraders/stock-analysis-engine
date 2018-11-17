@@ -1,13 +1,11 @@
 Scripts
 =======
 
-Run Ticker Analysis
-===================
+Collect New Pricing Datasets
+============================
 
-Perform ticker analysis using the included script for kicking off data gathering, caching and archival
-
-.. automodule:: analysis_engine.scripts.run_ticker_analysis
-   :members: run_ticker_analysis
+.. automodule:: analysis_engine.scripts.fetch_new_stock_datasets
+   :members: fetch_new_stock_datasets
 
 Publish Stock Data from S3 to Redis
 ===================================
