@@ -105,6 +105,8 @@ def build_algo_request(
         'history_config': history_config,
         'report_config': report_config,
         'extract_config': extract_config,
+        'start_date': None,
+        'end_date': None,
         'version': 1,
         'label': label
     }
@@ -120,6 +122,12 @@ def build_algo_request(
     use_dates = []
     new_dataset = None
     cur_date = start_date_val
+    if not work['start_date']:
+        work['start_date'] = start_date_val.strftime(
+            COMMON_TICK_DATE_FORMAT)
+    if not work['end_date']:
+        work['end_date'] = end_date_val.strftime(
+            COMMON_TICK_DATE_FORMAT)
     while cur_date <= end_date_val:
         if cur_date.weekday() < 5:
             for t in use_tickers:

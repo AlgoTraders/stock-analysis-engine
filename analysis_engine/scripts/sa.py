@@ -740,10 +740,12 @@ def run_sa_tool():
                     'redis://' not in backtest_loc):
                 log.error(
                     'invalid -b <backtest dataset file> specified. '
+                    '{} '
                     'please use either: '
                     '-b file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
                     '-b s3://algoready/SPY-latest.json or '
-                    '-b redis://SPY-latest')
+                    '-b redis://SPY-latest'.format(
+                        backtest_loc))
                 sys.exit(1)
             if 's3://' in backtest_loc:
                 load_from_s3_bucket = backtest_loc.split('/')[-2]
@@ -762,10 +764,12 @@ def run_sa_tool():
                     'redis://' not in algo_history_loc):
                 log.error(
                     'invalid -b <backtest dataset file> specified. '
+                    '{} '
                     'please use either: '
                     '-p file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
                     '-p s3://algoready/SPY-latest.json or '
-                    '-p redis://SPY-latest')
+                    '-p redis://SPY-latest'.format(
+                        algo_history_loc))
                 sys.exit(1)
             if 's3://' in algo_history_loc:
                 history_s3_bucket = algo_history_loc.split('/')[-2]
@@ -784,10 +788,12 @@ def run_sa_tool():
                     'redis://' not in algo_report_loc):
                 log.error(
                     'invalid -b <backtest dataset file> specified. '
+                    '{} '
                     'please use either: '
                     '-o file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
                     '-o s3://algoready/SPY-latest.json or '
-                    '-o redis://SPY-latest')
+                    '-o redis://SPY-latest'.format(
+                        algo_report_loc))
                 sys.exit(1)
             if 's3://' in algo_report_loc:
                 report_s3_bucket = algo_report_loc.split('/')[-2]
@@ -806,10 +812,12 @@ def run_sa_tool():
                     'redis://' not in algo_extract_loc):
                 log.error(
                     'invalid -b <backtest dataset file> specified. '
+                    '{} '
                     'please use either: '
                     '-e file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
                     '-e s3://algoready/SPY-latest.json or '
-                    '-e redis://SPY-latest')
+                    '-e redis://SPY-latest'.format(
+                        algo_extract_loc))
                 sys.exit(1)
             if 's3://' in algo_extract_loc:
                 extract_s3_bucket = algo_extract_loc.split('/')[-2]
