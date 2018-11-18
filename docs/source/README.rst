@@ -69,8 +69,48 @@ The engine supports running algorithms with live trading data or for backtesting
 
 As an example for building your own algorithms, please refer to the `minute-by-minute algorithm for live intraday trading analysis <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/mocks/example_algo_minute.py>`__ with `real-time pricing data from IEX <https://iextrading.com/developer>`__.
 
-Running the Full Stack
-----------------------
+Developing on AWS
+=================
+
+If you are comfortable with AWS S3 usage charges, then you can run just with a redis server to develop and tune algorithms. This works for teams and for archiving datasets for disaster recovery.
+
+Environment Variables
+---------------------
+
+Export these based off your AWS IAM credentials and S3 endpoint.
+
+::
+
+    export AWS_ACCESS_KEY_ID="ACCESS"
+    export AWS_SECRET_ACCESS_KEY="SECRET"
+    export S3_ADDRESS=s3.us-east-1.amazonaws.com
+
+Extract and Publish to AWS S3
+=============================
+
+::
+
+    ./tools/backup-datasets-on-s3.sh -t TICKER -q YOUR_BUCKET -k ${S3_ADDRESS} -r localhost:6379
+
+Publish to Custom AWS S3 Bucket and Key
+=======================================
+
+::
+
+    extract_loc=s3://YOUR_BUCKET/TICKER-latest.json
+    ./tools/backup-datasets-on-s3.sh -t TICKER -q YOUR_BUCKET -k ${S3_ADDRESS} -r localhost:6379 -e ${extract_loc}
+
+Backtest a Custom Algorithm with a Dataset on AWS S3
+====================================================
+
+::
+
+    backtest_loc=s3://YOUR_BUCKET/TICKER-latest.json
+    custom_algo_module=/opt/sa/analysis_engine/mocks/example_algo_minute.py
+    sa -t TICKER -a ${S3_ADDRESS} -r localhost:6379 -b ${backtest_loc} -g ${custom_algo_module}
+
+Running the Full Stack Locally
+==============================
 
 While not required for backtesting, running the full stack is required for running algorithms during a live trading session. Here is how to deploy the full stack locally using docker compose.
 
@@ -148,6 +188,23 @@ Or manually with:
     echo "running algo with: ${backtest_loc}"
     echo "sa -t SPY -p ${history_loc} -o ${report_loc} -b ${backtest_loc} -e ${processed_loc} -s ${start_date} -n ${use_date}"
     sa -t SPY -p ${history_loc} -o ${report_loc} -b ${backtest_loc} -e ${processed_loc} -s ${start_date} -n ${use_date}
+
+Kubernetes Job - Export SPY Datasets and Publish to Minio
+=========================================================
+
+Manually run with an ``ssh-eng`` alias:
+
+::
+
+    function ssheng() {
+        pod_name=$(kubectl get po | grep sa-engine | grep Running |tail -1 | awk '{print $1}')
+        echo "logging into ${pod_name}"
+        kubectl exec -it ${pod_name} bash
+    }
+    ssheng
+    # once inside the container on kubernetes
+    source /opt/venv/bin/activate
+    sa -a minio-service:9000 -r redis-master:6379 -e s3://backups/SPY-$(date +"%Y-%m-%d") -t SPY
 
 View Algorithm-Ready Datasets
 -----------------------------
@@ -1244,6 +1301,18 @@ Prepare a Dataset
 
 Debugging
 =========
+
+Test Algos
+----------
+
+The fastest way to run algos is to specify a 1-day range:
+
+::
+
+    sa -t SPY -s $(date +"%Y-%m-%d) -n $(date +"%Y-%m-%d")
+
+Test Tasks
+----------
 
 Most of the scripts support running without Celery workers. To run without workers in a synchronous mode use the command:
 

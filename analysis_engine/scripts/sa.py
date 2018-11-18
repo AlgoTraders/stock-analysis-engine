@@ -468,6 +468,20 @@ def run_sa_tool():
     redis_password = ae_consts.REDIS_PASSWORD
     redis_db = ae_consts.REDIS_DB
     redis_expire = ae_consts.REDIS_EXPIRE
+    dataset_type = ae_consts.SA_DATASET_TYPE_ALGO_READY
+    serialize_datasets = ae_consts.DEFAULT_SERIALIZED_DATASETS
+    output_redis_key = None
+    output_s3_bucket = None
+    output_s3_key = None
+    ignore_columns = None
+    compress = False
+    encoding = 'utf-8'
+    slack_enabled = False
+    slack_code_block = False
+    slack_full_width = False
+    verbose = False
+    debug = False
+
     redis_serializer = 'json'
     redis_encoding = 'utf-8'
     output_redis_key = None
@@ -509,6 +523,8 @@ def run_sa_tool():
         s3_region_name = args.s3_region_name
     if args.s3_address:
         s3_address = args.s3_address
+        s3_enabled = True
+
     if args.s3_secure:
         s3_secure = args.s3_secure
     if args.s3_bucket_name:
@@ -592,34 +608,6 @@ def run_sa_tool():
         # end of testing for a valid date
     # end of args.end_date
 
-    dataset_type = ae_consts.SA_DATASET_TYPE_ALGO_READY
-    serialize_datasets = ae_consts.DEFAULT_SERIALIZED_DATASETS
-    s3_access_key = ae_consts.S3_ACCESS_KEY
-    s3_secret_key = ae_consts.S3_SECRET_KEY
-    s3_region_name = ae_consts.S3_REGION_NAME
-    s3_address = ae_consts.S3_ADDRESS
-    s3_secure = ae_consts.S3_SECURE
-    s3_bucket_name = ae_consts.S3_BUCKET
-    s3_key = ae_consts.S3_KEY
-    redis_address = ae_consts.REDIS_ADDRESS
-    redis_key = ae_consts.REDIS_KEY
-    redis_password = ae_consts.REDIS_PASSWORD
-    redis_db = ae_consts.REDIS_DB
-    redis_expire = ae_consts.REDIS_EXPIRE
-    output_redis_key = None
-    output_s3_bucket = None
-    output_s3_key = None
-    ignore_columns = None
-    compress = False
-    encoding = 'utf-8'
-    redis_enabled = True
-    s3_enabled = True
-    slack_enabled = False
-    slack_code_block = False
-    slack_full_width = False
-    verbose = False
-    debug = False
-
     config_dict = None
     load_from_s3_bucket = None
     load_from_s3_key = None
@@ -653,8 +641,6 @@ def run_sa_tool():
     publish_to_slack = True
     publish_to_s3 = True
     publish_to_redis = True
-    dataset_type = ae_consts.SA_DATASET_TYPE_ALGO_READY
-    serialize_datasets = ae_consts.DEFAULT_SERIALIZED_DATASETS
 
     valid = False
     required_task = False

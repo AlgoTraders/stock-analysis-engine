@@ -113,7 +113,7 @@ def build_algo_request(
 
     start_date_val = get_date_from_str(start_date)
     end_date_val = get_date_from_str(end_date)
-    if start_date_val >= end_date_val:
+    if start_date_val > end_date_val:
         raise Exception(
             'Invalid start_date={} must be less than end_date={}'.format(
                 start_date,
