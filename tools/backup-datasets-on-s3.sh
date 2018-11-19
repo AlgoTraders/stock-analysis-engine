@@ -10,7 +10,11 @@ elif [[ "${PATH_TO_AE_ENV}" != "" ]]; then
     fi
 fi
 
-# Start handling:
+# start custom handling where args, variables and environment
+# variables are set:
+# https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/backtest_parsing_env.sh
+# 
+# debug this script's parsing of arguments with: -d 
 
 inf ""
 anmt "Running extract ${ticker} and backup to ${s3_backup_loc}"

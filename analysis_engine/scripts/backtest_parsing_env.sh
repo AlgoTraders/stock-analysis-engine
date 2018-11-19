@@ -65,7 +65,7 @@ fi
 algo_module_path_intraday=/opt/sa/analysis_engine/mocks/example_algo_minute.py
 algo_base_module_path=/opt/sa/analysis_engine/algo.py
 algo_module_path=/opt/sa/analysis_engine/algo.py
-algo_name=$(echo ${algo_module_path} | sed -e 's|/| |g' | awk '{print $NF}' | sed -e 's/\.py//g')
+algo_name=$(echo ${algo_module_path} | sed -e 's|/| |g' | sed -e 's|_|-|g' | awk '{print $NF}' | sed -e 's/\.py//g')
 algo_version=1
 algo_config_file=""
 
@@ -77,6 +77,7 @@ num_days_to_set_start_date="60"
 os_type=`uname -s`
 distribute_to_workers=""
 debug="0"
+already_extracted="0"
 extract_loc=""
 report_loc=""
 history_loc=""
@@ -289,6 +290,7 @@ usage() {
     if [[ "${NUM_DAYS_BACK}" != "" ]]; then
         anmt "    parsed: -b ${NUM_DAYS_BACK}"
     fi
+    echo " -z - flag - bypass any starting extraction steps"
     echo " -w - flag - distribute the jobs by publishing to remote engine workers"
     echo " -d - flag - debug mode (enable with: -d)"
     echo ""
@@ -303,7 +305,7 @@ usage() {
 }
 
 # Call getopt to validate the provided input.
-while getopts ":t:a:e:p:o:l:r:R:f:k:x:q:i:u:K:s:n:b:c:wd" o; do
+while getopts ":t:a:e:p:o:l:r:R:f:k:x:q:i:u:K:s:n:b:c:zwdj" o; do
     case "${o}" in
     t)
         ticker=${OPTARG}
@@ -385,6 +387,10 @@ while getopts ":t:a:e:p:o:l:r:R:f:k:x:q:i:u:K:s:n:b:c:wd" o; do
         algo_config_file=${OPTARG}
         export ALGO_CONFIG_FILE=${OPTARG}
         ;;
+    z)
+        already_extracted="1"
+        export ALREADY_EXTRACTED="1"
+        ;;
     d)
         debug="1"
         export DEBUG_AE="1"
@@ -402,9 +408,11 @@ done
 case "$os_type" in
     Linux*)
         backtest_start_date=$(date --date="${num_days_to_set_start_date} day ago" +"%Y-%m-%d")
+        start_date=${backtest_start_date}
         ;;
     Darwin*)
         backtest_start_date=$(date -v -${num_days_to_set_start_date}d +"%Y-%m-%d")
+        start_date=${backtest_start_date}
         ;;
     *)
         warn "Unsupported OS, exiting."

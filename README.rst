@@ -33,15 +33,17 @@ Write the Trading Performance Report to a Local File
 
 ::
 
-    run-algo-report-to-file.sh SPY 60 /opt/sa/analysis_engine/mocks/example_algo_minute.py
-    # run-algo-report-to-file.sh <TICKER> <NUM_DAYS_BACK> <CUSTOM_ALGO_MODULE>
+    ./tools/run-algo-report-to-file.sh -t SPY -b 60 -a /opt/sa/analysis_engine/mocks/example_algo_minute.py
+    # run-algo-report-to-file.sh -t <TICKER> -b <NUM_DAYS_BACK> -a <CUSTOM_ALGO_MODULE>
+    # -s <start date YYYY-MM-DD>
+    # -n <end date YYYY-MM-DD>
 
 Write the Trading Performance Report to Minio (s3)
 --------------------------------------------------
 
 ::
 
-    run-algo-report-to-s3.sh SPY 60 /opt/sa/analysis_engine/mocks/example_algo_minute.py
+    run-algo-report-to-s3.sh -t SPY -b 60 -a /opt/sa/analysis_engine/mocks/example_algo_minute.py
 
 Run and Publish Trading History for a Custom Algorithm
 ======================================================
@@ -53,14 +55,14 @@ Write the Trading History to a Local File
 
 ::
 
-    run-algo-history-to-file.sh SPY 60 /opt/sa/analysis_engine/mocks/example_algo_minute.py
+    run-algo-history-to-file.sh -t SPY -b 60 -a /opt/sa/analysis_engine/mocks/example_algo_minute.py
 
 Write the Trading History to Minio (s3)
 ---------------------------------------
 
 ::
 
-    run-algo-history-to-s3.sh SPY 60 /opt/sa/analysis_engine/mocks/example_algo_minute.py
+    run-algo-history-to-s3.sh -t SPY -b 60 -a /opt/sa/analysis_engine/mocks/example_algo_minute.py
 
 Building Your Own Trading Algorithms
 ====================================
@@ -154,7 +156,7 @@ Publish backtests and live trading algorithms to the engine's workers for runnin
 ::
 
     num_days_back=60
-    ./tools/run-algo-with-publishing.sh SPY ${num_days_back} -w
+    ./tools/run-algo-with-publishing.sh -t SPY -b ${num_days_back} -w
 
 Run a Local 60-day Backtest on SPY and Publish Trading Report, Trading History and Algorithm-Ready Dataset to S3
 ================================================================================================================
@@ -162,7 +164,7 @@ Run a Local 60-day Backtest on SPY and Publish Trading Report, Trading History a
 ::
 
     num_days_back=60
-    ./tools/run-algo-with-publishing.sh SPY ${num_days_back}
+    ./tools/run-algo-with-publishing.sh -t SPY -b ${num_days_back}
 
 Or manually with:
 
