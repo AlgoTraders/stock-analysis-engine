@@ -1,0 +1,28 @@
+{
+  "name": "test_5_days_ahead",
+  "algo_module_path": null,
+  "algo_version": 1,
+  "trade_horizon_units": "day",
+  "trade_horizon": 5,
+  "buy_rules": {
+    "confidence": 75,
+    "min_indicators": 1
+  },
+  "sell_rules": {
+    "confidence": 75,
+    "min_indicators": 1
+  },
+  "indicators": [
+    {
+      "name": "bollingerbands",
+      "category": "technical",
+      "type": "momentum",
+      "num_points": 12,
+      "buy_above": 60,
+      "sell_below": 20
+    }
+  ],
+  "slack": {
+    "webhook": null
+  }
+}

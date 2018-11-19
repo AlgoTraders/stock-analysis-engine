@@ -524,7 +524,6 @@ def run_sa_tool():
     if args.s3_address:
         s3_address = args.s3_address
         s3_enabled = True
-
     if args.s3_secure:
         s3_secure = args.s3_secure
     if args.s3_bucket_name:
@@ -607,6 +606,13 @@ def run_sa_tool():
             sys.exit(1)
         # end of testing for a valid date
     # end of args.end_date
+    if args.config_file:
+        use_config_file = args.config_file
+        if not os.path.exists(use_config_file):
+            log.error(
+                'Failed: unable to find config file: -c {}'.format(
+                    use_config_file))
+            sys.exit(1)
 
     config_dict = None
     load_from_s3_bucket = None

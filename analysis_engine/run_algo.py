@@ -36,8 +36,7 @@ import analysis_engine.build_result as build_result
 import analysis_engine.api_requests as api_requests
 import spylunking.log.setup_logging as log_utils
 
-log = log_utils.build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def run_algo(
@@ -83,6 +82,7 @@ def run_algo(
         publish_to_s3=True,
         publish_to_redis=True,
         extract_datasets=None,
+        config_file=None,
         config_dict=None,
         version=1,
         raise_on_err=False):
@@ -127,6 +127,13 @@ def run_algo(
         object, by default ``analysis_engine.calendars.
         always_open.AlwaysOpen`` trading calendar
         # TradingCalendar by ``TFSExchangeCalendar``
+    :param config_file: path to a json file
+        containing custom algorithm object
+        member values (like indicator configuration and
+        predict future date units ahead for a backtest)
+    :param config_dict: optional - dictionary that
+        can be passed to derived class implementations
+        of: ``def load_from_config(config_dict=config_dict)``
 
     **Algorithm Dataset Loading, Extracting, Reporting
     and Trading History arguments**

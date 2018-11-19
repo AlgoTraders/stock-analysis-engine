@@ -304,6 +304,8 @@ S3_FAILED = 39
 REDIS_FAILED = 40
 FILE_FAILED = 41
 SLACK_FAILED = 42
+ALGO_HORIZON_UNITS_DAY = 43  # evaluate trade performance on daily-units
+ALGO_HORIZON_UNITS_MINUTE = 44  # evaluate trade performance on minutely-units
 
 SA_MODE_PREPARE = 100
 SA_MODE_ANALYZE = 101
@@ -798,6 +800,10 @@ def get_status(
         return 'FILE_FAILED'
     elif status == SLACK_FAILED:
         return 'SLACK_FAILED'
+    elif status == ALGO_HORIZON_UNITS_DAY:
+        return 'ALGO_HORIZON_UNITS_DAY'
+    elif status == ALGO_HORIZON_UNITS_MINUTE:
+        return 'ALGO_HORIZON_UNITS_MINUTE'
     elif SA_DATASET_TYPE_ALGO_READY == SA_DATASET_TYPE_ALGO_READY:
         return 'SA_DATASET_TYPE_ALGO_READY'
     else:

@@ -107,14 +107,15 @@ from analysis_engine.consts import ALGO_HISTORY_COMPRESS
 from analysis_engine.consts import ALGO_REPORT_COMPRESS
 from analysis_engine.consts import SA_DATASET_TYPE_ALGO_READY
 from analysis_engine.consts import DEFAULT_SERIALIZED_DATASETS
+from analysis_engine.consts import ALGO_HORIZON_UNITS_DAY
+from analysis_engine.consts import ALGO_HORIZON_UNITS_MINUTE
 from analysis_engine.consts import get_status
 from analysis_engine.consts import get_percent_done
 from analysis_engine.consts import get_mb
 from analysis_engine.utils import utc_now_str
 from spylunking.log.setup_logging import build_colorized_logger
 
-log = build_colorized_logger(
-    name=__name__)
+log = build_colorized_logger(name=__name__)
 
 
 class BaseAlgo:
@@ -214,6 +215,7 @@ class BaseAlgo:
             use_key=None,
             auto_fill=True,
             version=1,
+            config_file=None,
             config_dict=None,
             output_dir=None,
             publish_to_slack=False,
@@ -285,11 +287,15 @@ class BaseAlgo:
         :param version: optional - version tracking
             value (default is ``1``)
 
-        **Derived Config Loading for Indicators**
+        **Derived Config Loading for Indicators and Custom Backtest Values**
 
+        :param config_file: path to a json file
+            containing custom algorithm object
+            member values (like indicator configuration and
+            predict future date units ahead for a backtest)
         :param config_dict: optional - dictionary that
             can be passed to derived class implementations
-            of: ``def load_from_config(config_dict=config_dict):``
+            of: ``def load_from_config(config_dict=config_dict)``
 
         **Run a Backtest with an Algorithm-Ready Dataset in S3,
         Redis or a File**
@@ -467,6 +473,8 @@ class BaseAlgo:
         self.balance = balance
         self.starting_balance = balance
         self.starting_close = 0.0
+        self.trade_horizon_units = ALGO_HORIZON_UNITS_DAY
+        self.trade_horizon = 5
         self.commission = commission
         self.result = None
         self.name = name
@@ -498,6 +506,7 @@ class BaseAlgo:
         self.spread_exp_date = None
         self.last_close = None
         self.order_history = []
+        self.config_file = config_file
         self.config_dict = config_dict
         self.positions = {}
         self.created_date = utc_now_str()
@@ -843,8 +852,22 @@ class BaseAlgo:
 
         self.load_from_external_source()
 
+        if self.config_dict:
+            val = self.config_dict.get(
+                'trade_horizon_units',
+                'day').lower()
+            if val == 'day':
+                self.horizon_units = ALGO_HORIZON_UNITS_DAY
+            else:
+                self.horizon_units = ALGO_HORIZON_UNITS_MINUTE
+            self.trade_horizon = int(self.config_dict.get(
+                'trade_horizon',
+                5))
+        # end of loading initial values from a config_dict before derived
+
         self.load_from_config(
             config_dict=config_dict)
+
     # end of __init__
 
     def process(
@@ -1929,6 +1952,7 @@ class BaseAlgo:
             for k in config_dict:
                 if k in self.__dict__:
                     self.__dict__[k] = config_dict[k]
+        # end of loading config
     # end of load_from_config
 
     def get_name(self):
