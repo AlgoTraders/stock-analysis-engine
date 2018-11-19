@@ -1,6 +1,81 @@
 """
 Consts and helper functions
 
+Algorithm Environment Variables
+-------------------------------
+
+::
+
+    ALGO_MODULE_PATH = ev(
+        'ALGO_MODULE_PATH',
+        '/opt/sa/analysis_engine/mocks/example_algo_minute.py')
+    ALGO_BASE_MODULE_PATH = ev(
+        'ALGO_BASE_MODULE_PATH',
+        '/opt/sa/analysis_engine/algo.py')
+    ALGO_MODULE_NAME = ev(
+        'ALGO_MODULE_NAME',
+        'example_algo_minute')
+    ALGO_VERSION = ev(
+        'ALGO_VERSION',
+        '1')
+    ALGO_BUYS_S3_BUCKET_NAME = ev(
+        'ALGO_BUYS_S3_BUCKET_NAME',
+        'algobuys')
+    ALGO_SELLS_S3_BUCKET_NAME = ev(
+        'ALGO_SELLS_S3_BUCKET_NAME',
+        'algosells')
+    ALGO_RESULT_S3_BUCKET_NAME = ev(
+        'ALGO_RESULT_S3_BUCKET_NAME',
+        'algoresults')
+    ALGO_READY_DATASET_S3_BUCKET_NAME = ev(
+        'ALGO_READY_DATASET_S3_BUCKET_NAME',
+        'algoready')
+    ALGO_EXTRACT_DATASET_S3_BUCKET_NAME = ev(
+        'ALGO_EXTRACT_DATASET_S3_BUCKET_NAME',
+        'algoready')
+    ALGO_HISTORY_DATASET_S3_BUCKET_NAME = ev(
+        'ALGO_HISTORY_DATASET_S3_BUCKET_NAME',
+        'algohistory')
+    ALGO_REPORT_DATASET_S3_BUCKET_NAME = ev(
+        'ALGO_REPORT_DATASET_S3_BUCKET_NAME',
+        'algoreport')
+    ALGO_BACKUP_DATASET_S3_BUCKET_NAME = ev(
+        'ALGO_BACKUP_DATASET_S3_BUCKET_NAME',
+        'algobackup')
+    ALGO_READY_DIR = ev(
+        'ALGO_READY_DIR',
+        '/tmp')
+    ALGO_EXTRACT_DIR = ev(
+        'ALGO_EXTRACT_DIR',
+        '/tmp')
+    ALGO_HISTORY_DIR = ev(
+        'ALGO_HISTORY_HISTORY_DIR',
+        '/tmp')
+    ALGO_REPORT_DIR = ev(
+        'ALGO_REPORT_DIR',
+        '/tmp')
+    ALGO_LOAD_DIR = ev(
+        'ALGO_LOAD_DIR',
+        '/tmp')
+    ALGO_BACKUP_DIR = ev(
+        'ALGO_BACKUP_DIR',
+        '/tmp')
+    ALGO_READY_REDIS_ADDRESS = ev(
+        'ALGO_READY_REDIS_ADDRESS',
+        'localhost:6379')
+    ALGO_EXTRACT_REDIS_ADDRESS = ev(
+        'ALGO_EXTRACT_REDIS_ADDRESS',
+        'localhost:6379')
+    ALGO_HISTORY_REDIS_ADDRESS = ev(
+        'ALGO_HISTORY_REDIS_ADDRESS',
+        'localhost:6379')
+    ALGO_REPORT_REDIS_ADDRESS = ev(
+        'ALGO_REPORT_REDIS_ADDRESS',
+        'localhost:6379')
+    ALGO_BACKUP_REDIS_ADDRESS = ev(
+        'ALGO_BACKUP_REDIS_ADDRESS',
+        'localhost:6379')
+
 Stock and Analysis Environment Variables
 ----------------------------------------
 
@@ -129,24 +204,6 @@ Supported S3 Environment Variables
     ANALYZE_S3_BUCKET_NAME = ev(
         'ANALYZE_S3_BUCKET_NAME',
         'analyzed')
-    ALGO_BUYS_S3_BUCKET_NAME = ev(
-        'ALGO_BUYS_S3_BUCKET_NAME',
-        'algobuys')
-    ALGO_SELLS_S3_BUCKET_NAME = ev(
-        'ALGO_SELLS_S3_BUCKET_NAME',
-        'algosells')
-    ALGO_RESULT_S3_BUCKET_NAME = ev(
-        'ALGO_RESULT_S3_BUCKET_NAME',
-        'algoresults')
-    ALGO_INPUT_DATASET_S3_BUCKET_NAME = ev(
-        'ALGO_INPUT_DATASET_S3_BUCKET_NAME',
-        'algoinput')
-    ALGO_HISTORY_DATASET_S3_BUCKET_NAME = ev(
-        'ALGO_HISTORY_DATASET_S3_BUCKET_NAME',
-        'algohistory')
-    ALGO_REPORT_DATASET_S3_BUCKET_NAME = ev(
-        'ALGO_REPORT_DATASET_S3_BUCKET_NAME',
-        'algoreport')
     SCREENER_S3_BUCKET_NAME = ev(
         'SCREENER_S3_BUCKET_NAME',
         'screener-data')
@@ -356,27 +413,6 @@ PREPARE_S3_BUCKET_NAME = ev(
 ANALYZE_S3_BUCKET_NAME = ev(
     'ANALYZE_S3_BUCKET_NAME',
     'analyzed')
-ALGO_BUYS_S3_BUCKET_NAME = ev(
-    'ALGO_BUYS_S3_BUCKET_NAME',
-    'algobuys')
-ALGO_SELLS_S3_BUCKET_NAME = ev(
-    'ALGO_SELLS_S3_BUCKET_NAME',
-    'algosells')
-ALGO_RESULT_S3_BUCKET_NAME = ev(
-    'ALGO_RESULT_S3_BUCKET_NAME',
-    'algoresults')
-ALGO_INPUT_DATASET_S3_BUCKET_NAME = ev(
-    'ALGO_INPUT_DATASET_S3_BUCKET_NAME',
-    'algoinput')
-ALGO_READY_DATASET_S3_BUCKET_NAME = ev(
-    'ALGO_READY_DATASET_S3_BUCKET_NAME',
-    'algoinput')  # note this is the same as the input bucket
-ALGO_HISTORY_DATASET_S3_BUCKET_NAME = ev(
-    'ALGO_HISTORY_DATASET_S3_BUCKET_NAME',
-    'algohistory')
-ALGO_REPORT_DATASET_S3_BUCKET_NAME = ev(
-    'ALGO_REPORT_DATASET_S3_BUCKET_NAME',
-    'algoreport')
 SCREENER_S3_BUCKET_NAME = ev(
     'SCREENER_S3_BUCKET_NAME',
     'screener-data')
@@ -494,6 +530,80 @@ DEFAULT_SERIALIZED_DATASETS = [
 ]
 EMPTY_DF_STR = '[{}]'
 
+########################################
+#
+# Algorithm Variables
+#
+########################################
+ALGO_MODULE_PATH = ev(
+    'ALGO_MODULE_PATH',
+    '/opt/sa/analysis_engine/mocks/example_algo_minute.py')
+ALGO_BASE_MODULE_PATH = ev(
+    'ALGO_BASE_MODULE_PATH',
+    '/opt/sa/analysis_engine/algo.py')
+ALGO_MODULE_NAME = ev(
+    'ALGO_MODULE_NAME',
+    'example_algo_minute')
+ALGO_VERSION = ev(
+    'ALGO_VERSION',
+    '1')
+ALGO_BUYS_S3_BUCKET_NAME = ev(
+    'ALGO_BUYS_S3_BUCKET_NAME',
+    'algobuys')
+ALGO_SELLS_S3_BUCKET_NAME = ev(
+    'ALGO_SELLS_S3_BUCKET_NAME',
+    'algosells')
+ALGO_RESULT_S3_BUCKET_NAME = ev(
+    'ALGO_RESULT_S3_BUCKET_NAME',
+    'algoresult')
+ALGO_EXTRACT_DATASET_S3_BUCKET_NAME = ev(
+    'ALGO_EXTRACT_DATASET_S3_BUCKET_NAME',
+    'algoready')
+ALGO_READY_DATASET_S3_BUCKET_NAME = ev(
+    'ALGO_READY_DATASET_S3_BUCKET_NAME',
+    'algoready')
+ALGO_HISTORY_DATASET_S3_BUCKET_NAME = ev(
+    'ALGO_HISTORY_DATASET_S3_BUCKET_NAME',
+    'algohistory')
+ALGO_REPORT_DATASET_S3_BUCKET_NAME = ev(
+    'ALGO_REPORT_DATASET_S3_BUCKET_NAME',
+    'algoreport')
+ALGO_BACKUP_DATASET_S3_BUCKET_NAME = ev(
+    'ALGO_BACKUP_DATASET_S3_BUCKET_NAME',
+    'algobackup')
+ALGO_READY_DIR = ev(
+    'ALGO_READY_DIR',
+    '/tmp')
+ALGO_EXTRACT_DIR = ev(
+    'ALGO_EXTRACT_DIR',
+    '/tmp')
+ALGO_HISTORY_DIR = ev(
+    'ALGO_HISTORY_HISTORY_DIR',
+    '/tmp')
+ALGO_REPORT_DIR = ev(
+    'ALGO_REPORT_DIR',
+    '/tmp')
+ALGO_LOAD_DIR = ev(
+    'ALGO_LOAD_DIR',
+    '/tmp')
+ALGO_BACKUP_DIR = ev(
+    'ALGO_BACKUP_DIR',
+    '/tmp')
+ALGO_READY_REDIS_ADDRESS = ev(
+    'ALGO_READY_REDIS_ADDRESS',
+    'localhost:6379')
+ALGO_EXTRACT_REDIS_ADDRESS = ev(
+    'ALGO_EXTRACT_REDIS_ADDRESS',
+    'localhost:6379')
+ALGO_HISTORY_REDIS_ADDRESS = ev(
+    'ALGO_HISTORY_REDIS_ADDRESS',
+    'localhost:6379')
+ALGO_REPORT_REDIS_ADDRESS = ev(
+    'ALGO_REPORT_REDIS_ADDRESS',
+    'localhost:6379')
+ALGO_BACKUP_REDIS_ADDRESS = ev(
+    'ALGO_BACKUP_REDIS_ADDRESS',
+    'localhost:6379')
 
 ########################################
 #
