@@ -220,8 +220,8 @@ redis_address="${REDIS_ADDRESS}"
 redis_db="${REDIS_DB}"
 
 usage() {
-    err "Error parsing found an invalid argument which is a usage error"
-    anmt "Here are the supported arguments: "
+    err "Error: invalid argument caused a usage error"
+    anmt "Supported arguments:"
     echo ""
     echo " -t TICKER - stock/etf symbol for the backtest"
     if [[ "${TICKER}" != "" ]]; then
