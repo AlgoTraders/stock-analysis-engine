@@ -24,7 +24,7 @@ date -u +"%Y-%m-%d %H:%M:%S"
 
 tickers="SPY"
 celery_enabled=""
-if [[ "${1}" == "" ]]; then
+if [[ "${1}" != "" ]]; then
     tickers="${1}"
 else
     if [[ "${DEFAULT_TICKERS}" != "" ]]; then

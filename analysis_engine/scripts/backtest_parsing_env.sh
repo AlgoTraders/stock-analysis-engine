@@ -225,70 +225,70 @@ usage() {
     echo ""
     echo " -t TICKER - stock/etf symbol for the backtest"
     if [[ "${TICKER}" != "" ]]; then
-        anmt "    parsed: -t ${TICKER}"
+        anmt "    using: -t ${TICKER}"
     fi
     echo " -a ALGORITHM_MODULE_PATH - optional - file path to a custom algorithm (default BaseAlgo is: /opt/sa/analysis_engine/algo.py)"
     if [[ "${ALGORITHM_MODULE_PATH}" != "" ]]; then
-        anmt "    parsed: -a ${ALGORITHM_MODULE_PATH}"
+        anmt "    using: -a ${ALGORITHM_MODULE_PATH}"
     fi
     echo " -e EXTRACT_LOCATION - optional - extract algorithm-ready dataset and publish to s3/redis/file location"
     if [[ "${EXTRACT_LOCATION}" != "" ]]; then
-        anmt "    parsed: -e ${EXTRACT_LOCATION}"
+        anmt "    using: -e ${EXTRACT_LOCATION}"
     fi
     echo " -p HISTORY_LOCATION - optional - publish algorithm trading history dataset to s3/redis/file location"
     if [[ "${HISTORY_LOCATION}" != "" ]]; then
-        anmt "    parsed: -p ${HISTORY_LOCATION}"
+        anmt "    using: -p ${HISTORY_LOCATION}"
     fi
     echo " -o REPORT_LOCATION - optional - publish algorithm trading performance report dataset to s3/redis/file location"
     if [[ "${REPORT_LOCATION}" != "" ]]; then
-        anmt "    parsed: -o ${REPORT_LOCATION}"
+        anmt "    using: -o ${REPORT_LOCATION}"
     fi
     echo " -l LOAD_LOCATION - optional - load an algorithm-ready dataset from s3/redis/file location"
     if [[ "${LOAD_LOCATION}" != "" ]]; then
-        anmt "    parsed: -l ${LOAD_LOCATION}"
+        anmt "    using: -l ${LOAD_LOCATION}"
     fi
     echo " -r REDIS_ADDRESS - host:port for redis (default localhost:6379 and K8 is redis-master:6379)"
     if [[ "${REDIS_ADDRESS}" != "" ]]; then
-        anmt "    parsed: -r ${REDIS_ADDRESS}"
+        anmt "    using: -r ${REDIS_ADDRESS}"
     fi
     echo " -f REDIS_DB - redis database (optional - default 0)"
     if [[ "${REDIS_DB}" != "" ]]; then
-        anmt "    parsed: -f ${REDIS_DB}"
+        anmt "    using: -f ${REDIS_DB}"
     fi
     echo " -R REDIS_PASSWORD - (optional - default None - omit this argument unless redis has a password on it)"
     echo " -i AWS_ACCESS_KEY_ID - access key for minio or AWS (default trexaccesskey)"
     echo " -u AWS_SECRET_ACCESS_KEY - secret key for minio or AWS (default trex123321)"
     echo " -k S3_ADDRESS - host:port for minio or AWS (default localhost:9000 and K8 is example.minio.com:9000 and AWS is: s3.us-east-1.amazonaws.com)"
     if [[ "${S3_ADDRESS}" != "" ]]; then
-        anmt "    parsed: -k ${S3_ADDRESS}"
+        anmt "    using: -k ${S3_ADDRESS}"
     fi
     echo " -x S3_REGION_NAME - S3 region (optional - default us-east-1)"
     if [[ "${S3_REGION_NAME}" != "" ]]; then
-        anmt "    parsed: -x ${S3_REGION_NAME}"
+        anmt "    using: -x ${S3_REGION_NAME}"
     fi
     echo " -q S3_BUCKET - S3 bucket name"
     if [[ "${S3_BUCKET}" != "" ]]; then
-        anmt "    parsed: -q ${S3_BUCKET}"
+        anmt "    using: -q ${S3_BUCKET}"
     fi
     echo " -K S3_SECURE - tls required (optional - default off, turn on with: -K 1)"
     if [[ "${S3_SECURE}" != "" ]]; then
-        anmt "    parsed: -K ${S3_SECURE}"
+        anmt "    using: -K ${S3_SECURE}"
     fi
     echo " -c ALGORITHM_CONFIG_FILE - option - config file with custom algorithm configuration data (indicator config and buy/sell strategy rules)"
     if [[ "${ALGORITHM_CONFIG_FILE}" != "" ]]; then
-        anmt "    parsed: -c ${ALGORITHM_CONFIG_FILE}"
+        anmt "    using: -c ${ALGORITHM_CONFIG_FILE}"
     fi
     echo " -s BACKTEST_START_DATE - start the backtest on this date (optional - default 60 days before today format: YYYY-MM-DD)"
     if [[ "${BACKTEST_START_DATE}" != "" ]]; then
-        anmt "    parsed: -s ${BACKTEST_START_DATE}"
+        anmt "    using: -s ${BACKTEST_START_DATE}"
     fi
     echo " -n BACKTEST_END_DATE - end the backtest on this date (default - today or a date with format: YYYY-MM-DD)"
     if [[ "${BACKTEST_END_DATE}" != "" ]]; then
-        anmt "    parsed: -n ${BACKTEST_END_DATE}"
+        anmt "    using: -n ${BACKTEST_END_DATE}"
     fi
     echo " -b NUM_DAYS_BACK - number of days to set the start date behind the today or the use_date"
     if [[ "${NUM_DAYS_BACK}" != "" ]]; then
-        anmt "    parsed: -b ${NUM_DAYS_BACK}"
+        anmt "    using: -b ${NUM_DAYS_BACK}"
     fi
     echo " -z - flag - bypass any starting extraction steps"
     echo " -w - flag - distribute the jobs by publishing to remote engine workers"
