@@ -3,15 +3,11 @@ Build a dictionary for running an algorithm
 """
 
 import datetime
-from analysis_engine.consts import COMMON_DATE_FORMAT
-from analysis_engine.consts import COMMON_TICK_DATE_FORMAT
-from analysis_engine.consts import ALGO_RESULT_S3_BUCKET_NAME
-from analysis_engine.utils import get_date_from_str
-from analysis_engine.consts import ppj
-from spylunking.log.setup_logging import build_colorized_logger
+import analysis_engine.consts as ae_consts
+import analysis_engine.utils as ae_utils
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def build_algo_request(
@@ -24,6 +20,7 @@ def build_algo_request(
         balance=None,
         commission=None,
         num_shares=None,
+        config_file=None,
         config_dict=None,
         load_config=None,
         history_config=None,
@@ -47,11 +44,16 @@ def build_algo_request(
     :param balance: starting capital balance
     :param commission: commission for buy or sell
     :param num_shares: optional - integer number of starting shares
-    :param config_dict: optional - configuration dictionary
-        for bulk assigning starting values for the new algo
     :param cache_freq: optional - cache frequency
         (``daily`` is default)
     :param label: optional - algo log tracking name
+    :param config_file: path to a json file
+        containing custom algorithm object
+        member values (like indicator configuration and
+        predict future date units ahead for a backtest)
+    :param config_dict: optional - dictionary that
+        can be passed to derived class implementations
+        of: ``def load_from_config(config_dict=config_dict)``
 
     **Algorithm Dataset Extraction, Loading and Publishing arguments**
 
@@ -83,7 +85,7 @@ def build_algo_request(
             if t not in use_tickers:
                 use_tickers.append(t.upper())
 
-    s3_bucket_name = ALGO_RESULT_S3_BUCKET_NAME
+    s3_bucket_name = ae_consts.ALGO_RESULT_S3_BUCKET_NAME
     s3_key = use_key
     redis_key = use_key
     s3_enabled = True
@@ -98,6 +100,7 @@ def build_algo_request(
         'redis_enabled': redis_enabled,
         'extract_datasets': [],
         'cache_freq': cache_freq,
+        'config_file': config_file,
         'config_dict': config_dict,
         'balance': balance,
         'commission': commission,
@@ -111,8 +114,8 @@ def build_algo_request(
         'label': label
     }
 
-    start_date_val = get_date_from_str(start_date)
-    end_date_val = get_date_from_str(end_date)
+    start_date_val = ae_utils.get_date_from_str(start_date)
+    end_date_val = ae_utils.get_date_from_str(end_date)
     if start_date_val > end_date_val:
         raise Exception(
             'Invalid start_date={} must be less than end_date={}'.format(
@@ -124,10 +127,10 @@ def build_algo_request(
     cur_date = start_date_val
     if not work['start_date']:
         work['start_date'] = start_date_val.strftime(
-            COMMON_TICK_DATE_FORMAT)
+            ae_consts.COMMON_TICK_DATE_FORMAT)
     if not work['end_date']:
         work['end_date'] = end_date_val.strftime(
-            COMMON_TICK_DATE_FORMAT)
+            ae_consts.COMMON_TICK_DATE_FORMAT)
     while cur_date <= end_date_val:
         if cur_date.weekday() < 5:
             for t in use_tickers:
@@ -135,12 +138,12 @@ def build_algo_request(
                     new_dataset = '{}_{}'.format(
                         t,
                         cur_date.strftime(
-                            COMMON_DATE_FORMAT))
+                            ae_consts.COMMON_DATE_FORMAT))
                 else:
                     new_dataset = '{}_{}'.format(
                         t,
                         cur_date.strftime(
-                            COMMON_TICK_DATE_FORMAT))
+                            ae_consts.COMMON_TICK_DATE_FORMAT))
                 if new_dataset:
                     use_dates.append(new_dataset)
                 new_dataset = None
@@ -163,7 +166,7 @@ def build_algo_request(
                 work['extract_datasets'][0],
                 work['extract_datasets'][-1],
                 cache_freq,
-                ppj(work)))
+                ae_consts.ppj(work)))
     else:
         log.error(
             'there are not enough dates to test between start={} end={} '
@@ -172,7 +175,7 @@ def build_algo_request(
                 end_date_val,
                 work['tickers'],
                 cache_freq,
-                ppj(work)))
+                ae_consts.ppj(work)))
 
     return work
 # end of build_algo_request

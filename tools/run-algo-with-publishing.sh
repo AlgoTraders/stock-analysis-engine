@@ -24,11 +24,13 @@ echo ""
 echo "extracting backtest algorithm-ready dataset for: ${ticker} id: ${dataset_name} for date range: ${start_date} to ${use_date} with s3: ${extract_loc}"
 echo "sa -t ${ticker} -e ${extract_loc} -s ${start_date} -n ${use_date}"
 sa -t ${ticker} -e ${extract_loc} -s ${start_date} -n ${use_date}
+xerr "Failed to extract ${ticker} between ${start_date} and ${use_date}"
 
 echo ""
 echo "running backtest algorithm-ready dataset for: ${ticker} id: ${dataset_name} for date range: ${start_date} to ${use_date} with s3: ${extract_loc}"
 echo "sa -t ${ticker} -p ${history_loc} -o ${report_loc} -b ${extract_loc} -s ${start_date} -n ${use_date}"
 sa -t ${ticker} -p ${history_loc} -o ${report_loc} -b ${extract_loc} -s ${start_date} -n ${use_date}
+xerr "Failed to run backtest with publishing history: ${history_loc} report: ${report_loc} dates: ${start_date} to ${use_date}"
 
 test_exists=$(which aws)
 if [[ "${test_exists}" != "" ]]; then
@@ -44,8 +46,7 @@ if [[ "${test_exists}" != "" ]]; then
 fi
 
 echo ""
-echo "run again in the future with:"
+echo "run again with:"
 echo "sa -t ${ticker} -p ${history_loc} -o ${report_loc} -b ${extract_loc} -s ${start_date} -n ${use_date}"
-sa -t ${ticker} -p ${history_loc} -o ${report_loc} -b ${extract_loc} -s ${start_date} -n ${use_date}
 
 exit 0

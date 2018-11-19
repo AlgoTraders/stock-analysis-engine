@@ -24,12 +24,14 @@ if [[ "${already_extracted}" == "1" ]]; then
 else
     echo ""
     echo "extracting ${ticker} to ${extract_loc}"
-    if [[ "${start_date}" != "" ]] && [[ "${end_date}" != "" ]]; then
-        echo "sa -t ${ticker} -e ${extract_loc} -s ${start_date} -n ${end_date}"
-        sa -t ${ticker} -e ${extract_loc} -s ${start_date} -n ${end_date}
+    if [[ "${found_date_params}" == "1" ]]; then
+        echo "sa -t ${ticker} -e ${extract_loc} ${use_params}"
+        sa -t ${ticker} -e ${extract_loc} ${use_params}
+        xerr "Failed to extract ${ticker} between ${start_date} and ${end_date}"
     else
-        echo "sa -t ${ticker} -e ${extract_loc}"
-        sa -t ${ticker} -e ${extract_loc}
+        echo "sa -t ${ticker} -e ${extract_loc} ${use_params}"
+        sa -t ${ticker} -e ${extract_loc} ${use_params}
+        xerr "Failed to extract ${ticker}"
     fi
 fi
 
@@ -37,9 +39,10 @@ echo ""
 echo ""
 echo "sa -t ${ticker} -b ${extract_loc} -g ${algo_module_path} -p ${history_loc}"
 sa -t ${ticker} -b ${extract_loc} -g ${algo_module_path} -p ${history_loc}
+xerr "Failed running ${ticker} backtest with ${extract_loc} using ${algo_module_path} to generate a trading history: ${history_loc}"
 
 echo ""
 echo "run again in the future with:"
-echo "sa -t ${ticker} -b ${extract_loc} -g ${algo_module_path} -p ${history_loc}"
+echo "sa -t ${ticker} -b ${extract_loc} -g ${algo_module_path} -p ${history_loc} ${use_params}"
 
 exit 0

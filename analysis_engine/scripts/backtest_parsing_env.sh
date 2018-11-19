@@ -305,7 +305,7 @@ usage() {
 }
 
 # Call getopt to validate the provided input.
-while getopts ":t:a:e:p:o:l:r:R:f:k:x:q:i:u:K:s:n:b:c:zwdj" o; do
+while getopts ":t:a:e:p:o:l:r:R:f:k:x:q:i:u:K:s:n:b:c:zwdjh" o; do
     case "${o}" in
     t)
         ticker=${OPTARG}
@@ -384,8 +384,13 @@ while getopts ":t:a:e:p:o:l:r:R:f:k:x:q:i:u:K:s:n:b:c:zwdj" o; do
         export NUM_DAYS_BACK=${num_days_to_set_start_date}
         ;;
     c)
-        algo_config_file=${OPTARG}
-        export ALGO_CONFIG_FILE=${OPTARG}
+        if [[ -e ${OPTARG} ]]; then
+            algo_config_file=${OPTARG}
+            export ALGO_CONFIG_FILE=${OPTARG}
+        else
+            err "Failed: did not find algorithm config file: ${OPTARG}"
+            exit 1
+        fi
         ;;
     z)
         already_extracted="1"
@@ -397,6 +402,10 @@ while getopts ":t:a:e:p:o:l:r:R:f:k:x:q:i:u:K:s:n:b:c:zwdj" o; do
         ;;
     w)
         distribute_to_workers="-w"
+        ;;
+    h)
+        usage
+        exit 0
         ;;
     *)
         usage
@@ -485,6 +494,29 @@ if [[ "${use_custom_bucket}" != "" ]]; then
     s3_report_loc="${s3_transport_scheme}${s3_report_bucket}/${dataset_name}"
     s3_history_loc="${s3_transport_scheme}${use_custom_bucket}/${dataset_name}"
     s3_backup_loc="${s3_transport_scheme}${use_custom_bucket}/${dataset_name}"
+fi
+
+# helpers for quickly build command line args
+use_config_params=""
+use_date_params=""
+use_params=""
+found_date_params="0"
+if [[ "${algo_config_file}" != "" ]]; then
+    use_config_params="-c ${algo_config_file}"
+    if [[ "${use_params}" == "" ]]; then
+        use_params="${use_config_params}"
+    else
+        use_params="${use_params} ${use_config_params}"
+    fi
+fi
+if [[ "${start_date}" != "" ]] && [[ "${end_date}" != "" ]]; then
+    found_date_params="1"
+    use_date_params="-s ${start_date} -n ${end_date}"
+    if [[ "${use_params}" == "" ]]; then
+        use_params="${use_date_params}"
+    else
+        use_params="${use_params} ${use_date_params}"
+    fi
 fi
 
 # Environment variables:

@@ -13,10 +13,12 @@ Example with the command line tool:
 
 """
 
+import os
 import inspect
 import types
 import importlib.machinery
 import datetime
+import json
 import analysis_engine.consts as ae_consts
 import analysis_engine.build_algo_request as build_algo_request
 import analysis_engine.build_publish_request as build_publish_request
@@ -36,9 +38,9 @@ def run_custom_algo(
         commission=6.0,
         start_date=None,
         end_date=None,
-        config_file=None,
         name='myalgo',
         auto_fill=True,
+        config_file=None,
         config_dict=None,
         load_from_s3_bucket=None,
         load_from_s3_key=None,
@@ -127,9 +129,6 @@ def run_custom_algo(
     :param commission: float - cost pet buy or sell
     :param name: string - name for tracking algorithm
         in the logs
-    :param config_dict: optional - dictionary that
-        can be passed to derived class implementations
-        of: ``def load_from_config(config_dict=config_dict)``
     :param start_date: string - start date for backtest with
         format ``YYYY-MM-DD HH:MM:SS``
     :param end_date: end date for backtest with
@@ -139,7 +138,11 @@ def run_custom_algo(
         (default is ``True``)
     :param config_file: path to a json file
         containing custom algorithm object
-        member values
+        member values (like indicator configuration and
+        predict future date units ahead for a backtest)
+    :param config_dict: optional - dictionary that
+        can be passed to derived class implementations
+        of: ``def load_from_config(config_dict=config_dict)``
 
     **Running Distributed Algorithms on the Engine Workers**
 
@@ -393,6 +396,24 @@ def run_custom_algo(
     should_publish_extract_dataset = False
     should_publish_history_dataset = False
     should_publish_report_dataset = False
+    use_config_file = None
+    use_config_dict = config_dict
+    if config_file:
+        if os.path.exists(config_file):
+            use_config_file = config_file
+            if not config_dict:
+                try:
+                    use_config_dict = json.loads(open(
+                        config_file, 'r').read())
+                except Exception as e:
+                    msg = (
+                        'failed parsing json config_file={} '
+                        'with ex={}'.format(
+                            config_file,
+                            e))
+                    log.error(msg)
+                    raise Exception(msg)
+    # end of loading the config_file
 
     err = None
     if mod_path:
@@ -683,6 +704,8 @@ def run_custom_algo(
         commission=commission,
         start_date=use_start_date,
         end_date=use_end_date,
+        config_file=use_config_file,
+        config_dict=use_config_dict,
         load_config=load_config,
         history_config=history_config,
         report_config=report_config,

@@ -18,12 +18,14 @@ fi
 
 inf ""
 anmt "Running extract ${ticker} and backup to ${s3_backup_loc}"
-if [[ "${start_date}" != "" ]] && [[ "${end_date}" != "" ]]; then
-    echo "sa -t ${ticker} -a ${s3_address} -r ${redis_address} -e ${s3_backup_loc} -s ${start_date} -n ${end_date}"
-    sa -t ${ticker} -a ${s3_address} -r ${redis_address} -e ${s3_backup_loc} -s ${start_date} -n ${end_date}
+if [[ "${found_date_params}" == "1" ]]; then
+    echo "sa -t ${ticker} -a ${s3_address} -r ${redis_address} -e ${s3_backup_loc} ${use_params}"
+    sa -t ${ticker} -a ${s3_address} -r ${redis_address} -e ${s3_backup_loc} ${use_params}
+    xerr "Failed to extract ${ticker} from redis: ${redis_address} to s3: ${s3_address} key: ${s3_backup_loc} with params: ${use_params}"
 else
     echo "sa -t ${ticker} -a ${s3_address} -r ${redis_address} -e ${s3_backup_loc}"
     sa -t ${ticker} -a ${s3_address} -r ${redis_address} -e ${s3_backup_loc}
+    xerr "Failed to extract ${ticker} from redis: ${redis_address} to s3: ${s3_address} key: ${s3_backup_loc} and params: ${use_params}"
 fi
 
 show_s3_bucket_for_dataset ${s3_backup_loc}
