@@ -98,8 +98,8 @@ from analysis_engine.consts import S3_REGION_NAME
 from analysis_engine.consts import S3_ADDRESS
 from analysis_engine.consts import S3_SECURE
 from analysis_engine.consts import EMPTY_DF_STR
-from analysis_engine.consts import ALGO_INPUT_DATASET_S3_BUCKET_NAME
 from analysis_engine.consts import ALGO_READY_DATASET_S3_BUCKET_NAME
+from analysis_engine.consts import ALGO_EXTRACT_DATASET_S3_BUCKET_NAME
 from analysis_engine.consts import ALGO_HISTORY_DATASET_S3_BUCKET_NAME
 from analysis_engine.consts import ALGO_REPORT_DATASET_S3_BUCKET_NAME
 from analysis_engine.consts import ALGO_INPUT_COMPRESS
@@ -623,9 +623,9 @@ class BaseAlgo:
             report_config = build_publish_request.build_publish_request()
 
         if not load_from_s3_bucket:
-            load_from_s3_bucket = ALGO_INPUT_DATASET_S3_BUCKET_NAME
+            load_from_s3_bucket = ALGO_READY_DATASET_S3_BUCKET_NAME
         if not extract_s3_bucket:
-            extract_s3_bucket = ALGO_READY_DATASET_S3_BUCKET_NAME
+            extract_s3_bucket = ALGO_EXTRACT_DATASET_S3_BUCKET_NAME
         if not history_s3_bucket:
             history_s3_bucket = ALGO_HISTORY_DATASET_S3_BUCKET_NAME
         if not report_s3_bucket:

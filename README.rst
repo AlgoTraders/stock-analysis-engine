@@ -98,7 +98,7 @@ Publish to Custom AWS S3 Bucket and Key
 ::
 
     extract_loc=s3://YOUR_BUCKET/TICKER-latest.json
-    ./tools/backup-datasets-on-s3.sh -t TICKER -q YOUR_BUCKET -k ${S3_ADDRESS} -r localhost:6379 -e ${extract_loc}
+    ./tools/backup-datasets-on-s3.sh -t TICKER -e ${extract_loc} -r localhost:6379
 
 Backtest a Custom Algorithm with a Dataset on AWS S3
 ====================================================
