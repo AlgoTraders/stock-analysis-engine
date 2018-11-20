@@ -521,6 +521,13 @@ fi
 
 # Environment variables:
 
+if [[ -z "${AWS_ACCESS_KEY_ID}" ]]; then
+    export AWS_ACCESS_KEY_ID=${S3_ACCESS_KEY}
+fi
+if [[ -z "${AWS_SECRET_ACCESS_KEY}" ]]; then
+    export AWS_SECRET_ACCESS_KEY=${S3_SECRET_KEY}
+fi
+
 # Algorithms:
 export ALGO_MODULE_PATH="${algo_module_path}"
 export ALGO_NAME="${algo_name}"
