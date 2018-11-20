@@ -1,7 +1,17 @@
+k8_desc() {
+    ae_pod_name="${1}"
+    pod_name=$(kubectl get po | grep ${ae_pod_name} | grep Running |tail -1 | awk '{print $1}')
+    if [[ "${pod_name}" != "" ]]; then
+        kubectl describe po ${pod_name}
+    else
+        echo "did not find ${pod_name} in a Running state"
+    fi
+}
+
 k8_logs() {
     ae_pod_name="${1}"
     pod_name=$(kubectl get po | grep ${ae_pod_name} | grep Running |tail -1 | awk '{print $1}')
-    if [[ "${pod_name}" == "" ]]; then
+    if [[ "${pod_name}" != "" ]]; then
         kubectl logs ${pod_name}
     else
         echo "did not find ${pod_name} in a Running state"
@@ -66,7 +76,9 @@ k8_restart_pod() {
         not_done=$(/usr/bin/kubectl get po | grep ${ae_pod_name} | grep "Running" | wc -l)
     done
 
-    echo "getting logs for: ${ae_pod_name}"
+    echo "describing AE Pod: ${ae_pod_name}"
+    k8_desc ${ae_pod_name}
 
+    echo "getting logs for AE POD: ${ae_pod_name}"
     k8_logs ${ae_pod_name}
 }
