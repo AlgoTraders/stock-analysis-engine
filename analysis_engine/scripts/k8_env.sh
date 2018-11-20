@@ -18,6 +18,26 @@ k8_logs() {
     fi
 }
 
+k8_wait_for_completed() {
+    ae_pod_name=${1}
+    sleep_interval="5"
+    if [[ "${ae_pod_name}" == "" ]]; then
+        return
+    fi
+    if [[ "${2}" != "" ]]; then
+        sleep_interval=${2}
+    fi
+    not_done=$(/usr/bin/kubectl get po | grep ${ae_pod_name} | grep -i "completed" | wc -l)
+    echo ${not_done}
+    while [[ "${not_done}" == "0" ]]; do
+        date_val=$(date -u +"%Y-%m-%d %H:%M:%S")
+        echo "${date_val} - sleeping while waiting for ${ae_pod_name} to complete - sleeping ${sleep_interval}"
+        sleep ${sleep_interval}
+        /usr/bin/kubectl get po | grep ${ae_pod_name}
+        not_done=$(/usr/bin/kubectl get po | grep ${ae_pod_name} | grep -i "completed" | wc -l)
+    done
+}
+
 k8_restart_pod() {
     # ae_k8_pod_engine="sa-engine"
     # ae_k8_file_engine="/opt/sa/k8/engine/deployment.yml"
