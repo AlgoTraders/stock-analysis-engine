@@ -137,30 +137,3 @@ spec:
             secretKeyRef:
               name: splunk.log
               key: debug
-        # S3 buckets:
-        - name: ALGO_READY_DATASET_S3_BUCKET_NAME
-          value: algoready
-        - name: ALGO_EXTRACT_DATASET_S3_BUCKET_NAME
-          value: algoready
-        - name: ALGO_HISTORY_DATASET_S3_BUCKET_NAME
-          value: algohistory
-        - name: ALGO_REPORT_DATASET_S3_BUCKET_NAME
-          value: algoreport
-        - name: ALGO_BACKUP_DATASET_S3_BUCKET_NAME
-          value: algobackup
-        - name: FETCH_MODE
-          value: full
-        - name: TICKER
-          value: SPY
-        - name: DEFAULT_TICKERS
-          value: SPY
-        # set to your Slack webhook url:
-        - name: SLACK_WEBHOOK
-          value: https://hooks.slack.com/services/YOUR_WEBHOOK_HERE
-        # set to "1" to enable publishing to slack when
-        # each ticker's job completes
-        - name: DATASET_COLLECTION_SLACK_ALERTS
-          value: "0"
-        # set to "1" to publish Celery task failures to Slack
-        - name: PROD_SLACK_ALERTS
-          value: "0"
