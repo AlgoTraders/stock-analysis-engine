@@ -75,7 +75,7 @@ spec:
           value: "0"
         # Stock Analysis - Dataset Backup to S3 Envs:
         - name: S3_BUCKET
-          value: ae-stock-datasets
+          value: YOUR_BUCKET
         - name: DEFAULT_TICKERS
           value: SPY,TSLA,AMZN,NFLX
         # set to your Slack webhook url:
