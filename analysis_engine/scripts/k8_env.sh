@@ -1,5 +1,10 @@
 k8_desc() {
     ae_pod_name="${1}"
+    is_a_pod=$(/usr/bin/kubectl get po | grep ${ae_pod_name} | wc -l)
+    if [[ "${is_a_pod}" == "0" ]]; then
+        echo "${ae_pod_name} is not running"
+        return
+    fi
     pod_name=$(kubectl get po | grep ${ae_pod_name} | grep Running |tail -1 | awk '{print $1}')
     if [[ "${pod_name}" != "" ]]; then
         kubectl describe po ${pod_name}
@@ -10,6 +15,11 @@ k8_desc() {
 
 k8_logs() {
     ae_pod_name="${1}"
+    is_a_pod=$(/usr/bin/kubectl get po | grep ${ae_pod_name} | wc -l)
+    if [[ "${is_a_pod}" == "0" ]]; then
+        echo "${ae_pod_name} is not running"
+        return
+    fi
     pod_name=$(kubectl get po | grep ${ae_pod_name} | grep Running |tail -1 | awk '{print $1}')
     if [[ "${pod_name}" != "" ]]; then
         kubectl logs ${pod_name}
@@ -26,6 +36,10 @@ k8_wait_for_completed() {
     fi
     if [[ "${2}" != "" ]]; then
         sleep_interval=${2}
+    fi
+    is_a_pod=$(/usr/bin/kubectl get po | grep ${ae_pod_name} | wc -l)
+    if [[ "${is_a_pod}" == "0" ]]; then
+        return
     fi
     not_done=$(/usr/bin/kubectl get po | grep ${ae_pod_name} | grep -i "completed" | wc -l)
     while [[ "${not_done}" == "0" ]]; do
