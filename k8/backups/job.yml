@@ -1,0 +1,139 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: sa-dataset-backup
+  annotations:
+    description: The Stock Analysis Dataset Backup to S3
+    runtime: python3
+  labels:
+    sa: engine
+    purpose: stock-analysis
+    layer: backend
+    messaging: redis
+    cache: redis
+    pubsub: publisher
+spec:
+  template:
+    metadata:
+      labels:
+        app: sa-dataset-backup
+        backend: enabled
+        purpose: stock-analysis
+        layer: backend
+        messaging: redis
+        cache: redis
+        pubsub: publisher
+    spec:
+      hostname: sa-dataset-backup
+      restartPolicy: Never
+      containers:
+      - image: jayjohnson/stock-analysis-engine:latest
+        imagePullPolicy: Always
+        name: sa-dataset-backup
+        resources: {}
+        command: ["/bin/bash", "-c", "cd /opt/sa/ && . /opt/venv/bin/activate && /opt/sa/tools/archive-tickers-to-s3.sh -q ${S3_BUCKET}"]
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: api.db
+              key: username
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: api.db
+              key: password
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: api.db
+              key: dbname
+        - name: S3_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-s3-access
+              key: access_key
+        - name: S3_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-s3-access
+              key: secret_key
+        - name: S3_ADDRESS
+          value: minio-service:9000
+        - name: S3_REGION_NAME
+          value: us-east-1
+        - name: WORKER_BROKER_URL
+          value: redis://redis-master:6379/13
+        - name: WORKER_BACKEND_URL
+          value: redis://redis-master:6379/14
+        - name: REDIS_ADDRESS
+          value: redis-master:6379
+        - name: REDIS_DB
+          value: "0"
+        # Stock Analysis - Dataset Collector Envs:
+        - name: S3_BUCKET
+          value: algobackup
+        - name: DEFAULT_TICKERS
+          value: SPY,TSLA,AMZN,NFLX
+        # set to your Slack webhook url:
+        - name: SLACK_WEBHOOK
+          value: https://hooks.slack.com/services/YOUR_WEBHOOK_HERE
+        # set to "1" to enable publishing to slack when
+        # each ticker's job completes
+        - name: DATASET_COLLECTION_SLACK_ALERTS
+          value: "0"
+        # set to "1" to publish Celery task failures to Slack
+        - name: PROD_SLACK_ALERTS
+          value: "0"
+        # Splunk integration with Spylunking pip:
+        - name: DEPLOY_CONFIG
+          value: splunk
+        - name: LOG_NAME
+          value: sa-backup-to-s3
+        - name: ENV_NAME
+          value: k8
+        - name: SPLUNK_USER
+          valueFrom:
+            secretKeyRef:
+              name: splunk.user
+              key: username
+        - name: SPLUNK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: splunk.user
+              key: password
+        - name: SPLUNK_ADDRESS
+          valueFrom:
+            secretKeyRef:
+              name: splunk.endpoints
+              key: hec
+        - name: SPLUNK_API_ADDRESS
+          valueFrom:
+            secretKeyRef:
+              name: splunk.endpoints
+              key: api
+        - name: SPLUNK_TCP_ADDRESS
+          valueFrom:
+            secretKeyRef:
+              name: splunk.endpoints
+              key: tcp
+        - name: SPLUNK_INDEX
+          valueFrom:
+            secretKeyRef:
+              name: splunk.log
+              key: index
+        - name: SPLUNK_HANDLER_NAME
+          valueFrom:
+            secretKeyRef:
+              name: splunk.log
+              key: handler
+        - name: SPLUNK_VERIFY
+          valueFrom:
+            secretKeyRef:
+              name: splunk.log
+              key: verify
+        - name: SPLUNK_DEBUG
+          valueFrom:
+            secretKeyRef:
+              name: splunk.log
+              key: debug
