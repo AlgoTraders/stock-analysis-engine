@@ -2,6 +2,8 @@ FROM jayjohnson/ai-core:latest
 
 RUN echo "installing redis-tools" \
   && apt-get install -y redis-tools \
+  && echo "installing uuid-runtime" \
+  && apt-get install -y uuid-runtime \
   && echo "creating project directories" \
   && git clone https://github.com/AlgoTraders/stock-analysis-engine.git /opt/sa \
   && mkdir -p -m 777 /var/log/sa \

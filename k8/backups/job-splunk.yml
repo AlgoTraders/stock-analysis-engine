@@ -3,7 +3,7 @@ kind: Job
 metadata:
   name: sa-dataset-backup-to-aws
   annotations:
-    description: The Stock Analysis Dataset Backup to S3 job. This will loop over all the DEFAULT_TICKERS and extract then publish them to the configured S3_ADDRESS endpoint. Set your secrets in the /opt/sa/k8/secrets/secrets.yml file under the ae.k8.aws.s3 section. Once added run: kubectl apply -f /opt/jay/sa/k8/secrets/secrets.yml to add your AWS credentials to this job's runtime.
+    description: The Stock Analysis Dataset Backup to S3 job. This will loop over all the DEFAULT_TICKERS and extract then publish them to the configured S3_ADDRESS endpoint. Set your secrets in the /opt/sa/k8/secrets/secrets.yml file under the ae.k8.aws.s3 section. Then start with kubectl apply -f /opt/jay/sa/k8/secrets/secrets.yml to add your AWS credentials to this job's runtime.
     runtime: python3
   labels:
     sa: engine
@@ -64,7 +64,7 @@ spec:
               name: ae.k8.aws.s3
               key: s3_address
         - name: S3_REGION_NAME
-          value: us-west-2
+          value: us-east-1
         - name: WORKER_BROKER_URL
           value: redis://redis-master:6379/13
         - name: WORKER_BACKEND_URL
@@ -73,7 +73,7 @@ spec:
           value: redis-master:6379
         - name: REDIS_DB
           value: "0"
-        # Stock Analysis - Dataset Backup to S3 Envs:
+        # Stock Analysis - Dataset Backup to AWS S3 Envs:
         - name: S3_BUCKET
           value: YOUR_BUCKET
         - name: DEFAULT_TICKERS
@@ -92,7 +92,7 @@ spec:
         - name: DEPLOY_CONFIG
           value: splunk
         - name: LOG_NAME
-          value: sa-backup-to-s3
+          value: sa-backup-to-aws
         - name: ENV_NAME
           value: k8
         - name: SPLUNK_USER

@@ -3,7 +3,7 @@ kind: Job
 metadata:
   name: sa-dataset-backup-to-minio
   annotations:
-    description: The Stock Analysis Dataset Backup to S3 job. This will loop over all the DEFAULT_TICKERS and extract then publish them to the configured S3_ADDRESS endpoint. Set your secrets in the /opt/sa/k8/secrets/secrets.yml file under the ae.k8.minio.s3 section. Once added run: kubectl apply -f /opt/jay/sa/k8/secrets/secrets.yml to add your AWS credentials to this job's runtime.
+    description: The Stock Analysis Dataset Backup to S3 job. This will loop over all the DEFAULT_TICKERS and extract then publish them to the configured S3_ADDRESS endpoint. Set your secrets in the /opt/sa/k8/secrets/secrets.yml file under the ae.k8.minio.s3 section. Then start with kubectl apply -f /opt/jay/sa/k8/secrets/secrets.yml to add your minio credentials to this job's runtime.
     runtime: python3
   labels:
     sa: engine
@@ -16,7 +16,7 @@ spec:
   template:
     metadata:
       labels:
-        app: sa-dataset-backup-minio
+        app: sa-dataset-backup-to-minio
         backend: enabled
         purpose: stock-analysis
         layer: backend
@@ -24,12 +24,12 @@ spec:
         cache: redis
         pubsub: publisher
     spec:
-      hostname: sa-dataset-backup-minio
+      hostname: sa-dataset-backup-to-minio
       restartPolicy: Never
       containers:
       - image: jayjohnson/stock-analysis-engine:latest
         imagePullPolicy: Always
-        name: sa-dataset-backup-minio
+        name: sa-dataset-backup-to-minio
         resources: {}
         command: ["/bin/bash", "-c", "cd /opt/sa/ && . /opt/venv/bin/activate && /opt/sa/tools/archive-tickers-to-s3.sh -q ${S3_BUCKET}"]
         env:
@@ -73,7 +73,7 @@ spec:
           value: redis-master:6379
         - name: REDIS_DB
           value: "0"
-        # Stock Analysis - Dataset Backup to S3 Envs:
+        # Stock Analysis - Dataset Backup to hosted Minio S3 Envs:
         - name: S3_BUCKET
           value: YOUR_BUCKET
         - name: DEFAULT_TICKERS
