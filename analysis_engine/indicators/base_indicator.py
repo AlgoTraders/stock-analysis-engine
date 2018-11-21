@@ -73,34 +73,34 @@ class BaseIndicator:
 
         Please refer to the TA Lib guides for details on building indicators:
 
-        - `Overlap Studies<
+        - `Overlap Studies <
         https://mrjbq7.github.io/ta-lib/func_groups/overlap_studies.html
         >`__
-        - `Momentum Indicators<
+        - `Momentum Indicators <
         https://mrjbq7.github.io/ta-lib/func_groups/momentum_indicators.html
         >`__
-        - `Volume Indicators<
+        - `Volume Indicators <
         https://mrjbq7.github.io/ta-lib/func_groups/volume_indicators.html
         >`__
-        - `Volatility Indicators<
+        - `Volatility Indicators <
         https://mrjbq7.github.io/ta-lib/func_groups/volatility_indicators.html
         >`__
-        - `Price Transform<
+        - `Price Transform <
         https://mrjbq7.github.io/ta-lib/func_groups/price_transform.html
         >`__
-        - `Cycle Indicators<
+        - `Cycle Indicators <
         https://mrjbq7.github.io/ta-lib/func_groups/cycle_indicators.html
         >`__
-        - `Pattern Recognition<
+        - `Pattern Recognition <
         https://mrjbq7.github.io/ta-lib/func_groups/pattern_recognition.html
         >`__
-        - `Statistic Functions<
+        - `Statistic Functions <
         https://mrjbq7.github.io/ta-lib/func_groups/statistic_functions.html
         >`__
-        - `Math Transform<
+        - `Math Transform <
         https://mrjbq7.github.io/ta-lib/func_groups/math_transform.html
         >`__
-        - `Math Operators<
+        - `Math Operators <
         https://mrjbq7.github.io/ta-lib/func_groups/math_operators.html
         >`__
 
