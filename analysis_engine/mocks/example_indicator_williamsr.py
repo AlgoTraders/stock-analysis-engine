@@ -12,13 +12,13 @@ Example Williams Percent R Indicator
     export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
 """
 
-from analysis_engine.indicators.base_indicator import BaseIndicator
+import analysis_engine.indicators.base_indicator as base_indicator
 import spylunking.log.setup_logging as log_utils
 
 log = log_utils.build_colorized_logger(name=__name__)
 
 
-class ExampleIndicatorWilliamsR(BaseIndicator):
+class ExampleIndicatorWilliamsR(base_indicator.BaseIndicator):
     """ExampleIndicatorWilliamsR"""
 
     def __init__(
@@ -53,20 +53,58 @@ class ExampleIndicatorWilliamsR(BaseIndicator):
         conditions before placing orders. Just implement your own
         ``process`` method.
 
+        Please refer to the TA Lib guides for details on building indicators:
+
+        - `Overlap Studies<
+        https://mrjbq7.github.io/ta-lib/func_groups/overlap_studies.html
+        >`__
+        - `Momentum Indicators<
+        https://mrjbq7.github.io/ta-lib/func_groups/momentum_indicators.html
+        >`__
+        - `Volume Indicators<
+        https://mrjbq7.github.io/ta-lib/func_groups/volume_indicators.html
+        >`__
+        - `Volatility Indicators<
+        https://mrjbq7.github.io/ta-lib/func_groups/volatility_indicators.html
+        >`__
+        - `Price Transform<
+        https://mrjbq7.github.io/ta-lib/func_groups/price_transform.html
+        >`__
+        - `Cycle Indicators<
+        https://mrjbq7.github.io/ta-lib/func_groups/cycle_indicators.html
+        >`__
+        - `Pattern Recognition<
+        https://mrjbq7.github.io/ta-lib/func_groups/pattern_recognition.html
+        >`__
+        - `Statistic Functions<
+        https://mrjbq7.github.io/ta-lib/func_groups/statistic_functions.html
+        >`__
+        - `Math Transform<
+        https://mrjbq7.github.io/ta-lib/func_groups/math_transform.html
+        >`__
+        - `Math Operators<
+        https://mrjbq7.github.io/ta-lib/func_groups/math_operators.html
+        >`__
+
         :param algo_id: string - algo identifier label for debugging datasets
             during specific dates
         :param ticker: string - ticker
         :param dataset: ``pd.DataFrame`` to process
         """
         label = (
-            '{} derived process - ticker={}'.format(
+            '{} process ticker={}'.format(
                 self.name,
                 ticker))
+
         log.info(
-            '{} - start - '.format(
+            '{} - start'.format(
                 label))
+        """
+        real = WILLR(high, low, close, timeperiod=14)
+        """
+        print(dataset)
         log.info(
-            '{} - end - '.format(
+            '{} - end'.format(
                 label))
     # end of process
 

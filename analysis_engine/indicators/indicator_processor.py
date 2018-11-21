@@ -88,6 +88,24 @@ class IndicatorProcessor:
             config_dict=self.config_dict)
     # end of __init__
 
+    def get_num_indicators(
+            self):
+        """get_num_indicators"""
+        return self.num_indicators
+    # end of get_num_indicators
+
+    def get_label(
+            self):
+        """get_label"""
+        return self.label
+    # end of get_label
+
+    def get_indicators(
+            self):
+        """get_indicators"""
+        return self.ind_dict
+    # end of get_indicators
+
     def build_indicators_for_config(
             self,
             config_dict):
@@ -174,10 +192,5 @@ class IndicatorProcessor:
                 len(self.ind_dict),
                 self.num_indicators))
     # end of build_indicators_for_config
-
-    def get_indicators(
-            self):
-        return self.ind_dict
-    # end of get_indicators
 
 # end of IndicatorProcessor
