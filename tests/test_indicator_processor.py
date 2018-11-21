@@ -22,7 +22,7 @@ class TestIndicatorProcessor(BaseTestCase):
         """setUp"""
         self.ticker = 'SPY'
         self.example_module_path = (
-            '/opt/sa/analysis_engine/mocks/example_indicator_williamsr.py')
+            'analysis_engine/mocks/example_indicator_williamsr.py')
         self.test_data = {
             "name": "test_5_days_ahead",
             "algo_module_path": None,
