@@ -14,7 +14,8 @@
   },
   "indicators": [
     {
-      "name": "bollingerbands",
+      "name": "willr",
+      "module_path": "/opt/sa/analysis_engine/mocks/example_indicator_williamsr.py",
       "category": "technical",
       "type": "momentum",
       "uses_data": "daily",

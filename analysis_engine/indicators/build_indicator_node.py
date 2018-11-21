@@ -93,11 +93,31 @@ def build_indicator_node(
         uses_dataset,
         ind_id)
 
+    use_module_name = None
+    use_path_to_module = None
+
+    # none will use the BaseIndicator which does nothing
+    use_path_to_module = node.get(
+        'module_path',
+        ae_consts.INDICATOR_BASE_MODULE_PATH)
+    if not use_path_to_module:
+        raise Exception(
+            'Failed building Indicator node with missing '
+            'module_path node={}'.format(
+                node))
+    use_module_name = node.get(
+        'module_name',
+        node.get(
+            'name',
+            ind_id))
+
     report_dict = {
         'id': ind_id,
         'name': ind_name,
         'created': ae_utils.utc_now_str(),
         'version': 1,
+        'module_name': use_module_name,
+        'path_to_module': use_path_to_module,
         'metrics': {
             'type': ind_type,
             'category': ind_category,

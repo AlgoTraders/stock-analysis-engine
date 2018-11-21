@@ -365,6 +365,10 @@ Table of Contents
    run_custom_algo
    run_algo
    example_algos
+   indicators_examples
+   indicators_load_from_module
+   indicators_base
+   indicators_build_node
    build_algo_request
    build_sell_order
    build_buy_order

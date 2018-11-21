@@ -670,6 +670,18 @@ ALGO_BACKUP_REDIS_ADDRESS = ev(
 
 ########################################
 #
+# Indicator Variables
+#
+########################################
+INDICATOR_BASE_MODULE = ev(
+    'INDICATOR_BASE_MODULE',
+    'analysis_engine.indicators.base_indicator.BaseIndicator')
+INDICATOR_BASE_MODULE_PATH = ev(
+    'INDICATOR_BASE_MODULE_PATH',
+    '/opt/sa/analysis_engine/mocks/example_indicator_williamsr.py')
+
+########################################
+#
 # S3 Variables
 #
 ########################################

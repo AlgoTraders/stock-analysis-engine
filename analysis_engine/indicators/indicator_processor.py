@@ -3,7 +3,9 @@
 
 import os
 import json
+import analysis_engine.consts as ae_consts
 import analysis_engine.indicators.build_indicator_node as build_indicator
+import analysis_engine.indicators.load_indicator_from_module as load_indicator
 import spylunking.log.setup_logging as log_utils
 
 log = log_utils.build_colorized_logger(name=__name__)
@@ -17,7 +19,8 @@ class IndicatorProcessor:
             config_dict,
             config_file=None,
             ticker=None,
-            label=None):
+            label=None,
+            verbose=False):
         """__init__
 
         Algorithm's use the ``IndicatorProcessor`` to drive
@@ -49,6 +52,8 @@ class IndicatorProcessor:
             this class in the logs (usually just the algo
             name is good enough to help debug issues
             when running distributed)
+        :param verbose: optional - bool for logging
+            more
         """
 
         self.config_dict = config_dict
@@ -77,6 +82,8 @@ class IndicatorProcessor:
         if not self.label:
             self.label = 'idprc'
 
+        self.verbose = verbose
+
         self.build_indicators_for_config(
             config_dict=self.config_dict)
     # end of __init__
@@ -101,7 +108,17 @@ class IndicatorProcessor:
                 self.label,
                 self.num_indicators))
 
+        total_indicators = len(config_dict['indicators'])
+
         for idx, node in enumerate(config_dict['indicators']):
+            percent_done = ae_consts.get_percent_done(
+                progress=(idx + 1),
+                total=total_indicators)
+            percent_label = 'ticker={} {} {}/{}'.format(
+                self.ticker,
+                percent_done,
+                (idx + 1),
+                total_indicators)
             # this will throw on errors parsing to make
             # it easeir to debug
             # before starting the algo and waiting for an error
@@ -109,7 +126,40 @@ class IndicatorProcessor:
             new_node = build_indicator.build_indicator_node(
                 node=node)
             if new_node:
-                self.ind_dict[new_node['name']] = new_node
+                indicator_key_name = new_node['report']['name']
+                if self.verbose:
+                    log.info(
+                        '{} - preparing indicator={} node={} {}'.format(
+                            self.label,
+                            indicator_key_name,
+                            new_node,
+                            percent_label))
+                else:
+                    log.info(
+                        '{} - preparing indicator={} {}'.format(
+                            self.label,
+                            indicator_key_name,
+                            percent_label))
+                self.ind_dict[indicator_key_name] = new_node
+                self.ind_dict[indicator_key_name]['obj'] = None
+
+                base_class_indicator = node.get(
+                    'base_class',
+                    'BaseIndicator')
+
+                self.ind_dict[indicator_key_name]['obj'] = \
+                    load_indicator.load_indicator_from_module(
+                        module_name=new_node['report']['module_name'],
+                        path_to_module=new_node['report']['path_to_module'],
+                        ind_dict=node,
+                        log_label=indicator_key_name,
+                        base_class_module_name=base_class_indicator)
+
+                log.info(
+                    '{} - created indicator={} {}'.format(
+                        self.label,
+                        indicator_key_name,
+                        percent_label))
             else:
                 raise Exception(
                     '{} - failed creating indicator {} node={}'.format(
@@ -124,5 +174,10 @@ class IndicatorProcessor:
                 len(self.ind_dict),
                 self.num_indicators))
     # end of build_indicators_for_config
+
+    def get_indicators(
+            self):
+        return self.ind_dict
+    # end of get_indicators
 
 # end of IndicatorProcessor

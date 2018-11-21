@@ -78,6 +78,8 @@ datasets from the redis pipeline:
 import os
 import json
 import pandas as pd
+import analysis_engine.consts as ae_consts
+import analysis_engine.utils as ae_utils
 import analysis_engine.build_trade_history_entry as history_utils
 import analysis_engine.build_buy_order as buy_utils
 import analysis_engine.build_sell_order as sell_utils
@@ -85,35 +87,6 @@ import analysis_engine.publish as publish
 import analysis_engine.build_publish_request as build_publish_request
 import analysis_engine.load_dataset as load_dataset
 import spylunking.log.setup_logging as log_utils
-from analysis_engine.consts import NOT_RUN
-from analysis_engine.consts import TRADE_FILLED
-from analysis_engine.consts import TRADE_SHARES
-from analysis_engine.consts import ENABLED_S3_UPLOAD
-from analysis_engine.consts import ENABLED_REDIS_PUBLISH
-from analysis_engine.consts import REDIS_DB
-from analysis_engine.consts import REDIS_PASSWORD
-from analysis_engine.consts import REDIS_EXPIRE
-from analysis_engine.consts import S3_ACCESS_KEY
-from analysis_engine.consts import S3_SECRET_KEY
-from analysis_engine.consts import S3_REGION_NAME
-from analysis_engine.consts import S3_ADDRESS
-from analysis_engine.consts import S3_SECURE
-from analysis_engine.consts import EMPTY_DF_STR
-from analysis_engine.consts import ALGO_READY_DATASET_S3_BUCKET_NAME
-from analysis_engine.consts import ALGO_EXTRACT_DATASET_S3_BUCKET_NAME
-from analysis_engine.consts import ALGO_HISTORY_DATASET_S3_BUCKET_NAME
-from analysis_engine.consts import ALGO_REPORT_DATASET_S3_BUCKET_NAME
-from analysis_engine.consts import ALGO_INPUT_COMPRESS
-from analysis_engine.consts import ALGO_HISTORY_COMPRESS
-from analysis_engine.consts import ALGO_REPORT_COMPRESS
-from analysis_engine.consts import SA_DATASET_TYPE_ALGO_READY
-from analysis_engine.consts import DEFAULT_SERIALIZED_DATASETS
-from analysis_engine.consts import ALGO_HORIZON_UNITS_DAY
-from analysis_engine.consts import ALGO_HORIZON_UNITS_MINUTE
-from analysis_engine.consts import get_status
-from analysis_engine.consts import get_percent_done
-from analysis_engine.consts import get_mb
-from analysis_engine.utils import utc_now_str
 
 log = log_utils.build_colorized_logger(name=__name__)
 
@@ -253,8 +226,8 @@ class BaseAlgo:
             extract_compress=False,
             extract_publish=True,
             extract_config=None,
-            dataset_type=SA_DATASET_TYPE_ALGO_READY,
-            serialize_datasets=DEFAULT_SERIALIZED_DATASETS,
+            dataset_type=ae_consts.SA_DATASET_TYPE_ALGO_READY,
+            serialize_datasets=ae_consts.DEFAULT_SERIALIZED_DATASETS,
             raise_on_err=False,
             **kwargs):
         """__init__
@@ -420,10 +393,10 @@ class BaseAlgo:
         **Dataset Arguments**
 
         :param dataset_type: optional - dataset type
-            (default is ``SA_DATASET_TYPE_ALGO_READY``)
+            (default is ``ae_consts.SA_DATASET_TYPE_ALGO_READY``)
         :param serialize_datasets: optional - list of dataset names to
             deserialize in the dataset
-            (default is ``DEFAULT_SERIALIZED_DATASETS``)
+            (default is ``ae_consts.DEFAULT_SERIALIZED_DATASETS``)
         :param encoding: optional - string for data encoding
 
         **(Optional) Publishing arguments**
@@ -473,7 +446,7 @@ class BaseAlgo:
         self.balance = balance
         self.starting_balance = balance
         self.starting_close = 0.0
-        self.trade_horizon_units = ALGO_HORIZON_UNITS_DAY
+        self.trade_horizon_units = ae_consts.ALGO_HORIZON_UNITS_DAY
         self.trade_horizon = 5
         self.commission = commission
         self.result = None
@@ -500,7 +473,7 @@ class BaseAlgo:
         self.prev_num_owned = None
         self.ds_id = None
         self.trade_date = None
-        self.trade_type = TRADE_SHARES
+        self.trade_type = ae_consts.TRADE_SHARES
         self.buy_hold_units = 20
         self.sell_hold_units = 20
         self.spread_exp_date = None
@@ -509,7 +482,7 @@ class BaseAlgo:
         self.config_file = config_file
         self.config_dict = config_dict
         self.positions = {}
-        self.created_date = utc_now_str()
+        self.created_date = ae_utils.utc_now_str()
         self.created_buy = False
         self.should_buy = False
         self.buy_strength = None
@@ -541,9 +514,9 @@ class BaseAlgo:
         self.df_yahoo_news = pd.DataFrame([{}])
         self.df_calls = pd.DataFrame([{}])
         self.df_puts = pd.DataFrame([{}])
+        self.df_pricing = pd.DataFrame([{}])
         self.empty_pd = pd.DataFrame([{}])
-        self.empty_pd_str = EMPTY_DF_STR
-        self.df_pricing = {}
+        self.empty_pd_str = ae_consts.EMPTY_DF_STR
 
         self.note = None
         self.debug_msg = ''
@@ -558,9 +531,9 @@ class BaseAlgo:
         self.raise_on_err = raise_on_err
 
         if not self.publish_to_s3:
-            self.publish_to_s3 = ENABLED_S3_UPLOAD
+            self.publish_to_s3 = ae_consts.ENABLED_S3_UPLOAD
         if not self.publish_to_redis:
-            self.publish_to_redis = ENABLED_REDIS_PUBLISH
+            self.publish_to_redis = ae_consts.ENABLED_REDIS_PUBLISH
 
         self.output_file_dir = None
         self.output_file_prefix = None
@@ -586,7 +559,7 @@ class BaseAlgo:
         if not self.save_as_key:
             self.save_as_key = '{}-{}'.format(
                 self.name.replace(' ', ''),
-                utc_now_str(fmt='%Y-%m-%d-%H-%M-%S.%f'))
+                ae_utils.utc_now_str(fmt='%Y-%m-%d-%H-%M-%S.%f'))
         self.output_file_dir = '/opt/sa/tests/datasets/algo'
         if not output_dir:
             self.output_file_dir = output_dir
@@ -632,13 +605,13 @@ class BaseAlgo:
             report_config = build_publish_request.build_publish_request()
 
         if not load_from_s3_bucket:
-            load_from_s3_bucket = ALGO_READY_DATASET_S3_BUCKET_NAME
+            load_from_s3_bucket = ae_consts.ALGO_READY_DATASET_S3_BUCKET_NAME
         if not extract_s3_bucket:
-            extract_s3_bucket = ALGO_EXTRACT_DATASET_S3_BUCKET_NAME
+            extract_s3_bucket = ae_consts.ALGO_EXTRACT_DATASET_S3_BUCKET_NAME
         if not history_s3_bucket:
-            history_s3_bucket = ALGO_HISTORY_DATASET_S3_BUCKET_NAME
+            history_s3_bucket = ae_consts.ALGO_HISTORY_DATASET_S3_BUCKET_NAME
         if not report_s3_bucket:
-            report_s3_bucket = ALGO_REPORT_DATASET_S3_BUCKET_NAME
+            report_s3_bucket = ae_consts.ALGO_REPORT_DATASET_S3_BUCKET_NAME
 
         # Load the input dataset publishing member variables
         self.extract_output_dir = extract_config.get(
@@ -650,17 +623,17 @@ class BaseAlgo:
         self.extract_convert_to_json = extract_config.get(
             'convert_to_json', True)
         self.extract_compress = extract_config.get(
-            'compress', ALGO_INPUT_COMPRESS)
+            'compress', ae_consts.ALGO_INPUT_COMPRESS)
         self.extract_redis_enabled = extract_config.get(
             'redis_enabled', False)
         self.extract_redis_address = extract_config.get(
-            'redis_address', ENABLED_S3_UPLOAD)
+            'redis_address', ae_consts.ENABLED_S3_UPLOAD)
         self.extract_redis_db = extract_config.get(
-            'redis_db', REDIS_DB)
+            'redis_db', ae_consts.REDIS_DB)
         self.extract_redis_password = extract_config.get(
-            'redis_password', REDIS_PASSWORD)
+            'redis_password', ae_consts.REDIS_PASSWORD)
         self.extract_redis_expire = extract_config.get(
-            'redis_expire', REDIS_EXPIRE)
+            'redis_expire', ae_consts.REDIS_EXPIRE)
         self.extract_redis_serializer = extract_config.get(
             'redis_serializer', 'json')
         self.extract_redis_encoding = extract_config.get(
@@ -668,17 +641,17 @@ class BaseAlgo:
         self.extract_s3_enabled = extract_config.get(
             's3_enabled', False)
         self.extract_s3_address = extract_config.get(
-            's3_address', S3_ADDRESS)
+            's3_address', ae_consts.S3_ADDRESS)
         self.extract_s3_bucket = extract_config.get(
             's3_bucket', extract_s3_bucket)
         self.extract_s3_access_key = extract_config.get(
-            's3_access_key', S3_ACCESS_KEY)
+            's3_access_key', ae_consts.S3_ACCESS_KEY)
         self.extract_s3_secret_key = extract_config.get(
-            's3_secret_key', S3_SECRET_KEY)
+            's3_secret_key', ae_consts.S3_SECRET_KEY)
         self.extract_s3_region_name = extract_config.get(
-            's3_region_name', S3_REGION_NAME)
+            's3_region_name', ae_consts.S3_REGION_NAME)
         self.extract_s3_secure = extract_config.get(
-            's3_secure', S3_SECURE)
+            's3_secure', ae_consts.S3_SECURE)
         self.extract_slack_enabled = extract_config.get(
             'slack_enabled', False)
         self.extract_slack_code_block = extract_config.get(
@@ -702,17 +675,17 @@ class BaseAlgo:
         self.history_convert_to_json = history_config.get(
             'convert_to_json', True)
         self.history_compress = history_config.get(
-            'compress', ALGO_HISTORY_COMPRESS)
+            'compress', ae_consts.ALGO_HISTORY_COMPRESS)
         self.history_redis_enabled = history_config.get(
             'redis_enabled', False)
         self.history_redis_address = history_config.get(
-            'redis_address', ENABLED_S3_UPLOAD)
+            'redis_address', ae_consts.ENABLED_S3_UPLOAD)
         self.history_redis_db = history_config.get(
-            'redis_db', REDIS_DB)
+            'redis_db', ae_consts.REDIS_DB)
         self.history_redis_password = history_config.get(
-            'redis_password', REDIS_PASSWORD)
+            'redis_password', ae_consts.REDIS_PASSWORD)
         self.history_redis_expire = history_config.get(
-            'redis_expire', REDIS_EXPIRE)
+            'redis_expire', ae_consts.REDIS_EXPIRE)
         self.history_redis_serializer = history_config.get(
             'redis_serializer', 'json')
         self.history_redis_encoding = history_config.get(
@@ -720,17 +693,17 @@ class BaseAlgo:
         self.history_s3_enabled = history_config.get(
             's3_enabled', False)
         self.history_s3_address = history_config.get(
-            's3_address', S3_ADDRESS)
+            's3_address', ae_consts.S3_ADDRESS)
         self.history_s3_bucket = history_config.get(
             's3_bucket', history_s3_bucket)
         self.history_s3_access_key = history_config.get(
-            's3_access_key', S3_ACCESS_KEY)
+            's3_access_key', ae_consts.S3_ACCESS_KEY)
         self.history_s3_secret_key = history_config.get(
-            's3_secret_key', S3_SECRET_KEY)
+            's3_secret_key', ae_consts.S3_SECRET_KEY)
         self.history_s3_region_name = history_config.get(
-            's3_region_name', S3_REGION_NAME)
+            's3_region_name', ae_consts.S3_REGION_NAME)
         self.history_s3_secure = history_config.get(
-            's3_secure', S3_SECURE)
+            's3_secure', ae_consts.S3_SECURE)
         self.history_slack_enabled = history_config.get(
             'slack_enabled', False)
         self.history_slack_code_block = history_config.get(
@@ -754,17 +727,17 @@ class BaseAlgo:
         self.report_convert_to_json = report_config.get(
             'convert_to_json', True)
         self.report_compress = report_config.get(
-            'compress', ALGO_REPORT_COMPRESS)
+            'compress', ae_consts.ALGO_REPORT_COMPRESS)
         self.report_redis_enabled = report_config.get(
             'redis_enabled', False)
         self.report_redis_address = report_config.get(
-            'redis_address', ENABLED_S3_UPLOAD)
+            'redis_address', ae_consts.ENABLED_S3_UPLOAD)
         self.report_redis_db = report_config.get(
-            'redis_db', REDIS_DB)
+            'redis_db', ae_consts.REDIS_DB)
         self.report_redis_password = report_config.get(
-            'redis_password', REDIS_PASSWORD)
+            'redis_password', ae_consts.REDIS_PASSWORD)
         self.report_redis_expire = report_config.get(
-            'redis_expire', REDIS_EXPIRE)
+            'redis_expire', ae_consts.REDIS_EXPIRE)
         self.report_redis_serializer = report_config.get(
             'redis_serializer', 'json')
         self.report_redis_encoding = report_config.get(
@@ -772,17 +745,17 @@ class BaseAlgo:
         self.report_s3_enabled = report_config.get(
             's3_enabled', False)
         self.report_s3_address = report_config.get(
-            's3_address', S3_ADDRESS)
+            's3_address', ae_consts.S3_ADDRESS)
         self.report_s3_bucket = report_config.get(
             's3_bucket', report_s3_bucket)
         self.report_s3_access_key = report_config.get(
-            's3_access_key', S3_ACCESS_KEY)
+            's3_access_key', ae_consts.S3_ACCESS_KEY)
         self.report_s3_secret_key = report_config.get(
-            's3_secret_key', S3_SECRET_KEY)
+            's3_secret_key', ae_consts.S3_SECRET_KEY)
         self.report_s3_region_name = report_config.get(
-            's3_region_name', S3_REGION_NAME)
+            's3_region_name', ae_consts.S3_REGION_NAME)
         self.report_s3_secure = report_config.get(
-            's3_secure', S3_SECURE)
+            's3_secure', ae_consts.S3_SECURE)
         self.report_slack_enabled = report_config.get(
             'slack_enabled', False)
         self.report_slack_code_block = report_config.get(
@@ -812,13 +785,13 @@ class BaseAlgo:
         self.dsload_redis_enabled = load_config.get(
             'redis_enabled', False)
         self.dsload_redis_address = load_config.get(
-            'redis_address', ENABLED_S3_UPLOAD)
+            'redis_address', ae_consts.ENABLED_S3_UPLOAD)
         self.dsload_redis_db = load_config.get(
-            'redis_db', REDIS_DB)
+            'redis_db', ae_consts.REDIS_DB)
         self.dsload_redis_password = load_config.get(
-            'redis_password', REDIS_PASSWORD)
+            'redis_password', ae_consts.REDIS_PASSWORD)
         self.dsload_redis_expire = load_config.get(
-            'redis_expire', REDIS_EXPIRE)
+            'redis_expire', ae_consts.REDIS_EXPIRE)
         self.dsload_redis_serializer = load_config.get(
             'redis_serializer', 'json')
         self.dsload_redis_encoding = load_config.get(
@@ -826,17 +799,17 @@ class BaseAlgo:
         self.dsload_s3_enabled = load_config.get(
             's3_enabled', False)
         self.dsload_s3_address = load_config.get(
-            's3_address', S3_ADDRESS)
+            's3_address', ae_consts.S3_ADDRESS)
         self.dsload_s3_bucket = load_config.get(
             's3_bucket', load_from_s3_bucket)
         self.dsload_s3_access_key = load_config.get(
-            's3_access_key', S3_ACCESS_KEY)
+            's3_access_key', ae_consts.S3_ACCESS_KEY)
         self.dsload_s3_secret_key = load_config.get(
-            's3_secret_key', S3_SECRET_KEY)
+            's3_secret_key', ae_consts.S3_SECRET_KEY)
         self.dsload_s3_region_name = load_config.get(
-            's3_region_name', S3_REGION_NAME)
+            's3_region_name', ae_consts.S3_REGION_NAME)
         self.dsload_s3_secure = load_config.get(
-            's3_secure', S3_SECURE)
+            's3_secure', ae_consts.S3_SECURE)
         self.dsload_slack_enabled = load_config.get(
             'slack_enabled', False)
         self.dsload_slack_code_block = load_config.get(
@@ -857,9 +830,9 @@ class BaseAlgo:
                 'trade_horizon_units',
                 'day').lower()
             if val == 'day':
-                self.horizon_units = ALGO_HORIZON_UNITS_DAY
+                self.horizon_units = ae_consts.ALGO_HORIZON_UNITS_DAY
             else:
-                self.horizon_units = ALGO_HORIZON_UNITS_MINUTE
+                self.horizon_units = ae_consts.ALGO_HORIZON_UNITS_MINUTE
             self.trade_horizon = int(self.config_dict.get(
                 'trade_horizon',
                 5))
@@ -911,7 +884,7 @@ class BaseAlgo:
                         'dividends': pd.DataFrame([]),
                         'calls': pd.DataFrame([]),
                         'puts': pd.DataFrame([]),
-                        'pricing': dictionary,
+                        'pricing': pd.DataFrame([]),
                         'news': pd.DataFrame([])
                     }
                 }
@@ -1209,7 +1182,7 @@ class BaseAlgo:
         verbose = kwargs.get(
             'verbose', self.report_verbose)
 
-        status = NOT_RUN
+        status = ae_consts.NOT_RUN
 
         if not self.publish_report:
             log.info(
@@ -1228,7 +1201,7 @@ class BaseAlgo:
                     self.tickers))
             use_data = json.dumps(output_record)
             num_bytes = len(use_data)
-            num_mb = get_mb(num_bytes)
+            num_mb = ae_consts.get_mb(num_bytes)
             log.info(
                 'report publish - START - '
                 '{} - tickers={} '
@@ -1278,7 +1251,7 @@ class BaseAlgo:
                 'report publish - END - {} '
                 '{} - tickers={} '
                 'file={} s3={} redis={} size={}MB'.format(
-                    get_status(status=status),
+                    ae_consts.get_status(status=status),
                     self.name,
                     self.tickers,
                     output_file,
@@ -1441,7 +1414,7 @@ class BaseAlgo:
         verbose = kwargs.get(
             'verbose', self.history_verbose)
 
-        status = NOT_RUN
+        status = ae_consts.NOT_RUN
 
         if not self.publish_history:
             log.info(
@@ -1461,7 +1434,7 @@ class BaseAlgo:
                     self.tickers))
             use_data = json.dumps(output_record)
             num_bytes = len(use_data)
-            num_mb = get_mb(num_bytes)
+            num_mb = ae_consts.get_mb(num_bytes)
             log.info(
                 'history publish - START - '
                 '{} - tickers={} '
@@ -1511,7 +1484,7 @@ class BaseAlgo:
                 'history publish - END - {} '
                 '{} - tickers={} '
                 'file={} s3={} redis={} size={}MB'.format(
-                    get_status(status=status),
+                    ae_consts.get_status(status=status),
                     self.name,
                     self.tickers,
                     output_file,
@@ -1674,7 +1647,7 @@ class BaseAlgo:
         verbose = kwargs.get(
             'verbose', self.extract_verbose)
 
-        status = NOT_RUN
+        status = ae_consts.NOT_RUN
 
         if not self.publish_input:
             log.info(
@@ -1693,7 +1666,7 @@ class BaseAlgo:
                     self.tickers))
             use_data = json.dumps(output_record)
             num_bytes = len(use_data)
-            num_mb = get_mb(num_bytes)
+            num_mb = ae_consts.get_mb(num_bytes)
             log.info(
                 'input publish - START - '
                 '{} - tickers={} '
@@ -1743,7 +1716,7 @@ class BaseAlgo:
                 'input publish - END - {} '
                 '{} - tickers={} '
                 'file={} s3={} redis={} size={}MB'.format(
-                    get_status(status=status),
+                    ae_consts.get_status(status=status),
                     self.name,
                     self.tickers,
                     output_file,
@@ -1965,7 +1938,7 @@ class BaseAlgo:
 
         self.debug_msg = (
             'building results')
-        finished_date = utc_now_str()
+        finished_date = ae_utils.utc_now_str()
         self.result = {
             'name': self.name,
             'created': self.created_date,
@@ -2087,7 +2060,7 @@ class BaseAlgo:
             if not prev_shares:
                 prev_shares = 0
             prev_bal = self.balance
-            if new_buy['status'] == TRADE_FILLED:
+            if new_buy['status'] == ae_consts.TRADE_FILLED:
                 if ticker in self.positions:
                     self.positions[ticker]['shares'] += int(
                         new_buy['shares'])
@@ -2113,7 +2086,7 @@ class BaseAlgo:
                         self.name,
                         ticker,
                         close,
-                        get_status(status=new_buy['status']),
+                        ae_consts.get_status(status=new_buy['status']),
                         new_buy['shares'],
                         new_buy['buy_price'],
                         self.balance,
@@ -2126,7 +2099,7 @@ class BaseAlgo:
                         self.name,
                         ticker,
                         close,
-                        get_status(status=new_buy['status']),
+                        ae_consts.get_status(status=new_buy['status']),
                         num_owned,
                         new_buy['buy_price'],
                         self.balance))
@@ -2209,7 +2182,7 @@ class BaseAlgo:
             if not prev_shares:
                 prev_shares = 0
             prev_bal = self.balance
-            if new_sell['status'] == TRADE_FILLED:
+            if new_sell['status'] == ae_consts.TRADE_FILLED:
                 if ticker in self.positions:
                     self.positions[ticker]['shares'] += int(
                         new_sell['shares'])
@@ -2235,7 +2208,7 @@ class BaseAlgo:
                         self.name,
                         ticker,
                         close,
-                        get_status(status=new_sell['status']),
+                        ae_consts.get_status(status=new_sell['status']),
                         num_owned,
                         new_sell['sell_price'],
                         self.balance,
@@ -2248,7 +2221,7 @@ class BaseAlgo:
                         self.name,
                         ticker,
                         close,
-                        get_status(status=new_sell['status']),
+                        ae_consts.get_status(status=new_sell['status']),
                         num_owned,
                         new_sell['sell_price'],
                         self.balance))
@@ -2285,7 +2258,7 @@ class BaseAlgo:
         :param progress: progress counter
         :param total: total number of counts
         """
-        percent_done = get_percent_done(
+        percent_done = ae_consts.get_percent_done(
             progress=progress,
             total=total)
         progress_label = '{} {}/{}'.format(
@@ -2566,7 +2539,7 @@ class BaseAlgo:
                                 'dividends': pd.DataFrame([]),
                                 'calls': pd.DataFrame([]),
                                 'puts': pd.DataFrame([]),
-                                'pricing': dictionary,
+                                'pricing': pd.DataFrame([]),
                                 'news': pd.DataFrame([])
                             }
                         }
