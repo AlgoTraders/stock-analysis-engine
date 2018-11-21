@@ -88,15 +88,13 @@ class TestLoadIndicatorFromFile(BaseTestCase):
 
     def test_load_multiple_indicator_from_same_example_indicator_file(self):
         """test_load_multiple_indicator_from_same_example_indicator_file"""
-        example_module_path = (
-            '/opt/sa/analysis_engine/mocks/example_indicator_williamsr.py')
         log_label_1 = 'my_ind_1'
         log_label_2 = 'my_ind_2'
         log_label_3 = 'base_ind_1'
         ind_1 = load_ind.load_indicator_from_module(
             module_name='ExampleIndicatorWilliamsR',
             log_label=log_label_1,
-            path_to_module=example_module_path,
+            path_to_module=self.example_module_path,
             ind_dict=self.test_data['indicators'][0])
         self.assertTrue(
             ind_1 is not None)
@@ -106,7 +104,7 @@ class TestLoadIndicatorFromFile(BaseTestCase):
         ind_2 = load_ind.load_indicator_from_module(
             module_name='ExampleIndicatorWilliamsR',
             log_label=log_label_2,
-            path_to_module=example_module_path,
+            path_to_module=self.example_module_path,
             ind_dict=self.test_data['indicators'][1])
         self.assertTrue(
             ind_2 is not None)
