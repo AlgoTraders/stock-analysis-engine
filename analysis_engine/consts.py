@@ -678,7 +678,7 @@ INDICATOR_BASE_MODULE = ev(
     'analysis_engine.indicators.base_indicator.BaseIndicator')
 INDICATOR_BASE_MODULE_PATH = ev(
     'INDICATOR_BASE_MODULE_PATH',
-    '/opt/sa/analysis_engine/mocks/example_indicator_williamsr.py')
+    'analysis_engine/indicators/base_indicator.py')
 
 ########################################
 #

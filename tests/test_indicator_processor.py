@@ -73,6 +73,7 @@ class TestIndicatorProcessor(BaseTestCase):
 
     def test_build_indicator_processor(self):
         """test_build_algo_request_daily"""
+        print(self.test_data)
         proc = IndicatorProcessor(
             config_dict=self.test_data)
         self.assertTrue(
