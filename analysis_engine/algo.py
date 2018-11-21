@@ -84,6 +84,7 @@ import analysis_engine.build_sell_order as sell_utils
 import analysis_engine.publish as publish
 import analysis_engine.build_publish_request as build_publish_request
 import analysis_engine.load_dataset as load_dataset
+import spylunking.log.setup_logging as log_utils
 from analysis_engine.consts import NOT_RUN
 from analysis_engine.consts import TRADE_FILLED
 from analysis_engine.consts import TRADE_SHARES
@@ -113,9 +114,8 @@ from analysis_engine.consts import get_status
 from analysis_engine.consts import get_percent_done
 from analysis_engine.consts import get_mb
 from analysis_engine.utils import utc_now_str
-from spylunking.log.setup_logging import build_colorized_logger
 
-log = build_colorized_logger(name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 class BaseAlgo:

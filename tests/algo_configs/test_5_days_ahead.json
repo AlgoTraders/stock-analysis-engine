@@ -17,6 +17,7 @@
       "name": "bollingerbands",
       "category": "technical",
       "type": "momentum",
+      "uses_data": "daily",
       "num_points": 12,
       "buy_above": 60,
       "sell_below": 20
