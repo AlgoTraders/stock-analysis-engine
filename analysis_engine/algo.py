@@ -86,6 +86,7 @@ import analysis_engine.build_sell_order as sell_utils
 import analysis_engine.publish as publish
 import analysis_engine.build_publish_request as build_publish_request
 import analysis_engine.load_dataset as load_dataset
+import analysis_engine.indicators.indicator_processor as ind_processor
 import spylunking.log.setup_logging as log_utils
 
 log = log_utils.build_colorized_logger(name=__name__)
@@ -521,6 +522,9 @@ class BaseAlgo:
         self.note = None
         self.debug_msg = ''
         self.version = version
+        self.verbose = ae_consts.ev(
+            'AE_DEBUG',
+            '1') == '1'
 
         self.publish_to_slack = publish_to_slack
         self.publish_to_s3 = publish_to_s3
@@ -838,10 +842,46 @@ class BaseAlgo:
                 5))
         # end of loading initial values from a config_dict before derived
 
+        self.ind_proc = None
         self.load_from_config(
             config_dict=config_dict)
 
     # end of __init__
+
+    def get_indicator_processor(
+            self,
+            existing_processor=None):
+        """get_indicator_processor
+
+        singleton for getting the indicator processor
+
+        :param existing_processor: allow derived algos
+            to build their own indicator
+            processor and pass it to the base
+        """
+        if existing_processor:
+            log.info(
+                '{} - loading existing processor={}'.format(
+                    self.name,
+                    existing_processor.get_name()))
+            self.ind_proc = existing_processor
+        else:
+            if self.ind_proc:
+                return self.ind_proc
+
+            if not self.config_dict:
+                log.info(
+                    '{} - is missing an algorithm config_dict '
+                    'please add one to run indicators')
+            else:
+                self.ind_proc = ind_processor.IndicatorProcessor(
+                    config_dict=self.config_dict,
+                    label='{}-prc'.format(
+                        self.name),
+                    verbose=self.verbose)
+
+        return self.ind_proc
+    # end of get_indicator_processor
 
     def process(
             self,
@@ -939,7 +979,8 @@ class BaseAlgo:
         self.should_buy = False
 
         log.info(
-            'process has df_daily rows={}'.format(
+            '{} - ready with process has df_daily rows={}'.format(
+                self.name,
                 len(self.df_daily.index)))
 
         """
@@ -2547,11 +2588,23 @@ class BaseAlgo:
                 }
 
         """
+
         self.debug_msg = (
             '{} handle - start'.format(
                 self.name))
 
-        log.info(self.debug_msg)
+        self.ind_proc = self.get_indicator_processor()
+        ind_proc_label = None
+        num_indicators = None
+        if self.ind_proc:
+            ind_proc_label = self.ind_proc.get_label()
+            num_indicators = self.ind_proc.get_num_indicators()
+
+        self.debug_msg = (
+            '{} handle - using ind_proc={} indicators={}'.format(
+                self.name,
+                ind_proc_label,
+                num_indicators))
 
         if self.loaded_dataset:
             log.info(

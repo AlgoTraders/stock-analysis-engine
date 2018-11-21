@@ -145,6 +145,40 @@ class TestBaseAlgo(BaseTestCase):
         self.last_close_str = get_last_close_str(fmt=COMMON_DATE_FORMAT)
         self.output_dir = (
             '/opt/sa/tests/datasets/algo')
+
+        self.example_indicator_path = (
+            'analysis_engine/mocks/example_indicator_williamsr.py')
+        self.algo_config_dict = {
+            'name': 'test_5_days_ahead',
+            'algo_module_path': None,
+            'algo_version': 1,
+            'trade_horizon_units': 'day',
+            'trade_horizon': 5,
+            'buy_rules': {
+                'confidence': 75,
+                'min_indicators': 1
+            },
+            'sell_rules': {
+                'confidence': 75,
+                'min_indicators': 1
+            },
+            'indicators': [
+                {
+                    'name': 'willr',
+                    'module_path': self.example_indicator_path,
+                    'category': 'technical',
+                    'type': 'momentum',
+                    'uses_data': 'daily',
+                    'num_points': 12,
+                    'buy_above': 60,
+                    'sell_below': 20
+                }
+            ],
+            'slack': {
+                'webhook': None
+            }
+        }
+
     # end of setUp
 
     def validate_dataset_structure(
@@ -235,6 +269,34 @@ class TestBaseAlgo(BaseTestCase):
                 'SPY_2018-11-05'
             ])
     # end of test_build_algo_request_daily
+
+    def test_build_algo_request_daily_with_config(self):
+        """test_build_algo_request_daily_with_config"""
+        use_key = 'test_build_algo_request_daily_with_config'
+        req = build_algo_request(
+            ticker=self.ticker,
+            use_key=use_key,
+            start_date=self.start_date_str,
+            end_date=self.end_date_str,
+            datasets=self.datasets,
+            balance=self.balance,
+            config_file='not-real',
+            config_dict=self.algo_config_dict,
+            label=use_key)
+        self.assertEqual(
+            req['tickers'],
+            [self.ticker])
+        self.assertEqual(
+            req['config_file'],
+            'not-real')
+        self.assertEqual(
+            req['extract_datasets'],
+            [
+                'SPY_2018-11-01',
+                'SPY_2018-11-02',
+                'SPY_2018-11-05'
+            ])
+    # end of test_build_algo_request_daily_with_config
 
     def test_build_buy_order(self):
         """test_build_buy_order"""
@@ -536,6 +598,26 @@ class TestBaseAlgo(BaseTestCase):
         algo.handle_data(
             data=self.data)
     # end of test_run_daily
+
+    @mock.patch(
+        ('analysis_engine.write_to_file.write_to_file'),
+        new=mock_write_to_file)
+    def test_run_daily_with_config(self):
+        """test_run_daily_with_config"""
+        algo = BaseAlgo(
+            ticker=self.ticker,
+            balance=self.balance,
+            config_dict=self.algo_config_dict)
+        self.assertEqual(
+            algo.name,
+            self.algo_config_dict['name'])
+        self.assertEqual(
+            algo.tickers,
+            [self.ticker])
+        print(self.data)
+        algo.handle_data(
+            data=self.data)
+    # end of test_run_daily_with_config
 
     @mock.patch(
         ('analysis_engine.write_to_file.write_to_file'),

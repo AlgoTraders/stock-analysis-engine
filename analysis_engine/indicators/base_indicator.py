@@ -71,6 +71,39 @@ class BaseIndicator:
         conditions before placing orders. Just implement your own
         ``process`` method.
 
+        Please refer to the TA Lib guides for details on building indicators:
+
+        - `Overlap Studies<
+        https://mrjbq7.github.io/ta-lib/func_groups/overlap_studies.html
+        >`__
+        - `Momentum Indicators<
+        https://mrjbq7.github.io/ta-lib/func_groups/momentum_indicators.html
+        >`__
+        - `Volume Indicators<
+        https://mrjbq7.github.io/ta-lib/func_groups/volume_indicators.html
+        >`__
+        - `Volatility Indicators<
+        https://mrjbq7.github.io/ta-lib/func_groups/volatility_indicators.html
+        >`__
+        - `Price Transform<
+        https://mrjbq7.github.io/ta-lib/func_groups/price_transform.html
+        >`__
+        - `Cycle Indicators<
+        https://mrjbq7.github.io/ta-lib/func_groups/cycle_indicators.html
+        >`__
+        - `Pattern Recognition<
+        https://mrjbq7.github.io/ta-lib/func_groups/pattern_recognition.html
+        >`__
+        - `Statistic Functions<
+        https://mrjbq7.github.io/ta-lib/func_groups/statistic_functions.html
+        >`__
+        - `Math Transform<
+        https://mrjbq7.github.io/ta-lib/func_groups/math_transform.html
+        >`__
+        - `Math Operators<
+        https://mrjbq7.github.io/ta-lib/func_groups/math_operators.html
+        >`__
+
         :param algo_id: string - algo identifier label for debugging datasets
             during specific dates
         :param ticker: string - ticker
