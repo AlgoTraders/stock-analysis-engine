@@ -872,7 +872,8 @@ class BaseAlgo:
             if not self.config_dict:
                 log.info(
                     '{} - is missing an algorithm config_dict '
-                    'please add one to run indicators')
+                    'please add one to run indicators'.format(
+                        self.name))
             else:
                 self.ind_proc = ind_processor.IndicatorProcessor(
                     config_dict=self.config_dict,
