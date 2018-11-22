@@ -1,4 +1,5 @@
 """
+Indicator Processor
 """
 
 import os
@@ -120,23 +121,22 @@ class IndicatorProcessor:
 
         if 'indicators' not in config_dict:
             log.error('missing "indicators" list in the config_dict')
+            return
 
         log.info(
             '{} start - building indicators={}'.format(
                 self.label,
                 self.num_indicators))
 
-        total_indicators = len(config_dict['indicators'])
-
         for idx, node in enumerate(config_dict['indicators']):
             percent_done = ae_consts.get_percent_done(
                 progress=(idx + 1),
-                total=total_indicators)
+                total=self.num_indicators)
             percent_label = 'ticker={} {} {}/{}'.format(
                 self.ticker,
                 percent_done,
                 (idx + 1),
-                total_indicators)
+                self.num_indicators)
             # this will throw on errors parsing to make
             # it easeir to debug
             # before starting the algo and waiting for an error
@@ -192,5 +192,45 @@ class IndicatorProcessor:
                 len(self.ind_dict),
                 self.num_indicators))
     # end of build_indicators_for_config
+
+    def process(
+            self,
+            algo_id,
+            ticker,
+            dataset):
+        """process
+
+        :param algo_id: string - algo identifier label for debugging datasets
+            during specific dates
+        :param ticker: string - ticker
+        :param dataset: a dictionary of identifiers (for debugging) and
+            multiple pandas ``pd.DataFrame`` objects. Dictionary where keys
+            represent a label from one of the data sources (``IEX``,
+            ``Yahoo``, ``FinViz`` or other). Here is the supported
+            dataset structure for the process method:
+        """
+        for idx, ind_id in enumerate(self.ind_dict):
+            ind_node = self.ind_dict[ind_id]
+            ind_obj = ind_node['obj']
+            percent_done = ae_consts.get_percent_done(
+                progress=(idx + 1),
+                total=self.num_indicators)
+            percent_label = 'ticker={} {} {}/{}'.format(
+                self.ticker,
+                percent_done,
+                (idx + 1),
+                self.num_indicators)
+            # this will throw on errors parsing to make
+            log.info(
+                '{} - {} start {}'.format(
+                    self.label,
+                    ind_obj.get_name(),
+                    percent_label))
+            ind_obj.process(
+                algo_id=algo_id,
+                ticker=ticker,
+                dataset=dataset)
+        # end of for all indicators
+    # end of process
 
 # end of IndicatorProcessor
