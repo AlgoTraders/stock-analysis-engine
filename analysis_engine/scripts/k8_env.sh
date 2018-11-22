@@ -110,9 +110,9 @@ k8_restart_pod() {
         not_done=$(/usr/bin/kubectl get po | grep ${ae_pod_name} | grep "Running" | wc -l)
     done
 
-    echo "describing AE Pod: ${ae_pod_name}"
+    echo "describing AE pod: ${ae_pod_name}"
     k8_desc ${ae_pod_name}
 
-    echo "getting logs for AE POD: ${ae_pod_name}"
+    echo "getting logs for AE pod: ${ae_pod_name}"
     k8_logs ${ae_pod_name}
 }
