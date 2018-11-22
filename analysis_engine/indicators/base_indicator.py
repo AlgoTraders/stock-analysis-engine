@@ -100,9 +100,11 @@ class BaseIndicator:
         :param dataset: ``pd.DataFrame`` to process
         """
         log.info(
-            '{} process - start')
+            '{} process - start'.format(
+                self.name))
         log.info(
-            '{} process - end')
+            '{} process - end'.format(
+                self.name))
     # end of process
 
 # end of BaseIndicator

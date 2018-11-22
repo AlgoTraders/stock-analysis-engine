@@ -842,10 +842,27 @@ class BaseAlgo:
                 5))
         # end of loading initial values from a config_dict before derived
 
-        self.ind_proc = None
+        self.iproc = None
+        self.iproc = self.get_indicator_processor()
+        self.iproc_label = 'no-iproc-label'
+        self.num_indicators = 0
+
         self.load_from_config(
             config_dict=config_dict)
 
+        if self.iproc:
+            if not hasattr(self.iproc, 'process'):
+                raise Exception(
+                    '{} - Please implement a process methond in the '
+                    'IndicatorProcessor - the current object={} '
+                    'is missing one. Please refer to the example: '
+                    'https://github.com/AlgoTraders/stock-analys'
+                    'is-engine/blob/master/analysis_engine/indica'
+                    'tors/indicator_processor.py'.format(
+                        self.name,
+                        self.iproc))
+            self.iproc_label = self.iproc.get_label()
+            self.num_indicators = self.iproc.get_num_indicators()
     # end of __init__
 
     def get_indicator_processor(
@@ -864,10 +881,10 @@ class BaseAlgo:
                 '{} - loading existing processor={}'.format(
                     self.name,
                     existing_processor.get_name()))
-            self.ind_proc = existing_processor
+            self.iproc = existing_processor
         else:
-            if self.ind_proc:
-                return self.ind_proc
+            if self.iproc:
+                return self.iproc
 
             if not self.config_dict:
                 log.info(
@@ -875,13 +892,14 @@ class BaseAlgo:
                     'please add one to run indicators'.format(
                         self.name))
             else:
-                self.ind_proc = ind_processor.IndicatorProcessor(
+                self.iproc = ind_processor.IndicatorProcessor(
                     config_dict=self.config_dict,
                     label='{}-prc'.format(
                         self.name),
                     verbose=self.verbose)
+        # if use new or existing
 
-        return self.ind_proc
+        return self.iproc
     # end of get_indicator_processor
 
     def process(
@@ -2594,19 +2612,6 @@ class BaseAlgo:
             '{} handle - start'.format(
                 self.name))
 
-        self.ind_proc = self.get_indicator_processor()
-        ind_proc_label = None
-        num_indicators = None
-        if self.ind_proc:
-            ind_proc_label = self.ind_proc.get_label()
-            num_indicators = self.ind_proc.get_num_indicators()
-
-        self.debug_msg = (
-            '{} handle - using ind_proc={} indicators={}'.format(
-                self.name,
-                ind_proc_label,
-                num_indicators))
-
         if self.loaded_dataset:
             log.info(
                 '{} handle - using existing dataset '
@@ -2664,6 +2669,22 @@ class BaseAlgo:
                     '{} END - load dataset id={}'.format(
                         ticker,
                         node.get('id', 'missing-id')))
+
+                """
+                Indicator Processor
+                """
+                if self.iproc:
+                    self.debug_msg = (
+                        '{} START - indicator processing'.format(
+                            ticker))
+                    self.iproc.process(
+                        algo_id=algo_id,
+                        ticker=self.ticker,
+                        dataset=node)
+                    self.debug_msg = (
+                        '{} END - indicator processing'.format(
+                            ticker))
+                # end of indicator processing
 
                 # thinking this could be a separate celery task
                 # to increase horizontal scaling to crunch
