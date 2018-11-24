@@ -12,9 +12,9 @@ Example Williams Percent R Indicator
     export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
 """
 
+import analysis_engine.talib as talib
 import analysis_engine.indicators.base_indicator as base_indicator
 import spylunking.log.setup_logging as log_utils
-import talib
 
 log = log_utils.build_colorized_logger(name=__name__)
 

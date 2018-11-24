@@ -82,7 +82,7 @@ class TestLoadIndicatorFromFile(BaseTestCase):
     # end of setUp
 
     @mock.patch(
-        ('talib.WILLR'),
+        ('analysis_engine.talib.WILLR'),
         new=mock_talib.WILLR)
     def test_load_indicator_from_example_indicator_file(self):
         """test_load_indicator_from_example_indicator_file"""
@@ -100,7 +100,7 @@ class TestLoadIndicatorFromFile(BaseTestCase):
     # end of test_load_indicator_from_example_indicator_file
 
     @mock.patch(
-        ('talib.WILLR'),
+        ('analysis_engine.talib.WILLR'),
         new=mock_talib.WILLR)
     def test_load_multiple_indicator_from_same_example_indicator_file(self):
         """test_load_multiple_indicator_from_same_example_indicator_file"""
