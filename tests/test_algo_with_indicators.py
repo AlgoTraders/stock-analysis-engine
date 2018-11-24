@@ -14,6 +14,7 @@ Test file for classes and functions:
 """
 
 import pandas as pd
+import json
 import mock
 import analysis_engine.mocks.base_test as base_test
 import analysis_engine.utils as ae_utils
@@ -55,38 +56,15 @@ class TestAlgoWithIndicators(base_test.BaseTestCase):
             self):
         """setUp"""
         self.ticker = 'SPY'
-        self.start_date_str = (
-            '2018-11-01 15:59:59'  # Thursday
-        )
-        self.end_date_str = (
-            '2018-11-05 15:59:59'  # Monday
-        )
-        self.daily_df = pd.DataFrame([
-            {
-                'high': 280.01,
-                'low': 270.01,
-                'open': 275.01,
-                'close': 272.02,
-                'volume': 123,
-                'date': self.start_date_str  # Thursday
-            },
-            {
-                'high': 281.01,
-                'low': 271.01,
-                'open': 276.01,
-                'close': 273.02,
-                'volume': 125,
-                'date': '2018-11-02 15:59:59'  # Friday
-            },
-            {
-                'high': 282.01,
-                'low': 272.01,
-                'open': 277.01,
-                'close': 274.02,
-                'volume': 121,
-                'date': self.end_date_str  # Monday
-            }
-        ])
+        self.daily_dataset = json.loads(
+            open('tests/datasets/spy-daily.json', 'r').read())
+        self.daily_df = pd.DataFrame(self.daily_dataset)
+        self.daily_df['date'] = pd.to_datetime(
+            self.daily_df['date'])
+        self.start_date_str = self.daily_df['date'].iloc[0].strftime(
+            ae_consts.COMMON_TICK_DATE_FORMAT)
+        self.end_date_str = self.daily_df['date'].iloc[-1].strftime(
+            ae_consts.COMMON_TICK_DATE_FORMAT)
         self.minute_df = pd.DataFrame([])
         self.options_df = pd.DataFrame([])
         self.use_date = '2018-11-05'
@@ -137,6 +115,10 @@ class TestAlgoWithIndicators(base_test.BaseTestCase):
                     'category': 'technical',
                     'type': 'momentum',
                     'uses_data': 'daily',
+                    'high': 0,
+                    'low': 0,
+                    'open': 0,
+                    'willr_value': 0,
                     'num_points': 12,
                     'buy_above': 60,
                     'sell_below': 20
@@ -157,6 +139,8 @@ class TestAlgoWithIndicators(base_test.BaseTestCase):
         algo = base_algo.BaseAlgo(
             ticker=self.ticker,
             balance=self.balance,
+            start_date_str=self.start_date_str,
+            end_date_str=self.end_date_str,
             config_dict=self.algo_config_dict)
         self.assertEqual(
             algo.name,
