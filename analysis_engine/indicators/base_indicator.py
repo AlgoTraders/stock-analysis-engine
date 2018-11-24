@@ -239,11 +239,11 @@ class BaseIndicator:
             pd.DataFrame(ae_consts.EMPTY_DF_LIST))
     # end of get_dataset_by_name
 
-    def get_subcribed_dataset(
+    def get_subscribed_dataset(
             self,
             dataset,
             dataset_name=None):
-        """get_subcribed_dataset
+        """get_subscribed_dataset
 
         Method for getting just the subscribed dataset
         else use the ``dataset_name`` argument dataset

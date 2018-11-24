@@ -91,7 +91,7 @@ class ExampleIndicatorWilliamsROpen(base_indicator.BaseIndicator):
             '{} - start'.format(
                 label))
 
-        daily_df = self.get_subcribed_dataset(
+        daily_df = self.get_subscribed_dataset(
                 dataset=dataset)
 
         # notice the self.num_points is now a member variable
