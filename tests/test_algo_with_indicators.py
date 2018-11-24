@@ -189,7 +189,7 @@ class TestAlgoWithIndicators(base_test.BaseTestCase):
         ('analysis_engine.write_to_file.write_to_file'),
         new=mock_write_to_file)
     def test_integration_daily_indicator_with_algo_config(self):
-        """test_run_daily_indicator_with_algo_config"""
+        """test_integration_daily_indicator_with_algo_config"""
         if ae_consts.ev('INT_TESTS', '0') == '0':
             return
 
@@ -207,6 +207,6 @@ class TestAlgoWithIndicators(base_test.BaseTestCase):
             [self.ticker])
         algo.handle_data(
             data=self.data)
-    # end of test_run_daily_indicator_with_algo_config
+    # end of test_integration_daily_indicator_with_algo_config
 
 # end of TestAlgoWithIndicators
