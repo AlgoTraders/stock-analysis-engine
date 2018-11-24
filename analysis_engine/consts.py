@@ -367,6 +367,7 @@ INDICATOR_USES_OPTIONS_DATA = 511
 INDICATOR_USES_CALLS_DATA = 512
 INDICATOR_USES_PUTS_DATA = 513
 INDICATOR_USES_DATA_UNSUPPORTED = 514
+INDICATOR_USES_DATA_ANY = 515
 
 SA_MODE_PREPARE = 10000
 SA_MODE_ANALYZE = 10001
@@ -592,6 +593,7 @@ DEFAULT_SERIALIZED_DATASETS = [
     'pricing'
 ]
 EMPTY_DF_STR = '[{}]'
+EMPTY_DF_LIST = [{}]
 
 ########################################
 #
@@ -1042,7 +1044,8 @@ INDICATOR_USES_DATA_MAPPING = {
     'options': INDICATOR_USES_OPTIONS_DATA,
     'calls': INDICATOR_USES_CALLS_DATA,
     'puts': INDICATOR_USES_PUTS_DATA,
-    'unsupported': INDICATOR_USES_DATA_UNSUPPORTED
+    'unsupported': INDICATOR_USES_DATA_UNSUPPORTED,
+    'any': INDICATOR_USES_DATA_ANY
 }
 
 
@@ -1099,7 +1102,7 @@ def get_indicator_uses_data_as_int(
         dictionary
     """
     if not val:
-        return INDICATOR_USES_DAILY_DATA
+        return INDICATOR_USES_DATA_ANY
     else:
         if val in INDICATOR_USES_DATA_MAPPING:
             return INDICATOR_USES_DATA_MAPPING[val]

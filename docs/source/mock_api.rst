@@ -58,4 +58,4 @@ Mock TA Lib
 These are mock talib functions to help test indicators using talib.
 
 .. automodule:: analysis_engine.mocks.mock_talib
-   :members: WILLR
+   :members: MockWILLR
