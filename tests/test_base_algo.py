@@ -17,8 +17,8 @@ import datetime
 import pandas as pd
 import mock
 import analysis_engine.show_dataset as show_dataset
-from analysis_engine.mocks.mock_boto3_s3 import \
-    build_boto3_resource
+import analysis_engine.mocks.mock_talib as mock_talib
+from analysis_engine.mocks.mock_boto3_s3 import build_boto3_resource
 from analysis_engine.mocks.mock_redis import MockRedis
 from analysis_engine.mocks.base_test import BaseTestCase
 from analysis_engine.consts import COMMON_DATE_FORMAT
@@ -599,6 +599,9 @@ class TestBaseAlgo(BaseTestCase):
             data=self.data)
     # end of test_run_daily
 
+    @mock.patch(
+        ('analysis_engine.talib.WILLR'),
+        new=mock_talib.WILLR)
     @mock.patch(
         ('analysis_engine.write_to_file.write_to_file'),
         new=mock_write_to_file)

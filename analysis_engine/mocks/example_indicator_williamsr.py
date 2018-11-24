@@ -12,6 +12,7 @@ Example Williams Percent R Indicator
     export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
 """
 
+import analysis_engine.talib as talib
 import analysis_engine.indicators.base_indicator as base_indicator
 import spylunking.log.setup_logging as log_utils
 
@@ -101,9 +102,50 @@ class ExampleIndicatorWilliamsR(base_indicator.BaseIndicator):
         """
         real = WILLR(high, low, close, timeperiod=14)
         """
-        log.info(
-            '{} - end'.format(
-                label))
+        self.willr_value = None
+        num_records = len(dataset_df.index)
+        if num_records > self.num_points:
+            first_date = dataset_df['date'].iloc[0]
+            end_date = dataset_df['date'].iloc[-1]
+            start_row = num_records - self.num_points
+            use_df = dataset_df[start_row:num_records]
+            """
+            for idx, row in dataset_df[start_row:-1].iterrows():
+                high = row['high']
+                low = row['low']
+                open_val = row['open']
+                close = row['close']
+                row_date = row['date']
+                log.info(
+                    '{} - {} - WILLR(high={}, low={}, '
+                    'close={}, period={})'.format(
+                        label,
+                        row_date,
+                        high,
+                        low,
+                        close,
+                        self.num_points))
+            """
+            highs = use_df['high'].values
+            lows = use_df['low'].values
+            closes = use_df['close'].values
+            willr_values = talib.WILLR(
+                highs,
+                lows,
+                closes,
+                self.num_points)
+            self.willr_value = willr_values[-1]
+            log.info(
+                '{} - end - {} to {} willr={}'.format(
+                    label,
+                    first_date,
+                    end_date,
+                    self.willr_value))
+        else:
+            log.info(
+                '{} - end - willr={}'.format(
+                    label,
+                    self.willr_value))
     # end of process
 
 # end of ExampleIndicatorWilliamsR

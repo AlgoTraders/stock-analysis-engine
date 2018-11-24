@@ -52,3 +52,10 @@ These are testing utilities for mocking IEX functionality without having interne
 .. automodule:: analysis_engine.mocks.mock_iex
    :members: chartDF,stockStatsDF,peersDF,newsDF,financialsDF,earningsDF,dividendsDF,companyDF
 
+Mock TA Lib
+===========
+
+These are mock talib functions to help test indicators using talib.
+
+.. automodule:: analysis_engine.mocks.mock_talib
+   :members: WILLR
