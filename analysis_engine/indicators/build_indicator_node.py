@@ -111,6 +111,9 @@ def build_indicator_node(
             'name',
             ind_id))
 
+    default_report_ignore_keys = \
+        ae_consts.INDICATOR_IGNORED_CONIGURABLE_KEYS
+
     report_dict = {
         'id': ind_id,
         'name': ind_name,
@@ -118,6 +121,7 @@ def build_indicator_node(
         'version': 1,
         'module_name': use_module_name,
         'path_to_module': use_path_to_module,
+        'report_ignore_keys': default_report_ignore_keys,
         'metrics': {
             'type': ind_type,
             'category': ind_category,
