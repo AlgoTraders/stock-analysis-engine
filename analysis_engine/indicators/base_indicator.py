@@ -265,6 +265,22 @@ class BaseIndicator:
                 pd.DataFrame(ae_consts.EMPTY_DF_LIST))
     # end of get_subscribed_dataset
 
+    def reset_internals(
+            self,
+            **kwargs):
+        """reset_internals
+
+        Support a cleanup action before indicators
+        run between datasets. Derived classes can
+        implement custom cleanup actions that need
+        to run before each ``IndicatorProcessor.process()``
+        call is run on the next cached dataset
+
+        :param kwargs: keyword args dictionary
+        """
+        return ae_consts.SUCCESS
+    # end of reset_internals
+
     def handle_subscribed_dataset(
             self,
             algo_id,

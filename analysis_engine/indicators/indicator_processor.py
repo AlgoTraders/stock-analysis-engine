@@ -221,6 +221,7 @@ class IndicatorProcessor:
                 (idx + 1),
                 self.num_indicators)
             # this will throw on errors parsing to make
+            ind_obj.reset_internals()
             log.info(
                 '{} - {} start {}'.format(
                     self.label,
