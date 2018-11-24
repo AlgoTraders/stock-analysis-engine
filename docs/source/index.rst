@@ -369,6 +369,7 @@ Table of Contents
    indicators_load_from_module
    indicators_base
    indicators_build_node
+   talib
    build_algo_request
    build_sell_order
    build_buy_order
