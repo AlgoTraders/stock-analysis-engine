@@ -164,7 +164,6 @@ class TestAlgoWithIndicators(base_test.BaseTestCase):
         self.assertEqual(
             algo.tickers,
             [self.ticker])
-        print(self.data)
         algo.handle_data(
             data=self.data)
     # end of test_run_daily_indicator_with_algo_config

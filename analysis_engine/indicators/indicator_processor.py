@@ -169,7 +169,7 @@ class IndicatorProcessor:
                     load_indicator.load_indicator_from_module(
                         module_name=new_node['report']['module_name'],
                         path_to_module=new_node['report']['path_to_module'],
-                        ind_dict=node,
+                        ind_dict=new_node,
                         log_label=indicator_key_name,
                         base_class_module_name=base_class_indicator)
 
@@ -226,10 +226,15 @@ class IndicatorProcessor:
                     self.label,
                     ind_obj.get_name(),
                     percent_label))
-            ind_obj.process(
+            ind_obj.handle_subscribed_dataset(
                 algo_id=algo_id,
                 ticker=ticker,
                 dataset=dataset)
+            log.info(
+                '{} - {} end {}'.format(
+                    self.label,
+                    ind_obj.get_name(),
+                    percent_label))
         # end of for all indicators
     # end of process
 

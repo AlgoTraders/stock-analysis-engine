@@ -43,7 +43,7 @@ class TestLoadIndicatorFromFile(BaseTestCase):
                     "module_path": self.example_module_path,
                     "category": "technical",
                     "type": "momentum",
-                    "uses_data": "daily",
+                    "dataset_df": "daily",
                     "num_points": 19,
                     "buy_above": 80,
                     "sell_below": 10
@@ -53,7 +53,7 @@ class TestLoadIndicatorFromFile(BaseTestCase):
                     "module_path": self.example_module_path,
                     "category": "technical",
                     "type": "momentum",
-                    "uses_data": "daily",
+                    "dataset_df": "daily",
                     "num_points": 15,
                     "buy_above": 60,
                     "sell_below": 20
@@ -62,7 +62,7 @@ class TestLoadIndicatorFromFile(BaseTestCase):
                     "name": "baseindicator",
                     "category": "fundamental",
                     "type": "balance_sheet",
-                    "uses_data": "daily"
+                    "dataset_df": "daily"
                 }
             ],
             "slack": {

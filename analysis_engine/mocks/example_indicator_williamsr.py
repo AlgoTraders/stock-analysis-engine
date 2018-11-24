@@ -46,7 +46,7 @@ class ExampleIndicatorWilliamsR(base_indicator.BaseIndicator):
             self,
             algo_id,
             ticker,
-            dataset):
+            dataset_df):
         """process
 
         Derive custom indicator processing to determine buy and sell
@@ -79,7 +79,7 @@ class ExampleIndicatorWilliamsR(base_indicator.BaseIndicator):
         :param algo_id: string - algo identifier label for debugging datasets
             during specific dates
         :param ticker: string - ticker
-        :param dataset: ``pd.DataFrame`` to process
+        :param dataset_df: ``pd.DataFrame`` to process
         """
         label = (
             '{} process ticker={}'.format(
@@ -89,10 +89,18 @@ class ExampleIndicatorWilliamsR(base_indicator.BaseIndicator):
         log.info(
             '{} - start'.format(
                 label))
+        # notice the self.num_points is now a member variable
+        # because the BaseIndicator class's __init__
+        # converts any self.config keys into useable
+        # member variables automatically in your derived class
+        log.info(
+            '{} - processing - num_points={} dataset_df={}'.format(
+                label,
+                self.num_points,
+                len(dataset_df.index)))
         """
         real = WILLR(high, low, close, timeperiod=14)
         """
-        print(dataset)
         log.info(
             '{} - end'.format(
                 label))

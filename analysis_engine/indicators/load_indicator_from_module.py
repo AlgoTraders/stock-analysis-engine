@@ -6,6 +6,7 @@ import os
 import inspect
 import types
 import importlib.machinery
+import uuid
 import analysis_engine.consts as ae_consts
 import analysis_engine.indicators.base_indicator as base_indicator
 import spylunking.log.setup_logging as log_utils
@@ -42,9 +43,18 @@ def load_indicator_from_module(
 
     default_base_module_path = ae_consts.INDICATOR_BASE_MODULE_PATH
 
+    # modules need custom names to prevent
+    # runtime collisions/module stomping
+    # this allows building multiple indicator objects
+    # that use the same filename but in different
+    # locations on disk
+    use_module_name = '{}_{}'.format(
+        module_name,
+        str(uuid.uuid4())[0:8].replace('-', ''))
+
     use_log_label = log_label
     if not use_log_label:
-        use_log_label = module_name
+        use_log_label = use_module_name
 
     if not path_to_module:
         path_to_module = ind_dict.get(
@@ -63,16 +73,11 @@ def load_indicator_from_module(
             'please confirm the file exists on disk and '
             'if you are using a container, confirm it is '
             'accessible within the container'.format(
-                module_name,
+                use_module_name,
                 path_to_module))
 
-    # modules need custom names to prevent
-    # runtime collisions/module stomping
-    # this allows building multiple indicator objects
-    # that use the same filename but in different
-    # locations on disk
     loader = importlib.machinery.SourceFileLoader(
-        module_name,
+        use_module_name,
         path_to_module)
     custom_indicator_module = types.ModuleType(
         loader.name)
@@ -97,7 +102,7 @@ def load_indicator_from_module(
             'inherits from the base Indicator class: '
             'analysis_engine.indicators.base_indicator.BaseIndicator '
             'and try again'.format(
-                module_name,
+                use_module_name,
                 base_class_module_name,
                 path_to_module))
 
@@ -105,7 +110,7 @@ def load_indicator_from_module(
             '{} load_indicator_from_module error - '
             'unable to find custom indicator derived from module={} '
             'at file path={}'.format(
-                module_name,
+                use_module_name,
                 base_class_module_name,
                 path_to_module))
         if path_to_module:
@@ -128,7 +133,7 @@ def load_indicator_from_module(
                 'https://github.com/AlgoTraders/stock-analysis-engine/'
                 'issues/new \n\nFor now this error results in a shutdown'
                 '\n'.format(
-                    module_name,
+                    use_module_name,
                     custom_indicator_module,
                     path_to_module))
         log.error(err)
@@ -138,7 +143,7 @@ def load_indicator_from_module(
     log.info(
         'load - custom indicator module={} '
         'from file={} member={}'.format(
-            module_name,
+            use_module_name,
             path_to_module,
             class_member_in_module))
     ind = class_member_in_module[1](
@@ -149,7 +154,7 @@ def load_indicator_from_module(
         'ready - custom indicator={} from module={} '
         'from file={} member={}'.format(
             ind.__class__.__name__,
-            module_name,
+            use_module_name,
             path_to_module,
             class_member_in_module))
 

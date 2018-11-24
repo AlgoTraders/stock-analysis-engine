@@ -679,6 +679,14 @@ INDICATOR_BASE_MODULE = ev(
 INDICATOR_BASE_MODULE_PATH = ev(
     'INDICATOR_BASE_MODULE_PATH',
     'analysis_engine/indicators/base_indicator.py')
+INDICATOR_IGNORED_CONIGURABLE_KEYS = [
+    'name',
+    'module_path',
+    'category',
+    'type',
+    'uses_data',
+    'report'
+]
 
 ########################################
 #
