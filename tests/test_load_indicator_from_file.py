@@ -6,6 +6,8 @@ Test file for classes and functions:
 
 """
 
+import mock
+import analysis_engine.mocks.mock_talib as mock_talib
 import analysis_engine.consts as ae_consts
 import analysis_engine.indicators.load_indicator_from_module as load_ind
 from analysis_engine.mocks.base_test import BaseTestCase
@@ -44,6 +46,10 @@ class TestLoadIndicatorFromFile(BaseTestCase):
                     "category": "technical",
                     "type": "momentum",
                     "dataset_df": "daily",
+                    'high': 0,
+                    'low': 0,
+                    'open': 0,
+                    'willr_value': 0,
                     "num_points": 19,
                     "buy_above": 80,
                     "sell_below": 10
@@ -54,6 +60,10 @@ class TestLoadIndicatorFromFile(BaseTestCase):
                     "category": "technical",
                     "type": "momentum",
                     "dataset_df": "daily",
+                    'high': 0,
+                    'low': 0,
+                    'open': 0,
+                    'willr_value': 0,
                     "num_points": 15,
                     "buy_above": 60,
                     "sell_below": 20
@@ -71,6 +81,9 @@ class TestLoadIndicatorFromFile(BaseTestCase):
         }
     # end of setUp
 
+    @mock.patch(
+        ('talib.WILLR'),
+        new=mock_talib.WILLR)
     def test_load_indicator_from_example_indicator_file(self):
         """test_load_indicator_from_example_indicator_file"""
         log_label = 'my_ind_1'
@@ -86,6 +99,9 @@ class TestLoadIndicatorFromFile(BaseTestCase):
             log_label)
     # end of test_load_indicator_from_example_indicator_file
 
+    @mock.patch(
+        ('talib.WILLR'),
+        new=mock_talib.WILLR)
     def test_load_multiple_indicator_from_same_example_indicator_file(self):
         """test_load_multiple_indicator_from_same_example_indicator_file"""
         log_label_1 = 'my_ind_1'
