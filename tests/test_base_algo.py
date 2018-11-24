@@ -601,7 +601,7 @@ class TestBaseAlgo(BaseTestCase):
 
     @mock.patch(
         ('analysis_engine.talib.WILLR'),
-        new=mock_talib.WILLR)
+        new=mock_talib.MockWILLR)
     @mock.patch(
         ('analysis_engine.write_to_file.write_to_file'),
         new=mock_write_to_file)

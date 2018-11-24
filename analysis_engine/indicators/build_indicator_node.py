@@ -50,7 +50,7 @@ def build_indicator_node(
     uses_dataset = ae_consts.get_indicator_uses_data_as_int(
         val=uses_dataset_str)
     if uses_dataset == ae_consts.INDICATOR_USES_DATA_UNSUPPORTED:
-        uses_dataset = ae_consts.INDICATOR_USES_DAILY_DATA
+        uses_dataset = ae_consts.INDICATOR_USES_DATA_ANY
         log.debug(
             '{} - unsupported indicator '
             'uses_dataset={} defaulting to "daily"'.format(

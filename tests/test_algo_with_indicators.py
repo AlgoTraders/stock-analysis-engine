@@ -18,8 +18,8 @@ import json
 import mock
 import analysis_engine.mocks.mock_talib as mock_talib
 import analysis_engine.mocks.base_test as base_test
+import analysis_engine.consts as ae_consts
 import analysis_engine.utils as ae_utils
-import analysis_engine.utils as ae_consts
 import analysis_engine.algo as base_algo
 
 
@@ -93,8 +93,10 @@ class TestAlgoWithIndicators(base_test.BaseTestCase):
         self.output_dir = (
             '/opt/sa/tests/datasets/algo')
 
-        self.example_indicator_path = (
+        self.willr_close_path = (
             'analysis_engine/mocks/example_indicator_williamsr.py')
+        self.willr_open_path = (
+            'analysis_engine/mocks/example_indicator_williamsr_open.py')
         self.algo_config_dict = {
             'name': 'test_5_days_ahead',
             'algo_module_path': None,
@@ -112,16 +114,32 @@ class TestAlgoWithIndicators(base_test.BaseTestCase):
             'indicators': [
                 {
                     'name': 'willr',
-                    'module_path': self.example_indicator_path,
+                    'module_path': self.willr_close_path,
                     'category': 'technical',
                     'type': 'momentum',
                     'uses_data': 'daily',
                     'high': 0,
                     'low': 0,
+                    'close': 0,
                     'open': 0,
                     'willr_value': 0,
-                    'num_points': 12,
+                    'num_points': 10,
                     'buy_above': 60,
+                    'sell_below': 40
+                },
+                {
+                    'name': 'willr_open',
+                    'module_path': self.willr_open_path,
+                    'category': 'technical',
+                    'type': 'momentum',
+                    'uses_data': 'daily',
+                    'high': 0,
+                    'low': 0,
+                    'close': 0,
+                    'open': 0,
+                    'willr_open_value': 0,
+                    'num_points': 15,
+                    'buy_above': 80,
                     'sell_below': 20
                 }
             ],
@@ -134,7 +152,7 @@ class TestAlgoWithIndicators(base_test.BaseTestCase):
 
     @mock.patch(
         ('analysis_engine.talib.WILLR'),
-        new=mock_talib.WILLR)
+        new=mock_talib.MockWILLR)
     @mock.patch(
         ('analysis_engine.write_to_file.write_to_file'),
         new=mock_write_to_file)
@@ -166,5 +184,29 @@ class TestAlgoWithIndicators(base_test.BaseTestCase):
         export INT_TESTS=1
 
     """
+
+    @mock.patch(
+        ('analysis_engine.write_to_file.write_to_file'),
+        new=mock_write_to_file)
+    def test_integration_daily_indicator_with_algo_config(self):
+        """test_run_daily_indicator_with_algo_config"""
+        if ae_consts.ev('INT_TESTS', '0') == '0':
+            return
+
+        algo = base_algo.BaseAlgo(
+            ticker=self.ticker,
+            balance=self.balance,
+            start_date_str=self.start_date_str,
+            end_date_str=self.end_date_str,
+            config_dict=self.algo_config_dict)
+        self.assertEqual(
+            algo.name,
+            self.algo_config_dict['name'])
+        self.assertEqual(
+            algo.tickers,
+            [self.ticker])
+        algo.handle_data(
+            data=self.data)
+    # end of test_run_daily_indicator_with_algo_config
 
 # end of TestAlgoWithIndicators

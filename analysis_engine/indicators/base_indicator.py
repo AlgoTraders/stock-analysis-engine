@@ -5,6 +5,7 @@ dicator_processor.IndicatorProcessor``
 """
 
 import uuid
+import pandas as pd
 import analysis_engine.consts as ae_consts
 import spylunking.log.setup_logging as log_utils
 
@@ -54,6 +55,9 @@ class BaseIndicator:
             self.name = 'ind_{}'.format(
                 str(uuid.uuid4()).replace('-', ''))
 
+        self.previous_df = self.config.get(
+            'previous_df',
+            None)
         self.name_of_df = self.config.get(
             'uses_data',
             None)
@@ -72,28 +76,12 @@ class BaseIndicator:
         self.ind_category = self.metrics.get(
             'category',
             ae_consts.INDICATOR_CATEGORY_UNKNOWN)
+        self.ind_uses_data = self.metrics.get(
+            'ind_uses_data',
+            ae_consts.INDICATOR_USES_DATA_ANY)
         self.dataset_df_str = self.config.get(
             'dataset_df',
             None)
-
-        # allow indicators to state the dataset_df they want
-        if self.dataset_df_str:
-            self.uses_data = ae_consts.get_indicator_uses_data_as_int(
-                val=self.dataset_df_str)
-        else:
-            self.uses_data = self.metrics.get(
-                'uses_data',
-                ae_consts.INDICATOR_USES_DATA_UNSUPPORTED)
-
-        if self.uses_data == ae_consts.INDICATOR_USES_DATA_UNSUPPORTED:
-            raise Exception(
-                'please provide a supported dataset for '
-                'for indicator={} current value '
-                'uses_data={} as an example the '
-                'config_dict argument could be using: '
-                '"dataset_df": "daily"'.format(
-                    self.path_to_module,
-                    self.uses_data))
 
         self.report_key_prefix = self.report.get(
             'report_key_prefix',
@@ -105,7 +93,7 @@ class BaseIndicator:
         self.report_dict = {
             'type': self.ind_type,
             'category': self.ind_category,
-            'uses_data': self.uses_data
+            'uses_data': self.ind_uses_data
         }
 
         self.report_ignore_keys = self.config.get(
@@ -229,6 +217,54 @@ class BaseIndicator:
         return self.name
     # end of get_name
 
+    def get_dataset_by_name(
+            self,
+            dataset,
+            dataset_name):
+        """get_dataset_by_name
+
+        Method for getting just a dataset
+        by the dataset_name`` inside the cached
+        ``dataset['data']`` dictionary of ``pd.Dataframe(s)``
+
+        :param dataset: cached dataset value
+            that holds the dictionaries: ``dataset['data']``
+        :param dataset_name: optional - name of the
+            supported ``pd.DataFrame`` that is in the
+            cached ``dataset['data']`` dictionary
+            of dataframes
+        """
+        return dataset['data'].get(
+            dataset_name,
+            pd.DataFrame(ae_consts.EMPTY_DF_LIST))
+    # end of get_dataset_by_name
+
+    def get_subcribed_dataset(
+            self,
+            dataset,
+            dataset_name=None):
+        """get_subcribed_dataset
+
+        Method for getting just the subscribed dataset
+        else use the ``dataset_name`` argument dataset
+
+        :param dataset: cached dataset value
+            that holds the dictionaries: ``dataset['data']``
+        :param dataset_name: optional - name of the
+            supported ``pd.DataFrame`` that is in the
+            cached ``dataset['data']`` dictionary
+            of dataframes
+        """
+        if dataset_name:
+            return dataset['data'].get(
+                dataset_name,
+                pd.DataFrame(ae_consts.EMPTY_DF_LIST))
+        else:
+            return dataset['data'].get(
+                self.name_of_df,
+                pd.DataFrame(ae_consts.EMPTY_DF_LIST))
+    # end of get_subscribed_dataset
+
     def handle_subscribed_dataset(
             self,
             algo_id,
@@ -245,26 +281,25 @@ class BaseIndicator:
         :param algo_id: string - algo identifier label for debugging datasets
             during specific dates
         :param ticker: string - ticker
-        :param dataset: ``pd.DataFrame`` to process
+        :param dataset: dictionary of ``pd.DataFrame(s)`` to process
         """
-        if self.name_of_df in dataset['data']:
-            found_dataset = dataset['data'].get(
-                self.name_of_df,
-                ae_consts.EMPTY_DF_STR)
 
-            # call derived class's process()
-            self.process(
-                algo_id=algo_id,
-                ticker=ticker,
-                dataset_df=found_dataset)
-        # if subscribed dataset is in the dataset
+        # certain datasets like minutes or options may
+        # want to refer to the previous dataset
+        self.previous_df = dataset
+
+        # call derived class's process()
+        self.process(
+            algo_id=algo_id,
+            ticker=ticker,
+            dataset=dataset)
     # end of handle_subscribed_dataset
 
     def process(
             self,
             algo_id,
             ticker,
-            dataset_df):
+            dataset):
         """process
 
         Derive custom indicator processing to determine buy and sell
@@ -297,7 +332,7 @@ class BaseIndicator:
         :param algo_id: string - algo identifier label for debugging datasets
             during specific dates
         :param ticker: string - ticker
-        :param dataset_df: ``pd.DataFrame`` to process
+        :param dataset: dictionary of ``pd.DataFrame(s)`` to process
         """
         log.info(
             '{} BASE_IND process - start'.format(

@@ -20,8 +20,8 @@ import spylunking.log.setup_logging as log_utils
 log = log_utils.build_colorized_logger(name=__name__)
 
 
-class ExampleIndicatorWilliamsR(base_indicator.BaseIndicator):
-    """ExampleIndicatorWilliamsR"""
+class ExampleIndicatorWilliamsROpen(base_indicator.BaseIndicator):
+    """ExampleIndicatorWilliamsROpen"""
 
     def __init__(
             self,
@@ -29,6 +29,7 @@ class ExampleIndicatorWilliamsR(base_indicator.BaseIndicator):
         """__init__
 
         Custom indicator example for showing a Williams Percent R
+        that uses ``open`` instead of ``close``
         within an algo for analyzing intraday minute datasets
 
         Please refer to the `analysis_engine.indicators.base_indicator.Ba
@@ -103,9 +104,9 @@ class ExampleIndicatorWilliamsR(base_indicator.BaseIndicator):
                 self.num_points,
                 len(daily_df.index)))
         """
-        real = WILLR(high, low, close, timeperiod=14)
+        real = WILLR(high, low, open, timeperiod=14)
         """
-        self.willr_value = None
+        self.willr_open_value = None
         num_records = len(daily_df.index)
         if num_records > self.num_points:
             first_date = daily_df['date'].iloc[0]
@@ -121,37 +122,37 @@ class ExampleIndicatorWilliamsR(base_indicator.BaseIndicator):
                 row_date = row['date']
                 log.info(
                     '{} - {} - WILLR(high={}, low={}, '
-                    'close={}, period={})'.format(
+                    'open={}, period={})'.format(
                         label,
                         row_date,
                         high,
                         low,
-                        close,
+                        open_val,
                         self.num_points))
             """
             highs = use_df['high'].values
             lows = use_df['low'].values
-            closes = use_df['close'].values
+            opens = use_df['open'].values
             willr_values = talib.WILLR(
                 highs,
                 lows,
-                closes,
+                opens,
                 self.num_points)
-            self.willr_value = willr_values[-1]
+            self.willr_open_value = willr_values[-1]
             log.info(
-                '{} - end - {} to {} willr_value={}'.format(
+                '{} - end - {} to {} willr_open={}'.format(
                     label,
                     first_date,
                     end_date,
-                    self.willr_value))
+                    self.willr_open_value))
         else:
             log.info(
                 '{} - end - willr={}'.format(
                     label,
-                    self.willr_value))
+                    self.willr_open_value))
     # end of process
 
-# end of ExampleIndicatorWilliamsR
+# end of ExampleIndicatorWilliamsROpen
 
 
 def get_indicator(
@@ -170,5 +171,5 @@ def get_indicator(
     :param kwargs: dictionary of keyword arguments
     """
     log.info('getting indicator')
-    return ExampleIndicatorWilliamsR(**kwargs)
+    return ExampleIndicatorWilliamsROpen(**kwargs)
 # end of get_indicator
