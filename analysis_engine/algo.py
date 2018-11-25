@@ -889,6 +889,7 @@ class BaseAlgo:
         self.buy_rules = {}
         self.sell_rules = {}
         self.buy_shares = None
+        self.is_live_trading = False
 
         self.load_from_config(
             config_dict=config_dict)
@@ -1081,9 +1082,10 @@ class BaseAlgo:
                 shares=self.num_owned,
                 row={
                     'name': algo_id,
-                    'close': 270.0,
-                    'date': '2018-11-02'
+                    'close': self.latest_close,
+                    'date': self.trade_date
                 },
+                is_live_trading=self.is_live_trading,
                 reason='testing')
         # if own shares and should sell
         # else if should buy:
@@ -1093,9 +1095,10 @@ class BaseAlgo:
                 shares=self.buy_shares,
                 row={
                     'name': algo_id,
-                    'close': 270.0,
-                    'date': '2018-11-02'
+                    'close': self.latest_close,
+                    'date': self.trade_date
                 },
+                is_live_trading=self.is_live_trading,
                 reason='testing')
         # end of should_buy
 
@@ -2119,7 +2122,8 @@ class BaseAlgo:
             shares=None,
             reason=None,
             orient='records',
-            date_format='iso'):
+            date_format='iso',
+            is_live_trading=False):
         """create_buy_order
 
         create a buy order at the close or ask price
@@ -2136,12 +2140,15 @@ class BaseAlgo:
         :param orient: optional - pandas orient for ``row.to_json()``
         :param date_format: optional - pandas date_format
             parameter for ``row.to_json()``
+        :param is_live_trading: optional - bool for filling trades
+            for live trading or for backtest tuning filled
+            (default ``False`` which is backtest mode)
         """
         close = row['close']
         required_amount_for_a_buy = close + self.commission
         if required_amount_for_a_buy > self.balance:
             log.info(
-                '{} - buy - not enough funds={} < required={} with'
+                '{} - buy - not enough funds={} < required={} with '
                 'shares={}'.format(
                     self.name,
                     self.balance,
@@ -2151,10 +2158,11 @@ class BaseAlgo:
 
         dataset_date = row['date']
         log.info(
-            '{} - buy start {}@{} - shares={}'.format(
+            '{} - buy start {}@{} {} - shares={}'.format(
                 self.name,
                 ticker,
                 close,
+                dataset_date,
                 shares))
         new_buy = None
 
@@ -2178,15 +2186,16 @@ class BaseAlgo:
                     ticker,
                     dataset_date),
                 details=order_details,
+                is_live_trading=is_live_trading,
                 reason=reason)
 
             prev_shares = num_owned
             if not prev_shares:
                 prev_shares = 0
-            prev_bal = self.balance
+            prev_bal = ae_consts.to_f(self.balance)
             if new_buy['status'] == ae_consts.TRADE_FILLED:
                 if ticker in self.positions:
-                    self.positions[ticker]['shares'] += int(
+                    self.positions[ticker]['shares'] = int(
                         new_buy['shares'])
                     self.positions[ticker]['buys'].append(
                         new_buy)
@@ -2205,11 +2214,12 @@ class BaseAlgo:
                     }
                 self.balance = new_buy['balance']
                 log.info(
-                    '{} - buy end {}@{} {} shares={} cost={} bal={} '
+                    '{} - buy end {}@{} {} {} shares={} cost={} bal={} '
                     'prev_shares={} prev_bal={}'.format(
                         self.name,
                         ticker,
                         close,
+                        dataset_date,
                         ae_consts.get_status(status=new_buy['status']),
                         new_buy['shares'],
                         new_buy['buy_price'],
@@ -2218,11 +2228,12 @@ class BaseAlgo:
                         prev_bal))
             else:
                 log.error(
-                    '{} - buy failed {}@{} {} shares={} cost={} '
+                    '{} - buy failed {}@{} {} {} shares={} cost={} '
                     'bal={} '.format(
                         self.name,
                         ticker,
                         close,
+                        dataset_date,
                         ae_consts.get_status(status=new_buy['status']),
                         num_owned,
                         new_buy['buy_price'],
@@ -2256,7 +2267,8 @@ class BaseAlgo:
             shares=None,
             reason=None,
             orient='records',
-            date_format='iso'):
+            date_format='iso',
+            is_live_trading=False):
         """create_sell_order
 
         create a sell order at the close or ask price
@@ -2271,12 +2283,15 @@ class BaseAlgo:
         :param orient: optional - pandas orient for ``row.to_json()``
         :param date_format: optional - pandas date_format
             parameter for ``row.to_json()``
+        :param is_live_trading: optional - bool for filling trades
+            for live trading or for backtest tuning filled
+            (default ``False`` which is backtest mode)
         """
         close = row['close']
         required_amount_for_a_sell = self.commission
         if required_amount_for_a_sell > self.balance:
             log.info(
-                '{} - sell - not enough funds={} < required={} with'
+                '{} - sell - not enough funds={} < required={} with '
                 'shareds={}'.format(
                     self.name,
                     self.balance,
@@ -2286,10 +2301,11 @@ class BaseAlgo:
 
         dataset_date = row['date']
         log.info(
-            '{} - sell start {}@{}'.format(
+            '{} - sell start {}@{} {}'.format(
                 self.name,
                 ticker,
-                close))
+                close,
+                dataset_date))
         new_sell = None
         order_details = row
         if hasattr(row, 'to_json'):
@@ -2311,15 +2327,16 @@ class BaseAlgo:
                     ticker,
                     dataset_date),
                 details=order_details,
+                is_live_trading=is_live_trading,
                 reason=reason)
 
             prev_shares = num_owned
             if not prev_shares:
                 prev_shares = 0
-            prev_bal = self.balance
+            prev_bal = ae_consts.to_f(self.balance)
             if new_sell['status'] == ae_consts.TRADE_FILLED:
                 if ticker in self.positions:
-                    self.positions[ticker]['shares'] += int(
+                    self.positions[ticker]['shares'] = int(
                         new_sell['shares'])
                     self.positions[ticker]['sells'].append(
                         new_sell)
@@ -2338,11 +2355,12 @@ class BaseAlgo:
                     }
                 self.balance = new_sell['balance']
                 log.info(
-                    '{} - sell end {}@{} {} shares={} cost={} bal={} '
+                    '{} - sell end {}@{} {} {} shares={} cost={} bal={} '
                     'prev_shares={} prev_bal={}'.format(
                         self.name,
                         ticker,
                         close,
+                        dataset_date,
                         ae_consts.get_status(status=new_sell['status']),
                         num_owned,
                         new_sell['sell_price'],
@@ -2351,11 +2369,12 @@ class BaseAlgo:
                         prev_bal))
             else:
                 log.error(
-                    '{} - sell failed {}@{} {} shares={} cost={} '
+                    '{} - sell failed {}@{} {} {} shares={} cost={} '
                     'bal={} '.format(
                         self.name,
                         ticker,
                         close,
+                        dataset_date,
                         ae_consts.get_status(status=new_sell['status']),
                         num_owned,
                         new_sell['sell_price'],
@@ -2571,21 +2590,26 @@ class BaseAlgo:
                 if 'high' in columns:
                     self.today_high = float(
                         self.df_daily.iloc[-1]['high'])
+                    self.latest_high = self.today_high
                 if 'low' in columns:
                     self.today_low = float(
                         self.df_daily.iloc[-1]['low'])
+                    self.latest_low = self.today_low
                 if 'open' in columns:
                     self.today_open = float(
                         self.df_daily.iloc[-1]['open'])
+                    self.latest_open = self.today_open
                 if 'close' in columns:
                     self.today_close = float(
                         self.df_daily.iloc[-1]['close'])
                     self.trade_price = self.today_close
+                    self.latest_close = self.trade_price
                     if not self.starting_close:
                         self.starting_close = self.today_close
                 if 'volume' in columns:
                     self.today_volume = int(
                         self.df_daily.iloc[-1]['volume'])
+                    self.latest_volume = self.today_volume
             if hasattr(self.df_minute, 'index'):
                 columns = self.df_minute.columns.values
                 if 'high' in columns:

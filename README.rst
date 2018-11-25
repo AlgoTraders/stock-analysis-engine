@@ -94,7 +94,7 @@ View Buy and Sell Transactions
 
 ::
 
-    sa -t SPY -c tests/algo_configs/test_5_days_ahead.json -b file:/tmp/algoready-SPY-latest.json | grep -E "shares|not enough"
+    sa -t SPY -c tests/algo_configs/test_5_days_ahead.json -b file:/tmp/algoready-SPY-latest.json | grep "TRADE"
 
 Developing on AWS
 =================

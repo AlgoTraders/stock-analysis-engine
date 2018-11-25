@@ -2,18 +2,11 @@
 Helper for creating a buy order
 """
 
-from analysis_engine.consts import TRADE_OPEN
-from analysis_engine.consts import TRADE_NOT_ENOUGH_FUNDS
-from analysis_engine.consts import TRADE_FILLED
-from analysis_engine.consts import ALGO_BUYS_S3_BUCKET_NAME
-from analysis_engine.consts import to_f
-from analysis_engine.consts import get_status
-from analysis_engine.consts import ppj
-from analysis_engine.utils import utc_now_str
-from spylunking.log.setup_logging import build_colorized_logger
+import analysis_engine.consts as ae_consts
+import analysis_engine.utils as ae_utils
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def build_buy_order(
@@ -28,6 +21,8 @@ def build_buy_order(
         shares=None,
         version=1,
         auto_fill=True,
+        is_live_trading=False,
+        backtest_shares_default=10,
         reason=None):
     """build_buy_order
 
@@ -42,7 +37,8 @@ def build_buy_order(
     :param date: string trade date for that row usually
         ``COMMON_DATE_FORMAT`` (``YYYY-MM-DD``)
     :param details: dictionary for full row of values to review
-        all buys after the algorithm finishes. (usually ``row.to_json()``)
+        all buys after the algorithm finishes.
+        (usually ``row.to_json()``)
     :param use_key: string for redis and s3 publishing of the algorithm
         result dictionary as a json-serialized dictionary
     :param shares: optional - integer number of shares to buy
@@ -51,11 +47,18 @@ def build_buy_order(
     :param version: optional - version tracking integer
     :param auto_fill: optional - bool for not assuming the trade
         filled (default ``True``)
+    :param is_live_trading: optional - bool for filling trades
+        for live trading or for backtest tuning filled
+        (default ``False`` which is backtest mode)
+    :param backtest_shares_default: optional - integer for
+        simulating shares during a backtest even if there
+        are not enough funds
+        (default ``10``)
     :param reason: optional - string for recording why the algo
         decided to buy for review after the algorithm finishes
     """
-    status = TRADE_OPEN
-    s3_bucket_name = ALGO_BUYS_S3_BUCKET_NAME
+    status = ae_consts.TRADE_OPEN
+    s3_bucket_name = ae_consts.ALGO_BUYS_S3_BUCKET_NAME
     s3_key = use_key
     redis_key = use_key
     s3_enabled = True
@@ -68,28 +71,34 @@ def build_buy_order(
 
     tradable_funds = balance - (2.0 * commission)
 
+    if not is_live_trading:
+        if not shares:
+            shares = backtest_shares_default
+        tradable_funds = (
+            (shares * close) + (2.0 * commission))
+
     if close > 0.1 and tradable_funds > 10.0:
         can_buy_num_shares = shares
         if not can_buy_num_shares:
             can_buy_num_shares = int(tradable_funds / close)
-        cost_of_trade = to_f(
+        cost_of_trade = ae_consts.to_f(
             val=(can_buy_num_shares * close) + commission)
         if can_buy_num_shares > 0:
             if cost_of_trade > balance:
-                status = TRADE_NOT_ENOUGH_FUNDS
+                status = ae_consts.TRADE_NOT_ENOUGH_FUNDS
             else:
-                created_date = utc_now_str()
+                created_date = ae_utils.utc_now_str()
                 if auto_fill:
-                    new_shares = num_owned + can_buy_num_shares
-                    new_balance = balance - cost_of_trade
-                    status = TRADE_FILLED
+                    new_shares = int(num_owned + can_buy_num_shares)
+                    new_balance = ae_consts.to_f(balance - cost_of_trade)
+                    status = ae_consts.TRADE_FILLED
                 else:
                     new_shares = shares
                     new_balance = balance
         else:
-            status = TRADE_NOT_ENOUGH_FUNDS
+            status = ae_consts.TRADE_NOT_ENOUGH_FUNDS
     else:
-        status = TRADE_NOT_ENOUGH_FUNDS
+        status = ae_consts.TRADE_NOT_ENOUGH_FUNDS
 
     order_dict = {
         'ticker': ticker,
@@ -116,8 +125,8 @@ def build_buy_order(
         '{} {} buy {} order={}'.format(
             ticker,
             date,
-            get_status(status=order_dict['status']),
-            ppj(order_dict)))
+            ae_consts.get_status(status=order_dict['status']),
+            ae_consts.ppj(order_dict)))
 
     return order_dict
 # end of build_buy_order
