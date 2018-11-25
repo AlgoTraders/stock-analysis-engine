@@ -888,6 +888,7 @@ class BaseAlgo:
         self.min_sell_indicators = 0
         self.buy_rules = {}
         self.sell_rules = {}
+        self.buy_shares = 10
 
         self.load_from_config(
             config_dict=config_dict)
@@ -1076,35 +1077,26 @@ class BaseAlgo:
         if self.num_owned and self.should_sell:
             self.create_sell_order(
                 ticker=ticker,
+                shares=self.num_owned,
                 row={
                     'name': algo_id,
                     'close': 270.0,
                     'date': '2018-11-02'
                 },
                 reason='testing')
-
-        if self.should_buy:
+        # if own shares and should sell
+        # else if should buy:
+        elif self.should_buy:
             self.create_buy_order(
                 ticker=ticker,
+                shares=self.buy_shares,
                 row={
                     'name': algo_id,
                     'close': 270.0,
                     'date': '2018-11-02'
                 },
                 reason='testing')
-
-        # if still owned and have not already created
-        # a sell already
-        # self.num_owned automatically updates on sell and buy orders
-        if self.num_owned and not self.created_sell:
-            self.create_sell_order(
-                ticker=ticker,
-                row={
-                    'name': algo_id,
-                    'close': 270.0,
-                    'date': '2018-11-02'
-                },
-                reason='testing')
+        # end of should_buy
 
     # end of process
 
