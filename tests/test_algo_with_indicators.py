@@ -105,10 +105,11 @@ class TestAlgoWithIndicators(base_test.BaseTestCase):
             'trade_horizon': 5,
             'num_owned': 10,
             'buy_shares': 10,
+            'balance': 100000,
             'ticker': 'SPY',
             'positions': {
                 'SPY': {
-                    'shares': 10000,
+                    'shares': 10,
                     'buys': [],
                     'sells': []
                 }

@@ -8,7 +8,7 @@
   "ticker": "SPY",
   "positions": {
     "SPY": {
-      "shares": 100,
+      "shares": 10,
       "buys": [],
       "sells": []
     }

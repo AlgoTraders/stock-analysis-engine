@@ -29,6 +29,8 @@ def build_sell_order(
         shares=None,
         version=1,
         auto_fill=True,
+        is_live_trading=False,
+        backtest_shares_default=10,
         reason=None):
     """build_sell_order
 
@@ -51,6 +53,13 @@ def build_sell_order(
     :param version: optional - version tracking integer
     :param auto_fill: optional - bool for not assuming the trade
         filled (default ``True``)
+    :param is_live_trading: optional - bool for filling trades
+        for live trading or for backtest tuning filled
+        (default ``False`` which is backtest mode)
+    :param backtest_shares_default: optional - integer for
+        simulating shares during a backtest even if there
+        are not enough funds
+        (default ``10``)
     :param reason: optional - string for recording why the algo
         decided to sell for review after the algorithm finishes
     """
