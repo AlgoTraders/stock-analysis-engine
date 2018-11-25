@@ -23,7 +23,6 @@ import os
 import sys
 from unittest.mock import MagicMock
 from recommonmark.parser import CommonMarkParser
-from pprint import pprint
 
 on_rtd = os.getenv("READTHEDOCS", "") != ""
 
@@ -56,14 +55,19 @@ for source_code_dir_name in source_code_dirs:
         source_code_dir_name)
     if os.path.exists(use_dir):
         sys.path.insert(0, use_dir)
+        """
+        sys.path.insert(0, use_dir)
         if on_rtd:
             os.system('ls -l {}'.format(
                 use_dir))
+        """
     else:
         if on_rtd:
             print('did not find from docs path dir: {}'.format(
                 use_dir))
+# end for all source dirs
 
+"""
 if on_rtd:
     print('----------------------')
     print('cur path: {}'.format(
@@ -76,6 +80,7 @@ if on_rtd:
             PACKAGE_SOURCE_PATH_FROM_DOCS))
     print('----------------------')
 # end of debugging pathing on read the docs
+"""
 
 project = 'Stock Analysis Engine'
 copyright = '2018, Jay Johnson'

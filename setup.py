@@ -63,7 +63,7 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.3.28',
+    version='1.3.29',
     description=(
         'Build and tune your own investment '
         'algorithms using a distributed, scalable '
