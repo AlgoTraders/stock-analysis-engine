@@ -84,8 +84,13 @@ class ExampleIndicatorWilliamsROpen(base_indicator.BaseIndicator):
         :param dataset: dictionary of ``pd.DataFrame(s)`` to process
         """
 
-        daily_df = self.get_subscribed_dataset(
+        df_status, daily_df = self.get_subscribed_dataset(
                 dataset=dataset)
+
+        self.willr_open_value = None
+        if df_status == ae_consts.EMPTY:
+            log.info('process end - no data found')
+            return
 
         # notice the self.num_points is now a member variable
         # because the BaseIndicator class's __init__
@@ -99,7 +104,6 @@ class ExampleIndicatorWilliamsROpen(base_indicator.BaseIndicator):
         """
         real = WILLR(high, low, open, timeperiod=14)
         """
-        self.willr_open_value = None
         num_records = len(daily_df.index)
         if num_records > self.num_points:
             first_date = daily_df['date'].iloc[0]

@@ -4,29 +4,94 @@
   "algo_version": 1,
   "trade_horizon_units": "day",
   "trade_horizon": 5,
+  "balance": 100000,
+  "num_owned": 10,
+  "buy_shares": 10,
+  "ticker": "SPY",
+  "positions": {
+    "SPY": {
+      "shares": 10000,
+      "buys": [],
+      "sells": []
+    }
+  },
   "buy_rules": {
     "confidence": 75,
-    "min_indicators": 1
+    "min_indicators": 3
   },
   "sell_rules": {
     "confidence": 75,
-    "min_indicators": 1
+    "min_indicators": 3
   },
   "indicators": [
     {
-      "name": "willr",
+      "name": "willr_-70_-30",
       "module_path": "analysis_engine/mocks/example_indicator_williamsr.py",
       "category": "technical",
       "type": "momentum",
-      "dataset_df": "daily",
+      "uses_data": "daily",
       "high": 0,
       "low": 0,
-      "open": 0,
       "close": 0,
+      "open": 0,
       "willr_value": 0,
-      "num_points": 12,
-      "buy_above": 60,
-      "sell_below": 20
+      "num_points": 10,
+      "buy_below": -70,
+      "sell_above": -30,
+      "is_buy": false,
+      "is_sell": false,
+      "verbose": true
+    },
+    {
+      "name": "willr_-80_-20",
+      "module_path": "analysis_engine/mocks/example_indicator_williamsr.py",
+      "category": "technical",
+      "type": "momentum",
+      "uses_data": "daily",
+      "high": 0,
+      "low": 0,
+      "close": 0,
+      "open": 0,
+      "willr_value": 0,
+      "num_points": 10,
+      "buy_below": -80,
+      "sell_above": -20,
+      "is_buy": false,
+      "is_sell": false
+    },
+    {
+      "name": "willr_-90_-10",
+      "module_path": "analysis_engine/mocks/example_indicator_williamsr.py",
+      "category": "technical",
+      "type": "momentum",
+      "uses_data": "daily",
+      "high": 0,
+      "low": 0,
+      "close": 0,
+      "open": 0,
+      "willr_value": 0,
+      "num_points": 10,
+      "buy_below": -90,
+      "sell_above": -10,
+      "is_buy": false,
+      "is_sell": false
+    },
+    {
+      "name": "willr_open_-80_-20",
+      "module_path": "analysis_engine/mocks/example_indicator_williamsr_open.py",
+      "category": "technical",
+      "type": "momentum",
+      "uses_data": "daily",
+      "high": 0,
+      "low": 0,
+      "close": 0,
+      "open": 0,
+      "willr_open_value": 0,
+      "num_points": 15,
+      "buy_below": -80,
+      "sell_above": -20,
+      "is_buy": false,
+      "is_sell": false
     }
   ],
   "slack": {
