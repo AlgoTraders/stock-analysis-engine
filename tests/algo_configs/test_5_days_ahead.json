@@ -5,12 +5,10 @@
   "trade_horizon_units": "day",
   "trade_horizon": 5,
   "balance": 100000,
-  "num_owned": 10,
-  "buy_shares": 10,
   "ticker": "SPY",
   "positions": {
     "SPY": {
-      "shares": 10000,
+      "shares": 100,
       "buys": [],
       "sells": []
     }
