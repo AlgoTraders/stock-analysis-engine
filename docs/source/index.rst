@@ -76,6 +76,24 @@ The engine supports running algorithms with live trading data or for backtesting
 
 As an example for building your own algorithms, please refer to the `minute-by-minute algorithm for live intraday trading analysis <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/mocks/example_algo_minute.py>`__ with `real-time pricing data from IEX <https://iextrading.com/developer>`__.
 
+Run a Local Backtest using an Algorithm Config and Extract an Algorithm-Ready Dataset
+=====================================================================================
+
+Use this command to start a local backtest with the included `algorithm config <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/tests/algo_configs/test_5_days_ahead.json>`__. This backtest will also generate a local algorithm-ready dataset file once the backtest finishes.
+
+::
+
+    sa -t SPY -c tests/algo_configs/test_5_days_ahead.json -e file:/tmp/algoready-SPY-latest.json
+
+Run a Local Backtest using an Algorithm Config and an Algorithm-Ready Dataset
+=============================================================================
+
+After generating the local algorithm-ready dataset, use this command to run another backtest using the ready-to-go file on disk:
+
+::
+
+    sa -t SPY -c tests/algo_configs/test_5_days_ahead.json -b file:/tmp/algoready-SPY-latest.json
+
 Developing on AWS
 =================
 

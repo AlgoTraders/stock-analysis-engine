@@ -287,14 +287,20 @@ class BaseIndicator:
             cached ``dataset['data']`` dictionary
             of dataframes
         """
+        ret_df = None
         if dataset_name:
-            return dataset['data'].get(
+            ret_df = dataset['data'].get(
                 dataset_name,
                 pd.DataFrame(ae_consts.EMPTY_DF_LIST))
         else:
-            return dataset['data'].get(
+            ret_df = dataset['data'].get(
                 self.name_of_df,
                 pd.DataFrame(ae_consts.EMPTY_DF_LIST))
+
+        if hasattr(ret_df, 'index'):
+            return ae_consts.SUCCESS, ret_df
+        else:
+            return ae_consts.EMPTY, ret_df
     # end of get_subscribed_dataset
 
     def reset_internals(

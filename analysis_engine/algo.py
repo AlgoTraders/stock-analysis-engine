@@ -88,7 +88,7 @@ datasets from the redis pipeline:
 Indicator buy and sell records in ``self.latest_buys`` and
 ``self.latest_sells`` have a dictionary structure:
 
-::
+.. code-block:: python
 
     {
         'name': indicator_name,
@@ -912,6 +912,7 @@ class BaseAlgo:
             self.min_sell_indicators = self.sell_rules.get(
                 'min_indicators',
                 None)
+        # if indicator_processor exists
     # end of __init__
 
     def get_indicator_processor(
