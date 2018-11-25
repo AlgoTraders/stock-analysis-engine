@@ -888,7 +888,7 @@ class BaseAlgo:
         self.min_sell_indicators = 0
         self.buy_rules = {}
         self.sell_rules = {}
-        self.buy_shares = 10
+        self.buy_shares = None
 
         self.load_from_config(
             config_dict=config_dict)
@@ -2138,6 +2138,17 @@ class BaseAlgo:
             parameter for ``row.to_json()``
         """
         close = row['close']
+        required_amount_for_a_buy = close + self.commission
+        if required_amount_for_a_buy > self.balance:
+            log.info(
+                '{} - buy - not enough funds={} < required={} with'
+                'shares={}'.format(
+                    self.name,
+                    self.balance,
+                    required_amount_for_a_buy,
+                    self.num_owned))
+            return
+
         dataset_date = row['date']
         log.info(
             '{} - buy start {}@{} - shares={}'.format(
@@ -2262,6 +2273,17 @@ class BaseAlgo:
             parameter for ``row.to_json()``
         """
         close = row['close']
+        required_amount_for_a_sell = self.commission
+        if required_amount_for_a_sell > self.balance:
+            log.info(
+                '{} - sell - not enough funds={} < required={} with'
+                'shareds={}'.format(
+                    self.name,
+                    self.balance,
+                    required_amount_for_a_sell,
+                    self.num_owned))
+            return
+
         dataset_date = row['date']
         log.info(
             '{} - sell start {}@{}'.format(

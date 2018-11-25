@@ -89,6 +89,13 @@ After generating the local algorithm-ready dataset, use this command to run anot
 
     sa -t SPY -c tests/algo_configs/test_5_days_ahead.json -b file:/tmp/algoready-SPY-latest.json
 
+View Buy and Sell Transactions
+------------------------------
+
+::
+
+    sa -t SPY -c tests/algo_configs/test_5_days_ahead.json -b file:/tmp/algoready-SPY-latest.json | grep -E "shares|not enough"
+
 Developing on AWS
 =================
 
