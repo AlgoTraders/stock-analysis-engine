@@ -80,6 +80,6 @@ def MockWILLRIgnore(
     retval = []
     for h in high:
         retval.append(None)
-    retval[-1] = 0.5
+    retval[-1] = -0.5
     return retval
 # end of MockWILLRIgnore

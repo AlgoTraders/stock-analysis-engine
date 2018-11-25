@@ -17,7 +17,6 @@ import pandas as pd
 import json
 import mock
 import analysis_engine.mocks.mock_talib as mock_talib
-import analysis_engine.mocks.mock_algo_trading as mock_trading
 import analysis_engine.mocks.base_test as base_test
 import analysis_engine.consts as ae_consts
 import analysis_engine.utils as ae_utils
@@ -105,6 +104,7 @@ class TestAlgoWithIndicators(base_test.BaseTestCase):
             'trade_horizon_units': 'day',
             'trade_horizon': 5,
             'num_owned': 10,
+            'buy_shares': 10,
             'ticker': 'SPY',
             'positions': {
                 'SPY': {
@@ -221,14 +221,18 @@ class TestAlgoWithIndicators(base_test.BaseTestCase):
             [self.ticker])
         algo.handle_data(
             data=self.data)
+
+        res = algo.get_result()
+        print(ae_consts.ppj(res))
+        self.assertTrue(
+            len(res['history'][0]['total_sells']) == 0)
+        self.assertTrue(
+            len(res['history'][0]['total_buys']) == 1)
     # end of test_run_daily_indicator_with_algo_config_buy
 
     @mock.patch(
         ('analysis_engine.talib.WILLR'),
         new=mock_talib.MockWILLRSell)
-    @mock.patch(
-        ('analysis_engine.algo.BaseAlgo.get_ticker_positions'),
-        new=mock_trading.mock_algo_owns_shares_in_ticker_before_starting)
     @mock.patch(
         ('analysis_engine.write_to_file.write_to_file'),
         new=mock_write_to_file)
@@ -248,6 +252,13 @@ class TestAlgoWithIndicators(base_test.BaseTestCase):
             [self.ticker])
         algo.handle_data(
             data=self.data)
+
+        res = algo.get_result()
+        print(ae_consts.ppj(res))
+        self.assertTrue(
+            len(res['history'][0]['total_sells']) == 1)
+        self.assertTrue(
+            len(res['history'][0]['total_buys']) == 0)
     # end of test_run_daily_indicator_with_algo_config_sell
 
     @mock.patch(
@@ -272,6 +283,13 @@ class TestAlgoWithIndicators(base_test.BaseTestCase):
             [self.ticker])
         algo.handle_data(
             data=self.data)
+
+        res = algo.get_result()
+        print(ae_consts.ppj(res))
+        self.assertTrue(
+            len(res['history'][0]['total_sells']) == 0)
+        self.assertTrue(
+            len(res['history'][0]['total_buys']) == 0)
     # end of test_run_daily_indicator_with_algo_config_ignore
 
     """
@@ -307,6 +325,13 @@ class TestAlgoWithIndicators(base_test.BaseTestCase):
             [self.ticker])
         algo.handle_data(
             data=self.data)
+
+        res = algo.get_result()
+        print(ae_consts.ppj(res))
+        self.assertTrue(
+            len(res['history'][0]['total_sells']) == 0)
+        self.assertTrue(
+            len(res['history'][0]['total_buys']) == 0)
     # end of test_integration_daily_indicator_with_algo_config
 
 # end of TestAlgoWithIndicators
