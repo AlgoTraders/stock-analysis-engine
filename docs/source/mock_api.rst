@@ -58,4 +58,12 @@ Mock TA Lib
 These are mock talib functions to help test indicators using talib.
 
 .. automodule:: analysis_engine.mocks.mock_talib
-   :members: MockWILLR
+   :members: MockWILLRBuy,MockWILLRSell,MockWILLRIgnore
+
+Mock Trading Tools for Developing Algorithms and Indicators
+===========================================================
+
+These are mock helper functions for patching the ``BaseAlgo`` object to simulate various test cases
+
+.. automodule:: analysis_engine.mocks.mock_algo_trading
+   :members: mock_algo_owns_shares_in_ticker_before_starting

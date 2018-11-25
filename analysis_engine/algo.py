@@ -64,6 +64,39 @@ datasets from the redis pipeline:
     ``redis-cli`` and a query of ``keys *`` or
     ``keys <TICKER>_*`` on large deployments.
 
+**Indicator Information**
+
+- ``self.buy_rules`` - optional - custom dictionary for passing
+    buy-side business rules to a custom algorithm
+- ``self.sell_rules`` - optional - custom dictionary for passing
+    sale-side business rules to a custom algorithm
+- ``self.min_buy_indicators`` - if ``self.buy_rules`` has
+    a value for buying if a ``minimum`` number of indicators
+    detect a value that is within a buy condition
+- ``self.min_sell_indicators`` - if ``self.sell_rules`` has
+    a value for selling if a ``minimum`` number of indicators
+    detect a value that is within a sell condition
+- ``self.latest_ind_report`` - latest dictionary of values
+    from the ``IndicatorProcessor.process()``
+- ``self.latest_buys`` - latest indicators saying buy
+- ``self.latest_sells`` - latest indicators saying sell
+- ``self.num_latest_buys`` - latest number of indicators saying buy
+- ``self.num_latest_sells`` - latest number of indicators saying sell
+- ``self.iproc`` - member variables for the ``IndicatorProcessor``
+    that holds all of the custom algorithm indicators
+
+Indicator buy and sell records in ``self.latest_buys`` and
+``self.latest_sells`` have a dictionary structure:
+
+::
+
+    {
+        'name': indicator_name,
+        'id': indicator_id,
+        'report': indicator_report_dict,
+        'cell': indicator cell number
+    }
+
 **Supported environment variables**
 
 ::
@@ -846,6 +879,15 @@ class BaseAlgo:
         self.iproc = self.get_indicator_processor()
         self.iproc_label = 'no-iproc-label'
         self.num_indicators = 0
+        self.latest_ind_report = None
+        self.latest_buys = []  # latest indicators saying buy
+        self.latest_sells = []  # latest indicators saying sell
+        self.num_latest_buys = 0  # latest indicators saying buy
+        self.num_latest_sells = 0  # latest indicators saying sell
+        self.min_buy_indicators = 0
+        self.min_sell_indicators = 0
+        self.buy_rules = {}
+        self.sell_rules = {}
 
         self.load_from_config(
             config_dict=config_dict)
@@ -863,6 +905,12 @@ class BaseAlgo:
                         self.iproc))
             self.iproc_label = self.iproc.get_label()
             self.num_indicators = self.iproc.get_num_indicators()
+            self.min_buy_indicators = self.buy_rules.get(
+                'min_indicators',
+                None)
+            self.min_sell_indicators = self.sell_rules.get(
+                'min_indicators',
+                None)
     # end of __init__
 
     def get_indicator_processor(
@@ -998,9 +1046,17 @@ class BaseAlgo:
         self.should_buy = False
 
         log.info(
-            '{} - ready with process has df_daily rows={}'.format(
+            '{} - ready with process has df_daily '
+            'rows={} num_owned={} '
+            'indicator_buys={} min_buy={} '
+            'indicator_sells={} min_sell={}'.format(
                 self.name,
-                len(self.df_daily.index)))
+                len(self.df_daily.index),
+                self.num_owned,
+                self.num_latest_buys,
+                self.min_buy_indicators,
+                self.num_latest_sells,
+                self.min_sell_indicators))
 
         """
         Want to iterate over daily pricing data
@@ -1011,6 +1067,11 @@ class BaseAlgo:
         for idx, row in self.df_daily.iterrows():
             print(row)
         """
+
+        if self.num_latest_buys > self.min_buy_indicators:
+            self.should_buy = True
+        elif self.num_latest_sells > self.min_sell_indicators:
+            self.should_sell = True
 
         if self.num_owned and self.should_sell:
             self.create_sell_order(
@@ -1983,8 +2044,7 @@ class BaseAlgo:
         """
         if config_dict:
             for k in config_dict:
-                if k in self.__dict__:
-                    self.__dict__[k] = config_dict[k]
+                self.__dict__[k] = config_dict[k]
         # end of loading config
     # end of load_from_config
 
@@ -2673,18 +2733,30 @@ class BaseAlgo:
                 """
                 Indicator Processor
                 """
+                self.latest_buys = []
+                self.latest_sells = []
                 if self.iproc:
                     self.debug_msg = (
                         '{} START - indicator processing'.format(
                             ticker))
-                    self.iproc.process(
+                    self.latest_ind_report = self.iproc.process(
                         algo_id=algo_id,
                         ticker=self.ticker,
                         dataset=node)
+
+                    self.latest_buys = self.latest_ind_report.get(
+                        'buys',
+                        [])
+                    self.latest_sells = self.latest_ind_report.get(
+                        'sells',
+                        [])
                     self.debug_msg = (
                         '{} END - indicator processing'.format(
                             ticker))
                 # end of indicator processing
+
+                self.num_latest_buys = len(self.latest_buys)
+                self.num_latest_sells = len(self.latest_sells)
 
                 # thinking this could be a separate celery task
                 # to increase horizontal scaling to crunch

@@ -338,13 +338,9 @@ Please refer to the `Stock Analysis Intro Extracting Datasets Jupyter Notebook <
    :header-rows: 1
 
    * - `Build <https://travis-ci.org/AlgoTraders/stock-analysis-engine>`__
-     - `Docs <https://stock-analysis-engine.readthedocs.io/en/latest/README.html>`__
    * - .. image:: https://api.travis-ci.org/AlgoTraders/stock-analysis-engine.svg
            :alt: Travis Tests
            :target: https://travis-ci.org/AlgoTraders/stock-analysis-engine
-     - .. image:: https://readthedocs.org/projects/stock-analysis-engine/badge/?version=latest
-           :alt: Read the Docs Stock Analysis Engine
-           :target: https://stock-analysis-engine.readthedocs.io/en/latest/README.html
 
 Getting Started
 ===============

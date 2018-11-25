@@ -7,15 +7,16 @@ import spylunking.log.setup_logging as log_utils
 log = log_utils.build_colorized_logger(name=__name__)
 
 
-def MockWILLR(
+def MockWILLRBuy(
         high=None,
         low=None,
         close=None,
         timeperiod=None):
-    """MockWILLR
+    """MockWILLRBuy
 
-    build a mock wiliams r object
-    to test indicators without having talib installed
+    build a mock wiliams r object that will report
+    an ``buy`` value to test indicators without
+    having talib installed
 
     :param high: list of highs
     :param low: list of lows
@@ -23,10 +24,62 @@ def MockWILLR(
     :param timeperiod: integer number of values
         in ``high``, ``low`` and ``close``
     """
-    log.info('mock - MockTALib.WILLR - set')
+    log.warn('mock - MockTALib.WILLR - BUY')
     retval = []
     for h in high:
         retval.append(None)
-    retval[-1] = -88.9
+    retval[-1] = -0.999
     return retval
-# end of MockWILLR
+# end of MockWILLRBuy
+
+
+def MockWILLRSell(
+        high=None,
+        low=None,
+        close=None,
+        timeperiod=None):
+    """MockWILLRSell
+
+    build a mock wiliams r object that will report
+    an ``sell`` value to test indicators without
+    having talib installed
+
+    :param high: list of highs
+    :param low: list of lows
+    :param close: list of closes
+    :param timeperiod: integer number of values
+        in ``high``, ``low`` and ``close``
+    """
+    log.warn('mock - MockTALib.WILLR - SELL')
+    retval = []
+    for h in high:
+        retval.append(None)
+    retval[-1] = -0.01
+    return retval
+# end of MockWILLRSell
+
+
+def MockWILLRIgnore(
+        high=None,
+        low=None,
+        close=None,
+        timeperiod=None):
+    """MockWILLRIgnore
+
+    build a mock wiliams r object that will report
+    an ``ignore`` value to test indicators without
+    having talib installed
+
+    :param high: list of highs
+    :param low: list of lows
+    :param close: list of closes
+    :param timeperiod: integer number of values
+        in ``high``, ``low`` and ``close``
+    """
+    log.warn('mock - MockTALib.WILLR - IGNORE')
+    retval = []
+    for h in high:
+        retval.append(None)
+    retval[-1] = 0.5
+    return retval
+# end of MockWILLRIgnore
