@@ -14,6 +14,7 @@ uses Open instead of Close
 """
 
 import analysis_engine.talib as talib
+import analysis_engine.consts as ae_consts
 import analysis_engine.indicators.base_indicator as base_indicator
 import spylunking.log.setup_logging as log_utils
 
@@ -81,15 +82,6 @@ class ExampleIndicatorWilliamsR(base_indicator.BaseIndicator):
         :param ticker: string - ticker
         :param dataset: dictionary of ``pd.DataFrame(s)`` to process
         """
-        label = (
-            '{} process ticker={}'.format(
-                self.name,
-                ticker))
-
-        log.info(
-            '{} - start'.format(
-                label))
-
         daily_df = self.get_subscribed_dataset(
                 dataset=dataset)
 
@@ -98,8 +90,7 @@ class ExampleIndicatorWilliamsR(base_indicator.BaseIndicator):
         # converts any self.config keys into useable
         # member variables automatically in your derived class
         log.info(
-            '{} - processing - num_points={} daily_df={}'.format(
-                label,
+            'process - num_points={} daily_df={}'.format(
                 self.num_points,
                 len(daily_df.index)))
         """
@@ -120,9 +111,8 @@ class ExampleIndicatorWilliamsR(base_indicator.BaseIndicator):
                 close = row['close']
                 row_date = row['date']
                 log.info(
-                    '{} - {} - WILLR(high={}, low={}, '
+                    '{} - WILLR(high={}, low={}, '
                     'close={}, period={})'.format(
-                        label,
                         row_date,
                         high,
                         low,
@@ -137,19 +127,45 @@ class ExampleIndicatorWilliamsR(base_indicator.BaseIndicator):
                 lows,
                 closes,
                 self.num_points)
-            self.willr_value = willr_values[-1]
+            self.willr_value = ae_consts.to_f(
+                willr_values[-1] * 100.0)
+
+            """
+            Determine a buy or a sell as a label
+            """
+
+            self.is_buy = ae_consts.INDICATOR_IGNORE
+            self.is_sell = ae_consts.INDICATOR_IGNORE
+
+            if self.willr_value < self.buy_below:
+                self.is_buy = ae_consts.INDICATOR_BUY
+
+            if self.willr_value > self.sell_above:
+                self.is_sell = ae_consts.INDICATOR_SELL
+
             log.info(
-                '{} - end - {} to {} willr_value={}'.format(
-                    label,
+                'process end - {} to {} willr_value={} '
+                'buy_below={} is_buy={} '
+                'sell_above={} is_sell={}'.format(
                     first_date,
                     end_date,
-                    self.willr_value))
+                    self.willr_value,
+                    self.buy_below,
+                    self.is_buy,
+                    self.sell_above,
+                    self.is_sell))
         else:
             log.info(
-                '{} - end - willr={}'.format(
-                    label,
+                'process end - willr={}'.format(
                     self.willr_value))
     # end of process
+
+    def reset_internals(
+            self):
+        """reset_internals"""
+        self.is_buy = ae_consts.INDICATOR_RESET
+        self.is_sell = ae_consts.INDICATOR_RESET
+    # end of reset_internals
 
 # end of ExampleIndicatorWilliamsR
 

@@ -1,5 +1,14 @@
 """
 Indicator Processor
+
+- v1 Indicator type: ``supported``
+    Binary decision support on buys and sells
+    This is like an alert threshold that is ``on`` or ``off``
+
+- v2 Indicator type: ``not supported``
+    Support for buy or sell value range
+    This is like an alert threshold between a ``lower``
+    and ``upper`` bound
 """
 
 import os
@@ -84,10 +93,38 @@ class IndicatorProcessor:
             self.label = 'idprc'
 
         self.verbose = verbose
+        self.latest_report = {}
+        self.reports = []
 
         self.build_indicators_for_config(
             config_dict=self.config_dict)
     # end of __init__
+
+    def get_latest_report(
+            self,
+            algo_id=None,
+            ticker=None,
+            dataset=None):
+        """get_latest_report
+
+        Return the latest report as a method that can be
+        customized by a derived class from the
+        ``IndicatorProcessor``
+
+        :param algo_id: optional - string -
+            algo identifier label for debugging datasets
+            during specific dates
+        :param ticker: optional - string - ticker
+        :param dataset: optional - a dictionary of
+            identifiers (for debugging) and
+            multiple pandas ``pd.DataFrame`` objects. Dictionary where keys
+            represent a label from one of the data sources (``IEX``,
+            ``Yahoo``, ``FinViz`` or other). Here is the supported
+            dataset structure for the process method:
+        """
+
+        return self.latest_report
+    # end of get_latest_report
 
     def get_num_indicators(
             self):
@@ -209,6 +246,14 @@ class IndicatorProcessor:
             ``Yahoo``, ``FinViz`` or other). Here is the supported
             dataset structure for the process method:
         """
+        self.latest_report = {
+            'id': algo_id,
+            'ticker': ticker,
+            'buys': [],
+            'sells': [],
+            'num_indicators': self.num_indicators,
+            'date': dataset.get('date', None)
+        }
         for idx, ind_id in enumerate(self.ind_dict):
             ind_node = self.ind_dict[ind_id]
             ind_obj = ind_node['obj']
@@ -220,13 +265,13 @@ class IndicatorProcessor:
                 percent_done,
                 (idx + 1),
                 self.num_indicators)
-            # this will throw on errors parsing to make
             ind_obj.reset_internals()
             log.info(
                 '{} - {} start {}'.format(
                     self.label,
                     ind_obj.get_name(),
                     percent_label))
+            # this will throw on errors to help with debugging
             ind_obj.handle_subscribed_dataset(
                 algo_id=algo_id,
                 ticker=ticker,
@@ -236,7 +281,47 @@ class IndicatorProcessor:
                     self.label,
                     ind_obj.get_name(),
                     percent_label))
+            new_report = ind_obj.get_report()
+            self.latest_report.update(new_report)
+
+            is_buy_value = ind_obj.is_buy
+            is_sell_value = ind_obj.is_sell
+
+            """"
+            v1 indicator type: supported
+            binary decision support on buys and sells
+            (like an alert threshold that is on or off)
+
+            v2 indicator type: not supported
+            support for buy/sell value range
+            (like an alert threshold between a lower and upper bound)
+            """
+            if (hasattr(ind_obj, 'is_buy') and
+                    hasattr(ind_obj, 'is_sell')):
+                is_buy_value = ind_obj.is_buy
+                is_sell_value = ind_obj.is_sell
+
+            if is_buy_value == ae_consts.INDICATOR_BUY:
+                self.latest_report['buys'].append({
+                    'cell': idx,
+                    'name': ind_obj.get_name(),
+                    'id': ind_id,
+                    'report': new_report})
+            elif is_sell_value == ae_consts.INDICATOR_SELL:
+                self.latest_report['sells'].append({
+                    'cell': idx,
+                    'name': ind_obj.get_name(),
+                    'id': ind_id,
+                    'report': new_report})
         # end of for all indicators
+
+        self.reports.append(self.latest_report)
+
+        # allow derived indicator processors to build custom reports
+        return self.get_latest_report(
+            algo_id=algo_id,
+            ticker=ticker,
+            dataset=dataset)
     # end of process
 
 # end of IndicatorProcessor

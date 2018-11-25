@@ -99,8 +99,7 @@ class BaseIndicator:
         self.report_ignore_keys = self.config.get(
             'report_ignore_keys',
             ae_consts.INDICATOR_IGNORED_CONIGURABLE_KEYS)
-        self.configurables = {}
-
+        self.configurables = self.config
         self.convert_config_keys_to_members()
     # end of __init__
 
@@ -147,14 +146,15 @@ class BaseIndicator:
         if report_key in cur_report_dict:
             report_key = '{}_{}'.format(
                 report_key,
-                str(uuid.uuid4()))
+                str(uuid.uuid4()).replace('-', ''))
         # end of building a key to prevent stomping data
 
         return report_key
     # end of build_report_key
 
     def get_report(
-            self):
+            self,
+            verbose=False):
         """get_report
 
         Get the indicator's current output node
@@ -164,6 +164,9 @@ class BaseIndicator:
         .. note:: the report dict should mostly be numeric
             types to enable AI predictions after removing
             non-numeric columns
+
+        :param verbose: optional - boolean for toggling
+            to show the report
         """
         cur_report_dict = {}
 
@@ -185,10 +188,15 @@ class BaseIndicator:
                 cur_report_dict[report_key] = self.report_dict[key]
         # for all keys to output into the report
 
+        buy_value = None
+        sell_value = None
+
         for key in self.configurables:
 
             is_valid = True
             if key in self.report_ignore_keys:
+                is_valid = False
+            elif key not in self.__dict__:
                 is_valid = False
 
             if is_valid:
@@ -197,10 +205,34 @@ class BaseIndicator:
                     prefix_key=report_prefix_key_name,
                     key_type='conf',
                     cur_report_dict=cur_report_dict)
-                cur_report_dict[report_key] = self.configurables[key]
+
+                use_value = None
+                if key == 'is_buy':
+                    buy_value = self.__dict__[key]
+                    use_value = \
+                        ae_consts.INDICATOR_ACTIONS[buy_value]
+                elif key == 'is_sell':
+                    sell_value = self.__dict__[key]
+                    use_value = \
+                        ae_consts.INDICATOR_ACTIONS[sell_value]
+                else:
+                    use_value = self.__dict__[key]
+                # end of deciding value
+
+                cur_report_dict[report_key] = use_value
             # if valid
 
         # end of all configurables for this indicator
+
+        if verbose or self.verbose:
+            log.info(
+                'indicator={} '
+                'report={} '
+                'buy={} sell={}'.format(
+                    self.name,
+                    ae_consts.ppj(cur_report_dict),
+                    buy_value,
+                    sell_value))
 
         return cur_report_dict
     # end of get_report
