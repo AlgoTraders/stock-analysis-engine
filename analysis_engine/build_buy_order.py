@@ -2,18 +2,11 @@
 Helper for creating a buy order
 """
 
-from analysis_engine.consts import TRADE_OPEN
-from analysis_engine.consts import TRADE_NOT_ENOUGH_FUNDS
-from analysis_engine.consts import TRADE_FILLED
-from analysis_engine.consts import ALGO_BUYS_S3_BUCKET_NAME
-from analysis_engine.consts import to_f
-from analysis_engine.consts import get_status
-from analysis_engine.consts import ppj
-from analysis_engine.utils import utc_now_str
-from spylunking.log.setup_logging import build_colorized_logger
+import analysis_engine.consts as ae_consts
+import analysis_engine.utils as ae_utils
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def build_buy_order(
@@ -64,8 +57,8 @@ def build_buy_order(
     :param reason: optional - string for recording why the algo
         decided to buy for review after the algorithm finishes
     """
-    status = TRADE_OPEN
-    s3_bucket_name = ALGO_BUYS_S3_BUCKET_NAME
+    status = ae_consts.TRADE_OPEN
+    s3_bucket_name = ae_consts.ALGO_BUYS_S3_BUCKET_NAME
     s3_key = use_key
     redis_key = use_key
     s3_enabled = True
@@ -88,24 +81,24 @@ def build_buy_order(
         can_buy_num_shares = shares
         if not can_buy_num_shares:
             can_buy_num_shares = int(tradable_funds / close)
-        cost_of_trade = to_f(
+        cost_of_trade = ae_consts.to_f(
             val=(can_buy_num_shares * close) + commission)
         if can_buy_num_shares > 0:
             if cost_of_trade > balance:
-                status = TRADE_NOT_ENOUGH_FUNDS
+                status = ae_consts.TRADE_NOT_ENOUGH_FUNDS
             else:
-                created_date = utc_now_str()
+                created_date = ae_utils.utc_now_str()
                 if auto_fill:
-                    new_shares = num_owned + can_buy_num_shares
-                    new_balance = balance - cost_of_trade
-                    status = TRADE_FILLED
+                    new_shares = int(num_owned + can_buy_num_shares)
+                    new_balance = ae_consts.to_f(balance - cost_of_trade)
+                    status = ae_consts.TRADE_FILLED
                 else:
                     new_shares = shares
                     new_balance = balance
         else:
-            status = TRADE_NOT_ENOUGH_FUNDS
+            status = ae_consts.TRADE_NOT_ENOUGH_FUNDS
     else:
-        status = TRADE_NOT_ENOUGH_FUNDS
+        status = ae_consts.TRADE_NOT_ENOUGH_FUNDS
 
     order_dict = {
         'ticker': ticker,
@@ -132,8 +125,8 @@ def build_buy_order(
         '{} {} buy {} order={}'.format(
             ticker,
             date,
-            get_status(status=order_dict['status']),
-            ppj(order_dict)))
+            ae_consts.get_status(status=order_dict['status']),
+            ae_consts.ppj(order_dict)))
 
     return order_dict
 # end of build_buy_order

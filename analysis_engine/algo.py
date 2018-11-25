@@ -2192,7 +2192,7 @@ class BaseAlgo:
             prev_shares = num_owned
             if not prev_shares:
                 prev_shares = 0
-            prev_bal = self.balance
+            prev_bal = ae_consts.to_f(self.balance)
             if new_buy['status'] == ae_consts.TRADE_FILLED:
                 if ticker in self.positions:
                     self.positions[ticker]['shares'] = int(
@@ -2333,7 +2333,7 @@ class BaseAlgo:
             prev_shares = num_owned
             if not prev_shares:
                 prev_shares = 0
-            prev_bal = self.balance
+            prev_bal = ae_consts.to_f(self.balance)
             if new_sell['status'] == ae_consts.TRADE_FILLED:
                 if ticker in self.positions:
                     self.positions[ticker]['shares'] = int(
