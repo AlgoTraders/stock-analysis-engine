@@ -75,6 +75,12 @@ Algorithm Environment Variables
     ALGO_BACKUP_REDIS_ADDRESS = ev(
         'ALGO_BACKUP_REDIS_ADDRESS',
         'localhost:6379')
+    ALGO_HISTORY_VERSION = ev(
+        'ALGO_HISTORY_VERSION',
+        '1')
+    ALGO_REPORT_VERSION = ev(
+        'ALGO_REPORT_VERSION',
+        '1')
 
 Stock and Analysis Environment Variables
 ----------------------------------------
@@ -583,9 +589,15 @@ ALGO_LOAD_COMPRESS = (ev(
 ALGO_HISTORY_COMPRESS = (ev(
     'ALGO_HISTORY_COMPRESS',
     '0') == '1')
+ALGO_HISTORY_VERSION = ev(
+    'ALGO_HISTORY_VERSION',
+    '1')
 ALGO_REPORT_COMPRESS = (ev(
     'ALGO_REPORT_COMPRESS',
     '0') == '1')
+ALGO_REPORT_VERSION = ev(
+    'ALGO_REPORT_VERSION',
+    '1')
 DEFAULT_SERIALIZED_DATASETS = [
     'daily',
     'minute',

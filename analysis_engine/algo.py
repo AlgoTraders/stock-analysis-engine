@@ -1657,7 +1657,14 @@ class BaseAlgo:
             history_by_ticker[ticker] = ticker_history_rec_list
         # end for all tickers to filter
 
-        output_record = {}
+        output_record = {
+            'tickers': data_for_tickers,
+            'version': int(ae_consts.ALGO_HISTORY_VERSION),
+            'last_trade_date': ae_utils.get_last_close_str(),
+            'algo_config_dict': self.config_dict,
+            'algo_name':  self.name,
+            'created': ae_utils.utc_now_str()
+        }
         for ticker in data_for_tickers:
             if ticker not in output_record:
                 output_record[ticker] = []

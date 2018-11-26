@@ -16,7 +16,7 @@ fi
 # 
 # debug this script's parsing of arguments with: -d 
 
-if [[ "${found_extract_loc}" == "0" ]]; then
+if [[ "${already_extracted}" == "0" ]] && [[ "${found_extract_loc}" == "0" ]]; then
     extract_loc=${s3_extract_loc}
     all_tool_args="${all_tool_args} -e ${extract_loc}"
 fi
