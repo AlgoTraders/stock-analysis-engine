@@ -28,7 +28,7 @@ def MockWILLRBuy(
     retval = []
     for h in high:
         retval.append(None)
-    retval[-1] = -0.999
+    retval[-1] = -99.9
     return retval
 # end of MockWILLRBuy
 
@@ -54,7 +54,7 @@ def MockWILLRSell(
     retval = []
     for h in high:
         retval.append(None)
-    retval[-1] = -0.01
+    retval[-1] = -1.0
     return retval
 # end of MockWILLRSell
 
@@ -80,6 +80,6 @@ def MockWILLRIgnore(
     retval = []
     for h in high:
         retval.append(None)
-    retval[-1] = -0.5
+    retval[-1] = -50.0
     return retval
 # end of MockWILLRIgnore
