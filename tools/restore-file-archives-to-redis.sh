@@ -13,7 +13,7 @@ fi
 data_dir="${1}"
 all_archives=$(ls ${data_dir} | grep archive | grep json)
 
-anmt "loading archives from ${data_dir} into redis=${redis_address}"
+anmt "loading archives from ${data_dir} into redis: ${redis_address}@${redis_db}"
 for f in ${all_archives}; do
     path_to_file="${data_dir}/${f}"
     ticker=$(echo ${f} | sed -e 's/_/ /g' | sed -e 's/-/ /g' | awk '{print $2}')
