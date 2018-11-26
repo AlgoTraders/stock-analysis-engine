@@ -16,6 +16,16 @@ fi
 # 
 # debug this script's parsing of arguments with: -d 
 
+if [[ "${found_extract_loc}" == "0" ]]; then
+    extract_loc=${file_extract_loc}
+    all_tool_args="${all_tool_args} -e ${extract_loc}"
+fi
+
+if [[ "${found_history_loc}" == "0" ]]; then
+    history_loc=${file_history_loc}
+    all_tool_args="${all_tool_args} -p ${history_loc}"
+fi
+
 if [[ "${already_extracted}" == "1" ]]; then
     echo "bypassing extract step - running with: ${extract_loc}"
 else
@@ -33,8 +43,6 @@ else
 fi
 
 echo ""
-echo ""
-
 echo "sa -t ${ticker} ${all_tool_args}"
 sa -t ${ticker} ${all_tool_args}
 xerr "Failed running ${ticker} backtest with extract=${extract_loc} load=${load_loc} using ${algo_module_path} to generate a trading history: ${history_loc}"

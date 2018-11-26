@@ -99,7 +99,7 @@ After generating the local algorithm-ready dataset (which can take some time), u
 
 ::
 
-    dev_history_loc=file:/tmp/dev-history-SPY-latest.json
+    dev_history_loc=file:/tmp/dev-history-${ticker}-latest.json
     run-algo-history-to-file.sh -t ${ticker} -c ${algo_config} -l ${load_loc} -p ${dev_history_loc}
 
 View Buy and Sell Transactions

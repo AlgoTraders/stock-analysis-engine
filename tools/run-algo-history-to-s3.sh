@@ -16,8 +16,15 @@ fi
 # 
 # debug this script's parsing of arguments with: -d 
 
-extract_loc=${s3_extract_loc}
-history_loc=${s3_history_loc}
+if [[ "${found_extract_loc}" == "0" ]]; then
+    extract_loc=${s3_extract_loc}
+    all_tool_args="${all_tool_args} -e ${extract_loc}"
+fi
+
+if [[ "${found_history_loc}" == "0" ]]; then
+    history_loc=${s3_history_loc}
+    all_tool_args="${all_tool_args} -p ${history_loc}"
+fi
 
 if [[ "${already_extracted}" == "1" ]]; then
     echo "bypassing extract step - running with: ${extract_loc}"
@@ -36,9 +43,9 @@ else
 fi
 
 echo ""
-echo "sa -t ${ticker} -b ${extract_loc} -g ${algo_module_path} -p ${history_loc} ${use_params}"
-sa -t ${ticker} -b ${extract_loc} -g ${algo_module_path} -p ${history_loc} ${use_params}
-xerr "Failed running ${ticker} backtest with ${extract_loc} using ${algo_module_path} to generate a trading history: ${history_loc}"
+echo "sa -t ${ticker} ${all_tool_args}"
+sa -t ${ticker} ${all_tool_args}
+xerr "Failed running ${ticker} backtest with extract=${extract_loc} load=${load_loc} using ${algo_module_path} to generate a trading history: ${history_loc}"
 
 echo "Finding extracted algorithm-ready: ${extract_loc}"
 show_s3_bucket_for_dataset ${extract_loc}
@@ -47,7 +54,7 @@ echo "Finding trading history: ${history_loc}"
 show_s3_bucket_for_dataset ${history_loc}
 
 echo ""
-echo "run again with:"
-echo "sa -t ${ticker} -b ${extract_loc} -g ${algo_module_path} -p ${history_loc} ${use_params}"
+echo "run again in the future with:"
+echo "sa -t ${ticker} ${all_tool_args}"
 
 exit 0
