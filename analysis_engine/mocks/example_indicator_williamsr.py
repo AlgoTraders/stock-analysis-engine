@@ -132,7 +132,7 @@ class ExampleIndicatorWilliamsR(base_indicator.BaseIndicator):
                 closes,
                 self.num_points)
             self.willr_value = ae_consts.to_f(
-                willr_values[-1] * 100.0)
+                willr_values[-1])
 
             """
             Determine a buy or a sell as a label

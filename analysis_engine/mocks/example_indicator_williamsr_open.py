@@ -134,7 +134,8 @@ class ExampleIndicatorWilliamsROpen(base_indicator.BaseIndicator):
                 lows,
                 opens,
                 self.num_points)
-            self.willr_open_value = willr_values[-1] * 100.0
+            self.willr_open_value = ae_consts.to_f(
+                willr_values[-1])
 
             """
             Determine a buy or a sell as a label
