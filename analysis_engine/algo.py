@@ -110,6 +110,7 @@ Indicator buy and sell records in ``self.latest_buys`` and
 
 import os
 import json
+import copy
 import pandas as pd
 import analysis_engine.consts as ae_consts
 import analysis_engine.utils as ae_utils
@@ -891,6 +892,11 @@ class BaseAlgo:
         self.buy_shares = None
         self.is_live_trading = False
 
+        self.ignore_history_keys = [
+            'total_buys',
+            'total_sells'
+        ]
+
         self.load_from_config(
             config_dict=config_dict)
 
@@ -1636,13 +1642,21 @@ class BaseAlgo:
                     self.name,
                     json.dumps(data_for_tickers)))
 
+        history_by_ticker = {}
+        for ticker in data_for_tickers:
+            ticker_history_rec_list = self.build_ticker_history(
+                ticker=ticker,
+                ignore_keys=self.ignore_history_keys)
+            history_by_ticker[ticker] = ticker_history_rec_list
+        # end for all tickers to filter
+
         output_record = {}
         for ticker in data_for_tickers:
             if ticker not in output_record:
                 output_record[ticker] = []
-            num_ticker_datasets = len(self.last_handle_data[ticker])
+            num_ticker_datasets = len(history_by_ticker[ticker])
             cur_idx = 1
-            for idx, node in enumerate(self.last_handle_data[ticker]):
+            for idx, node in enumerate(history_by_ticker[ticker]):
                 track_label = self.build_progress_label(
                     progress=cur_idx,
                     total=num_ticker_datasets)
@@ -1650,57 +1664,49 @@ class BaseAlgo:
                     ticker,
                     track_label)
                 log.info(
-                    '{} convert - {} - ds={}'.format(
+                    '{} history - {} - ds={}'.format(
                         self.name,
                         algo_id,
                         node['date']))
 
-                new_node = {
-                    'id': node['id'],
-                    'date': node['date'],
-                    'data': {}
-                }
-
-                # parse the dataset node and set member variables
-                self.debug_msg = (
-                    '{} START - convert load dataset id={}'.format(
-                        ticker,
-                        node.get('id', 'missing-id')))
-                self.load_from_dataset(
-                    ds_data=node)
-                for ds_key in node['data']:
-                    empty_ds = self.empty_pd_str
-                    data_val = node['data'][ds_key]
-                    if ds_key not in new_node['data']:
-                        new_node['data'][ds_key] = empty_ds
-                    self.debug_msg = (
-                        'convert node={} ds_key={}'.format(
-                            node,
-                            ds_key))
-                    if hasattr(data_val, 'to_json'):
-                        new_node['data'][ds_key] = data_val.to_json(
-                            orient='records',
-                            date_format='iso')
-                    else:
-                        if not data_val:
-                            new_node['data'][ds_key] = empty_ds
-                        else:
-                            new_node['data'][ds_key] = json.dumps(
-                                data_val)
-                    # if/else
-                # for all dataset values in data
-                self.debug_msg = (
-                    '{} END - convert load dataset id={}'.format(
-                        ticker,
-                        node.get('id', 'missing-id')))
-
-                output_record[ticker].append(new_node)
+                output_record[ticker].append(node)
                 cur_idx += 1
             # end for all self.last_handle_data[ticker]
         # end of converting dataset
 
         return output_record
     # end of create_history_dataset
+
+    def build_ticker_history(
+            self,
+            ticker,
+            ignore_keys):
+        """build_ticker_history
+
+        For all records in ``self.order_history`` compile
+        a filter list of history records per ``ticker`` while
+        pruning any keys that are in the list of ``ignore_keys``
+
+        :param ticker: string ticker symbol
+        :param ignore_history_keys: list of
+            keys to not include in the
+            history report
+        """
+        history_for_ticker = []
+
+        for org_node in self.order_history:
+            status = org_node.get('status', ae_consts.INVALID)
+            if status != ae_consts.INVALID:
+                node = copy.deepcopy(org_node)
+                is_valid = True
+                for i in ignore_keys:
+                    node.pop(i, None)
+                if is_valid:
+                    history_for_ticker.append(node)
+        # end of all order history records
+
+        return history_for_ticker
+    # end of build_ticker_history
 
     def publish_input_dataset(
             self,

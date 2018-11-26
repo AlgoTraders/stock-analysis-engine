@@ -16,9 +16,6 @@ fi
 # 
 # debug this script's parsing of arguments with: -d 
 
-extract_loc=${file_extract_loc}
-history_loc=${file_history_loc}
-
 if [[ "${already_extracted}" == "1" ]]; then
     echo "bypassing extract step - running with: ${extract_loc}"
 else
@@ -37,12 +34,13 @@ fi
 
 echo ""
 echo ""
-echo "sa -t ${ticker} -b ${extract_loc} -g ${algo_module_path} -p ${history_loc}"
-sa -t ${ticker} -b ${extract_loc} -g ${algo_module_path} -p ${history_loc}
-xerr "Failed running ${ticker} backtest with ${extract_loc} using ${algo_module_path} to generate a trading history: ${history_loc}"
+
+echo "sa -t ${ticker} ${all_tool_args}"
+sa -t ${ticker} ${all_tool_args}
+xerr "Failed running ${ticker} backtest with extract=${extract_loc} load=${load_loc} using ${algo_module_path} to generate a trading history: ${history_loc}"
 
 echo ""
 echo "run again in the future with:"
-echo "sa -t ${ticker} -b ${extract_loc} -g ${algo_module_path} -p ${history_loc} ${use_params}"
+echo "sa -t ${ticker} ${all_tool_args}"
 
 exit 0

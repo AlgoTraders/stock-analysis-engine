@@ -99,6 +99,12 @@ use_history_loc=""
 use_report_loc=""
 use_load_loc=""
 
+found_algo_loc="0"
+found_extract_loc="0"
+found_history_loc="0"
+found_report_loc="0"
+found_load_loc="0"
+
 redis_address="localhost:6379"
 redis_db="0"
 s3_address="localhost:9000"
@@ -315,23 +321,29 @@ while getopts ":t:a:e:p:o:l:r:R:f:k:x:q:i:u:K:s:n:b:c:zwdjh" o; do
     a)
         algo_module_path=${OPTARG}
         algo_name=$(echo ${algo_module_path} | sed -e 's|/| |g' | awk '{print $NF}' | sed -e 's/\.py//g')
+        found_algo_loc="1"
         ;;
     e)
         extract_loc=${OPTARG}
         use_extract_loc="${OPTARG}"
         use_backup_loc="${OPTARG}"
+        found_extract_loc="1"
         ;;
     p)
         history_loc=${OPTARG}
         use_history_loc="${OPTARG}"
+        found_history_loc="1"
         ;;
     o)
         report_loc=${OPTARG}
         use_report_loc="${OPTARG}"
+        found_report_loc="1"
         ;;
     l)
         load_loc=${OPTARG}
         use_load_loc="${OPTARG}"
+        found_load_loc="1"
+        already_extracted="1"
         ;;
     r)
         redis_address=${OPTARG}
@@ -496,6 +508,58 @@ if [[ "${use_custom_bucket}" != "" ]]; then
     s3_backup_loc="${s3_transport_scheme}${use_custom_bucket}/${dataset_name}"
 fi
 
+use_algo_arg=""
+use_extract_arg=""
+use_history_arg=""
+use_report_arg=""
+use_load_arg=""
+all_tool_args=""
+
+if [[ "${found_algo_loc}" == "1" ]]; then
+    use_algo_arg="-g ${algo_module_path}"
+    if [[ "${all_tool_args}" == "" ]]; then
+        all_tool_args="${use_algo_arg}"
+    else
+        all_tool_args="${all_tool_args} ${use_algo_arg}"
+    fi
+fi
+
+if [[ "${found_extract_loc}" == "1" ]]; then
+    use_extract_arg="-e ${extract_loc}"
+    if [[ "${all_tool_args}" == "" ]]; then
+        all_tool_args="${use_extract_arg}"
+    else
+        all_tool_args="${all_tool_args} ${use_extract_arg}"
+    fi
+fi
+
+if [[ "${found_history_loc}" == "1" ]]; then
+    use_history_arg="-p ${history_loc}"
+    if [[ "${all_tool_args}" == "" ]]; then
+        all_tool_args="${use_history_arg}"
+    else
+        all_tool_args="${all_tool_args} ${use_history_arg}"
+    fi
+fi
+
+if [[ "${found_load_loc}" == "1" ]]; then
+    use_load_arg="-b ${load_loc}"
+    if [[ "${all_tool_args}" == "" ]]; then
+        all_tool_args="${use_load_arg}"
+    else
+        all_tool_args="${all_tool_args} ${use_load_arg}"
+    fi
+fi
+
+if [[ "${found_report_loc}" == "1" ]]; then
+    use_report_arg="-o ${report_loc}"
+    if [[ "${all_tool_args}" == "" ]]; then
+        all_tool_args="${use_report_arg}"
+    else
+        all_tool_args="${all_tool_args} ${use_report_arg}"
+    fi
+fi
+
 # helpers for quickly build command line args
 use_config_params=""
 use_date_params=""
@@ -509,6 +573,7 @@ if [[ "${algo_config_file}" != "" ]]; then
         use_params="${use_params} ${use_config_params}"
     fi
 fi
+
 if [[ "${start_date}" != "" ]] && [[ "${end_date}" != "" ]]; then
     found_date_params="1"
     use_date_params="-s ${start_date} -n ${end_date}"
@@ -517,6 +582,13 @@ if [[ "${start_date}" != "" ]] && [[ "${end_date}" != "" ]]; then
     else
         use_params="${use_params} ${use_date_params}"
     fi
+fi
+
+# new tools should just use: tool_args
+if [[ "${all_tool_args}" == "" ]]; then
+    all_tool_args="${use_params}"
+else
+    all_tool_args="${all_tool_args} ${use_params}"
 fi
 
 # Environment variables:

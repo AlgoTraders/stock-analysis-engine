@@ -4,20 +4,10 @@ as a dictionary that can be reviewed during or after an
 algorithm finishes running
 """
 
-from analysis_engine.consts import NOT_RUN
-from analysis_engine.consts import TRADE_ERROR
-from analysis_engine.consts import TRADE_NO_SHARES_TO_SELL
-from analysis_engine.consts import TRADE_PROFITABLE
-from analysis_engine.consts import TRADE_NOT_PROFITABLE
-from analysis_engine.consts import ALGO_ERROR
-from analysis_engine.consts import ALGO_PROFITABLE
-from analysis_engine.consts import ALGO_NOT_PROFITABLE
-from analysis_engine.consts import get_status
-from analysis_engine.consts import ppj
-from spylunking.log.setup_logging import build_colorized_logger
+import analysis_engine.consts as ae_consts
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def build_trade_history_entry(
@@ -294,8 +284,8 @@ def build_trade_history_entry(
         (work in progress)
     :param version: optional - version tracking order history
     """
-    status = NOT_RUN
-    algo_status = NOT_RUN
+    status = ae_consts.NOT_RUN
+    algo_status = ae_consts.NOT_RUN
     err = None
     net_gain = 0.0
     balance_net_gain = 0.0
@@ -306,6 +296,10 @@ def build_trade_history_entry(
 
     # latest price - start price of the algo
     price_change_since_start = close - algo_start_price
+
+    if close:
+        if close < 0.01:
+            status = ae_consts.INVALID
 
     history_dict = {
         'ticker': ticker,
@@ -394,9 +388,9 @@ def build_trade_history_entry(
         # single tickers will work for v1
         balance_net_gain = balance - original_balance
         if balance_net_gain > 0.0:
-            algo_status = ALGO_PROFITABLE
+            algo_status = ae_consts.ALGO_PROFITABLE
         else:
-            algo_status = ALGO_NOT_PROFITABLE
+            algo_status = ae_consts.ALGO_NOT_PROFITABLE
     else:
         history_dict['err'] = (
             '{} ds_id={} missing balance={} and '
@@ -405,14 +399,14 @@ def build_trade_history_entry(
                 ds_id,
                 balance,
                 original_balance))
-        algo_status = ALGO_ERROR
+        algo_status = ae_consts.ALGO_ERROR
     # if starting balance and original_balance exist
     # to determine algorithm trade profitability
 
     # if there are no shares to sell then
     # there's no current trade open
     if num_owned and num_owned < 1:
-        status = TRADE_NO_SHARES_TO_SELL
+        status = ae_consts.TRADE_NO_SHARES_TO_SELL
     else:
         if close < 0.01:
             history_dict['err'] = (
@@ -421,7 +415,7 @@ def build_trade_history_entry(
                     ticker,
                     ds_id,
                     close))
-            status = TRADE_ERROR
+            status = ae_consts.TRADE_ERROR
         elif algo_start_price < 0.01:
             history_dict['err'] = (
                 '{} ds_id={} algo_start_price={} must be greater '
@@ -429,13 +423,13 @@ def build_trade_history_entry(
                     ticker,
                     ds_id,
                     algo_start_price))
-            status = TRADE_ERROR
+            status = ae_consts.TRADE_ERROR
         else:
             price_net_gain = close - algo_start_price
             if price_net_gain > 0.0:
-                status = TRADE_PROFITABLE
+                status = ae_consts.TRADE_PROFITABLE
             else:
-                status = TRADE_NOT_PROFITABLE
+                status = ae_consts.TRADE_NOT_PROFITABLE
     # if starting price when algo started and close exist
     # determine if this trade profitability
 
@@ -456,9 +450,9 @@ def build_trade_history_entry(
             ticker,
             ds_id,
             date,
-            get_status(status=history_dict['algo_status']),
-            get_status(status=history_dict['status']),
-            ppj(history_dict)))
+            ae_consts.get_status(status=history_dict['algo_status']),
+            ae_consts.get_status(status=history_dict['status']),
+            ae_consts.ppj(history_dict)))
 
     return history_dict
 # end of build_trade_history_entry

@@ -78,23 +78,31 @@ Use this command to start a local backtest with the included `algorithm config <
 
 ::
 
-    sa -t SPY -c tests/algo_configs/test_5_days_ahead.json -e file:/tmp/algoready-SPY-latest.json
+    ticker=SPY
+    algo_config=tests/algo_configs/test_5_days_ahead.json
+    extract_loc=file:/tmp/algoready-SPY-latest.json
+    history_loc=file:/tmp/history-SPY-latest.json
+    run-algo-history-to-file.sh -t ${ticker} -c ${algo_config} -e ${extract_loc} -p ${history_loc}
 
 Run a Local Backtest using an Algorithm Config and an Algorithm-Ready Dataset
 =============================================================================
 
-After generating the local algorithm-ready dataset, use this command to run another backtest using the ready-to-go file on disk:
+After generating the local algorithm-ready dataset (which can take time), use this command to run another backtest using the ready-to-go file on disk:
 
 ::
 
-    sa -t SPY -c tests/algo_configs/test_5_days_ahead.json -b file:/tmp/algoready-SPY-latest.json
+    ticker=SPY
+    algo_config=tests/algo_configs/test_5_days_ahead.json
+    load_loc=file:/tmp/algoready-SPY-latest.json
+    history_loc=file:/tmp/2history-SPY-latest.json
+    run-algo-history-to-file.sh -t ${ticker} -c ${algo_config} -l ${load_loc} -p ${history_loc}
 
 View Buy and Sell Transactions
 ------------------------------
 
 ::
 
-    sa -t SPY -c tests/algo_configs/test_5_days_ahead.json -b file:/tmp/algoready-SPY-latest.json | grep "TRADE"
+    run-algo-history-to-file.sh -t ${ticker} -c ${algo_config} -l ${load_loc} -p ${history_loc} | grep "TRADE"
 
 Developing on AWS
 =================
