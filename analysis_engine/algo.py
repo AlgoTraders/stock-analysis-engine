@@ -883,8 +883,8 @@ class BaseAlgo:
         self.latest_ind_report = None
         self.latest_buys = []  # latest indicators saying buy
         self.latest_sells = []  # latest indicators saying sell
-        self.num_latest_buys = 0  # latest indicators saying buy
-        self.num_latest_sells = 0  # latest indicators saying sell
+        self.num_latest_buys = 0  # latest number of indicators saying buy
+        self.num_latest_sells = 0  # latest number of indicators saying sell
         self.min_buy_indicators = 0
         self.min_sell_indicators = 0
         self.buy_rules = {}
@@ -895,6 +895,13 @@ class BaseAlgo:
         self.ignore_history_keys = [
             'total_buys',
             'total_sells'
+        ]
+        self.ind_conf_ignore_keys = [
+            'buys',
+            'date',
+            'id',
+            'sells',
+            'ticker'
         ]
 
         self.load_from_config(
@@ -2026,6 +2033,10 @@ class BaseAlgo:
             sell_triggered=self.should_sell,
             sell_strength=self.sell_strength,
             sell_risk=self.sell_risk,
+            num_indicators_buy=self.num_latest_buys,
+            num_indicators_sell=self.num_latest_sells,
+            min_buy_indicators=self.min_buy_indicators,
+            min_sell_indicators=self.min_sell_indicators,
             note=self.note,
             ds_id=self.ds_id,
             version=self.version)
@@ -2788,7 +2799,6 @@ class BaseAlgo:
                         algo_id=algo_id,
                         ticker=self.ticker,
                         dataset=node)
-
                     self.latest_buys = self.latest_ind_report.get(
                         'buys',
                         [])
@@ -2828,6 +2838,15 @@ class BaseAlgo:
                         node.get('id', 'missing-id')))
                 self.last_history_dict = self.get_trade_history_node()
                 if self.last_history_dict:
+                    if self.latest_ind_report:
+                        ind_configurables = copy.deepcopy(
+                            self.latest_ind_report)
+                        for ignore_key in self.ind_conf_ignore_keys:
+                            ind_configurables.pop(
+                                ignore_key,
+                                None)
+                        self.last_history_dict.update(
+                            ind_configurables)
                     self.order_history.append(self.last_history_dict)
                 self.debug_msg = (
                     '{} END - history id={}'.format(

@@ -76,33 +76,38 @@ Run a Local Backtest using an Algorithm Config and Extract an Algorithm-Ready Da
 
 Use this command to start a local backtest with the included `algorithm config <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/tests/algo_configs/test_5_days_ahead.json>`__. This backtest will also generate a local algorithm-ready dataset file once the backtest finishes.
 
-::
+#.  Define common values
 
-    ticker=SPY
-    algo_config=tests/algo_configs/test_5_days_ahead.json
-    extract_loc=file:/tmp/algoready-SPY-latest.json
-    history_loc=file:/tmp/history-SPY-latest.json
-    run-algo-history-to-file.sh -t ${ticker} -c ${algo_config} -e ${extract_loc} -p ${history_loc}
+    ::
+
+        ticker=SPY
+        algo_config=tests/algo_configs/test_5_days_ahead.json
+        extract_loc=file:/tmp/algoready-SPY-latest.json
+        history_loc=file:/tmp/history-SPY-latest.json
+        load_loc=${extract_loc}
+
+#.  Run Algo with Extraction and History Publishing
+
+    ::
+
+        run-algo-history-to-file.sh -t ${ticker} -c ${algo_config} -e ${extract_loc} -p ${history_loc}
 
 Run a Local Backtest using an Algorithm Config and an Algorithm-Ready Dataset
 =============================================================================
 
-After generating the local algorithm-ready dataset (which can take time), use this command to run another backtest using the ready-to-go file on disk:
+After generating the local algorithm-ready dataset (which can take some time), use this command to run another backtest using the file on disk:
 
 ::
 
-    ticker=SPY
-    algo_config=tests/algo_configs/test_5_days_ahead.json
-    load_loc=file:/tmp/algoready-SPY-latest.json
-    history_loc=file:/tmp/2history-SPY-latest.json
-    run-algo-history-to-file.sh -t ${ticker} -c ${algo_config} -l ${load_loc} -p ${history_loc}
+    dev_history_loc=file:/tmp/dev-history-SPY-latest.json
+    run-algo-history-to-file.sh -t ${ticker} -c ${algo_config} -l ${load_loc} -p ${dev_history_loc}
 
 View Buy and Sell Transactions
 ------------------------------
 
 ::
 
-    run-algo-history-to-file.sh -t ${ticker} -c ${algo_config} -l ${load_loc} -p ${history_loc} | grep "TRADE"
+    run-algo-history-to-file.sh -t ${ticker} -c ${algo_config} -l ${load_loc} -p ${dev_history_loc} | grep "TRADE"
 
 Developing on AWS
 =================

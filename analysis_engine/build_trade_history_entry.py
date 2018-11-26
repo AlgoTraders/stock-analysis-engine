@@ -81,6 +81,10 @@ def build_trade_history_entry(
         sell_triggered=None,
         sell_strength=None,
         sell_risk=None,
+        num_indicators_buy=None,
+        num_indicators_sell=None,
+        min_buy_indicators=None,
+        min_sell_indicators=None,
         ds_id=None,
         note=None,
         err=None,
@@ -272,6 +276,18 @@ def build_trade_history_entry(
         custom risk rating for tuning algorithm
         peformance for avoiding custom risk for buy
         conditions
+    :param num_indicators_buy: optional - integer
+        number of indicators the ``IndicatorProcessor``
+        processed and said to ``buy`` an asset
+    :param num_indicators_sell: optional - integer
+        number of indicators the ``IndicatorProcessor``
+        processed and said to ``sell`` an asset
+    :param min_buy_indicators: optional - integer
+        minimum number of indicators required to trigger
+        a ``buy`` order
+    :param min_sell_indicators: optional - integer
+        minimum number of indicators required to trigger
+        a ``sell`` order
     :param ds_id: optional - datset id for debugging
     :param note: optional - string for tracking high level
         testing notes on algorithm indicator ratings and
@@ -308,6 +324,10 @@ def build_trade_history_entry(
         'original_balance': original_balance,
         'status': status,
         'algo_status': algo_status,
+        'num_indicators_buy': num_indicators_buy,
+        'num_indicators_sell': num_indicators_sell,
+        'min_buy_indicators': min_buy_indicators,
+        'min_sell_indicators': min_sell_indicators,
         'ds_id': ds_id,
         'num_owned': num_owned,
         'close': close,

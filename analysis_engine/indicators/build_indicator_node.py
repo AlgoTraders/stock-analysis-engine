@@ -43,7 +43,7 @@ def build_indicator_node(
                 node))
     # end of name check
 
-    ind_id = str(uuid.uuid4())
+    ind_id = str(uuid.uuid4()).replace('-', '')
     uses_dataset_str = node.get(
         'uses_data',
         'daily')
