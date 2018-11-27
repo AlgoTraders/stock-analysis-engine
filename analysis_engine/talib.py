@@ -2,7 +2,7 @@
 TA-Lib wrappers
 """
 
-# for unittests, allow passing the mocks into the runtime
+# for unittests, allow passing the mocks into the runtime if not found
 try:
     import talib
 except Exception:
@@ -21,8 +21,8 @@ def WILLR(
         verbose=False):
     """WILLR
 
-    build a mock wiliams r object
-    to test indicators using the talib
+    Wrapper for talib.WILLR for running unittests
+    on ci/cd tools that do not provide talib
 
     :param high: hostname
     :param low: port
