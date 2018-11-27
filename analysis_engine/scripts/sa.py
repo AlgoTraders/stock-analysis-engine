@@ -74,8 +74,11 @@ import argparse
 import celery
 import analysis_engine.consts as ae_consts
 import analysis_engine.charts as ae_charts
+import analysis_engine.plot_trading_history as plot_trading_history
 import analysis_engine.iex.extract_df_from_redis as extract_utils
 import analysis_engine.show_dataset as show_dataset
+import analysis_engine.load_history_dataset_from_file as load_history
+import analysis_engine.load_report_dataset_from_file as load_report
 import analysis_engine.restore_dataset as restore_dataset
 import analysis_engine.work_tasks.prepare_pricing_dataset as prep_dataset
 import analysis_engine.work_tasks.get_celery_app as get_celery_app
@@ -199,21 +202,82 @@ def examine_dataset_in_file(
         log.info(
             'show start - load dataset from file={}'.format(
                 path_to_file))
+        show_dataset.show_dataset(
+            path_to_file=path_to_file,
+            compress=compress,
+            encoding=encoding,
+            dataset_type=dataset_type,
+            serialize_datasets=serialize_datasets)
+        log.info(
+            'show done - dataset in file={}'.format(
+                path_to_file))
+    elif dataset_type == ae_consts.SA_DATASET_TYPE_TRADING_HISTORY:
+        log.info(
+            'load trading history dataset '
+            'from file={}'.format(
+                path_to_file))
+        trading_history_dict = load_history.load_history_dataset_from_file(
+            path_to_file=path_to_file,
+            compress=compress,
+            encoding=encoding)
+        history_df = trading_history_dict[ticker]
+
+        first_date = history_df['date'].iloc[0]
+        end_date = history_df['date'].iloc[-1]
+        title = (
+            'Trading History {} for Algo {}\n'
+            'Backtest dates from {} to {}'.format(
+                ticker,
+                trading_history_dict['algo_name'],
+                first_date,
+                end_date))
+        xcol = 'date'
+        xlabel = 'Dates vs {} values'.format(
+            trading_history_dict['algo_name'])
+        ylabel = 'Algo Values from columns:\n{}'.format(
+            trading_history_dict['algo_name'],
+            list(history_df.columns.values))
+        df_filter = (history_df['close'] > 0.01)
+
+        # set default hloc columns:
+        red = 'close'
+        blue = 'low'
+        green = 'high'
+        orange = 'open'
+
+        log.info(
+            'available columns to plot in dataset: {}'.format(
+                ae_consts.ppj(list(history_df.columns.values))))
+
+        plot_trading_history.plot_trading_history(
+            title=title,
+            df=history_df,
+            red=red,
+            blue=blue,
+            green=green,
+            orange=orange,
+            date_col=xcol,
+            xlabel=xlabel,
+            ylabel=ylabel,
+            df_filter=df_filter,
+            show_plot=True,
+            dropna_for_all=False)
+    elif dataset_type == ae_consts.SA_DATASET_TYPE_TRADING_REPORT:
+        log.info(
+            'load trading performance report dataset '
+            'from file={}'.format(
+                path_to_file))
+        trading_report_dict = load_report.load_report_dataset_from_file(
+            path_to_file=path_to_file,
+            compress=compress,
+            encoding=encoding)
+        print(trading_report_dict)
     else:
         log.error(
             'show unsupported dataset type={} for file={}'.format(
                 dataset_type,
                 path_to_file))
         return
-    show_dataset.show_dataset(
-        path_to_file=path_to_file,
-        compress=compress,
-        encoding=encoding,
-        dataset_type=dataset_type,
-        serialize_datasets=serialize_datasets)
-    log.info(
-        'show done - dataset in file={}'.format(
-            path_to_file))
 # end of examine_dataset_in_file
 
 
@@ -249,6 +313,18 @@ def run_sa_tool():
             'show dataset in this file'),
         required=False,
         dest='show_from_file')
+    parser.add_argument(
+        '-H',
+        help=(
+            'show trading history dataset in this file'),
+        required=False,
+        dest='show_history_from_file')
+    parser.add_argument(
+        '-E',
+        help=(
+            'show trading performance report dataset in this file'),
+        required=False,
+        dest='show_report_from_file')
     parser.add_argument(
         '-L',
         help=(
@@ -494,6 +570,8 @@ def run_sa_tool():
 
     run_on_engine = False
     show_from_file = None
+    show_history_from_file = None
+    show_report_from_file = None
     restore_algo_file = None
     backtest_loc = None
     use_custom_algo = False
@@ -563,6 +641,12 @@ def run_sa_tool():
     if args.show_from_file:
         show_from_file = args.show_from_file
         mode = ae_consts.SA_MODE_SHOW_DATASET
+    if args.show_history_from_file:
+        show_history_from_file = args.show_history_from_file
+        mode = ae_consts.SA_MODE_SHOW_HISTORY_DATASET
+    if args.show_report_from_file:
+        show_report_from_file = args.show_report_from_file
+        mode = ae_consts.SA_MODE_SHOW_REPORT_DATASET
     if args.restore_algo_file:
         restore_algo_file = args.restore_algo_file
         mode = ae_consts.SA_MODE_RESTORE_REDIS_DATASET
@@ -698,6 +782,28 @@ def run_sa_tool():
             path_to_file=show_from_file)
         log.info(
             'done showing {} dataset from file={}'.format(
+                ticker,
+                show_from_file))
+        sys.exit(0)
+    elif mode == ae_consts.SA_MODE_SHOW_HISTORY_DATASET:
+        examine_dataset_in_file(
+            ticker=ticker,
+            dataset_type=ae_consts.SA_DATASET_TYPE_TRADING_HISTORY,
+            path_to_file=show_history_from_file)
+        log.info(
+            'done showing trading history {} dataset from '
+            'file={}'.format(
+                ticker,
+                show_from_file))
+        sys.exit(0)
+    elif mode == ae_consts.SA_MODE_SHOW_REPORT_DATASET:
+        examine_dataset_in_file(
+            ticker=ticker,
+            dataset_type=ae_consts.SA_DATASET_TYPE_TRADING_REPORT,
+            path_to_file=show_report_from_file)
+        log.info(
+            'done showing trading performance report {} dataset from '
+            'file={}'.format(
                 ticker,
                 show_from_file))
         sys.exit(0)

@@ -2610,7 +2610,7 @@ class BaseAlgo:
 
         try:
             if hasattr(self.df_daily, 'index'):
-                columns = self.df_daily.columns.values
+                columns = list(self.df_daily.columns.values)
                 if 'high' in columns:
                     self.today_high = float(
                         self.df_daily.iloc[-1]['high'])
@@ -2635,7 +2635,7 @@ class BaseAlgo:
                         self.df_daily.iloc[-1]['volume'])
                     self.latest_volume = self.today_volume
             if hasattr(self.df_minute, 'index'):
-                columns = self.df_minute.columns.values
+                columns = list(self.df_minute.columns.values)
                 if 'high' in columns:
                     self.latest_high = float(
                         self.df_minute.iloc[-1]['high'])

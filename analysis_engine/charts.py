@@ -16,44 +16,48 @@ import datetime
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import seaborn as sns
+import analysis_engine.consts as ae_consts
 import analysis_engine.build_result as build_result
-from spylunking.log.setup_logging import build_colorized_logger
-from analysis_engine.consts import SUCCESS
-from analysis_engine.consts import NOT_RUN
-from analysis_engine.consts import ERR
-from analysis_engine.consts import PLOT_COLORS
-from analysis_engine.consts import IEX_MINUTE_DATE_FORMAT
-from analysis_engine.consts import ev
-from analysis_engine.consts import get_status
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def add_footnote(
         fig=None,
         xpos=0.90,
-        ypos=0.01):
-    """pd_add_footnote
+        ypos=0.01,
+        text=None,
+        color='#888888',
+        fontsize=8):
+    """add_footnote
 
     Add a footnote based off the environment key:
     ``PLOT_FOOTNOTE``
 
     :param fig: add the footnote to this figure object
+    :param xpos: x-axes position
+    :param ypos: y-axis position
+    :param text: text in the footnote
+    :param color: font color
+    :param fontsize: text size for the footnote text
     """
     if not fig:
         return
 
-    footnote_text = ev(
-        'PLOT_FOOTNOTE',
-        'algotraders')
+    use_footnote = text
+    if not use_footnote:
+        use_footnote = ae_consts.ev(
+            'PLOT_FOOTNOTE',
+            'algotraders')
+
     fig.text(
-        0.90,
-        0.01,
-        footnote_text,
+        xpos,
+        ypos,
+        use_footnote,
         va='bottom',
-        fontsize=8,
-        color='#888888')
+        fontsize=fontsize,
+        color=color)
 # end of add_footnote
 
 
@@ -102,10 +106,10 @@ def send_final_log(
         'err={}'.format(
             log_label,
             fn_name,
-            get_status(result['status']),
+            ae_consts.get_status(result['status']),
             result['err']))
 
-    if result['status'] == ERR:
+    if result['status'] == ae_consts.ERR:
         log.error(str_result)
     else:
         log.info(str_result)
@@ -182,10 +186,10 @@ def plot_overlay_pricing_and_volume(
         df,
         xlabel=None,
         ylabel=None,
-        high_color=PLOT_COLORS['high'],
-        close_color=PLOT_COLORS['blue'],
-        volume_color=PLOT_COLORS['green'],
-        date_format=IEX_MINUTE_DATE_FORMAT,
+        high_color=ae_consts.PLOT_COLORS['high'],
+        close_color=ae_consts.PLOT_COLORS['blue'],
+        volume_color=ae_consts.PLOT_COLORS['green'],
+        date_format=ae_consts.IEX_MINUTE_DATE_FORMAT,
         show_plot=True,
         dropna_for_all=True):
     """plot_overlay_pricing_and_volume
@@ -209,13 +213,13 @@ def plot_overlay_pricing_and_volume(
     :param close_color: optional - close plot color
     :param volume_color: optional - volume color
     :param data_format: optional - date format string this must
-                        be a valid value for the ``df['date']`` column
-                        that would work with:
-                        ``datetime.datetime.stftime(date_format)``
+        be a valid value for the ``df['date']`` column
+        that would work with:
+        ``datetime.datetime.stftime(date_format)``
     :param show_plot: optional - bool to show the plot
     :param dropna_for_all: optional - bool to toggle keep None's in
-                           the plot ``df`` (default is drop them
-                           for display purposes)
+        the plot ``df`` (default is drop them
+        for display purposes)
     """
 
     rec = {
@@ -224,7 +228,7 @@ def plot_overlay_pricing_and_volume(
         'ax2': None
     }
     result = build_result.build_result(
-        status=NOT_RUN,
+        status=ae_consts.NOT_RUN,
         err=None,
         rec=rec)
 
@@ -352,7 +356,7 @@ def plot_overlay_pricing_and_volume(
         rec['ax2'] = ax2
 
         result = build_result.build_result(
-            status=SUCCESS,
+            status=ae_consts.SUCCESS,
             err=None,
             rec=rec)
 
@@ -362,7 +366,7 @@ def plot_overlay_pricing_and_volume(
             'and volume with ex={}'.format(
                 e))
         result = build_result.build_result(
-            status=ERR,
+            status=ae_consts.ERR,
             err=err,
             rec=rec)
     # end of try/ex
@@ -402,7 +406,7 @@ def plot_hloc_pricing(
         'fig': None
     }
     result = build_result.build_result(
-        status=NOT_RUN,
+        status=ae_consts.NOT_RUN,
         err=None,
         rec=rec)
 
@@ -433,25 +437,25 @@ def plot_hloc_pricing(
             use_df['date'],
             use_df['high'],
             label='High',
-            color=PLOT_COLORS['high'],
+            color=ae_consts.PLOT_COLORS['high'],
             alpha=0.4)
         plt.plot(
             use_df['date'],
             use_df['low'],
             label='Low',
-            color=PLOT_COLORS['low'],
+            color=ae_consts.PLOT_COLORS['low'],
             alpha=0.4)
         plt.plot(
             use_df['date'],
             use_df['close'],
             label='Close',
-            color=PLOT_COLORS['close'],
+            color=ae_consts.PLOT_COLORS['close'],
             alpha=0.4)
         plt.plot(
             use_df['date'],
             use_df['open'],
             label='Open',
-            color=PLOT_COLORS['open'],
+            color=ae_consts.PLOT_COLORS['open'],
             alpha=0.4)
 
         xlabel = 'Dates'
@@ -497,7 +501,7 @@ def plot_hloc_pricing(
         rec['fig'] = fig
 
         result = build_result.build_result(
-            status=SUCCESS,
+            status=ae_consts.SUCCESS,
             err=None,
             rec=rec)
 
@@ -507,7 +511,7 @@ def plot_hloc_pricing(
                 e))
         log.error(err)
         result = build_result.build_result(
-            status=ERR,
+            status=ae_consts.ERR,
             err=err,
             rec=rec)
     # end of try/ex
@@ -534,7 +538,6 @@ def plot_df(
         show_plot=True,
         dropna_for_all=True):
     """plot_df
-
     :param log_label: log identifier
     :param title: title of the plot
     :param column_list: list of columns in the df to show
@@ -555,7 +558,7 @@ def plot_df(
         'fig': None
     }
     result = build_result.build_result(
-        status=NOT_RUN,
+        status=ae_consts.NOT_RUN,
         err=None,
         rec=rec)
 
@@ -579,7 +582,7 @@ def plot_df(
 
         set_common_seaborn_fonts()
 
-        hex_color = PLOT_COLORS['blue']
+        hex_color = ae_consts.PLOT_COLORS['blue']
         fig, ax = plt.subplots(figsize=(15.0, 10.0))
 
         if linestyle == '-':
@@ -633,7 +636,7 @@ def plot_df(
         rec['fig'] = fig
 
         result = build_result.build_result(
-            status=SUCCESS,
+            status=ae_consts.SUCCESS,
             err=None,
             rec=rec)
 
@@ -643,7 +646,7 @@ def plot_df(
                 title,
                 e))
         result = build_result.build_result(
-            status=ERR,
+            status=ae_consts.ERR,
             err=err,
             rec=rec)
     # end of try/ex
@@ -687,7 +690,7 @@ def dist_plot(
 
     rec = {}
     result = build_result.build_result(
-        status=NOT_RUN,
+        status=ae_consts.NOT_RUN,
         err=None,
         rec=rec)
 
@@ -720,7 +723,7 @@ def dist_plot(
 
         sns.distplot(
             use_df,
-            color=PLOT_COLORS['blue'],
+            color=ae_consts.PLOT_COLORS['blue'],
             ax=ax)
 
         if xlabel != '':
@@ -745,7 +748,7 @@ def dist_plot(
         rec['fig'] = fig
 
         result = build_result.build_result(
-            status=SUCCESS,
+            status=ae_consts.SUCCESS,
             err=None,
             rec=rec)
 
@@ -756,7 +759,7 @@ def dist_plot(
                 e))
         log.error(err)
         result = build_result.build_result(
-            status=ERR,
+            status=ae_consts.ERR,
             err=err,
             rec=rec)
     # end of try/ex

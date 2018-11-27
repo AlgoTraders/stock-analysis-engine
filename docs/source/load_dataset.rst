@@ -14,3 +14,9 @@ Load Trading History Dataset
 
 .. automodule:: analysis_engine.load_history_dataset_from_file
    :members: load_history_dataset_from_file
+
+Dataset Tools - Plot Dataset
+============================
+
+.. automodule:: analysis_engine.plot_trading_history
+   :members: plot_trading_history

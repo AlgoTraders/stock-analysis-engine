@@ -114,6 +114,18 @@ View Buy and Sell Transactions
 
     run-algo-history-to-file.sh -t ${ticker} -c ${algo_config} -l ${load_loc} -p ${dev_history_loc} | grep "TRADE"
 
+Plot Trading History Tools
+==========================
+
+Plot Timeseries Trading History with High + Low + Open + Close
+--------------------------------------------------------------
+
+::
+
+    sa -t SPY -H ${dev_history_loc}
+
+Jupyter notebook coming soon!
+
 Developing on AWS
 =================
 
