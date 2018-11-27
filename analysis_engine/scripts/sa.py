@@ -74,6 +74,7 @@ import argparse
 import celery
 import analysis_engine.consts as ae_consts
 import analysis_engine.charts as ae_charts
+import analysis_engine.plot_trading_history as plot_trading_history
 import analysis_engine.iex.extract_df_from_redis as extract_utils
 import analysis_engine.show_dataset as show_dataset
 import analysis_engine.load_history_dataset_from_file as load_history
@@ -233,23 +234,32 @@ def examine_dataset_in_file(
         xcol = 'date'
         xlabel = 'Dates vs {} values'.format(
             trading_history_dict['algo_name'])
-        ylabel = 'Algo Values'.format(
-            trading_history_dict['algo_name'])
-        column_list = [
-            xcol,
-            'close',
-            'high',
-            'low'
-        ]
-        print(history_df[column_list])
-        ae_charts.plot_history_df(
-            log_label='trading history',
+        ylabel = 'Algo Values from columns:\n{}'.format(
+            trading_history_dict['algo_name'],
+            list(history_df.columns.values))
+        df_filter = (history_df['close'] > 0.01)
+
+        # set default hloc columns:
+        red = 'close'
+        blue = 'low'
+        green = 'high'
+        orange = 'open'
+
+        log.info(
+            'available columns to plot in dataset: {}'.format(
+                ae_consts.ppj(list(history_df.columns.values))))
+
+        plot_trading_history.plot_trading_history(
             title=title,
-            column_list=column_list,
-            xcol=xcol,
+            df=history_df,
+            red=red,
+            blue=blue,
+            green=green,
+            orange=orange,
+            date_col=xcol,
             xlabel=xlabel,
             ylabel=ylabel,
-            df=history_df,
+            df_filter=df_filter,
             show_plot=True,
             dropna_for_all=False)
     elif dataset_type == ae_consts.SA_DATASET_TYPE_TRADING_REPORT:
@@ -257,11 +267,11 @@ def examine_dataset_in_file(
             'load trading performance report dataset '
             'from file={}'.format(
                 path_to_file))
-        trading_history_dict = load_report.load_report_dataset_from_file(
+        trading_report_dict = load_report.load_report_dataset_from_file(
             path_to_file=path_to_file,
             compress=compress,
             encoding=encoding)
-        print(trading_history_dict)
+        print(trading_report_dict)
     else:
         log.error(
             'show unsupported dataset type={} for file={}'.format(
