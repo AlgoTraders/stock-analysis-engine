@@ -1,5 +1,5 @@
 """
-Helper for loading ``Trading History`` dataset from a file
+Helper for loading ``Trading Performance Report`` dataset from a file
 
 **Supported environment variables**
 
@@ -12,22 +12,23 @@ Helper for loading ``Trading History`` dataset from a file
     export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
 """
 
-import analysis_engine.prepare_history_dataset as prepare_history
+import analysis_engine.prepare_report_dataset as prepare_report
 import spylunking.log.setup_logging as log_utils
 
 log = log_utils.build_colorized_logger(name=__name__)
 
 
-def load_history_dataset_from_file(
+def load_report_dataset_from_file(
         path_to_file,
         compress=False,
         encoding='utf-8'):
-    """load_history_dataset_from_file
+    """load_report_dataset_from_file
 
-    Load a ``Trading History`` dataset from a local file
+    Load an ``Trading Performance Report`` dataset
+    from a local file
 
     :param path_to_file: string - path to file holding an
-        ``Trading History`` dataset
+        ``Trading Performance Report`` dataset
     :param compress: optional - boolean flag for decompressing
         the contents of the ``path_to_file`` if necessary
         (default is ``False`` and algorithms
@@ -44,9 +45,9 @@ def load_history_dataset_from_file(
             path_to_file))
         return None
 
-    return prepare_history.prepare_history_dataset(
+    return prepare_report.prepare_report_dataset(
         data=data_from_file,
         compress=compress,
         convert_to_dict=True,
         encoding=encoding)
-# end of load_history_dataset_from_file
+# end of load_report_dataset_from_file

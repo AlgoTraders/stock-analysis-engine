@@ -209,13 +209,13 @@ def plot_overlay_pricing_and_volume(
     :param close_color: optional - close plot color
     :param volume_color: optional - volume color
     :param data_format: optional - date format string this must
-                        be a valid value for the ``df['date']`` column
-                        that would work with:
-                        ``datetime.datetime.stftime(date_format)``
+        be a valid value for the ``df['date']`` column
+        that would work with:
+        ``datetime.datetime.stftime(date_format)``
     :param show_plot: optional - bool to show the plot
     :param dropna_for_all: optional - bool to toggle keep None's in
-                           the plot ``df`` (default is drop them
-                           for display purposes)
+        the plot ``df`` (default is drop them
+        for display purposes)
     """
 
     rec = {
@@ -521,6 +521,249 @@ def plot_hloc_pricing(
 # end of plot_hloc_pricing
 
 
+def plot_history_df(
+        log_label,
+        title,
+        column_list,
+        df,
+        xcol='date',
+        xlabel='Date',
+        ylabel='Pricing',
+        linestyle='-',
+        color='blue',
+        show_plot=True,
+        dropna_for_all=False):
+    """plot_history_df
+
+    Plot columns up to 4 lines from the ``Trading History`` dataset
+
+    :param log_label: log identifier
+    :param title: title of the plot
+    :param column_list: list of columns in the df to show
+    :param df: initialized ``pandas.DataFrame``
+    :param xcol: x-axis column in the initialized ``pandas.DataFrame``
+    :param xlabel: x-axis label
+    :param ylabel: y-axis label
+    :param linestyle: style of the plot line
+    :param color: color to use
+    :param show_plot: bool to show the plot
+    :param dropna_for_all: optional - bool to toggle keep None's in
+        the plot ``df`` (default is drop them
+        for display purposes)
+    """
+
+    rec = {
+        'ax': None,
+        'fig': None
+    }
+    result = build_result.build_result(
+        status=NOT_RUN,
+        err=None,
+        rec=rec)
+
+    try:
+
+        log.info(
+            '{} - '
+            'plot_history_df'
+            ' - start'.format(
+                log_label))
+
+        use_df = df
+        if dropna_for_all:
+            log.info(
+                '{} - '
+                'plot_history_df'
+                ' - dropna_for_all'.format(
+                    log_label))
+            use_df = df.dropna(axis=0, how='any')
+        # end of pre-plot dataframe scrubbing
+
+        set_common_seaborn_fonts()
+
+        hex_color = PLOT_COLORS['blue']
+        fig, ax = plt.subplots(figsize=(15.0, 10.0))
+
+        if linestyle == '-':
+            use_df[column_list].plot(
+                x=xcol,
+                linestyle=linestyle,
+                ax=ax,
+                color=hex_color,
+                rot=0)
+        else:
+            use_df[column_list].plot(
+                kind='bar',
+                x=xcol,
+                ax=ax,
+                color=hex_color,
+                rot=0)
+
+        # Build out the xtick chart by the dates
+        ax.xaxis.grid(True, which='minor')
+        ax.fmt_xdata = mdates.DateFormatter("%d\n%b")
+        ax.xaxis.set_minor_formatter(ax.fmt_xdata)
+
+        show_with_entities(
+            log_label=log_label,
+            xlabel=xlabel,
+            ylabel=ylabel,
+            title=title,
+            ax=ax,
+            fig=fig,
+            show_plot=show_plot)
+
+        rec['ax'] = ax
+        rec['fig'] = fig
+
+        """
+        log.info(
+            '{} - '
+            'plot_overlay_pricing_and_volume'
+            ' - start'.format(
+                log_label))
+
+        set_common_seaborn_fonts()
+
+        use_df = df
+        if dropna_for_all:
+            log.info(
+                '{} - '
+                'plot_overlay_pricing_and_volume'
+                ' - dropna_for_all'.format(
+                    log_label))
+            use_df = df.dropna(axis=0, how='any')
+        # end of pre-plot dataframe scrubbing
+
+        fig, ax = plt.subplots(
+            sharex=True,
+            sharey=True,
+            figsize=(15.0, 10.0))
+        ax.plot(
+            use_df['date'],
+            use_df['close'],
+            color=close_color)
+        ax.plot(
+            use_df['date'],
+            use_df['high'],
+            color=high_color)
+
+        # use a second axis to display the
+        # volume since it is in a different range
+        # this will fill under the
+        # volume's y values as well
+        ax2 = ax.twinx()
+        ax2.plot(
+            use_df['date'],
+            use_df['volume'],
+            linestyle='-',
+            color=volume_color,
+            alpha=0.6)
+        ax2.fill_between(
+            use_df['date'].values,
+            0,
+            use_df['volume'].values,
+            color=volume_color,
+            alpha=0.5)
+        # setup the second plot for volume
+        ax2.set_ylim([0, ax2.get_ylim()[1] * 3])
+
+        plt.grid(True)
+        use_xlabel = xlabel
+        use_ylabel = ylabel
+        if not use_xlabel:
+            xlabel = 'Minute Dates'
+        if not use_ylabel:
+            ylabel = '{} High and Close Prices'.format(
+                ticker)
+        plt.xlabel(use_xlabel)
+        plt.ylabel(use_ylabel)
+
+        # Build a date vs Close DataFrame
+        start_date = ''
+        end_date = ''
+        try:
+            start_date = str(use_df.iloc[0]['date'].strftime(date_format))
+            end_date = str(use_df.iloc[-1]['date'].strftime(date_format))
+        except Exception as f:
+            date_format = '%Y-%m-%d'
+            start_date = str(use_df.iloc[0]['date'].strftime(date_format))
+            end_date = str(use_df.iloc[-1]['date'].strftime(date_format))
+
+        use_title = (
+            '{} Pricing from: {} to {}'.format(
+                ticker,
+                start_date,
+                end_date))
+        ax.set_title(use_title)
+
+        # Merge in the second axis (volume) Legend
+        handles, labels = plt.gca().get_legend_handles_labels()
+        newLabels, newHandles = [], []
+        for handle, label in zip(handles, labels):
+            if label not in newLabels:
+                newLabels.append(label)
+                newHandles.append(handle)
+        lines = ax.get_lines() + ax2.get_lines() + newHandles
+        ax.legend(
+            lines,
+            [l.get_label() for l in lines],
+            loc='best',
+            shadow=True)
+
+        # Build out the xtick chart by the dates
+        ax.xaxis.grid(True, which='minor')
+        ax.fmt_xdata = mdates.DateFormatter(date_format)
+        ax.xaxis.set_major_formatter(ax.fmt_xdata)
+        ax.xaxis.set_minor_formatter(ax.fmt_xdata)
+
+        # turn off the grids on volume
+        ax2.fmt_xdata = mdates.DateFormatter(date_format)
+        ax2.xaxis.grid(False)
+        ax2.yaxis.grid(False)
+        ax2.yaxis.set_ticklabels([])
+
+        fig.autofmt_xdate()
+
+        show_with_entities(
+            log_label=log_label,
+            xlabel=xlabel,
+            ylabel=ylabel,
+            title=use_title,
+            ax=ax,
+            fig=fig,
+            show_plot=show_plot)
+
+        rec['fig'] = fig
+        rec['ax'] = ax
+        rec['ax2'] = ax2
+        """
+
+        result = build_result.build_result(
+            status=SUCCESS,
+            err=None,
+            rec=rec)
+
+    except Exception as e:
+        err = (
+            'failed plot_history_df title={} with ex={}'.format(
+                title,
+                e))
+        result = build_result.build_result(
+            status=ERR,
+            err=err,
+            rec=rec)
+    # end of try/ex
+
+    send_final_log(
+        log_label=log_label,
+        fn_name='plot_history_df',
+        result=result)
+
+    return result
+# end of plot_history_df
+
+
 def plot_df(
         log_label,
         title,
@@ -534,7 +777,6 @@ def plot_df(
         show_plot=True,
         dropna_for_all=True):
     """plot_df
-
     :param log_label: log identifier
     :param title: title of the plot
     :param column_list: list of columns in the df to show
