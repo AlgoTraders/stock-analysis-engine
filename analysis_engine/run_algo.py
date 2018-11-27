@@ -42,12 +42,12 @@ log = log_utils.build_colorized_logger(name=__name__)
 def run_algo(
         ticker=None,
         tickers=None,
+        algo=None,  # optional derived ``analysis_engine.algo.Algo`` instance
         balance=None,     # float starting base capital
         commission=None,  # float for single trade commission for buy or sell
         start_date=None,  # string YYYY-MM-DD HH:MM:SS
         end_date=None,    # string YYYY-MM-DD HH:MM:SS
         datasets=None,    # string list of identifiers
-        algo=None,  # derived ``analysis_engine.algo.Algo`` instance
         num_owned_dict=None,  # not supported
         cache_freq='daily',   # 'minute' not supported
         auto_fill=True,
@@ -109,16 +109,18 @@ def run_algo(
 
     **Algo Configuration**
 
-    :param balance: float balance
+    :param algo: derived instance of ``analysis_engine.algo.Algo`` object
+    :param balance: optional - float balance parameter
+        can also be set on the ``algo`` object if not
+        set on the args
     :param commission: float for single trade commission for
-        buy or sell
+        buy or sell. can also be set on the ``algo`` objet
     :param start_date: string ``YYYY-MM-DD_HH:MM:SS`` cache value
     :param end_date: string ``YYYY-MM-DD_HH:MM:SS`` cache value
     :param dataset_types: list of strings that are ``iex`` or ``yahoo``
         datasets that are cached.
     :param cache_freq: optional - depending on if you are running data feeds
         on a ``daily`` cron (default) vs every ``minute`` (or faster)
-    :param algo: derived instance of ``analysis_engine.algo.Algo`` object
     :param num_owned_dict: not supported yet
     :param auto_fill: optional - boolean for auto filling
         buy/sell orders for backtesting (default is
@@ -236,11 +238,24 @@ def run_algo(
     msg = None
 
     use_tickers = tickers
+    use_balance = balance
+    use_commission = commission
+
     if ticker:
         use_tickers = [ticker]
     else:
         if not use_tickers:
             use_tickers = []
+
+    # if these are not set as args, but the algo object
+    # has them, use them instead:
+    if algo:
+        if len(use_tickers) == 0:
+            use_tickers = algo.get_tickers()
+        if not use_balance:
+            use_balance = algo.get_balance()
+        if not use_commission:
+            use_commission = algo.get_commission()
 
     default_iex_datasets = [
         'daily',
@@ -316,17 +331,19 @@ def run_algo(
     last_close_str = ae_utils.get_last_close_str()
 
     if iex_datasets:
-        log.info(
-            '{} - tickers={} '
-            'iex={}'.format(
-                label,
-                num_tickers,
-                json.dumps(iex_datasets)))
+        if verbose:
+            log.info(
+                '{} - tickers={} '
+                'iex={}'.format(
+                    label,
+                    num_tickers,
+                    json.dumps(iex_datasets)))
     else:
-        log.info(
-            '{} - tickers={}'.format(
-                label,
-                num_tickers))
+        if verbose:
+            log.info(
+                '{} - tickers={}'.format(
+                    label,
+                    num_tickers))
 
     ticker_key = use_key
     if not ticker_key:
@@ -338,8 +355,9 @@ def run_algo(
         algo = default_algo.BaseAlgo(
             ticker=None,
             tickers=use_tickers,
-            balance=balance,
-            commission=commission,
+            balance=use_balance,
+            commission=use_commission,
+            config_dict=config_dict,
             name=label,
             auto_fill=auto_fill,
             publish_to_slack=publish_to_slack,
@@ -470,7 +488,7 @@ def run_algo(
             start_date=use_start_date_str,
             end_date=use_end_date_str,
             datasets=datasets,
-            balance=balance,
+            balance=use_balance,
             cache_freq=cache_freq,
             label=label)
         ticker_key = '{}_{}'.format(
@@ -667,10 +685,11 @@ def run_algo(
             'data': ticker_data
         })
 
-        log.info(
-            'extract - {} dataset={}'.format(
-                percent_label,
-                len(algo_data_req[ticker])))
+        if verbose:
+            log.info(
+                'extract - {} dataset={}'.format(
+                    percent_label,
+                    len(algo_data_req[ticker])))
         cur_idx += 1
     # end of for service_dict in extract_requests
 
@@ -692,18 +711,20 @@ def run_algo(
 
     # this could be a separate celery task
     try:
-        log.info(
-            'handle_data START - {} from {} to {}'.format(
-                percent_label,
-                first_extract_date,
-                last_extract_date))
+        if verbose:
+            log.info(
+                'handle_data START - {} from {} to {}'.format(
+                    percent_label,
+                    first_extract_date,
+                    last_extract_date))
         algo.handle_data(
             data=algo_data_req)
-        log.info(
-            'handle_data END - {} from {} to {}'.format(
-                percent_label,
-                first_extract_date,
-                last_extract_date))
+        if verbose:
+            log.info(
+                'handle_data END - {} from {} to {}'.format(
+                    percent_label,
+                    first_extract_date,
+                    last_extract_date))
     except Exception as e:
         msg = (
             '{} - algo={} encountered exception in handle_data '
@@ -734,18 +755,20 @@ def run_algo(
 
     # this could be a separate celery task
     try:
-        log.info(
-            'get_result START - {} from {} to {}'.format(
-                percent_label,
-                first_extract_date,
-                last_extract_date))
+        if verbose:
+            log.info(
+                'get_result START - {} from {} to {}'.format(
+                    percent_label,
+                    first_extract_date,
+                    last_extract_date))
         rec = algo.get_result()
         status = ae_consts.SUCCESS
-        log.info(
-            'get_result END - {} from {} to {}'.format(
-                percent_label,
-                first_extract_date,
-                last_extract_date))
+        if verbose:
+            log.info(
+                'get_result END - {} from {} to {}'.format(
+                    percent_label,
+                    first_extract_date,
+                    last_extract_date))
     except Exception as e:
         msg = (
             '{} - algo={} encountered exception in get_result '

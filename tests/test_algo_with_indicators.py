@@ -107,6 +107,8 @@ class TestAlgoWithIndicators(base_test.BaseTestCase):
             'buy_shares': 10,
             'balance': 100000,
             'ticker': 'SPY',
+            'verbose': True,
+            'verbose_processor': True,
             'positions': {
                 'SPY': {
                     'shares': 10,

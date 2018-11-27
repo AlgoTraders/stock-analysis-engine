@@ -18,7 +18,8 @@ def prepare_history_dataset(
         convert_to_dict=False,
         include_keys=None,
         ignore_keys=None,
-        convert_to_dates=None):
+        convert_to_dates=None,
+        verbose=False):
     """prepare_history_dataset
 
     Load a ``Trading History`` dataset into a dictionary
@@ -41,14 +42,18 @@ def prepare_history_dataset(
         to remove before building the ``pd.DataFrame``
     :param convert_to_dates: optional - list of string keys
         to convert to datetime before building the ``pd.DataFrame``
+    :param verbose: optional - bool show the logs
+        (default is ``False``)
     """
-    log.debug('start')
+    if verbose:
+        log.debug('start')
     use_data = None
     parsed_data = None
     data_as_dict = None
 
     if compress:
-        log.debug('decompressing')
+        if verbose:
+            log.debug('decompressing')
         parsed_data = zlib.decompress(
             data).decode(
                 encoding)
@@ -59,7 +64,8 @@ def prepare_history_dataset(
         log.error('failed parsing')
         return None
 
-    log.debug('loading as dict')
+    if verbose:
+        log.debug('loading as dict')
     use_data = {}
     if convert_to_dict:
         data_as_dict = json.loads(parsed_data)
@@ -110,8 +116,9 @@ def prepare_history_dataset(
         num_records = len(all_records)
 
         if num_records:
-            log.info('found records={}'.format(
-                num_records))
+            if verbose:
+                log.info('found records={}'.format(
+                    num_records))
             history_df = pd.DataFrame(all_records)
             for dc in convert_these_date_keys:
                 if dc in history_df:

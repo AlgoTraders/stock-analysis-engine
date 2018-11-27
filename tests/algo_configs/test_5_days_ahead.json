@@ -6,6 +6,9 @@
   "trade_horizon": 5,
   "balance": 100000,
   "ticker": "SPY",
+  "verbose": true,
+  "verbose_processor": true,
+  "verbose_indicators": true,
   "positions": {
     "SPY": {
       "shares": 10,

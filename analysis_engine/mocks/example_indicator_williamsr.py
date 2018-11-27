@@ -16,9 +16,6 @@ uses Open instead of Close
 import analysis_engine.talib as talib
 import analysis_engine.consts as ae_consts
 import analysis_engine.indicators.base_indicator as base_indicator
-import spylunking.log.setup_logging as log_utils
-
-log = log_utils.build_colorized_logger(name=__name__)
 
 
 class ExampleIndicatorWilliamsR(base_indicator.BaseIndicator):
@@ -87,14 +84,14 @@ class ExampleIndicatorWilliamsR(base_indicator.BaseIndicator):
 
         self.willr_value = None
         if df_status == ae_consts.EMPTY:
-            log.info('process end - no data found')
+            self.lg('process end - no data found')
             return
 
         # notice the self.num_points is now a member variable
         # because the BaseIndicator class's __init__
         # converts any self.config keys into useable
         # member variables automatically in your derived class
-        log.info(
+        self.lg(
             'process - num_points={} daily_df={}'.format(
                 self.num_points,
                 len(daily_df.index)))
@@ -114,7 +111,7 @@ class ExampleIndicatorWilliamsR(base_indicator.BaseIndicator):
                 open_val = row['open']
                 close = row['close']
                 row_date = row['date']
-                log.info(
+                self.lg(
                     '{} - WILLR(high={}, low={}, '
                     'close={}, period={})'.format(
                         row_date,
@@ -147,7 +144,7 @@ class ExampleIndicatorWilliamsR(base_indicator.BaseIndicator):
             if self.willr_value > self.sell_above:
                 self.is_sell = ae_consts.INDICATOR_SELL
 
-            log.info(
+            self.lg(
                 'process end - {} to {} willr_value={} '
                 'buy_below={} is_buy={} '
                 'sell_above={} is_sell={}'.format(
@@ -159,7 +156,7 @@ class ExampleIndicatorWilliamsR(base_indicator.BaseIndicator):
                     self.sell_above,
                     self.is_sell))
         else:
-            log.info(
+            self.lg(
                 'process end - willr={}'.format(
                     self.willr_value))
     # end of process
@@ -189,6 +186,6 @@ def get_indicator(
 
     :param kwargs: dictionary of keyword arguments
     """
-    log.info('getting indicator')
+    print('getting indicator')
     return ExampleIndicatorWilliamsR(**kwargs)
 # end of get_indicator

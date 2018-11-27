@@ -6,10 +6,9 @@ dicator_processor.IndicatorProcessor``
 
 import uuid
 import pandas as pd
+import logging
 import analysis_engine.consts as ae_consts
 import spylunking.log.setup_logging as log_utils
-
-log = log_utils.build_colorized_logger(name=__name__)
 
 
 class BaseIndicator:
@@ -33,15 +32,18 @@ class BaseIndicator:
             and used as normal member variables within the
             derived Indicator class
 
-        :param config_dict:
-        :param name:
+        :param config_dict: dictionary for this indicator
+        :param name: name of the indicator
         :param path_to_module: work in progress -
             this will allow loading indicators from
             outside the repo like the derived algorithm
             classes
-            :param verbose:
+        :param verbose: optional - bool for toggling more logs
         """
         self.name = name
+        self.log = log_utils.build_colorized_logger(
+            name=name)
+
         self.config = config_dict
         self.path_to_module = path_to_module
         self.verbose = verbose
@@ -50,6 +52,11 @@ class BaseIndicator:
             raise Exception(
                 'please provide a config_dict for loading '
                 'the buy and sell rules for this indicator')
+
+        if not self.verbose:
+            self.verbose = self.config.get(
+                'verbose',
+                False)
 
         if not self.name:
             self.name = 'ind_{}'.format(
@@ -115,6 +122,45 @@ class BaseIndicator:
             if k not in self.report_ignore_keys:
                 self.__dict__[k] = self.config[k]
     # end of convert_config_keys_to_members
+
+    def lg(
+            self,
+            msg,
+            level=logging.INFO):
+        """lg
+
+        Log only if the indicator has ``self.verbose``
+        set to ``True`` or if the ``level == logging.CRITICAL`` or
+        ``level = logging.ERROR`` otherwise no logs
+
+        :param msg: string message to log
+        :param level: set the logging level
+            (default is ``logging.INFO``)
+        """
+        if self.verbose:
+            if level == logging.INFO:
+                self.log.info(msg)
+                return
+            elif level == logging.ERROR:
+                self.log.error(msg)
+                return
+            elif level == logging.DEBUG:
+                self.log.debug(msg)
+                return
+            elif level == logging.WARN:
+                self.log.warn(msg)
+                return
+            elif level == logging.CRITICAL:
+                self.log.critical(msg)
+                return
+        else:
+            if level == logging.ERROR:
+                self.log.error(msg)
+                return
+            elif level == logging.CRITICAL:
+                self.log.critical(msg)
+                return
+    # end lg
 
     def get_report_prefix(
             self):
@@ -225,7 +271,7 @@ class BaseIndicator:
         # end of all configurables for this indicator
 
         if verbose or self.verbose:
-            log.info(
+            self.lg(
                 'indicator={} '
                 'report={} '
                 'buy={} sell={}'.format(
@@ -388,10 +434,10 @@ class BaseIndicator:
         :param ticker: string - ticker
         :param dataset: dictionary of ``pd.DataFrame(s)`` to process
         """
-        log.info(
+        self.lg(
             '{} BASE_IND process - start'.format(
                 self.name))
-        log.info(
+        self.lg(
             '{} BASE_IND process - end'.format(
                 self.name))
     # end of process

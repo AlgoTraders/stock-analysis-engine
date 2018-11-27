@@ -4,8 +4,8 @@ Helper for loading a ``Trading Performance Report`` dataset
 
 import json
 import zlib
-# import pandas as pd
 import spylunking.log.setup_logging as log_utils
+
 
 log = log_utils.build_colorized_logger(name=__name__)
 
@@ -15,7 +15,8 @@ def prepare_report_dataset(
         compress=False,
         encoding='utf-8',
         convert_to_dict=False,
-        dataset_names=None):
+        dataset_names=None,
+        verbose=False):
     """prepare_report_dataset
 
     Load a ``Trading Performance Report`` dataset into a dictionary
@@ -34,14 +35,18 @@ def prepare_report_dataset(
     :param dataset_names: optional - list of string keys
         for each dataset node in:
         ``dataset[ticker][0]['data'][dataset_names[0]]``
+    :param verbose: optional - bool show the logs
+        (default is ``False``)
     """
-    log.debug('start')
+    if verbose:
+        log.debug('start')
     use_data = None
     parsed_data = None
     data_as_dict = None
 
     if compress:
-        log.debug('decompressing')
+        if verbose:
+            log.debug('decompressing')
         parsed_data = zlib.decompress(
             data).decode(
                 encoding)
@@ -52,7 +57,8 @@ def prepare_report_dataset(
         log.error('failed parsing')
         return None
 
-    log.debug('loading as dict')
+    if verbose:
+        log.debug('loading as dict')
     use_data = {}
     if convert_to_dict:
         data_as_dict = json.loads(parsed_data)
@@ -90,7 +96,8 @@ def prepare_report_dataset(
 
     """
     if num_datasets:
-        log.info('found datasets={}'.format(
+        if verbose:
+            log.info('found datasets={}'.format(
             num_datasets))
     else:
         log.error('did not find any datasets={}'.format(
