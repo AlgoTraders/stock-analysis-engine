@@ -17,7 +17,7 @@ import spylunking.log.setup_logging as log_utils
 
 
 log = log_utils.build_colorized_logger(
-    name='intraday-algo',
+    name='bt',
     log_config_path=ae_consts.LOG_CONFIG_PATH)
 
 
@@ -26,7 +26,7 @@ willr_close_path = (
 willr_open_path = (
     'analysis_engine/mocks/example_indicator_williamsr_open.py')
 algo_config_dict = {
-    'name': 'intraday-algo',
+    'name': 'backtest',
     'trade_horizon_units': 'day',
     'trade_horizon': 5,
     'num_owned': 10,
@@ -160,9 +160,9 @@ class IntradayAlgo(base_algo.BaseAlgo):
 # end of IntradayAlgo
 
 
-def run_intraday_algo_and_plot_trading_history(
+def run_algo_and_plot_trading_history(
         config_dict):
-    """run_intraday_algo_and_plot_trading_history
+    """run_algo_and_plot_trading_history
 
     Run a derived algorithm with an algorithm config dictionary
 
@@ -636,9 +636,9 @@ def run_intraday_algo_and_plot_trading_history(
         show_plot=True,
         dropna_for_all=False)
 
-# end of run_intraday_algo_and_plot_trading_history
+# end of run_algo_and_plot_trading_history
 
 
 if __name__ == '__main__':
-    run_intraday_algo_and_plot_trading_history(
+    run_algo_and_plot_trading_history(
         config_dict=algo_config_dict)
