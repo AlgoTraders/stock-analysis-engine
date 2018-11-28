@@ -19,7 +19,8 @@ def load_indicator_from_module(
         ind_dict,
         path_to_module=None,
         log_label=None,
-        base_class_module_name='BaseIndicator'):
+        base_class_module_name='BaseIndicator',
+        verbose=False):
     """load_indicator_from_module
 
     Load a custom indicator from a file
@@ -39,6 +40,8 @@ def load_indicator_from_module(
         ``module_name`` string value)
     :param base_class_module_name: optional - string name
         for using a non-standard indicator base class
+    :param verbose: optional - bool for more logging
+        (default is ``False``)
     """
 
     default_base_module_path = ae_consts.INDICATOR_BASE_MODULE_PATH
@@ -60,6 +63,9 @@ def load_indicator_from_module(
         path_to_module = ind_dict.get(
             'module_path',
             None)
+
+    if 'verbose' not in ind_dict:
+        ind_dict['verbose'] = verbose
 
     if not path_to_module:
         return base_indicator.BaseIndicator(
@@ -140,23 +146,25 @@ def load_indicator_from_module(
         raise Exception(err)
     # end of if did not find the module with the correct Base Class
 
-    log.info(
-        'load - custom indicator module={} '
-        'from file={} member={}'.format(
-            use_module_name,
-            path_to_module,
-            class_member_in_module))
+    if ind_dict.get('verbose', False):
+        log.info(
+            'load - custom indicator module={} '
+            'from file={} member={}'.format(
+                use_module_name,
+                path_to_module,
+                class_member_in_module))
     ind = class_member_in_module[1](
         config_dict=ind_dict,
         name=use_log_label,
         path_to_module=path_to_module)
-    log.info(
-        'ready - custom indicator={} from module={} '
-        'from file={} member={}'.format(
-            ind.__class__.__name__,
-            use_module_name,
-            path_to_module,
-            class_member_in_module))
+    if ind_dict.get('verbose', False):
+        log.info(
+            'ready - custom indicator={} from module={} '
+            'from file={} member={}'.format(
+                ind.__class__.__name__,
+                use_module_name,
+                path_to_module,
+                class_member_in_module))
 
     return ind
 # end of load_indicator_from_module

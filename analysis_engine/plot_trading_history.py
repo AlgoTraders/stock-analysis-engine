@@ -254,9 +254,10 @@ def plot_trading_history(
                 use_ax.set_ylim(
                     [0, use_ax.get_ylim()[1] * 3])
             use_ax.fmt_xdata = mdates.DateFormatter(date_format)
+            use_ax.yaxis.set_ticklabels([])
+            use_ax.yaxis.set_ticks([])
             use_ax.xaxis.grid(False)
             use_ax.yaxis.grid(False)
-            use_ax.yaxis.set_ticklabels([])
         else:
             use_ax.xaxis.grid(
                 True,
@@ -268,20 +269,27 @@ def plot_trading_history(
             plt.grid(True)
     # end of for all plots
 
-    handles, labels = plt.gca().get_legend_handles_labels()
-    newLabels, newHandles = [], []
-    for handle, label in zip(handles, labels):
-        if label not in newLabels:
-            newLabels.append(label)
-            newHandles.append(handle)
-
     lines = []
     for idx, cur_ax in enumerate(all_axes):
-        lines += cur_ax.get_lines()
-        rec['ax{}'.format(idx + 1)] = use_ax
-    # Build out the xtick chart by the dates
+        ax_lines = cur_ax.get_lines()
+        for line in ax_lines:
+            label_name = str(line.get_label())
+            if len(label_name) > 10:
+                line.set_label(label_name[0:10])
+            if line.get_label() not in lines:
+                lines.append(line)
+        rec['ax{}'.format(idx + 1)] = cur_ax
+    # end of compiling a new-shortened legend while removing dupes
 
-    # turn off the grids on volume
+    for idx, cur_ax in enumerate(all_axes):
+        cur_ax.get_legend().remove()
+    # end of removing all previous legends
+
+    if verbose:
+        log.info(
+            'legend lines={}'.format(
+                [l.get_label() for l in lines]))
+    # log what's going to be in the legend
 
     ax.legend(
         lines,

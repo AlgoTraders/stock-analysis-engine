@@ -30,7 +30,8 @@ class IndicatorProcessor:
             config_file=None,
             ticker=None,
             label=None,
-            verbose=False):
+            verbose=False,
+            verbose_indicators=False):
         """__init__
 
         Algorithm's use the ``IndicatorProcessor`` to drive
@@ -62,8 +63,11 @@ class IndicatorProcessor:
             this class in the logs (usually just the algo
             name is good enough to help debug issues
             when running distributed)
-        :param verbose: optional - bool for logging
-            more
+        :param verbose: optional - bool for more logging
+            (default is ``False``)
+        :param verbose_indicators: optional - bool for more logging
+            for all indicators managed by this ``IndicatorProcessor``
+            (default is ``False``)
         """
 
         self.config_dict = config_dict
@@ -92,9 +96,16 @@ class IndicatorProcessor:
         if not self.label:
             self.label = 'idprc'
 
-        self.verbose = verbose
         self.latest_report = {}
         self.reports = []
+
+        self.verbose = verbose
+        self.verbose_indicators = verbose_indicators
+
+        if not self.verbose_indicators:
+            self.verbose_indicators = self.config_dict.get(
+                'verbose_indicators',
+                False)
 
         self.build_indicators_for_config(
             config_dict=self.config_dict)
@@ -160,10 +171,11 @@ class IndicatorProcessor:
             log.error('missing "indicators" list in the config_dict')
             return
 
-        log.info(
-            '{} start - building indicators={}'.format(
-                self.label,
-                self.num_indicators))
+        if self.verbose:
+            log.info(
+                '{} start - building indicators={}'.format(
+                    self.label,
+                    self.num_indicators))
 
         for idx, node in enumerate(config_dict['indicators']):
             percent_done = ae_consts.get_percent_done(
@@ -190,7 +202,7 @@ class IndicatorProcessor:
                             new_node,
                             percent_label))
                 else:
-                    log.info(
+                    log.debug(
                         '{} - preparing indicator={} {}'.format(
                             self.label,
                             indicator_key_name,
@@ -208,9 +220,10 @@ class IndicatorProcessor:
                         path_to_module=new_node['report']['path_to_module'],
                         ind_dict=new_node,
                         log_label=indicator_key_name,
-                        base_class_module_name=base_class_indicator)
+                        base_class_module_name=base_class_indicator,
+                        verbose=self.verbose_indicators)
 
-                log.info(
+                log.debug(
                     '{} - created indicator={} {}'.format(
                         self.label,
                         indicator_key_name,
@@ -223,11 +236,12 @@ class IndicatorProcessor:
                         node))
         # end for all indicators in the config
 
-        log.info(
-            '{} done - built={} from indicators={}'.format(
-                self.label,
-                len(self.ind_dict),
-                self.num_indicators))
+        if self.verbose:
+            log.info(
+                '{} done - built={} from indicators={}'.format(
+                    self.label,
+                    len(self.ind_dict),
+                    self.num_indicators))
     # end of build_indicators_for_config
 
     def process(
@@ -266,21 +280,23 @@ class IndicatorProcessor:
                 (idx + 1),
                 self.num_indicators)
             ind_obj.reset_internals()
-            log.info(
-                '{} - {} start {}'.format(
-                    self.label,
-                    ind_obj.get_name(),
-                    percent_label))
+            if self.verbose:
+                log.info(
+                    '{} - {} start {}'.format(
+                        self.label,
+                        ind_obj.get_name(),
+                        percent_label))
             # this will throw on errors to help with debugging
             ind_obj.handle_subscribed_dataset(
                 algo_id=algo_id,
                 ticker=ticker,
                 dataset=dataset)
-            log.info(
-                '{} - {} end {}'.format(
-                    self.label,
-                    ind_obj.get_name(),
-                    percent_label))
+            if self.verbose:
+                log.info(
+                    '{} - {} end {}'.format(
+                        self.label,
+                        ind_obj.get_name(),
+                        percent_label))
             new_report = ind_obj.get_report()
             self.latest_report.update(new_report)
 

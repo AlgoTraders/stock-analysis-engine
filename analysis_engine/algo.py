@@ -121,6 +121,8 @@ import analysis_engine.publish as publish
 import analysis_engine.build_publish_request as build_publish_request
 import analysis_engine.load_dataset as load_dataset
 import analysis_engine.indicators.indicator_processor as ind_processor
+import analysis_engine.prepare_history_dataset as prepare_history
+import analysis_engine.prepare_report_dataset as prepare_report
 import spylunking.log.setup_logging as log_utils
 
 log = log_utils.build_colorized_logger(name=__name__)
@@ -263,6 +265,9 @@ class BaseAlgo:
             extract_config=None,
             dataset_type=ae_consts.SA_DATASET_TYPE_ALGO_READY,
             serialize_datasets=ae_consts.DEFAULT_SERIALIZED_DATASETS,
+            verbose=False,
+            verbose_processor=False,
+            verbose_indicators=False,
             raise_on_err=False,
             **kwargs):
         """__init__
@@ -454,6 +459,17 @@ class BaseAlgo:
 
         **Debugging arguments**
 
+        :param verbose: optional - boolean for
+            showing verbose algorithm logs
+            (default is ``False``)
+        :param verbose_processor: optional - boolean for
+            showing verbose ``IndicatorProcessor`` logs
+            (default is ``False``)
+        :param verbose_indicators: optional - boolean for
+            showing verbose ``Indicator`` logs
+            (default is ``False`` which means an ``Indicator``
+            can set ``'verbose': True`` to enable
+            logging per individal ``Indicator``)
         :param raise_on_err: optional - boolean for
             unittests and developing algorithms with the
             ``analysis_engine.run_algo.run_algo`` helper.
@@ -556,6 +572,10 @@ class BaseAlgo:
         self.note = None
         self.debug_msg = ''
         self.version = version
+        self.verbose = verbose
+        self.verbose_processor = verbose_processor
+        self.verbose_indicators = verbose_indicators
+
         self.verbose = ae_consts.ev(
             'AE_DEBUG',
             '1') == '1'
@@ -877,7 +897,6 @@ class BaseAlgo:
         # end of loading initial values from a config_dict before derived
 
         self.iproc = None
-        self.iproc = self.get_indicator_processor()
         self.iproc_label = 'no-iproc-label'
         self.num_indicators = 0
         self.latest_ind_report = None
@@ -905,8 +924,11 @@ class BaseAlgo:
         ]
 
         self.load_from_config(
-            config_dict=config_dict)
+            config_dict=self.config_dict)
 
+        # build the IndicatorProcessor after loading
+        # values from an optional config_dict
+        self.iproc = self.get_indicator_processor()
         if self.iproc:
             if not hasattr(self.iproc, 'process'):
                 raise Exception(
@@ -941,26 +963,28 @@ class BaseAlgo:
             processor and pass it to the base
         """
         if existing_processor:
-            log.info(
-                '{} - loading existing processor={}'.format(
-                    self.name,
-                    existing_processor.get_name()))
+            if self.verbose:
+                log.info(
+                    '{} - loading existing processor={}'.format(
+                        self.name,
+                        existing_processor.get_name()))
             self.iproc = existing_processor
         else:
             if self.iproc:
                 return self.iproc
 
             if not self.config_dict:
-                log.info(
-                    '{} - is missing an algorithm config_dict '
-                    'please add one to run indicators'.format(
-                        self.name))
+                if self.verbose:
+                    log.info(
+                        '{} - is missing an algorithm config_dict '
+                        'please add one to run indicators'.format(
+                            self.name))
             else:
                 self.iproc = ind_processor.IndicatorProcessor(
                     config_dict=self.config_dict,
                     label='{}-prc'.format(
                         self.name),
-                    verbose=self.verbose)
+                    verbose=self.verbose_processor)
         # if use new or existing
 
         return self.iproc
@@ -1158,7 +1182,8 @@ class BaseAlgo:
                     self.dsload_s3_address,
                     self.dsload_s3_bucket,
                     self.dsload_s3_key))
-            log.info(self.debug_msg)
+            if self.verbose:
+                log.info(self.debug_msg)
             self.loaded_dataset = load_dataset.load_dataset(
                 s3_enabled=self.dsload_s3_enabled,
                 s3_address=self.dsload_s3_address,
@@ -1315,21 +1340,23 @@ class BaseAlgo:
         status = ae_consts.NOT_RUN
 
         if not self.publish_report:
-            log.info(
-                'report publish - disabled - '
-                '{} - tickers={}'.format(
-                    self.name,
-                    self.tickers))
+            if self.verbose:
+                log.info(
+                    'report publish - disabled - '
+                    '{} - tickers={}'.format(
+                        self.name,
+                        self.tickers))
             return status
 
         output_record = self.create_report_dataset()
 
         if output_file or s3_enabled or redis_enabled or slack_enabled:
-            log.info(
-                'report build json - {} - tickers={}'.format(
-                    self.name,
-                    self.tickers))
-            use_data = json.dumps(output_record)
+            if self.verbose:
+                log.info(
+                    'report build json - {} - tickers={}'.format(
+                        self.name,
+                        self.tickers))
+                use_data = json.dumps(output_record)
             num_bytes = len(use_data)
             num_mb = ae_consts.get_mb(num_bytes)
             log.info(
@@ -1404,7 +1431,8 @@ class BaseAlgo:
         by implementing this method in the derived class.
         """
 
-        log.info('algo-ready - create start')
+        if self.verbose:
+            log.info('create report - create start')
 
         data_for_tickers = self.get_supported_tickers_in_data(
             data=self.last_handle_data)
@@ -1429,50 +1457,51 @@ class BaseAlgo:
                 algo_id = 'ticker={} {}'.format(
                     ticker,
                     track_label)
-                log.info(
-                    '{} convert - {} - ds={}'.format(
-                        self.name,
-                        algo_id,
-                        node['date']))
+                if self.verbose:
+                    log.info(
+                        '{} report - {} - ds={}'.format(
+                            self.name,
+                            algo_id,
+                            node['date']))
 
-                new_node = {
-                    'id': node['id'],
-                    'date': node['date'],
-                    'data': {}
-                }
+                    new_node = {
+                        'id': node['id'],
+                        'date': node['date'],
+                        'data': {}
+                    }
 
-                # parse the dataset node and set member variables
-                self.debug_msg = (
-                    '{} START - convert load dataset id={}'.format(
-                        ticker,
-                        node.get('id', 'missing-id')))
-                self.load_from_dataset(
-                    ds_data=node)
-                for ds_key in node['data']:
-                    empty_ds = self.empty_pd_str
-                    data_val = node['data'][ds_key]
-                    if ds_key not in new_node['data']:
-                        new_node['data'][ds_key] = empty_ds
+                    # parse the dataset node and set member variables
                     self.debug_msg = (
-                        'convert node={} ds_key={}'.format(
-                            node,
-                            ds_key))
-                    if hasattr(data_val, 'to_json'):
-                        new_node['data'][ds_key] = data_val.to_json(
-                            orient='records',
-                            date_format='iso')
-                    else:
-                        if not data_val:
+                        '{} START - convert load dataset id={}'.format(
+                            ticker,
+                            node.get('id', 'missing-id')))
+                    self.load_from_dataset(
+                        ds_data=node)
+                    for ds_key in node['data']:
+                        empty_ds = self.empty_pd_str
+                        data_val = node['data'][ds_key]
+                        if ds_key not in new_node['data']:
                             new_node['data'][ds_key] = empty_ds
+                        self.debug_msg = (
+                            'convert node={} ds_key={}'.format(
+                                node,
+                                ds_key))
+                        if hasattr(data_val, 'to_json'):
+                            new_node['data'][ds_key] = data_val.to_json(
+                                orient='records',
+                                date_format='iso')
                         else:
-                            new_node['data'][ds_key] = json.dumps(
-                                data_val)
-                    # if/else
-                # for all dataset values in data
-                self.debug_msg = (
-                    '{} END - convert load dataset id={}'.format(
-                        ticker,
-                        node.get('id', 'missing-id')))
+                            if not data_val:
+                                new_node['data'][ds_key] = empty_ds
+                            else:
+                                new_node['data'][ds_key] = json.dumps(
+                                    data_val)
+                        # if/else
+                    # for all dataset values in data
+                    self.debug_msg = (
+                        '{} END - convert load dataset id={}'.format(
+                            ticker,
+                            node.get('id', 'missing-id')))
 
                 output_record[ticker].append(new_node)
                 cur_idx += 1
@@ -1558,10 +1587,11 @@ class BaseAlgo:
         output_record = self.create_history_dataset()
 
         if output_file or s3_enabled or redis_enabled or slack_enabled:
-            log.info(
-                'history build json - {} - tickers={}'.format(
-                    self.name,
-                    self.tickers))
+            if self.verbose:
+                log.info(
+                    'history build json - {} - tickers={}'.format(
+                        self.name,
+                        self.tickers))
             use_data = json.dumps(output_record)
             num_bytes = len(use_data)
             num_mb = ae_consts.get_mb(num_bytes)
@@ -1637,7 +1667,8 @@ class BaseAlgo:
         by implementing this method in the derived class.
         """
 
-        log.info('history - create start')
+        if self.verbose:
+            log.info('history - create start')
 
         data_for_tickers = self.get_supported_tickers_in_data(
             data=self.last_handle_data)
@@ -1677,11 +1708,12 @@ class BaseAlgo:
                 algo_id = 'ticker={} {}'.format(
                     ticker,
                     track_label)
-                log.info(
-                    '{} history - {} - ds={}'.format(
-                        self.name,
-                        algo_id,
-                        node['date']))
+                if self.verbose:
+                    log.info(
+                        '{} history - {} - ds={}'.format(
+                            self.name,
+                            algo_id,
+                            node['date']))
 
                 output_record[ticker].append(node)
                 cur_idx += 1
@@ -1797,10 +1829,11 @@ class BaseAlgo:
         output_record = self.create_algorithm_ready_dataset()
 
         if output_file or s3_enabled or redis_enabled or slack_enabled:
-            log.info(
-                'input build json - {} - tickers={}'.format(
-                    self.name,
-                    self.tickers))
+            if self.verbose:
+                log.info(
+                    'input build json - {} - tickers={}'.format(
+                        self.name,
+                        self.tickers))
             use_data = json.dumps(output_record)
             num_bytes = len(use_data)
             num_mb = ae_consts.get_mb(num_bytes)
@@ -1876,7 +1909,8 @@ class BaseAlgo:
         by implementing this method in the derived class.
         """
 
-        log.info('algo-ready - create start')
+        if self.verbose:
+            log.info('algo-ready - create start')
 
         data_for_tickers = self.get_supported_tickers_in_data(
             data=self.last_handle_data)
@@ -1901,11 +1935,12 @@ class BaseAlgo:
                 algo_id = 'ticker={} {}'.format(
                     ticker,
                     track_label)
-                log.info(
-                    '{} convert - {} - ds={}'.format(
-                        self.name,
-                        algo_id,
-                        node['date']))
+                if self.verbose:
+                    log.info(
+                        '{} convert - {} - ds={}'.format(
+                            self.name,
+                            algo_id,
+                            node['date']))
 
                 new_node = {
                     'id': node['id'],
@@ -2106,11 +2141,23 @@ class BaseAlgo:
         return self.debug_msg
     # end of get_debug_msg
 
+    def get_tickers(
+            self):
+        """get_tickers"""
+        return self.tickers
+    # end of get_tickers
+
     def get_balance(
             self):
         """get_balance"""
         return self.balance
     # end of get_balance
+
+    def get_commission(
+            self):
+        """get_commission"""
+        return self.commission
+    # end of get_commission
 
     def get_buys(
             self):
@@ -2123,6 +2170,22 @@ class BaseAlgo:
         """get_sells"""
         return self.sells
     # end of get_sells
+
+    def get_history_dataset(
+            self):
+        """get_history_dataset"""
+        return prepare_history.prepare_history_dataset(
+            data=self.create_history_dataset(),
+            convert_to_dict=False)
+    # end of get_history_dataset
+
+    def get_report_dataset(
+            self):
+        """get_report_dataset"""
+        return prepare_report.prepare_report_dataset(
+            data=self.create_report_dataset(),
+            convert_to_dict=False)
+    # end of get_report_dataset
 
     def get_owned_shares(
             self,
@@ -2324,12 +2387,13 @@ class BaseAlgo:
             return
 
         dataset_date = row['date']
-        log.info(
-            '{} - sell start {}@{} {}'.format(
-                self.name,
-                ticker,
-                close,
-                dataset_date))
+        if self.verbose:
+            log.info(
+                '{} - sell start {}@{} {}'.format(
+                    self.name,
+                    ticker,
+                    close,
+                    dataset_date))
         new_sell = None
         order_details = row
         if hasattr(row, 'to_json'):
@@ -2736,13 +2800,14 @@ class BaseAlgo:
                 self.name))
 
         if self.loaded_dataset:
-            log.info(
-                '{} handle - using existing dataset '
-                'file={} s3={} redis={}'.format(
-                    self.name,
-                    self.dsload_output_file,
-                    self.dsload_s3_key,
-                    self.dsload_redis_key))
+            if self.verbose:
+                log.info(
+                    '{} handle - using existing dataset '
+                    'file={} s3={} redis={}'.format(
+                        self.name,
+                        self.dsload_output_file,
+                        self.dsload_s3_key,
+                        self.dsload_redis_key))
             data = self.loaded_dataset
 
         data_for_tickers = self.get_supported_tickers_in_data(
@@ -2765,7 +2830,7 @@ class BaseAlgo:
                 algo_id = 'ticker={} {}'.format(
                     ticker,
                     track_label)
-                log.info(
+                self.debug_msg = (
                     '{} handle - {} - id={} ds={}'.format(
                         self.name,
                         algo_id,

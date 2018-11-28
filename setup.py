@@ -98,10 +98,11 @@ setup(
     tests_require=[
     ],
     scripts=[
+        'analysis_engine/scripts/fetch_new_stock_datasets.py',
         'analysis_engine/scripts/publish_from_s3_to_redis.py',
         'analysis_engine/scripts/publish_ticker_aggregate_from_s3.py',
-        'analysis_engine/scripts/fetch_new_stock_datasets.py',
         'analysis_engine/scripts/sa.py',
+        'analysis_engine/scripts/run_backtest_and_plot_history.py',
         'tools/logs-dataset-collection.sh',
         'tools/logs-jupyter.sh',
         'tools/logs-workers.sh',
