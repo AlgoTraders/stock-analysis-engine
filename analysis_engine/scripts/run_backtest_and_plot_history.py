@@ -1,6 +1,163 @@
 #!/usr/bin/env python
 
 """
+A tool for showing how to build an algorithm and
+run a backtest with an algorithm config dictionary
+
+.. code-block:: python
+
+    import analysis_engine.consts as ae_consts
+    import analysis_engine.algo as base_algo
+    import analysis_engine.run_algo as run_algo
+
+    willr_close_path = (
+        'analysis_engine/mocks/example_indicator_williamsr.py')
+    willr_open_path = (
+        'analysis_engine/mocks/example_indicator_williamsr_open.py')
+    algo_config_dict = {
+        'name': 'example-backtest',
+        'trade_horizon_units': 'day',
+        'trade_horizon': 5,
+        'num_owned': 10,
+        'buy_shares': 10,
+        'balance': 5000.0,
+        'commission': 6.0,
+        'ticker': 'SPY',
+        'algo_module_path': None,
+        'algo_version': 1,
+        'verbose': False,             # log in the algorithm
+        'verbose_processor': False,   # log in the indicator processor
+        'verbose_indicators': False,  # log all indicators
+        'positions': {
+            'SPY': {
+                'shares': 10,
+                'buys': [],
+                'sells': []
+            }
+        },
+        'buy_rules': {
+            'confidence': 75,
+            'min_indicators': 3
+        },
+        'sell_rules': {
+            'confidence': 75,
+            'min_indicators': 3
+        },
+        'indicators': [
+            {
+                'name': 'willr_-70_-30',
+                'module_path': willr_close_path,
+                'category': 'technical',
+                'type': 'momentum',
+                'uses_data': 'daily',
+                'high': 0,
+                'low': 0,
+                'close': 0,
+                'open': 0,
+                'willr_value': 0,
+                'num_points': 10,
+                'buy_below': -70,
+                'sell_above': -30,
+                'is_buy': False,
+                'is_sell': False,
+                'verbose': False      # log this indicator
+            },
+            {
+                'name': 'willr_-80_-20',
+                'module_path': willr_close_path,
+                'category': 'technical',
+                'type': 'momentum',
+                'uses_data': 'daily',
+                'high': 0,
+                'low': 0,
+                'close': 0,
+                'open': 0,
+                'willr_value': 0,
+                'num_points': 10,
+                'buy_below': -80,
+                'sell_above': -20,
+                'is_buy': False,
+                'is_sell': False
+            },
+            {
+                'name': 'willr_-90_-10',
+                'module_path': willr_close_path,
+                'category': 'technical',
+                'type': 'momentum',
+                'uses_data': 'daily',
+                'high': 0,
+                'low': 0,
+                'close': 0,
+                'open': 0,
+                'willr_value': 0,
+                'num_points': 10,
+                'buy_below': -90,
+                'sell_above': -10,
+                'is_buy': False,
+                'is_sell': False
+            },
+            {
+                'name': 'willr_open_-80_-20',
+                'module_path': willr_open_path,
+                'category': 'technical',
+                'type': 'momentum',
+                'uses_data': 'daily',
+                'high': 0,
+                'low': 0,
+                'close': 0,
+                'open': 0,
+                'willr_open_value': 0,
+                'num_points': 15,
+                'buy_below': -80,
+                'sell_above': -20,
+                'is_buy': False,
+                'is_sell': False
+            }
+        ],
+        'slack': {
+            'webhook': None
+        }
+    }
+
+
+    class ExampleDailyAlgo(base_algo.BaseAlgo):
+        def process(self, algo_id, ticker, dataset):
+            if self.verbose:
+                print(
+                    'process start - {} '
+                    'date={} minute={} close={} '
+                    'high={} low={} open={} volume={}'
+                    ''.format(
+                        self.name, self.backtest_date, self.latest_min,
+                        self.latest_close, self.latest_high,
+                        self.latest_low, self.latest_open,
+                        self.latest_volume))
+        # end of process
+    # end of ExampleDailyAlgo
+
+
+    algo_obj = ExampleDailyAlgo(
+        ticker=algo_config_dict['ticker'],
+        config_dict=algo_config_dict)
+
+    algo_res = run_algo.run_algo(
+        ticker=algo_config_dict['ticker'],
+        algo=algo_obj,
+        raise_on_err=True)
+
+    if algo_res['status'] != ae_consts.SUCCESS:
+        print(
+            'failed running algo backtest '
+            '{} hit status: {} error: {}'.format(
+                algo_obj.get_name(),
+                ae_consts.get_status(status=algo_res['status']),
+                algo_res['err']))
+    else:
+        print(
+            'backtest: {} {} - plotting history'.format(
+                algo_obj.get_name(),
+                ae_consts.get_status(status=algo_res['status'])))
+    # if not successful
 
 """
 
@@ -21,118 +178,128 @@ log = log_utils.build_colorized_logger(
     log_config_path=ae_consts.LOG_CONFIG_PATH)
 
 
-willr_close_path = (
-    'analysis_engine/mocks/example_indicator_williamsr.py')
-willr_open_path = (
-    'analysis_engine/mocks/example_indicator_williamsr_open.py')
-algo_config_dict = {
-    'name': 'backtest',
-    'trade_horizon_units': 'day',
-    'trade_horizon': 5,
-    'num_owned': 10,
-    'buy_shares': 10,
-    'balance': 5000.0,
-    'commission': 6.0,
-    'ticker': 'SPY',
-    'algo_module_path': None,
-    'algo_version': 1,
-    'verbose': False,             # log in the algorithm
-    'verbose_processor': False,   # log in the indicator processor
-    'verbose_indicators': False,  # log all indicators
-    'positions': {
-        'SPY': {
-            'shares': 10,
-            'buys': [],
-            'sells': []
+def build_example_algo_config():
+    """build_example_algo_config
+
+    helper for building an algorithm config dictionary
+
+    :returns: algorithm config dictionary
+    """
+    willr_close_path = (
+        'analysis_engine/mocks/example_indicator_williamsr.py')
+    willr_open_path = (
+        'analysis_engine/mocks/example_indicator_williamsr_open.py')
+    algo_config_dict = {
+        'name': 'backtest',
+        'trade_horizon_units': 'day',
+        'trade_horizon': 5,
+        'num_owned': 10,
+        'buy_shares': 10,
+        'balance': 5000.0,
+        'commission': 6.0,
+        'ticker': 'SPY',
+        'algo_module_path': None,
+        'algo_version': 1,
+        'verbose': False,             # log in the algorithm
+        'verbose_processor': False,   # log in the indicator processor
+        'verbose_indicators': False,  # log all indicators
+        'positions': {
+            'SPY': {
+                'shares': 10,
+                'buys': [],
+                'sells': []
+            }
+        },
+        'buy_rules': {
+            'confidence': 75,
+            'min_indicators': 3
+        },
+        'sell_rules': {
+            'confidence': 75,
+            'min_indicators': 3
+        },
+        'indicators': [
+            {
+                'name': 'willr_-70_-30',
+                'module_path': willr_close_path,
+                'category': 'technical',
+                'type': 'momentum',
+                'uses_data': 'daily',
+                'high': 0,
+                'low': 0,
+                'close': 0,
+                'open': 0,
+                'willr_value': 0,
+                'num_points': 10,
+                'buy_below': -70,
+                'sell_above': -30,
+                'is_buy': False,
+                'is_sell': False,
+                'verbose': False      # log this indicator
+            },
+            {
+                'name': 'willr_-80_-20',
+                'module_path': willr_close_path,
+                'category': 'technical',
+                'type': 'momentum',
+                'uses_data': 'daily',
+                'high': 0,
+                'low': 0,
+                'close': 0,
+                'open': 0,
+                'willr_value': 0,
+                'num_points': 10,
+                'buy_below': -80,
+                'sell_above': -20,
+                'is_buy': False,
+                'is_sell': False
+            },
+            {
+                'name': 'willr_-90_-10',
+                'module_path': willr_close_path,
+                'category': 'technical',
+                'type': 'momentum',
+                'uses_data': 'daily',
+                'high': 0,
+                'low': 0,
+                'close': 0,
+                'open': 0,
+                'willr_value': 0,
+                'num_points': 10,
+                'buy_below': -90,
+                'sell_above': -10,
+                'is_buy': False,
+                'is_sell': False
+            },
+            {
+                'name': 'willr_open_-80_-20',
+                'module_path': willr_open_path,
+                'category': 'technical',
+                'type': 'momentum',
+                'uses_data': 'daily',
+                'high': 0,
+                'low': 0,
+                'close': 0,
+                'open': 0,
+                'willr_open_value': 0,
+                'num_points': 15,
+                'buy_below': -80,
+                'sell_above': -20,
+                'is_buy': False,
+                'is_sell': False
+            }
+        ],
+        'slack': {
+            'webhook': None
         }
-    },
-    'buy_rules': {
-        'confidence': 75,
-        'min_indicators': 3
-    },
-    'sell_rules': {
-        'confidence': 75,
-        'min_indicators': 3
-    },
-    'indicators': [
-        {
-            'name': 'willr_-70_-30',
-            'module_path': willr_close_path,
-            'category': 'technical',
-            'type': 'momentum',
-            'uses_data': 'daily',
-            'high': 0,
-            'low': 0,
-            'close': 0,
-            'open': 0,
-            'willr_value': 0,
-            'num_points': 10,
-            'buy_below': -70,
-            'sell_above': -30,
-            'is_buy': False,
-            'is_sell': False,
-            'verbose': False      # log this indicator
-        },
-        {
-            'name': 'willr_-80_-20',
-            'module_path': willr_close_path,
-            'category': 'technical',
-            'type': 'momentum',
-            'uses_data': 'daily',
-            'high': 0,
-            'low': 0,
-            'close': 0,
-            'open': 0,
-            'willr_value': 0,
-            'num_points': 10,
-            'buy_below': -80,
-            'sell_above': -20,
-            'is_buy': False,
-            'is_sell': False
-        },
-        {
-            'name': 'willr_-90_-10',
-            'module_path': willr_close_path,
-            'category': 'technical',
-            'type': 'momentum',
-            'uses_data': 'daily',
-            'high': 0,
-            'low': 0,
-            'close': 0,
-            'open': 0,
-            'willr_value': 0,
-            'num_points': 10,
-            'buy_below': -90,
-            'sell_above': -10,
-            'is_buy': False,
-            'is_sell': False
-        },
-        {
-            'name': 'willr_open_-80_-20',
-            'module_path': willr_open_path,
-            'category': 'technical',
-            'type': 'momentum',
-            'uses_data': 'daily',
-            'high': 0,
-            'low': 0,
-            'close': 0,
-            'open': 0,
-            'willr_open_value': 0,
-            'num_points': 15,
-            'buy_below': -80,
-            'sell_above': -20,
-            'is_buy': False,
-            'is_sell': False
-        }
-    ],
-    'slack': {
-        'webhook': None
     }
-}
+
+    return algo_config_dict
+# end of build_example_algo_config
 
 
-class IntradayAlgo(base_algo.BaseAlgo):
-    """IntradayAlgo"""
+class ExampleDailyAlgo(base_algo.BaseAlgo):
+    """ExampleDailyAlgo"""
 
     def process(self, algo_id, ticker, dataset):
         """process
@@ -157,12 +324,12 @@ class IntradayAlgo(base_algo.BaseAlgo):
                     self.latest_volume))
     # end of process
 
-# end of IntradayAlgo
+# end of ExampleDailyAlgo
 
 
-def run_algo_and_plot_trading_history(
+def run_backtest_and_plot_history(
         config_dict):
-    """run_algo_and_plot_trading_history
+    """run_backtest_and_plot_history
 
     Run a derived algorithm with an algorithm config dictionary
 
@@ -567,7 +734,7 @@ def run_algo_and_plot_trading_history(
     if verbose_indicators:
         config_dict['verbose_indicators'] = verbose_indicators
 
-    algo_obj = IntradayAlgo(
+    algo_obj = ExampleDailyAlgo(
         ticker=config_dict['ticker'],
         config_dict=config_dict)
 
@@ -636,9 +803,9 @@ def run_algo_and_plot_trading_history(
         show_plot=True,
         dropna_for_all=False)
 
-# end of run_algo_and_plot_trading_history
+# end of run_backtest_and_plot_history
 
 
 if __name__ == '__main__':
-    run_algo_and_plot_trading_history(
-        config_dict=algo_config_dict)
+    run_backtest_and_plot_history(
+        config_dict=build_example_algo_config())

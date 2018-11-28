@@ -7,6 +7,12 @@ Collect New Pricing Datasets
 .. automodule:: analysis_engine.scripts.fetch_new_stock_datasets
    :members: fetch_new_stock_datasets
 
+Backtest an Algorithm and Plot the Trading History
+==================================================
+
+.. automodule:: analysis_engine.scripts.run_backtest_and_plot_history
+   :members: build_example_algo_config,ExampleDailyAlgo,run_backtest_and_plot_history
+
 Publish Stock Data from S3 to Redis
 ===================================
 
