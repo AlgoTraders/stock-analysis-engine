@@ -845,9 +845,7 @@ def run_backtest_and_plot_history(
     orange = None
 
     red = 'close'
-    blue = 'low'
-    green = 'high'
-    orange = 'open'
+    blue = 'balance'
 
     if debug:
         for i, r in history_df.iterrows():
@@ -873,8 +871,21 @@ def run_backtest_and_plot_history(
 # end of run_backtest_and_plot_history
 
 
-if __name__ == '__main__':
+def start_backtest_with_plot_history():
+    """start_backtest_with_plot_history
+
+    setup.py helper for kicking off a backtest
+    that will plot the trading history using
+    seaborn and matplotlib showing
+    the algorithm's balance vs the closing price
+    of the asset
+    """
     run_backtest_and_plot_history(
         config_dict=build_example_algo_config(
             ticker='SPY',
             timeseries='minute'))
+# end of start_backtest_with_plot_history
+
+
+if __name__ == '__main__':
+    start_backtest_with_plot_history()
