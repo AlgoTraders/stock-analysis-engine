@@ -63,7 +63,7 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.3.40',
+    version='1.3.41',
     description=(
         'Build and tune your own investment '
         'algorithms using a distributed, scalable '
@@ -101,8 +101,9 @@ setup(
         'analysis_engine/scripts/fetch_new_stock_datasets.py',
         'analysis_engine/scripts/publish_from_s3_to_redis.py',
         'analysis_engine/scripts/publish_ticker_aggregate_from_s3.py',
-        'analysis_engine/scripts/sa.py',
+        'analysis_engine/scripts/plot_history_from_local_file.py',
         'analysis_engine/scripts/run_backtest_and_plot_history.py',
+        'analysis_engine/scripts/sa.py',
         'tools/logs-dataset-collection.sh',
         'tools/logs-jupyter.sh',
         'tools/logs-workers.sh',
@@ -117,7 +118,16 @@ setup(
     entry_points={
         'console_scripts': [
             'sa = sa:run_sa_tool',
-            'fetch = fetch_new_stock_datasets:fetch_new_stock_datasets',
+            (
+                'fetch = fetch_new_stock_datasets'
+                ':fetch_new_stock_datasets'),
+            (
+                'plot-history = '
+                'plot_history_from_local_file'
+                ':plot_local_history_file'),
+            (
+                'bth = run_backtest_and_plot_history'
+                ':start_backtest_with_plot_history'),
         ],
     },
     classifiers=[

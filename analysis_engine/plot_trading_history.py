@@ -4,8 +4,8 @@ Plot a ``Trading History`` dataset using seaborn and matplotlib
 
 import datetime
 import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
 import analysis_engine.consts as ae_consts
+import analysis_engine.utils as ae_utils
 import analysis_engine.charts as ae_charts
 import analysis_engine.build_result as build_result
 import spylunking.log.setup_logging as log_utils
@@ -29,7 +29,7 @@ def plot_trading_history(
         ylabel='Algo Values',
         linestyle='-',
         width=8.0,
-        height=6.0,
+        height=8.0,
         date_format='%d\n%b',
         df_filter=None,
         start_date=None,
@@ -53,25 +53,25 @@ def plot_trading_history(
         where the column is in the ``df`` and
         accessible with:``df[red]``
     :param red_color: hex color code to plot the data in the
-        ``df[red]``  (default is ``ae_consts.PLOT_COLORS[red]``)
+        ``df[red]``  (default is ``ae_consts.PLOT_COLORS['red']``)
     :param blue: string - column name to plot in
-        ``blue_color`` (or default ``ae_consts.PLOT_COLORS[blue]``)
+        ``blue_color`` (or default ``ae_consts.PLOT_COLORS['blue']``)
         where the column is in the ``df`` and
         accessible with:``df[blue]``
     :param blue_color: hex color code to plot the data in the
-        ``df[blue]``  (default is ``ae_consts.PLOT_COLORS[blue]``)
+        ``df[blue]``  (default is ``ae_consts.PLOT_COLORS['blue']``)
     :param green: string - column name to plot in
-        ``green_color`` (or default ``ae_consts.PLOT_COLORS[green]``)
+        ``green_color`` (or default ``ae_consts.PLOT_COLORS['darkgreen']``)
         where the column is in the ``df`` and
         accessible with:``df[green]``
     :param green_color: hex color code to plot the data in the
-        ``df[green]``  (default is ``ae_consts.PLOT_COLORS[green]``)
+        ``df[green]``  (default is ``ae_consts.PLOT_COLORS['darkgreen']``)
     :param orange: string - column name to plot in
-        ``orange_color`` (or default ``ae_consts.PLOT_COLORS[orange]``)
+        ``orange_color`` (or default ``ae_consts.PLOT_COLORS['orange']``)
         where the column is in the ``df`` and
         accessible with:``df[orange]``
     :param orange_color: hex color code to plot the data in the
-        ``df[orange]``  (default is ``ae_consts.PLOT_COLORS[orange]``)
+        ``df[orange]``  (default is ``ae_consts.PLOT_COLORS['orange']``)
     :param date_col: string - date column name
         (default is ``date``)
     :param xlabel: x-axis label
@@ -137,7 +137,7 @@ def plot_trading_history(
     if not use_blue:
         use_blue = ae_consts.PLOT_COLORS['blue']
     if not use_green:
-        use_green = ae_consts.PLOT_COLORS['green']
+        use_green = ae_consts.PLOT_COLORS['darkgreen']
     if not use_orange:
         use_orange = ae_consts.PLOT_COLORS['orange']
 
@@ -214,6 +214,14 @@ def plot_trading_history(
             width,
             height))
 
+    # Convert matplotlib date numbers to strings for dates to
+    # avoid dealing with weekend date gaps in plots
+    date_strings, date_labels = ae_utils.get_trade_open_xticks_from_date_col(
+        use_df[date_col])
+
+    use_df[date_col] = use_df[date_col].dt.strftime(
+        ae_consts.COMMON_TICK_DATE_FORMAT)
+
     all_axes = []
     num_plots = len(all_plots)
     for idx, node in enumerate(all_plots):
@@ -234,39 +242,23 @@ def plot_trading_history(
                     use_ax))
 
         all_axes.append(use_ax)
-        if linestyle == '-':
-            use_df[[date_col, column_name]].plot(
-                x=date_col,
-                linestyle=linestyle,
-                ax=use_ax,
-                color=hex_color,
-                rot=0)
-        else:
-            use_df[[date_col, column_name]].plot(
-                kind='bar',
-                x=date_col,
-                ax=use_ax,
-                color=hex_color,
-                rot=0)
-
+        use_ax.plot(
+            use_df[date_col],
+            use_df[column_name],
+            linestyle=linestyle,
+            color=hex_color)
         if idx > 0:
             if scale_y:
                 use_ax.set_ylim(
                     [0, use_ax.get_ylim()[1] * 3])
-            use_ax.fmt_xdata = mdates.DateFormatter(date_format)
             use_ax.yaxis.set_ticklabels([])
             use_ax.yaxis.set_ticks([])
             use_ax.xaxis.grid(False)
             use_ax.yaxis.grid(False)
-        else:
-            use_ax.xaxis.grid(
-                True,
-                which='minor')
-            use_ax.fmt_xdata = mdates.DateFormatter(
-                date_format)
-            use_ax.xaxis.set_minor_formatter(
-                use_ax.fmt_xdata)
-            plt.grid(True)
+        # end if this is not the fist axis
+
+        use_ax.set_xticks(date_strings)
+        use_ax.set_xticklabels(date_labels, rotation=45, ha='right')
     # end of for all plots
 
     lines = []
@@ -282,7 +274,9 @@ def plot_trading_history(
     # end of compiling a new-shortened legend while removing dupes
 
     for idx, cur_ax in enumerate(all_axes):
-        cur_ax.get_legend().remove()
+        if cur_ax:
+            if cur_ax.get_legend():
+                cur_ax.get_legend().remove()
     # end of removing all previous legends
 
     if verbose:
