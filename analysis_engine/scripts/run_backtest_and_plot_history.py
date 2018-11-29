@@ -700,7 +700,6 @@ def run_backtest_and_plot_history(
                     use_config_file))
             sys.exit(1)
 
-
     if args.backtest_loc:
         backtest_loc = args.backtest_loc
         if ('file:/' not in backtest_loc and
