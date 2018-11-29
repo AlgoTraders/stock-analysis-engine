@@ -2319,11 +2319,11 @@ class BaseAlgo:
             use_date = minute_str
 
         log.info(
-            '{} - buy start {}@{} {} - shares={}'.format(
+            '{} - buy start {} {}@{} - shares={}'.format(
                 self.name,
+                use_date,
                 ticker,
                 close,
-                use_date,
                 shares))
         new_buy = None
 
@@ -2377,12 +2377,12 @@ class BaseAlgo:
                     }
                 self.balance = new_buy['balance']
                 log.info(
-                    '{} - buy end {}@{} {} {} shares={} cost={} bal={} '
+                    '{} - buy end {} {}@{} {} shares={} cost={} bal={} '
                     'prev_shares={} prev_bal={}'.format(
                         self.name,
+                        use_date,
                         ticker,
                         close,
-                        use_date,
                         ae_consts.get_status(status=new_buy['status']),
                         new_buy['shares'],
                         new_buy['buy_price'],
@@ -2391,12 +2391,12 @@ class BaseAlgo:
                         prev_bal))
             else:
                 log.error(
-                    '{} - buy failed {}@{} {} {} shares={} cost={} '
+                    '{} - buy fail {} {}@{} {} shares={} cost={} '
                     'bal={} '.format(
                         self.name,
+                        use_date,
                         ticker,
                         close,
-                        use_date,
                         ae_consts.get_status(status=new_buy['status']),
                         num_owned,
                         new_buy['buy_price'],
@@ -2499,11 +2499,11 @@ class BaseAlgo:
 
         if self.verbose:
             log.info(
-                '{} - sell start {}@{} {}'.format(
+                '{} - sell start {} {}@{}'.format(
                     self.name,
+                    use_date,
                     ticker,
-                    close,
-                    use_date))
+                    close))
 
         new_sell = None
         order_details = row
@@ -2556,12 +2556,12 @@ class BaseAlgo:
                     }
                 self.balance = new_sell['balance']
                 log.info(
-                    '{} - sell end {}@{} {} {} shares={} cost={} bal={} '
+                    '{} - sell end {} {}@{} {} shares={} cost={} bal={} '
                     'prev_shares={} prev_bal={}'.format(
                         self.name,
+                        use_date,
                         ticker,
                         close,
-                        use_date,
                         ae_consts.get_status(status=new_sell['status']),
                         num_owned,
                         new_sell['sell_price'],
@@ -2570,12 +2570,12 @@ class BaseAlgo:
                         prev_bal))
             else:
                 log.error(
-                    '{} - sell failed {}@{} {} {} shares={} cost={} '
+                    '{} - sell fail {} {}@{} {} shares={} cost={} '
                     'bal={} '.format(
                         self.name,
+                        use_date,
                         ticker,
                         close,
-                        use_date,
                         ae_consts.get_status(status=new_sell['status']),
                         num_owned,
                         new_sell['sell_price'],

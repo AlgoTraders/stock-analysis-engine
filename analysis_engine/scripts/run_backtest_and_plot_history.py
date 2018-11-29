@@ -325,18 +325,6 @@ class ExampleDailyAlgo(base_algo.BaseAlgo):
                     self.latest_low, self.latest_open,
                     self.latest_volume))
 
-        if self.found_minute_data:
-            use_minute = (
-                self.latest_min - datetime.timedelta(minutes=4))
-            self.create_buy_order(
-                ticker=ticker,
-                minute=use_minute,
-                row={
-                    'name': algo_id,
-                    'close': self.latest_close,
-                    'date': self.trade_date
-                },
-                is_live_trading=self.is_live_trading)
     # end of process
 
 # end of ExampleDailyAlgo

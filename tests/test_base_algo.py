@@ -96,6 +96,13 @@ class TestBaseAlgo(BaseTestCase):
         self.end_date_str = (
             '2018-11-05 15:59:59'  # Monday
         )
+        self.use_end_date = datetime.datetime.now()
+        self.use_end_date_str = self.use_end_date.strftime(
+            COMMON_TICK_DATE_FORMAT)
+        self.use_start_date = (
+            datetime.datetime.now() - datetime.timedelta(days=3))
+        self.use_start_date_str = self.use_start_date.strftime(
+            COMMON_TICK_DATE_FORMAT)
         self.daily_df = pd.DataFrame([
             {
                 'high': 280.01,
@@ -646,6 +653,8 @@ class TestBaseAlgo(BaseTestCase):
         rec = run_algo(
             ticker=self.ticker,
             algo=algo,
+            start_date=self.use_start_date_str,
+            end_date=self.use_end_date_str,
             label=test_name,
             raise_on_err=True)
         self.assertEqual(
@@ -959,6 +968,8 @@ class TestBaseAlgo(BaseTestCase):
         algo_res = run_algo(
             ticker=self.ticker,
             algo=algo,
+            start_date=self.use_start_date_str,
+            end_date=self.use_end_date_str,
             label=test_name,
             raise_on_err=True)
         print(ppj(algo_res))
@@ -969,9 +980,9 @@ class TestBaseAlgo(BaseTestCase):
             algo.tickers,
             [self.ticker])
         self.assertTrue(
-            len(algo.get_test_values()) > 30)
+            len(algo.get_test_values()) >= 1)
         self.assertTrue(
-            len(algo_res['rec']['history']) > 30)
+            len(algo_res['rec']['history']) >= 1)
         self.assertEqual(
             get_status(status=algo_res['status']),
             'SUCCESS')
@@ -1001,10 +1012,12 @@ class TestBaseAlgo(BaseTestCase):
         algo_res = run_algo(
             ticker=self.ticker,
             algo=algo,
+            start_date=self.use_start_date_str,
+            end_date=self.use_end_date_str,
             label=test_name,
             raise_on_err=True)
         self.assertTrue(
-            len(algo_res['rec']['history']) > 30)
+            len(algo_res['rec']['history']) >= 1)
         self.assertEqual(
             algo.name,
             test_name)
@@ -1071,10 +1084,12 @@ class TestBaseAlgo(BaseTestCase):
         algo_res = run_algo(
             ticker=self.ticker,
             algo=algo,
+            start_date=self.use_start_date_str,
+            end_date=self.use_end_date_str,
             label=test_name,
             raise_on_err=True)
         self.assertTrue(
-            len(algo_res['rec']['history']) > 30)
+            len(algo_res['rec']['history']) >= 1)
         self.assertEqual(
             algo.name,
             test_name)
@@ -1141,10 +1156,12 @@ class TestBaseAlgo(BaseTestCase):
         algo_res = run_algo(
             ticker=self.ticker,
             algo=algo,
+            start_date=self.use_start_date_str,
+            end_date=self.use_end_date_str,
             label=test_name,
             raise_on_err=True)
         self.assertTrue(
-            len(algo_res['rec']['history']) > 30)
+            len(algo_res['rec']['history']) >= 1)
         self.assertEqual(
             algo.name,
             test_name)
@@ -1195,15 +1212,6 @@ class TestBaseAlgo(BaseTestCase):
 
     """
 
-    @mock.patch(
-        ('boto3.resource'),
-        new=build_boto3_resource)
-    @mock.patch(
-        ('requests.post'),
-        new=mock_request_success_result)
-    @mock.patch(
-        ('analysis_engine.write_to_file.write_to_file'),
-        new=mock_write_to_file)
     def test_integration_algo_publish_input_dataset_to_redis(self):
         """test_integration_algo_publish_input_dataset_to_redis"""
         if ev('INT_TESTS', '0') == '0':
@@ -1223,10 +1231,12 @@ class TestBaseAlgo(BaseTestCase):
         algo_res = run_algo(
             ticker=self.ticker,
             algo=algo,
+            start_date=self.use_start_date_str,
+            end_date=self.use_end_date_str,
             label=test_name,
             raise_on_err=True)
         self.assertTrue(
-            len(algo_res['rec']['history']) > 30)
+            len(algo_res['rec']['history']) >= 1)
         self.assertEqual(
             algo.name,
             test_name)
@@ -1282,12 +1292,6 @@ class TestBaseAlgo(BaseTestCase):
             len(redis_res['rec']['data']) > 10)
     # end of test_integration_algo_publish_input_dataset_to_redis
 
-    @mock.patch(
-        ('boto3.resource'),
-        new=build_boto3_resource)
-    @mock.patch(
-        ('requests.post'),
-        new=mock_request_success_result)
     def test_integration_algo_publish_input_dataset_to_file(self):
         """test_integration_algo_publish_input_dataset_to_file"""
         if ev('INT_TESTS', '0') == '0':
@@ -1307,10 +1311,12 @@ class TestBaseAlgo(BaseTestCase):
         algo_res = run_algo(
             ticker=self.ticker,
             algo=algo,
+            start_date=self.use_start_date_str,
+            end_date=self.use_end_date_str,
             label=test_name,
             raise_on_err=True)
         self.assertTrue(
-            len(algo_res['rec']['history']) > 30)
+            len(algo_res['rec']['history']) >= 1)
         self.assertEqual(
             algo.name,
             test_name)
@@ -1386,6 +1392,8 @@ class TestBaseAlgo(BaseTestCase):
             run_algo(
                 ticker=self.ticker,
                 algo=algo,
+                start_date=self.use_start_date_str,
+                end_date=self.use_end_date_str,
                 label=test_name,
                 raise_on_err=True)
             publish_input_req = build_publish_request(
@@ -1449,10 +1457,12 @@ class TestBaseAlgo(BaseTestCase):
         algo_res = run_algo(
             ticker=self.ticker,
             algo=algo,
+            start_date=self.use_start_date_str,
+            end_date=self.use_end_date_str,
             label=test_name,
             raise_on_err=True)
         self.assertTrue(
-            len(algo_res['rec']['history']) > 30)
+            len(algo_res['rec']['history']) >= 1)
         self.assertEqual(
             algo.name,
             test_name)
@@ -1527,6 +1537,8 @@ class TestBaseAlgo(BaseTestCase):
             balance=balance,
             commission=commission,
             name=test_name,
+            start_date=self.use_start_date_str,
+            end_date=self.use_end_date_str,
             timeseries=self.timeseries,
             trade_strategy=self.trade_strategy,
             load_config=load_config_req)
@@ -1553,10 +1565,12 @@ class TestBaseAlgo(BaseTestCase):
         algo_res = run_algo(
             ticker=self.ticker,
             algo=algo,
+            start_date=self.use_start_date_str,
+            end_date=self.use_end_date_str,
             label=test_name,
             raise_on_err=True)
         self.assertTrue(
-            len(algo_res['rec']['history']) > 30)
+            len(algo_res['rec']['history']) >= 1)
         self.assertEqual(
             algo.name,
             test_name)
@@ -1647,8 +1661,6 @@ class TestBaseAlgo(BaseTestCase):
             'test_integration_algo_restore_ready_back_to_redis')
         balance = self.balance
         commission = 13.5
-        start_date = (
-            datetime.datetime.now() - datetime.timedelta(days=6))
         algo = BaseAlgo(
             ticker=self.ticker,
             balance=balance,
@@ -1656,15 +1668,15 @@ class TestBaseAlgo(BaseTestCase):
             timeseries=self.timeseries,
             trade_strategy=self.trade_strategy,
             name=test_name)
-
         algo_res = run_algo(
             ticker=self.ticker,
             algo=algo,
-            start_date=start_date.strftime(COMMON_TICK_DATE_FORMAT),
+            start_date=self.use_start_date_str,
+            end_date=self.use_end_date_str,
             label=test_name,
             raise_on_err=True)
         self.assertTrue(
-            len(algo_res['rec']['history']) >= 3)
+            len(algo_res['rec']['history']) >= 1)
         self.assertEqual(
             algo.name,
             test_name)
