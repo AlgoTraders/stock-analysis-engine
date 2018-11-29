@@ -731,6 +731,8 @@ def run_sa_tool():
     publish_to_slack = True
     publish_to_s3 = True
     publish_to_redis = True
+    use_timeseries = 'day'
+    use_trade_strategy = 'count'
 
     valid = False
     required_task = False
@@ -1014,6 +1016,8 @@ def run_sa_tool():
             ssl_options=ssl_options,
             transport_options=transport_options,
             path_to_config_module=path_to_config_module,
+            timeseries=use_timeseries,
+            trade_strategy=use_trade_strategy,
             verbose=verbose)
 
         show_label = 'algo.name={}'.format(

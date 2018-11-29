@@ -77,6 +77,8 @@ def run_algo(
         result_backend=None,
         label=None,
         name=None,
+        timeseries=None,
+        trade_strategy=None,
         verbose=False,
         publish_to_slack=True,
         publish_to_s3=True,
@@ -136,6 +138,20 @@ def run_algo(
     :param config_dict: optional - dictionary that
         can be passed to derived class implementations
         of: ``def load_from_config(config_dict=config_dict)``
+
+    **Timeseries**
+
+    :param timeseries: optional - string to
+        set ``day`` or ``minute`` backtesting
+        or live trading
+        (default is ``minute``)
+
+    **Trading Strategy**
+
+    :param trade_strategy: optional - string to
+        set the type of ``Trading Strategy``
+        for backtesting or live trading
+        (default is ``count``)
 
     **Algorithm Dataset Loading, Extracting, Reporting
     and Trading History arguments**
@@ -360,6 +376,8 @@ def run_algo(
             config_dict=config_dict,
             name=label,
             auto_fill=auto_fill,
+            timeseries=timeseries,
+            trade_strategy=trade_strategy,
             publish_to_slack=publish_to_slack,
             publish_to_s3=publish_to_s3,
             publish_to_redis=publish_to_redis,
@@ -490,6 +508,8 @@ def run_algo(
             datasets=datasets,
             balance=use_balance,
             cache_freq=cache_freq,
+            timeseries=timeseries,
+            trade_strategy=trade_strategy,
             label=label)
         ticker_key = '{}_{}'.format(
             ticker,

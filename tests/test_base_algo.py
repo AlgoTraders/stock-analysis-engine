@@ -88,12 +88,21 @@ class TestBaseAlgo(BaseTestCase):
             self):
         """setUp"""
         self.ticker = 'SPY'
+        self.timeseries = 'day'
+        self.trade_strategy = 'count'
         self.start_date_str = (
             '2018-11-01 15:59:59'  # Thursday
         )
         self.end_date_str = (
             '2018-11-05 15:59:59'  # Monday
         )
+        self.use_end_date = datetime.datetime.now()
+        self.use_end_date_str = self.use_end_date.strftime(
+            COMMON_TICK_DATE_FORMAT)
+        self.use_start_date = (
+            datetime.datetime.now() - datetime.timedelta(days=3))
+        self.use_start_date_str = self.use_start_date.strftime(
+            COMMON_TICK_DATE_FORMAT)
         self.daily_df = pd.DataFrame([
             {
                 'high': 280.01,
@@ -587,6 +596,8 @@ class TestBaseAlgo(BaseTestCase):
         algo = BaseAlgo(
             ticker=self.ticker,
             balance=self.balance,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             name=test_name)
         self.assertEqual(
             algo.name,
@@ -610,6 +621,8 @@ class TestBaseAlgo(BaseTestCase):
         algo = BaseAlgo(
             ticker=self.ticker,
             balance=self.balance,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             config_dict=self.algo_config_dict)
         self.assertEqual(
             algo.name,
@@ -634,10 +647,14 @@ class TestBaseAlgo(BaseTestCase):
             ticker=self.ticker,
             balance=balance,
             commission=commission,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             name=test_name)
         rec = run_algo(
             ticker=self.ticker,
             algo=algo,
+            start_date=self.use_start_date_str,
+            end_date=self.use_end_date_str,
             label=test_name,
             raise_on_err=True)
         self.assertEqual(
@@ -669,6 +686,8 @@ class TestBaseAlgo(BaseTestCase):
             balance=1000.00,
             commission=6.00,
             config_dict=config_dict,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             name='test-{}'.format(ticker))
         self.assertEqual(
             demo_algo.latest_high,
@@ -703,6 +722,8 @@ class TestBaseAlgo(BaseTestCase):
             ticker=ticker,
             balance=1000.00,
             commission=6.00,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             name='test-{}'.format(ticker))
         date = '2018-11-05'
         dataset_id = '{}_{}'.format(
@@ -838,6 +859,8 @@ class TestBaseAlgo(BaseTestCase):
                     tickers=None,
                     name=None,
                     auto_fill=True,
+                    timeseries=None,
+                    trade_strategy=None,
                     config_dict=None):
                 BaseAlgo.__init__(
                     self,
@@ -847,6 +870,8 @@ class TestBaseAlgo(BaseTestCase):
                     tickers=tickers,
                     name=name,
                     auto_fill=auto_fill,
+                    timeseries=None,
+                    trade_strategy=None,
                     config_dict=config_dict)
             """
 
@@ -858,6 +883,8 @@ class TestBaseAlgo(BaseTestCase):
                     tickers=None,
                     name=None,
                     auto_fill=True,
+                    timeseries=None,
+                    trade_strategy=None,
                     config_dict=None):
                 """__init__
 
@@ -876,6 +903,8 @@ class TestBaseAlgo(BaseTestCase):
                     tickers=tickers,
                     name=name,
                     auto_fill=auto_fill,
+                    timeseries=timeseries,
+                    trade_strategy=trade_strategy,
                     config_dict=config_dict)
 
                 self.daily_results = []
@@ -933,10 +962,14 @@ class TestBaseAlgo(BaseTestCase):
             ticker=self.ticker,
             balance=balance,
             commission=commission,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             name=test_name)
         algo_res = run_algo(
             ticker=self.ticker,
             algo=algo,
+            start_date=self.use_start_date_str,
+            end_date=self.use_end_date_str,
             label=test_name,
             raise_on_err=True)
         print(ppj(algo_res))
@@ -947,9 +980,9 @@ class TestBaseAlgo(BaseTestCase):
             algo.tickers,
             [self.ticker])
         self.assertTrue(
-            len(algo.get_test_values()) > 30)
+            len(algo.get_test_values()) >= 1)
         self.assertTrue(
-            len(algo_res['rec']['history']) > 30)
+            len(algo_res['rec']['history']) >= 1)
         self.assertEqual(
             get_status(status=algo_res['status']),
             'SUCCESS')
@@ -970,6 +1003,8 @@ class TestBaseAlgo(BaseTestCase):
             ticker=self.ticker,
             balance=balance,
             commission=commission,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             publish_history=False,
             publish_report=False,
             publish_input=False,
@@ -977,10 +1012,12 @@ class TestBaseAlgo(BaseTestCase):
         algo_res = run_algo(
             ticker=self.ticker,
             algo=algo,
+            start_date=self.use_start_date_str,
+            end_date=self.use_end_date_str,
             label=test_name,
             raise_on_err=True)
         self.assertTrue(
-            len(algo_res['rec']['history']) > 30)
+            len(algo_res['rec']['history']) >= 1)
         self.assertEqual(
             algo.name,
             test_name)
@@ -1041,14 +1078,18 @@ class TestBaseAlgo(BaseTestCase):
             ticker=self.ticker,
             balance=balance,
             commission=commission,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             name=test_name)
         algo_res = run_algo(
             ticker=self.ticker,
             algo=algo,
+            start_date=self.use_start_date_str,
+            end_date=self.use_end_date_str,
             label=test_name,
             raise_on_err=True)
         self.assertTrue(
-            len(algo_res['rec']['history']) > 30)
+            len(algo_res['rec']['history']) >= 1)
         self.assertEqual(
             algo.name,
             test_name)
@@ -1109,14 +1150,18 @@ class TestBaseAlgo(BaseTestCase):
             ticker=self.ticker,
             balance=balance,
             commission=commission,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             name=test_name)
         algo_res = run_algo(
             ticker=self.ticker,
             algo=algo,
+            start_date=self.use_start_date_str,
+            end_date=self.use_end_date_str,
             label=test_name,
             raise_on_err=True)
         self.assertTrue(
-            len(algo_res['rec']['history']) > 30)
+            len(algo_res['rec']['history']) >= 1)
         self.assertEqual(
             algo.name,
             test_name)
@@ -1167,15 +1212,6 @@ class TestBaseAlgo(BaseTestCase):
 
     """
 
-    @mock.patch(
-        ('boto3.resource'),
-        new=build_boto3_resource)
-    @mock.patch(
-        ('requests.post'),
-        new=mock_request_success_result)
-    @mock.patch(
-        ('analysis_engine.write_to_file.write_to_file'),
-        new=mock_write_to_file)
     def test_integration_algo_publish_input_dataset_to_redis(self):
         """test_integration_algo_publish_input_dataset_to_redis"""
         if ev('INT_TESTS', '0') == '0':
@@ -1189,14 +1225,18 @@ class TestBaseAlgo(BaseTestCase):
             ticker=self.ticker,
             balance=balance,
             commission=commission,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             name=test_name)
         algo_res = run_algo(
             ticker=self.ticker,
             algo=algo,
+            start_date=self.use_start_date_str,
+            end_date=self.use_end_date_str,
             label=test_name,
             raise_on_err=True)
         self.assertTrue(
-            len(algo_res['rec']['history']) > 30)
+            len(algo_res['rec']['history']) >= 1)
         self.assertEqual(
             algo.name,
             test_name)
@@ -1252,12 +1292,6 @@ class TestBaseAlgo(BaseTestCase):
             len(redis_res['rec']['data']) > 10)
     # end of test_integration_algo_publish_input_dataset_to_redis
 
-    @mock.patch(
-        ('boto3.resource'),
-        new=build_boto3_resource)
-    @mock.patch(
-        ('requests.post'),
-        new=mock_request_success_result)
     def test_integration_algo_publish_input_dataset_to_file(self):
         """test_integration_algo_publish_input_dataset_to_file"""
         if ev('INT_TESTS', '0') == '0':
@@ -1271,14 +1305,18 @@ class TestBaseAlgo(BaseTestCase):
             ticker=self.ticker,
             balance=balance,
             commission=commission,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             name=test_name)
         algo_res = run_algo(
             ticker=self.ticker,
             algo=algo,
+            start_date=self.use_start_date_str,
+            end_date=self.use_end_date_str,
             label=test_name,
             raise_on_err=True)
         self.assertTrue(
-            len(algo_res['rec']['history']) > 30)
+            len(algo_res['rec']['history']) >= 1)
         self.assertEqual(
             algo.name,
             test_name)
@@ -1348,10 +1386,14 @@ class TestBaseAlgo(BaseTestCase):
                 ticker=self.ticker,
                 balance=self.balance,
                 commission=6.0,
+                timeseries=self.timeseries,
+                trade_strategy=self.trade_strategy,
                 name=test_name)
             run_algo(
                 ticker=self.ticker,
                 algo=algo,
+                start_date=self.use_start_date_str,
+                end_date=self.use_end_date_str,
                 label=test_name,
                 raise_on_err=True)
             publish_input_req = build_publish_request(
@@ -1386,6 +1428,8 @@ class TestBaseAlgo(BaseTestCase):
             ticker=self.ticker,
             balance=self.balance,
             commission=6.0,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             name='load-from-file_{}'.format(
                 test_name),
             load_config=load_config_req)
@@ -1407,14 +1451,18 @@ class TestBaseAlgo(BaseTestCase):
             ticker=self.ticker,
             balance=balance,
             commission=commission,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             name=test_name)
         algo_res = run_algo(
             ticker=self.ticker,
             algo=algo,
+            start_date=self.use_start_date_str,
+            end_date=self.use_end_date_str,
             label=test_name,
             raise_on_err=True)
         self.assertTrue(
-            len(algo_res['rec']['history']) > 30)
+            len(algo_res['rec']['history']) >= 1)
         self.assertEqual(
             algo.name,
             test_name)
@@ -1489,6 +1537,10 @@ class TestBaseAlgo(BaseTestCase):
             balance=balance,
             commission=commission,
             name=test_name,
+            start_date=self.use_start_date_str,
+            end_date=self.use_end_date_str,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             load_config=load_config_req)
 
         self.validate_dataset_structure(cur_algo=s3_algo)
@@ -1507,14 +1559,18 @@ class TestBaseAlgo(BaseTestCase):
             ticker=self.ticker,
             balance=balance,
             commission=commission,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             name=test_name)
         algo_res = run_algo(
             ticker=self.ticker,
             algo=algo,
+            start_date=self.use_start_date_str,
+            end_date=self.use_end_date_str,
             label=test_name,
             raise_on_err=True)
         self.assertTrue(
-            len(algo_res['rec']['history']) > 30)
+            len(algo_res['rec']['history']) >= 1)
         self.assertEqual(
             algo.name,
             test_name)
@@ -1589,6 +1645,8 @@ class TestBaseAlgo(BaseTestCase):
             balance=balance,
             commission=commission,
             name=test_name,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             load_config=load_config_req)
 
         self.validate_dataset_structure(cur_algo=redis_algo)
@@ -1603,22 +1661,22 @@ class TestBaseAlgo(BaseTestCase):
             'test_integration_algo_restore_ready_back_to_redis')
         balance = self.balance
         commission = 13.5
-        start_date = (
-            datetime.datetime.now() - datetime.timedelta(days=6))
         algo = BaseAlgo(
             ticker=self.ticker,
             balance=balance,
             commission=commission,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             name=test_name)
-
         algo_res = run_algo(
             ticker=self.ticker,
             algo=algo,
-            start_date=start_date.strftime(COMMON_TICK_DATE_FORMAT),
+            start_date=self.use_start_date_str,
+            end_date=self.use_end_date_str,
             label=test_name,
             raise_on_err=True)
         self.assertTrue(
-            len(algo_res['rec']['history']) >= 3)
+            len(algo_res['rec']['history']) >= 1)
         self.assertEqual(
             algo.name,
             test_name)
@@ -1692,6 +1750,8 @@ class TestBaseAlgo(BaseTestCase):
             balance=balance,
             commission=commission,
             name=test_name,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             load_config=load_config_req)
 
         self.validate_dataset_structure(cur_algo=redis_algo)

@@ -97,6 +97,8 @@ def run_custom_algo(
         slack_enabled=False,
         slack_code_block=False,
         slack_full_width=False,
+        timeseries=None,
+        trade_strategy=None,
         verbose=False,
         debug=False,
         dataset_publish_extract=False,
@@ -143,6 +145,20 @@ def run_custom_algo(
     :param config_dict: optional - dictionary that
         can be passed to derived class implementations
         of: ``def load_from_config(config_dict=config_dict)``
+
+    **Timeseries**
+
+    :param timeseries: optional - string to
+        set ``day`` or ``minute`` backtesting
+        or live trading
+        (default is ``minute``)
+
+    **Trading Strategy**
+
+    :param trade_strategy: optional - string to
+        set the type of ``Trading Strategy``
+        for backtesting or live trading
+        (default is ``count``)
 
     **Running Distributed Algorithms on the Engine Workers**
 
@@ -704,6 +720,8 @@ def run_custom_algo(
         commission=commission,
         start_date=use_start_date,
         end_date=use_end_date,
+        timeseries=timeseries,
+        trade_strategy=trade_strategy,
         config_file=use_config_file,
         config_dict=use_config_dict,
         load_config=load_config,

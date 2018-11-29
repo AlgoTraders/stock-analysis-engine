@@ -57,6 +57,8 @@ class TestAlgoWithIndicators(base_test.BaseTestCase):
             self):
         """setUp"""
         self.ticker = 'SPY'
+        self.timeseries = 'day'
+        self.trade_strategy = 'count'
         self.daily_dataset = json.loads(
             open('tests/datasets/spy-daily.json', 'r').read())
         self.daily_df = pd.DataFrame(self.daily_dataset)
@@ -101,7 +103,8 @@ class TestAlgoWithIndicators(base_test.BaseTestCase):
             'name': 'test_5_days_ahead',
             'algo_module_path': None,
             'algo_version': 1,
-            'trade_horizon_units': 'day',
+            'timeseries': self.timeseries,
+            'trade_strategy': self.trade_strategy,
             'trade_horizon': 5,
             'num_owned': 10,
             'buy_shares': 10,
@@ -332,7 +335,7 @@ class TestAlgoWithIndicators(base_test.BaseTestCase):
         res = algo.get_result()
         print(ae_consts.ppj(res))
         self.assertTrue(
-            len(res['history'][0]['total_sells']) == 0)
+            len(res['history'][0]['total_sells']) >= 1)
         self.assertTrue(
             len(res['history'][0]['total_buys']) == 0)
     # end of test_integration_daily_indicator_with_algo_config

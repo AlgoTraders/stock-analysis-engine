@@ -24,7 +24,7 @@ import sys
 from unittest.mock import MagicMock
 from recommonmark.parser import CommonMarkParser
 
-on_rtd = os.getenv("READTHEDOCS", "") != ""
+on_rtd = os.getenv('READTHEDOCS', '') != ''
 
 # Using working source code sphinx conf.py on read the docs:
 # https://github.com/mahmoud/boltons/blob/master/docs/conf.py#L20
@@ -55,32 +55,11 @@ for source_code_dir_name in source_code_dirs:
         source_code_dir_name)
     if os.path.exists(use_dir):
         sys.path.insert(0, use_dir)
-        """
-        sys.path.insert(0, use_dir)
-        if on_rtd:
-            os.system('ls -l {}'.format(
-                use_dir))
-        """
     else:
         if on_rtd:
             print('did not find from docs path dir: {}'.format(
                 use_dir))
 # end for all source dirs
-
-"""
-if on_rtd:
-    print('----------------------')
-    print('cur path: {}'.format(
-        CUR_PATH))
-    print('paths:')
-    pprint(sys.path)
-    os.system(
-        'echo "source path from docs dir contents:'
-        'dirs: " && ls -l {}'.format(
-            PACKAGE_SOURCE_PATH_FROM_DOCS))
-    print('----------------------')
-# end of debugging pathing on read the docs
-"""
 
 project = 'Stock Analysis Engine'
 copyright = '2018, Jay Johnson'
@@ -162,7 +141,7 @@ master_doc = 'index'
 # for a list of supported languages.
 #
 # This is also used if you do content translation via gettext catalogs.
-# Usually you set "language" from the command line for these cases.
+# Usually you set 'language' from the command line for these cases.
 language = None
 
 # List of patterns, relative to source directory, that match files and
@@ -183,8 +162,8 @@ intersphinx_mapping = {'python': ('https://docs.python.org/2.7', None)}
 # a list of builtin themes.
 #
 html_theme = os.getenv(
-    "DOC_THEME",
-    "sphinx_rtd_theme")
+    'DOC_THEME',
+    'sphinx_rtd_theme')
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -194,7 +173,7 @@ html_theme = os.getenv(
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
+# so a file named 'default.css' will overwrite the builtin 'default.css'.
 html_static_path = ['_static']
 
 # Custom sidebar templates, must be a dictionary that maps document names

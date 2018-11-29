@@ -26,6 +26,8 @@ def build_algo_request(
         history_config=None,
         report_config=None,
         extract_config=None,
+        timeseries=None,
+        trade_strategy=None,
         cache_freq='daily',
         label='algo'):
     """build_algo_request
@@ -54,6 +56,20 @@ def build_algo_request(
     :param config_dict: optional - dictionary that
         can be passed to derived class implementations
         of: ``def load_from_config(config_dict=config_dict)``
+
+    **Timeseries**
+
+    :param timeseries: optional - string to
+        set ``day`` or ``minute`` backtesting
+        or live trading
+        (default is ``minute``)
+
+    **Trading Strategy**
+
+    :param trade_strategy: optional - string to
+        set the type of ``Trading Strategy``
+        for backtesting or live trading
+        (default is ``count``)
 
     **Algorithm Dataset Extraction, Loading and Publishing arguments**
 
@@ -110,6 +126,8 @@ def build_algo_request(
         'extract_config': extract_config,
         'start_date': None,
         'end_date': None,
+        'timeseries': timeseries,
+        'trade_strategy': trade_strategy,
         'version': 1,
         'label': label
     }

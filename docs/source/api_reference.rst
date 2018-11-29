@@ -29,4 +29,4 @@ Constants
 Utility methods and constants
 
 .. automodule:: analysis_engine.consts
-   :members: is_celery_disabled,ev,to_float_str,get_percent_done,get_status,to_f,get_mb
+   :members: get_indicator_type_as_int,get_indicator_category_as_int,get_indicator_uses_data_as_int,get_algo_timeseries_from_int,is_celery_disabled,get_status,ppj,to_float_str,to_f,get_mb,ev,get_percent_done
