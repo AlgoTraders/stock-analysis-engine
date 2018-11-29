@@ -18,6 +18,7 @@ def build_buy_order(
         date,
         details,
         use_key,
+        minute=None,
         shares=None,
         version=1,
         auto_fill=True,
@@ -28,6 +29,9 @@ def build_buy_order(
 
     Create an algorithm buy order as a dictionary
 
+    .. note:: setting the ``minute`` is required to build
+        a minute-by-minute ``Trading History``
+
     :param ticker: ticker
     :param num_owned: integer current owned
         number of shares for this asset
@@ -36,6 +40,9 @@ def build_buy_order(
     :param commission: float for commission costs
     :param date: string trade date for that row usually
         ``COMMON_DATE_FORMAT`` (``YYYY-MM-DD``)
+    :param minute: optional - string with the minute that the
+        order was placed. format is
+        ``COMMON_TICK_DATE_FORMAT`` (``YYYY-MM-DD HH:MM:SS``)
     :param details: dictionary for full row of values to review
         all buys after the algorithm finishes.
         (usually ``row.to_json()``)
@@ -112,6 +119,7 @@ def build_buy_order(
         'details': details,
         'reason': reason,
         'date': date,
+        'minute': minute,
         'created': created_date,
         's3_bucket': s3_bucket_name,
         's3_key': s3_key,
@@ -121,10 +129,14 @@ def build_buy_order(
         'version': version
     }
 
+    use_date = minute
+    if not use_date:
+        use_date = date
+
     log.debug(
         '{} {} buy {} order={}'.format(
             ticker,
-            date,
+            use_date,
             ae_consts.get_status(status=order_dict['status']),
             ae_consts.ppj(order_dict)))
 

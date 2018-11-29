@@ -88,6 +88,8 @@ class TestBaseAlgo(BaseTestCase):
             self):
         """setUp"""
         self.ticker = 'SPY'
+        self.timeseries = 'day'
+        self.trade_strategy = 'count'
         self.start_date_str = (
             '2018-11-01 15:59:59'  # Thursday
         )
@@ -587,6 +589,8 @@ class TestBaseAlgo(BaseTestCase):
         algo = BaseAlgo(
             ticker=self.ticker,
             balance=self.balance,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             name=test_name)
         self.assertEqual(
             algo.name,
@@ -610,6 +614,8 @@ class TestBaseAlgo(BaseTestCase):
         algo = BaseAlgo(
             ticker=self.ticker,
             balance=self.balance,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             config_dict=self.algo_config_dict)
         self.assertEqual(
             algo.name,
@@ -634,6 +640,8 @@ class TestBaseAlgo(BaseTestCase):
             ticker=self.ticker,
             balance=balance,
             commission=commission,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             name=test_name)
         rec = run_algo(
             ticker=self.ticker,
@@ -669,6 +677,8 @@ class TestBaseAlgo(BaseTestCase):
             balance=1000.00,
             commission=6.00,
             config_dict=config_dict,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             name='test-{}'.format(ticker))
         self.assertEqual(
             demo_algo.latest_high,
@@ -703,6 +713,8 @@ class TestBaseAlgo(BaseTestCase):
             ticker=ticker,
             balance=1000.00,
             commission=6.00,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             name='test-{}'.format(ticker))
         date = '2018-11-05'
         dataset_id = '{}_{}'.format(
@@ -838,6 +850,8 @@ class TestBaseAlgo(BaseTestCase):
                     tickers=None,
                     name=None,
                     auto_fill=True,
+                    timeseries=None,
+                    trade_strategy=None,
                     config_dict=None):
                 BaseAlgo.__init__(
                     self,
@@ -847,6 +861,8 @@ class TestBaseAlgo(BaseTestCase):
                     tickers=tickers,
                     name=name,
                     auto_fill=auto_fill,
+                    timeseries=None,
+                    trade_strategy=None,
                     config_dict=config_dict)
             """
 
@@ -858,6 +874,8 @@ class TestBaseAlgo(BaseTestCase):
                     tickers=None,
                     name=None,
                     auto_fill=True,
+                    timeseries=None,
+                    trade_strategy=None,
                     config_dict=None):
                 """__init__
 
@@ -876,6 +894,8 @@ class TestBaseAlgo(BaseTestCase):
                     tickers=tickers,
                     name=name,
                     auto_fill=auto_fill,
+                    timeseries=timeseries,
+                    trade_strategy=trade_strategy,
                     config_dict=config_dict)
 
                 self.daily_results = []
@@ -933,6 +953,8 @@ class TestBaseAlgo(BaseTestCase):
             ticker=self.ticker,
             balance=balance,
             commission=commission,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             name=test_name)
         algo_res = run_algo(
             ticker=self.ticker,
@@ -970,6 +992,8 @@ class TestBaseAlgo(BaseTestCase):
             ticker=self.ticker,
             balance=balance,
             commission=commission,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             publish_history=False,
             publish_report=False,
             publish_input=False,
@@ -1041,6 +1065,8 @@ class TestBaseAlgo(BaseTestCase):
             ticker=self.ticker,
             balance=balance,
             commission=commission,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             name=test_name)
         algo_res = run_algo(
             ticker=self.ticker,
@@ -1109,6 +1135,8 @@ class TestBaseAlgo(BaseTestCase):
             ticker=self.ticker,
             balance=balance,
             commission=commission,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             name=test_name)
         algo_res = run_algo(
             ticker=self.ticker,
@@ -1189,6 +1217,8 @@ class TestBaseAlgo(BaseTestCase):
             ticker=self.ticker,
             balance=balance,
             commission=commission,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             name=test_name)
         algo_res = run_algo(
             ticker=self.ticker,
@@ -1271,6 +1301,8 @@ class TestBaseAlgo(BaseTestCase):
             ticker=self.ticker,
             balance=balance,
             commission=commission,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             name=test_name)
         algo_res = run_algo(
             ticker=self.ticker,
@@ -1348,6 +1380,8 @@ class TestBaseAlgo(BaseTestCase):
                 ticker=self.ticker,
                 balance=self.balance,
                 commission=6.0,
+                timeseries=self.timeseries,
+                trade_strategy=self.trade_strategy,
                 name=test_name)
             run_algo(
                 ticker=self.ticker,
@@ -1386,6 +1420,8 @@ class TestBaseAlgo(BaseTestCase):
             ticker=self.ticker,
             balance=self.balance,
             commission=6.0,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             name='load-from-file_{}'.format(
                 test_name),
             load_config=load_config_req)
@@ -1407,6 +1443,8 @@ class TestBaseAlgo(BaseTestCase):
             ticker=self.ticker,
             balance=balance,
             commission=commission,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             name=test_name)
         algo_res = run_algo(
             ticker=self.ticker,
@@ -1489,6 +1527,8 @@ class TestBaseAlgo(BaseTestCase):
             balance=balance,
             commission=commission,
             name=test_name,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             load_config=load_config_req)
 
         self.validate_dataset_structure(cur_algo=s3_algo)
@@ -1507,6 +1547,8 @@ class TestBaseAlgo(BaseTestCase):
             ticker=self.ticker,
             balance=balance,
             commission=commission,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             name=test_name)
         algo_res = run_algo(
             ticker=self.ticker,
@@ -1589,6 +1631,8 @@ class TestBaseAlgo(BaseTestCase):
             balance=balance,
             commission=commission,
             name=test_name,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             load_config=load_config_req)
 
         self.validate_dataset_structure(cur_algo=redis_algo)
@@ -1609,6 +1653,8 @@ class TestBaseAlgo(BaseTestCase):
             ticker=self.ticker,
             balance=balance,
             commission=commission,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             name=test_name)
 
         algo_res = run_algo(
@@ -1692,6 +1738,8 @@ class TestBaseAlgo(BaseTestCase):
             balance=balance,
             commission=commission,
             name=test_name,
+            timeseries=self.timeseries,
+            trade_strategy=self.trade_strategy,
             load_config=load_config_req)
 
         self.validate_dataset_structure(cur_algo=redis_algo)

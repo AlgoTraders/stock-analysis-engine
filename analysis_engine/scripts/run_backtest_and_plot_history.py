@@ -16,7 +16,7 @@ run a backtest with an algorithm config dictionary
         'analysis_engine/mocks/example_indicator_williamsr_open.py')
     algo_config_dict = {
         'name': 'example-backtest',
-        'trade_horizon_units': 'day',
+        'timeseries': 'minute',
         'trade_horizon': 5,
         'num_owned': 10,
         'buy_shares': 10,
@@ -178,7 +178,9 @@ log = log_utils.build_colorized_logger(
     log_config_path=ae_consts.LOG_CONFIG_PATH)
 
 
-def build_example_algo_config():
+def build_example_algo_config(
+        ticker,
+        timeseries='minute'):
     """build_example_algo_config
 
     helper for building an algorithm config dictionary
@@ -191,20 +193,20 @@ def build_example_algo_config():
         'analysis_engine/mocks/example_indicator_williamsr_open.py')
     algo_config_dict = {
         'name': 'backtest',
-        'trade_horizon_units': 'day',
+        'timeseries': timeseries,
         'trade_horizon': 5,
         'num_owned': 10,
         'buy_shares': 10,
         'balance': 5000.0,
         'commission': 6.0,
-        'ticker': 'SPY',
+        'ticker': ticker,
         'algo_module_path': None,
         'algo_version': 1,
         'verbose': False,             # log in the algorithm
         'verbose_processor': False,   # log in the indicator processor
         'verbose_indicators': False,  # log all indicators
         'positions': {
-            'SPY': {
+            ticker: {
                 'shares': 10,
                 'buys': [],
                 'sells': []
@@ -224,7 +226,7 @@ def build_example_algo_config():
                 'module_path': willr_close_path,
                 'category': 'technical',
                 'type': 'momentum',
-                'uses_data': 'daily',
+                'uses_data': 'minute',
                 'high': 0,
                 'low': 0,
                 'close': 0,
@@ -242,7 +244,7 @@ def build_example_algo_config():
                 'module_path': willr_close_path,
                 'category': 'technical',
                 'type': 'momentum',
-                'uses_data': 'daily',
+                'uses_data': 'minute',
                 'high': 0,
                 'low': 0,
                 'close': 0,
@@ -259,7 +261,7 @@ def build_example_algo_config():
                 'module_path': willr_close_path,
                 'category': 'technical',
                 'type': 'momentum',
-                'uses_data': 'daily',
+                'uses_data': 'minute',
                 'high': 0,
                 'low': 0,
                 'close': 0,
@@ -276,7 +278,7 @@ def build_example_algo_config():
                 'module_path': willr_open_path,
                 'category': 'technical',
                 'type': 'momentum',
-                'uses_data': 'daily',
+                'uses_data': 'minute',
                 'high': 0,
                 'low': 0,
                 'close': 0,
@@ -322,6 +324,19 @@ class ExampleDailyAlgo(base_algo.BaseAlgo):
                     self.latest_close, self.latest_high,
                     self.latest_low, self.latest_open,
                     self.latest_volume))
+
+        if self.found_minute_data:
+            use_minute = (
+                self.latest_min - datetime.timedelta(minutes=4))
+            self.create_buy_order(
+                ticker=ticker,
+                minute=use_minute,
+                row={
+                    'name': algo_id,
+                    'close': self.latest_close,
+                    'date': self.trade_date
+                },
+                is_live_trading=self.is_live_trading)
     # end of process
 
 # end of ExampleDailyAlgo
@@ -762,6 +777,8 @@ def run_backtest_and_plot_history(
 
     trading_history_dict = algo_obj.get_history_dataset()
     history_df = trading_history_dict[ticker]
+    if not hasattr(history_df, 'to_json'):
+        return
 
     first_date = history_df['date'].iloc[0]
     end_date = history_df['date'].iloc[-1]
@@ -772,7 +789,11 @@ def run_backtest_and_plot_history(
             trading_history_dict['algo_name'],
             first_date,
             end_date))
-    xcol = 'date'
+    use_xcol = 'date'
+    use_as_date_format = '%d\n%b'
+    if config_dict['timeseries'] == 'minute':
+        use_xcol = 'minute'
+        use_as_date_format = '%d %H:%M:%S\n%b'
     xlabel = 'Dates vs {} values'.format(
         trading_history_dict['algo_name'])
     ylabel = 'Algo {}\nvalues'.format(
@@ -796,7 +817,8 @@ def run_backtest_and_plot_history(
         blue=blue,
         green=green,
         orange=orange,
-        date_col=xcol,
+        date_col=use_xcol,
+        date_format=use_as_date_format,
         xlabel=xlabel,
         ylabel=ylabel,
         df_filter=df_filter,
@@ -808,4 +830,6 @@ def run_backtest_and_plot_history(
 
 if __name__ == '__main__':
     run_backtest_and_plot_history(
-        config_dict=build_example_algo_config())
+        config_dict=build_example_algo_config(
+            ticker='SPY',
+            timeseries='minute'))

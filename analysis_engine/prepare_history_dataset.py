@@ -78,6 +78,7 @@ def prepare_history_dataset(
 
     convert_these_date_keys = [
         'date',
+        'minute',
         'exp_date'
     ]
 

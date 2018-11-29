@@ -78,11 +78,12 @@ class ExampleIndicatorWilliamsROpen(base_indicator.BaseIndicator):
         :param algo_id: string - algo identifier label for debugging datasets
             during specific dates
         :param ticker: string - ticker
-        :param dataset: dictionary of ``pd.DataFrame(s)`` to process
+        :param dataset: dictionary of ``pandas.DataFrame(s)`` to process
         """
 
-        df_status, daily_df = self.get_subscribed_dataset(
-                dataset=dataset)
+        # set the algo config indicator 'uses_data' to 'day' or 'minute'
+        df_status, use_df = self.get_subscribed_dataset(
+            dataset=dataset)
 
         self.willr_open_value = None
         if df_status == ae_consts.EMPTY:
@@ -94,21 +95,21 @@ class ExampleIndicatorWilliamsROpen(base_indicator.BaseIndicator):
         # converts any self.config keys into useable
         # member variables automatically in your derived class
         self.lg(
-            'process start - num_points={} daily_df={}'.format(
+            'process start - num_points={} use_df={}'.format(
                 self.num_points,
-                len(daily_df.index)))
+                len(use_df.index)))
 
         """
         real = WILLR(high, low, open, timeperiod=14)
         """
-        num_records = len(daily_df.index)
+        num_records = len(use_df.index)
         if num_records > self.num_points:
-            first_date = daily_df['date'].iloc[0]
-            end_date = daily_df['date'].iloc[-1]
+            first_date = use_df['date'].iloc[0]
+            end_date = use_df['date'].iloc[-1]
             start_row = num_records - self.num_points
-            use_df = daily_df[start_row:num_records]
+            use_df = use_df[start_row:num_records]
             """
-            for idx, row in daily_df[start_row:-1].iterrows():
+            for idx, row in use_df[start_row:-1].iterrows():
                 high = row['high']
                 low = row['low']
                 open_val = row['open']

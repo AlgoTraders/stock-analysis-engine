@@ -50,6 +50,30 @@ datasets from the redis pipeline:
     backtest date for historical testing with the data pipeline
     structure (it's the ``date`` key in the dataset node root level)
 
+**Trading Strategy**
+
+- ``self.trade_strategy = 'count'`` - if the number of indicators
+    saying buy or sell exceeds the buy/sell rules ``min_indicators``
+    the algorithm will trigger a buy or sell
+- ``self.buy_reason`` - derived algorithms can attach custom
+    buy reasons as a string to each trade order
+- ``self.sell_reason`` - derived algorithms can attach custom
+    sell reasons as a string to each trade order
+
+**Timeseries**
+
+- ``self.timeseries``- use an algorithm config to set
+    ``day`` or ``minute`` to process daily or intraday
+    minute by minute datasets. Indicators will still
+    have access to all datasets, this just makes it
+    easier to utilize the helper within an indicator
+    to quickly get the correct dataset:
+
+    .. code-block:: python
+
+        df_status, use_df = self.get_subscribed_dataset(
+            dataset=dataset)
+
 **Balance Information**
 
 - ``self.balance``
@@ -57,7 +81,7 @@ datasets from the redis pipeline:
 
 .. note:: If a key is not in the dataset, the
     algorithms's member variable will be an empty
-    pandas DataFrame created with: ``pd.DataFrame([])``
+    pandas DataFrame created with: ``pandas.DataFrame([])``
     except ``self.pricing`` which is just a dictionary.
     Please ensure the engine successfully fetched
     and cached the dataset in redis using a tool like
@@ -111,6 +135,7 @@ Indicator buy and sell records in ``self.latest_buys`` and
 import os
 import json
 import copy
+import datetime
 import pandas as pd
 import analysis_engine.consts as ae_consts
 import analysis_engine.utils as ae_utils
@@ -265,6 +290,8 @@ class BaseAlgo:
             extract_config=None,
             dataset_type=ae_consts.SA_DATASET_TYPE_ALGO_READY,
             serialize_datasets=ae_consts.DEFAULT_SERIALIZED_DATASETS,
+            timeseries=None,
+            trade_strategy=None,
             verbose=False,
             verbose_processor=False,
             verbose_indicators=False,
@@ -457,6 +484,20 @@ class BaseAlgo:
             any generated datasets to s3 and redis
             (default ``True``)
 
+        **Timeseries**
+
+        :param timeseries: optional - string to
+            set ``day`` or ``minute`` backtesting
+            or live trading
+            (default is ``minute``)
+
+        **Trading Strategy**
+
+        :param trade_strategy: optional - string to
+            set the type of ``Trading Strategy``
+            for backtesting or live trading
+            (default is ``count``)
+
         **Debugging arguments**
 
         :param verbose: optional - boolean for
@@ -497,7 +538,13 @@ class BaseAlgo:
         self.balance = balance
         self.starting_balance = balance
         self.starting_close = 0.0
-        self.trade_horizon_units = ae_consts.ALGO_HORIZON_UNITS_DAY
+        self.timeseries = timeseries
+        if not self.timeseries:
+            self.timeseries = 'minute'
+        self.trade_strategy = trade_strategy
+        if not self.trade_strategy:
+            self.trade_strategy = 'count'
+        self.timeseries_value = ae_consts.ALGO_TIMESERIES_MINUTE
         self.trade_horizon = 5
         self.commission = commission
         self.result = None
@@ -884,16 +931,12 @@ class BaseAlgo:
         self.load_from_external_source()
 
         if self.config_dict:
-            val = self.config_dict.get(
-                'trade_horizon_units',
+            self.timeseries = self.config_dict.get(
+                'timeseries',
                 'day').lower()
-            if val == 'day':
-                self.horizon_units = ae_consts.ALGO_HORIZON_UNITS_DAY
-            else:
-                self.horizon_units = ae_consts.ALGO_HORIZON_UNITS_MINUTE
             self.trade_horizon = int(self.config_dict.get(
                 'trade_horizon',
-                5))
+                '5'))
         # end of loading initial values from a config_dict before derived
 
         self.iproc = None
@@ -910,6 +953,11 @@ class BaseAlgo:
         self.sell_rules = {}
         self.buy_shares = None
         self.is_live_trading = False
+        self.found_minute_data = False
+        self.use_minute = None
+        self.intraday_start_min = None
+        self.intraday_end_min = None
+        self.intraday_events = {}
 
         self.ignore_history_keys = [
             'total_buys',
@@ -922,9 +970,30 @@ class BaseAlgo:
             'sells',
             'ticker'
         ]
+        self.buy_reason = None
+        self.sell_reason = None
 
         self.load_from_config(
             config_dict=self.config_dict)
+
+        self.timeseries = str(self.timeseries).lower()
+        if self.timeseries == 'day':
+            self.timeseries_value = ae_consts.ALGO_TIMESERIES_DAY
+        elif self.timeseries == 'daily':
+            self.timeseries_value = ae_consts.ALGO_TIMESERIES_DAY
+        elif self.timeseries == 'minute':
+            self.timeseries_value = ae_consts.ALGO_TIMESERIES_MINUTE
+        elif self.timeseries == 'intraday':
+            self.timeseries_value = ae_consts.ALGO_TIMESERIES_MINUTE
+        else:
+            self.timeseries_value = ae_consts.ALGO_TIMESERIES_MINUTE
+
+        self.trade_strategy = str(self.trade_strategy).lower()
+        self.trade_off_num_indicators = False
+        if self.trade_strategy == 'count':
+            self.trade_off_num_indicators = True
+        else:
+            self.trade_off_num_indicators = True
 
         # build the IndicatorProcessor after loading
         # values from an optional config_dict
@@ -1005,7 +1074,7 @@ class BaseAlgo:
             during specific dates
         :param ticker: string - ticker
         :param dataset: a dictionary of identifiers (for debugging) and
-            multiple pandas ``pd.DataFrame`` objects. Dictionary where keys
+            multiple pandas ``pandas.DataFrame`` objects. Dictionary where keys
             represent a label from one of the data sources (``IEX``,
             ``Yahoo``, ``FinViz`` or other). Here is the supported
             dataset structure for the process method:
@@ -1107,11 +1176,30 @@ class BaseAlgo:
         for idx, row in self.df_daily.iterrows():
             print(row)
         """
+    # end of process
 
-        if self.num_latest_buys > self.min_buy_indicators:
-            self.should_buy = True
-        elif self.num_latest_sells > self.min_sell_indicators:
-            self.should_sell = True
+    def trade_off_indicator_buy_and_sell_signals(
+            self,
+            ticker,
+            algo_id,
+            reason_for_buy=None,
+            reason_for_sell=None):
+        """trade_off_indicator_buy_and_sell_signals
+
+        :param ticker: ticker symbol
+        :param algo_id: string algo for tracking
+            internal progress for debugging
+        :param reason_for_buy: optional - string
+            for tracking why the algo bought
+        :param reason_for_sell: optional - string
+            for tracking why the algo sold
+        """
+
+        if self.trade_off_num_indicators:
+            if self.num_latest_buys > self.min_buy_indicators:
+                self.should_buy = True
+            elif self.num_latest_sells > self.min_sell_indicators:
+                self.should_sell = True
 
         if self.num_owned and self.should_sell:
             self.create_sell_order(
@@ -1123,7 +1211,7 @@ class BaseAlgo:
                     'date': self.trade_date
                 },
                 is_live_trading=self.is_live_trading,
-                reason='testing')
+                reason=reason_for_buy)
         # if own shares and should sell
         # else if should buy:
         elif self.should_buy:
@@ -1136,10 +1224,10 @@ class BaseAlgo:
                     'date': self.trade_date
                 },
                 is_live_trading=self.is_live_trading,
-                reason='testing')
+                reason=reason_for_sell)
         # end of should_buy
 
-    # end of process
+    # end of trade_off_indicator_buy_and_sell_signals
 
     def load_from_external_source(
             self,
@@ -1469,39 +1557,6 @@ class BaseAlgo:
                         'date': node['date'],
                         'data': {}
                     }
-
-                    # parse the dataset node and set member variables
-                    self.debug_msg = (
-                        '{} START - convert load dataset id={}'.format(
-                            ticker,
-                            node.get('id', 'missing-id')))
-                    self.load_from_dataset(
-                        ds_data=node)
-                    for ds_key in node['data']:
-                        empty_ds = self.empty_pd_str
-                        data_val = node['data'][ds_key]
-                        if ds_key not in new_node['data']:
-                            new_node['data'][ds_key] = empty_ds
-                        self.debug_msg = (
-                            'convert node={} ds_key={}'.format(
-                                node,
-                                ds_key))
-                        if hasattr(data_val, 'to_json'):
-                            new_node['data'][ds_key] = data_val.to_json(
-                                orient='records',
-                                date_format='iso')
-                        else:
-                            if not data_val:
-                                new_node['data'][ds_key] = empty_ds
-                            else:
-                                new_node['data'][ds_key] = json.dumps(
-                                    data_val)
-                        # if/else
-                    # for all dataset values in data
-                    self.debug_msg = (
-                        '{} END - convert load dataset id={}'.format(
-                            ticker,
-                            node.get('id', 'missing-id')))
 
                 output_record[ticker].append(new_node)
                 cur_idx += 1
@@ -2048,6 +2103,7 @@ class BaseAlgo:
             balance=self.balance,
             commission=self.commission,
             date=self.trade_date,
+            minute=self.use_minute,
             trade_type=self.trade_type,
             high=self.latest_high,
             low=self.latest_low,
@@ -2206,6 +2262,7 @@ class BaseAlgo:
             self,
             ticker,
             row,
+            minute=None,
             shares=None,
             reason=None,
             orient='records',
@@ -2215,13 +2272,22 @@ class BaseAlgo:
 
         create a buy order at the close or ask price
 
+        .. note:: setting the ``minute`` is required to build
+            a minute-by-minute ``Trading History``
+
         :param ticker: string ticker
         :param shares: optional - integer number of shares to buy
             if None buy max number of shares at the ``close`` with the
             available ``balance`` amount.
-        :param row: ``dictionary`` or ``pd.DataFrame``
+        :param row: ``dictionary`` or ``pandas.DataFrame``
             row record that will be converted to a
             json-serialized string
+        :param minute: optional - datetime when the order
+            was placed (backtests require setting the
+            specific minute that triggered a buy -
+            while in live mode you can just use
+            ``minute=self.latest_min`` as the ``pandas.DataFrame``
+            should reflect the lastest minutely data)
         :param reason: optional - reason for creating the order
             which is useful for troubleshooting order histories
         :param orient: optional - pandas orient for ``row.to_json()``
@@ -2244,12 +2310,20 @@ class BaseAlgo:
             return
 
         dataset_date = row['date']
+        use_date = dataset_date
+
+        minute_str = None
+        if minute:
+            minute_str = minute.strftime(
+                ae_consts.COMMON_TICK_DATE_FORMAT)
+            use_date = minute_str
+
         log.info(
             '{} - buy start {}@{} {} - shares={}'.format(
                 self.name,
                 ticker,
                 close,
-                dataset_date,
+                use_date,
                 shares))
         new_buy = None
 
@@ -2258,6 +2332,7 @@ class BaseAlgo:
             order_details = row.to_json(
                 orient='records',
                 date_format='iso'),
+
         try:
             num_owned = self.get_owned_shares(
                 ticker=ticker)
@@ -2269,6 +2344,7 @@ class BaseAlgo:
                 balance=self.balance,
                 commission=self.commission,
                 date=dataset_date,
+                minute=minute_str,
                 use_key='{}_{}'.format(
                     ticker,
                     dataset_date),
@@ -2306,7 +2382,7 @@ class BaseAlgo:
                         self.name,
                         ticker,
                         close,
-                        dataset_date,
+                        use_date,
                         ae_consts.get_status(status=new_buy['status']),
                         new_buy['shares'],
                         new_buy['buy_price'],
@@ -2320,14 +2396,35 @@ class BaseAlgo:
                         self.name,
                         ticker,
                         close,
-                        dataset_date,
+                        use_date,
                         ae_consts.get_status(status=new_buy['status']),
                         num_owned,
                         new_buy['buy_price'],
                         self.balance))
             # end of if trade worked or not
 
+            # update the buys
             self.buys.append(new_buy)
+
+            (self.num_owned,
+             self.num_buys,
+             self.num_sells) = self.get_ticker_positions(
+                ticker=ticker)
+
+            # record the ticker's event if it's a minute timeseries
+            if minute_str:
+                self.use_minute = minute_str
+                self.last_history_dict = self.get_trade_history_node()
+                if self.latest_ind_report:
+                    ind_configurables = copy.deepcopy(
+                        self.latest_ind_report)
+                    for ignore_key in self.ind_conf_ignore_keys:
+                        ind_configurables.pop(
+                            ignore_key,
+                            None)
+                    self.last_history_dict.update(
+                        ind_configurables)
+
         except Exception as e:
             self.debug_msg = (
                 '{} - buy {}@{} - FAILED with ex={}'.format(
@@ -2340,17 +2437,13 @@ class BaseAlgo:
                 raise e
         # end of try/ex
 
-        (self.num_owned,
-         self.num_buys,
-         self.num_sells) = self.get_ticker_positions(
-            ticker=ticker)
-
     # end of create_buy_order
 
     def create_sell_order(
             self,
             ticker,
             row,
+            minute=None,
             shares=None,
             reason=None,
             orient='records',
@@ -2360,11 +2453,20 @@ class BaseAlgo:
 
         create a sell order at the close or ask price
 
+        .. note:: setting the ``minute`` is required to build
+            a minute-by-minute ``Trading History``
+
         :param ticker: string ticker
         :param shares: optional - integer number of shares to sell
             if None sell all owned shares at the ``close``
-        :param row: ``pd.DataFrame`` row record that will
+        :param row: ``pandas.DataFrame`` row record that will
             be converted to a json-serialized string
+        :param minute: datetime when the order
+            was placed (backtests require setting the
+            specific minute that triggered a sell -
+            while in live mode you can just use
+            ``minute=self.latest_min`` as the ``pandas.DataFrame``
+            should reflect the lastest minutely data)
         :param reason: optional - reason for creating the order
             which is useful for troubleshooting order histories
         :param orient: optional - pandas orient for ``row.to_json()``
@@ -2387,19 +2489,29 @@ class BaseAlgo:
             return
 
         dataset_date = row['date']
+        use_date = dataset_date
+
+        minute_str = None
+        if minute:
+            minute_str = minute.strftime(
+                ae_consts.COMMON_TICK_DATE_FORMAT)
+            use_date = minute_str
+
         if self.verbose:
             log.info(
                 '{} - sell start {}@{} {}'.format(
                     self.name,
                     ticker,
                     close,
-                    dataset_date))
+                    use_date))
+
         new_sell = None
         order_details = row
         if hasattr(row, 'to_json'):
             order_details = row.to_json(
                 orient=orient,
                 date_format=date_format),
+
         try:
             num_owned = self.get_owned_shares(
                 ticker=ticker)
@@ -2411,6 +2523,7 @@ class BaseAlgo:
                 balance=self.balance,
                 commission=self.commission,
                 date=dataset_date,
+                minute=minute_str,
                 use_key='{}_{}'.format(
                     ticker,
                     dataset_date),
@@ -2448,7 +2561,7 @@ class BaseAlgo:
                         self.name,
                         ticker,
                         close,
-                        dataset_date,
+                        use_date,
                         ae_consts.get_status(status=new_sell['status']),
                         num_owned,
                         new_sell['sell_price'],
@@ -2462,14 +2575,35 @@ class BaseAlgo:
                         self.name,
                         ticker,
                         close,
-                        dataset_date,
+                        use_date,
                         ae_consts.get_status(status=new_sell['status']),
                         num_owned,
                         new_sell['sell_price'],
                         self.balance))
             # end of if trade worked or not
 
+            # update the sells
             self.sells.append(new_sell)
+
+            (self.num_owned,
+             self.num_buys,
+             self.num_sells) = self.get_ticker_positions(
+                ticker=ticker)
+
+            # record the ticker's event if it's a minute timeseries
+            if minute_str:
+                self.use_minute = minute_str
+                self.last_history_dict = self.get_trade_history_node()
+                if self.latest_ind_report:
+                    ind_configurables = copy.deepcopy(
+                        self.latest_ind_report)
+                    for ignore_key in self.ind_conf_ignore_keys:
+                        ind_configurables.pop(
+                            ignore_key,
+                            None)
+                    self.last_history_dict.update(
+                        ind_configurables)
+
         except Exception as e:
             self.debug_msg = (
                 '{} - sell {}@{} - FAILED with ex={}'.format(
@@ -2481,11 +2615,6 @@ class BaseAlgo:
             if self.raise_on_err:
                 raise e
         # end of try/ex
-
-        (self.num_owned,
-         self.num_buys,
-         self.num_sells) = self.get_ticker_positions(
-            ticker=ticker)
 
     # end of create_sell_order
 
@@ -2561,7 +2690,7 @@ class BaseAlgo:
 
         .. note:: If a key is not in the dataset, the
             algorithms's member variable will be an empty
-            ``pd.DataFrame([])``. Please ensure the engine
+            ``pandas.DataFrame([])``. Please ensure the engine
             cached the dataset in redis using a tool like
             ``redis-cli`` to verify the values are in
             memory.
@@ -2632,6 +2761,7 @@ class BaseAlgo:
 
         self.latest_min = None
         self.backtest_date = self.ds_date
+        self.found_minute_data = False
 
         if not hasattr(self.df_daily, 'index'):
             self.df_daily = self.empty_pd
@@ -2640,6 +2770,7 @@ class BaseAlgo:
         else:
             if 'date' in self.df_minute:
                 self.latest_min = self.df_minute['date'].iloc[-1]
+                self.found_minute_data = True
         if not hasattr(self.df_stats, 'index'):
             self.df_stats = self.empty_pd
         if not hasattr(self.df_peers, 'index'):
@@ -2748,7 +2879,167 @@ class BaseAlgo:
         self.last_history_dict = None
         self.last_handle_data = None
         self.order_history = []
+        self.use_minute = None
+        self.intraday_start_min = None
+        self.intraday_end_min = None
+        self.intraday_events = {}
     # end of reset_for_next_run
+
+    def populate_intraday_events_dict(
+            self,
+            start_min,
+            end_min):
+        """populate_intraday_events_dict
+
+        For tracking intraday buy/sell/news events with indicators
+        use this method to build a dictionary where keys
+        are the minutes between ``start_date`` and ``end_date``.
+        If both are ``None`` then the ``self.df_minute``
+
+        :param start_min: start datetime for building the
+            ``self.intraday_events`` dictionary keys
+        :param end_min: end datetime for building the
+            ``self.intraday_events`` dictionary keys
+        """
+        self.intraday_events = {}
+        if not self.found_minute_data:
+            return
+
+        if end_min < start_min:
+            raise Exception(
+                'Invalid end_min must be greater than start_min - '
+                'self.populate_intraday_events_dict('
+                'start_min={}, end_min={}) '
+                'algo={}'.format(
+                    start_min,
+                    end_min,
+                    self.name))
+
+        num_minutes = ((end_min - start_min).total_seconds() / 60.0) + 1
+
+        if num_minutes > 1440:
+            raise Exception(
+                'Invalid number of minutes={} between '
+                'start_min={} and end_min={} is more than '
+                'the number of minutes in a single day: 1440 '
+                'algo={}'.format(
+                    num_minutes,
+                    start_min,
+                    end_min,
+                    self.name))
+
+        log.info(
+            'num_minutes={} between: {} - {}'.format(
+                num_minutes,
+                start_min,
+                end_min))
+
+        self.intraday_start_min = start_min
+        self.intraday_end_min = end_min
+
+        cur_min = start_min
+        while cur_min <= end_min:
+            min_str = cur_min.strftime(ae_consts.COMMON_TICK_DATE_FORMAT)
+            self.intraday_events[min_str] = {}
+            for t in self.tickers:
+                self.intraday_events[min_str][t] = []
+            cur_min += datetime.timedelta(minutes=1)
+        # end of while minutes to add to the self.intraday_events dict
+    # end of populate_intraday_events_dict
+
+    def record_trade_history_for_dataset(
+            self,
+            node):
+        """record_trade_history_for_dataset
+
+        Build a daily or minute-by-minute trading
+        history
+
+        To run an algorithm minute-by-minute set the
+        configuration to use:
+
+        .. code-block:: python
+
+            'timeseries': 'minute'
+
+        :param node: cached dataset dictionary node
+        """
+        # if set to minutes, but this dataset is missing minute-data
+        # then record as if it was a daily
+        use_day_timeseries = (
+            self.timeseries_value == ae_consts.ALGO_TIMESERIES_DAY)
+        is_minute_timeseries = (
+            self.timeseries_value == ae_consts.ALGO_TIMESERIES_MINUTE)
+        if use_day_timeseries or is_minute_timeseries:
+            self.use_minute = (
+                '{} 16:00:00'.format(
+                    self.trade_date))
+            self.last_history_dict = self.get_trade_history_node()
+            if self.last_history_dict:
+                if self.latest_ind_report:
+                    ind_configurables = copy.deepcopy(
+                        self.latest_ind_report)
+                    for ignore_key in self.ind_conf_ignore_keys:
+                        ind_configurables.pop(
+                            ignore_key,
+                            None)
+                    self.last_history_dict.update(
+                        ind_configurables)
+                self.order_history.append(self.last_history_dict)
+        # end of if day timeseries
+        elif (is_minute_timeseries and self.found_minute_data):
+            num_intraday_events = len(self.intraday_events)
+            log.info(
+                'processing intraday events={}'.format(
+                    num_intraday_events))
+            for idx, date_str in enumerate(self.intraday_events):
+                latest_order_history = self.order_history[-1]
+                found_events = False
+                for event_ticker in self.intraday_events[date_str]:
+                    events = self.intraday_events[date_str][event_ticker]
+                    for e in events:
+                        found_events = True
+                        # print('=-----=')
+                        # print('{} => {}'.format(
+                        #     date_str,
+                        #     ae_consts.ppj(e)))
+                        self.order_history.append(e)
+                if not found_events:
+                    latest_order_history['date'] = date_str.split(' ')[0]
+                    latest_order_history['minute'] = date_str
+                    print('{} {}'.format(
+                        latest_order_history['date'],
+                        latest_order_history['close']))
+                    self.order_history.append(latest_order_history)
+            # end of for all intraday points
+
+            # add the end of day point to the history
+            self.use_minute = (
+                '{} 23:59:00'.format(
+                    self.trade_date))
+            self.last_history_dict = self.get_trade_history_node()
+            if self.last_history_dict:
+                if self.latest_ind_report:
+                    ind_configurables = copy.deepcopy(
+                        self.latest_ind_report)
+                    for ignore_key in self.ind_conf_ignore_keys:
+                        ind_configurables.pop(
+                            ignore_key,
+                            None)
+                    self.last_history_dict.update(
+                        ind_configurables)
+                self.order_history.append(self.last_history_dict)
+        else:
+            raise Exception(
+                'Unsupported self.timeseries={} and '
+                'self.found_minute_data={} - please use '
+                'timeseries=day or timeseries=minute or '
+                'timeseries=intraday and ensure the '
+                'datasets have \'minute\' data'.format(
+                    self.timeseries,
+                    self.found_minute_data))
+        # end of processing trading history for this dataset
+    # end of record_trade_history_for_dataset
 
     def handle_data(
             self,
@@ -2841,89 +3132,20 @@ class BaseAlgo:
                 self.prev_bal = self.balance
                 self.prev_num_owned = self.num_owned
 
-                (self.num_owned,
-                 self.num_buys,
-                 self.num_sells) = self.get_ticker_positions(
-                    ticker=ticker)
+                use_daily_timeseries = (
+                    self.timeseries_value == ae_consts.ALGO_TIMESERIES_DAY)
 
-                # parse the dataset node and set member variables
-                self.debug_msg = (
-                    '{} START - load dataset id={}'.format(
-                        ticker,
-                        node.get('id', 'missing-id')))
-                self.load_from_dataset(
-                    ds_data=node)
-                self.debug_msg = (
-                    '{} END - load dataset id={}'.format(
-                        ticker,
-                        node.get('id', 'missing-id')))
-
-                """
-                Indicator Processor
-                """
-                self.latest_buys = []
-                self.latest_sells = []
-                if self.iproc:
-                    self.debug_msg = (
-                        '{} START - indicator processing'.format(
-                            ticker))
-                    self.latest_ind_report = self.iproc.process(
+                if use_daily_timeseries:
+                    self.handle_daily_dataset(
                         algo_id=algo_id,
-                        ticker=self.ticker,
-                        dataset=node)
-                    self.latest_buys = self.latest_ind_report.get(
-                        'buys',
-                        [])
-                    self.latest_sells = self.latest_ind_report.get(
-                        'sells',
-                        [])
-                    self.debug_msg = (
-                        '{} END - indicator processing'.format(
-                            ticker))
-                # end of indicator processing
-
-                self.num_latest_buys = len(self.latest_buys)
-                self.num_latest_sells = len(self.latest_sells)
-
-                # thinking this could be a separate celery task
-                # to increase horizontal scaling to crunch
-                # datasets faster like:
-                # http://jsatt.com/blog/class-based-celery-tasks/
-                self.debug_msg = (
-                    '{} START - process id={}'.format(
-                        ticker,
-                        node.get('id', 'missing-id')))
-                self.process(
-                    algo_id=algo_id,
-                    ticker=self.ticker,
-                    dataset=node)
-                self.debug_msg = (
-                    '{} END - process id={}'.format(
-                        ticker,
-                        node.get('id', 'missing-id')))
-
-                # always record the trade history for
-                # analysis/review using: myalgo.get_result()
-                self.debug_msg = (
-                    '{} START - history id={}'.format(
-                        ticker,
-                        node.get('id', 'missing-id')))
-                self.last_history_dict = self.get_trade_history_node()
-                if self.last_history_dict:
-                    if self.latest_ind_report:
-                        ind_configurables = copy.deepcopy(
-                            self.latest_ind_report)
-                        for ignore_key in self.ind_conf_ignore_keys:
-                            ind_configurables.pop(
-                                ignore_key,
-                                None)
-                        self.last_history_dict.update(
-                            ind_configurables)
-                    self.order_history.append(self.last_history_dict)
-                self.debug_msg = (
-                    '{} END - history id={}'.format(
-                        ticker,
-                        node.get('id', 'missing-id')))
+                        ticker=ticker,
+                        node=node)
+                else:
+                    self.handle_minute_dataset(
+                        algo_id=algo_id,
+                        ticker=ticker,
+                        node=node)
+                # end of processing datasets for day vs minute
 
                 cur_idx += 1
         # for all supported tickers
@@ -2937,5 +3159,299 @@ class BaseAlgo:
                 num_tickers))
 
     # end of handle_data
+
+    def handle_daily_dataset(
+            self,
+            algo_id,
+            ticker,
+            node):
+        """handle_daily_dataset
+
+        handle running the algorithm with daily values
+
+        This method will call ``BaseAlgo.process()`` once per day
+        which is also utilizing the daily caching strategy
+
+        :param algo_id: string - algo identifier label for debugging datasets
+            during specific dates
+        :param ticker: string - ticker
+        :param node: dataset to process
+        """
+
+        self.ticker = ticker
+        self.prev_bal = self.balance
+        self.prev_num_owned = self.num_owned
+
+        (self.num_owned,
+         self.num_buys,
+         self.num_sells) = self.get_ticker_positions(
+            ticker=ticker)
+
+        # parse the dataset node and set member variables
+        self.debug_msg = (
+            '{} START - load dataset id={}'.format(
+                ticker,
+                node.get('id', 'missing-id')))
+        self.load_from_dataset(
+            ds_data=node)
+        self.debug_msg = (
+            '{} END - load dataset id={}'.format(
+                ticker,
+                node.get('id', 'missing-id')))
+
+        """
+        Indicator Processor
+
+        processes the dataset: df_daily
+        """
+        self.latest_buys = []
+        self.latest_sells = []
+        if self.iproc:
+            self.debug_msg = (
+                '{} START - indicator processing'.format(
+                    ticker))
+            self.latest_ind_report = self.iproc.process(
+                algo_id=algo_id,
+                ticker=self.ticker,
+                dataset=node)
+            self.latest_buys = self.latest_ind_report.get(
+                'buys',
+                [])
+            self.latest_sells = self.latest_ind_report.get(
+                'sells',
+                [])
+            self.debug_msg = (
+                '{} END - indicator processing'.format(
+                    ticker))
+        # end of indicator processing
+
+        self.num_latest_buys = len(self.latest_buys)
+        self.num_latest_sells = len(self.latest_sells)
+
+        """
+        Call the Algorithm's process() method
+        """
+        self.debug_msg = (
+            '{} START - process id={}'.format(
+                ticker,
+                node.get('id', 'missing-id')))
+        self.process(
+            algo_id=algo_id,
+            ticker=self.ticker,
+            dataset=node)
+        self.debug_msg = (
+            '{} END - process id={}'.format(
+                ticker,
+                node.get('id', 'missing-id')))
+
+        """
+        Execute trades based off self.trade_strategy
+        """
+        self.debug_msg = (
+            '{} START - trade id={}'.format(
+                ticker,
+                node.get('id', 'missing-id')))
+        self.trade_off_indicator_buy_and_sell_signals(
+            ticker=ticker,
+            algo_id=algo_id,
+            reason_for_buy=self.buy_reason,
+            reason_for_sell=self.sell_reason)
+        self.debug_msg = (
+            '{} END - trade id={}'.format(
+                ticker,
+                node.get('id', 'missing-id')))
+
+        """
+        Record the Trading History record
+
+        analysis/review using: myalgo.get_result()
+        """
+        self.debug_msg = (
+            '{} START - history id={}'.format(
+                ticker,
+                node.get('id', 'missing-id')))
+        self.record_trade_history_for_dataset(
+            node=node)
+        self.debug_msg = (
+            '{} END - history id={}'.format(
+                ticker,
+                node.get('id', 'missing-id')))
+    # end of handle_daily_dataset
+
+    def handle_minute_dataset(
+            self,
+            algo_id,
+            ticker,
+            node):
+        """handle_minute_dataset
+
+        handle running the algorithm with daily values
+
+        This method will call ``BaseAlgo.process()`` once per day
+        which is also utilizing the daily caching strategy
+
+        :param algo_id: string - algo identifier label for debugging datasets
+            during specific dates
+        :param ticker: string - ticker
+        :param node: dataset to process
+        """
+        # parse the dataset node and set member variables
+        self.debug_msg = (
+            '{} START - load dataset id={}'.format(
+                ticker,
+                node.get('id', 'missing-id')))
+        self.load_from_dataset(
+            ds_data=node)
+        self.debug_msg = (
+            '{} END - load dataset id={}'.format(
+                ticker,
+                node.get('id', 'missing-id')))
+
+        if not self.found_minute_data:
+            if self.verbose:
+                log.error(
+                    'algo={} is missing minute data for day={}'.format(
+                        self.name,
+                        node.get('date', 'missing date in node={}'.format(
+                            node))))
+            """
+            Record the Trading History record
+
+            analysis/review using: myalgo.get_result()
+            """
+            self.debug_msg = (
+                '{} START - saving for missing minute history id={}'.format(
+                    ticker,
+                    node.get('id', 'missing-id')))
+            self.record_trade_history_for_dataset(
+                node=node)
+            self.debug_msg = (
+                '{} END - for missing history id={}'.format(
+                    ticker,
+                    node.get('id', 'missing-id')))
+            return
+
+        self.starting_close = None
+
+        num_rows = len(self.df_minute.index)
+        for minute_idx, row in self.df_minute.iterrows():
+
+            # map the latest values for the algo to use
+            # as if the minute was the latest trading time
+            # as it iterates minute-by-minute
+            self.latest_min = row.get('date', None)
+            self.latest_high = row.get('high', None)
+            self.latest_low = row.get('low', None)
+            self.latest_open = row.get('open', None)
+            self.latest_close = row.get('close', None)
+            self.latest_volume = row.get('volume', None)
+            self.trade_price = self.latest_close
+
+            if not self.starting_close:
+                self.starting_close = self.latest_close
+
+            # allow algos to set these custom strings
+            # for tracking why a buy and sell happened
+            self.buy_reason = None
+            self.sell_reason = None
+
+            track_label = self.build_progress_label(
+                progress=(minute_idx + 1),
+                total=num_rows)
+            minute_algo_id = '{} at minute {} - {}'.format(
+                algo_id,
+                self.latest_min,
+                track_label)
+
+            (self.num_owned,
+             self.num_buys,
+             self.num_sells) = self.get_ticker_positions(
+                ticker=ticker)
+
+            """
+            Indicator Processor
+
+            processes the dataset: minute df
+            """
+            self.latest_buys = []
+            self.latest_sells = []
+            if self.iproc:
+                self.debug_msg = (
+                    '{} START - indicator processing '
+                    'daily [0-{}]'.format(
+                        ticker,
+                        (minute_idx + 1)))
+
+                # prune off the minutes that are not the latest
+                node['data']['daily'] = self.df_minute.iloc[0:(minute_idx+1)]
+
+                self.latest_ind_report = self.iproc.process(
+                    algo_id=minute_algo_id,
+                    ticker=self.ticker,
+                    dataset=node)
+                self.latest_buys = self.latest_ind_report.get(
+                    'buys',
+                    [])
+                self.latest_sells = self.latest_ind_report.get(
+                    'sells',
+                    [])
+                self.debug_msg = (
+                    '{} END - indicator processing'.format(
+                        ticker))
+            # end of indicator processing
+
+            self.num_latest_buys = len(self.latest_buys)
+            self.num_latest_sells = len(self.latest_sells)
+
+            """
+            Call the Algorithm's process() method
+            """
+            self.debug_msg = (
+                '{} START - process id={}'.format(
+                    ticker,
+                    node.get('id', 'missing-id')))
+            self.process(
+                algo_id=algo_id,
+                ticker=self.ticker,
+                dataset=node)
+            self.debug_msg = (
+                '{} END - process id={}'.format(
+                    ticker,
+                    node.get('id', 'missing-id')))
+
+            """
+            Execute trades based off self.trade_strategy
+            """
+            self.debug_msg = (
+                '{} START - trade id={}'.format(
+                    ticker,
+                    node.get('id', 'missing-id')))
+            self.trade_off_indicator_buy_and_sell_signals(
+                ticker=ticker,
+                algo_id=algo_id,
+                reason_for_buy=self.buy_reason,
+                reason_for_sell=self.sell_reason)
+            self.debug_msg = (
+                '{} END - trade id={}'.format(
+                    ticker,
+                    node.get('id', 'missing-id')))
+
+            """
+            Record the Trading History record
+
+            analysis/review using: myalgo.get_result()
+            """
+            self.debug_msg = (
+                '{} START - history id={}'.format(
+                    ticker,
+                    node.get('id', 'missing-id')))
+            self.record_trade_history_for_dataset(
+                node=node)
+            self.debug_msg = (
+                '{} END - history id={}'.format(
+                    ticker,
+                    node.get('id', 'missing-id')))
+        # end for all rows in the minute dataset
+    # end of handle_minute_dataset
 
 # end of BaseAlgo

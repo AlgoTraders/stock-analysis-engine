@@ -310,8 +310,9 @@ S3_FAILED = 39
 REDIS_FAILED = 40
 FILE_FAILED = 41
 SLACK_FAILED = 42
-ALGO_HORIZON_UNITS_DAY = 43  # evaluate trade performance on daily-units
-ALGO_HORIZON_UNITS_MINUTE = 44  # evaluate trade performance on minute-units
+ALGO_TIMESERIES_DAY = 43  # evaluate trade performance on daily-units
+ALGO_TIMESERIES_MINUTE = 44  # evaluate trade performance on minute-units
+ALGO_TRADE_INDICATOR_COUNTS = 45  # trade off num indicators said buy/sell
 
 INDICATOR_CATEGORY_MOMENTUM = 60
 INDICATOR_CATEGORY_OVERLAP = 61
@@ -913,10 +914,12 @@ def get_status(
         return 'FILE_FAILED'
     elif status == SLACK_FAILED:
         return 'SLACK_FAILED'
-    elif status == ALGO_HORIZON_UNITS_DAY:
-        return 'ALGO_HORIZON_UNITS_DAY'
-    elif status == ALGO_HORIZON_UNITS_MINUTE:
-        return 'ALGO_HORIZON_UNITS_MINUTE'
+    elif status == ALGO_TIMESERIES_DAY:
+        return 'ALGO_TIMESERIES_DAY'
+    elif status == ALGO_TIMESERIES_MINUTE:
+        return 'ALGO_TIMESERIES_MINUTE'
+    elif status == ALGO_TRADE_INDICATOR_COUNTS:
+        return 'ALGO_TRADE_INDICATOR_COUNTS'
     elif status == SA_DATASET_TYPE_ALGO_READY:
         return 'SA_DATASET_TYPE_ALGO_READY'
     elif status == SA_DATASET_TYPE_TRADING_HISTORY:
@@ -967,6 +970,9 @@ def to_f(
 
     :param val: float to change
     """
+    if val is None:
+        return None
+
     return float(to_float_str(val))
 # end of to_f
 
@@ -1091,6 +1097,13 @@ INDICATOR_ACTIONS = {
 }
 
 
+ALGO_TIMESERIES = {
+    'daily': ALGO_TIMESERIES_DAY,
+    'minute': ALGO_TIMESERIES_MINUTE,
+    'intraday': ALGO_TIMESERIES_MINUTE
+}
+
+
 def get_indicator_type_as_int(
         val=None):
     """get_indicator_type_as_int
@@ -1152,3 +1165,23 @@ def get_indicator_uses_data_as_int(
             return INDICATOR_USES_DATA_UNSUPPORTED
     # if supported or not
 # end of get_indicator_uses_data_as_int
+
+
+def get_algo_timeseries_from_int(
+        val):
+    """get_algo_timeseries_from_int
+
+    convert the integer value to the timeseries string
+    found in the ``analysis_engine.consts.ALGO_TIMESERIES``
+    dictionary
+
+    :param val: integer value for finding the
+        string timeseries label
+    """
+    for a in ALGO_TIMESERIES:
+        if ALGO_TIMESERIES[a] == val:
+            return a
+    return (
+        'unsupported algorithm timeseries value={}'.format(
+            val))
+# end of get_algo_timeseries_from_int

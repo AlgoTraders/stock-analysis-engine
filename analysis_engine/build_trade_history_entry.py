@@ -20,6 +20,7 @@ def build_trade_history_entry(
         trade_type,
         algo_start_price,
         original_balance,
+        minute=None,
         high=None,
         low=None,
         open_val=None,
@@ -96,6 +97,9 @@ def build_trade_history_entry(
     and for ``TRADE_SHARES``, ``TRADE_VERTICAL_BULL_SPREAD``, or
     ``TRADE_VERTICAL_BEAR_SPREAD`` trading types.
 
+    .. note:: setting the ``minute`` is required to build
+        a minute-by-minute ``Trading History``
+
     :param ticker: string ticker or symbol
     :param num_owned: integer current owned
         number of ``shares`` for this asset or number of
@@ -106,8 +110,12 @@ def build_trade_history_entry(
     :param balance: float amount of available capital
     :param commission: float for commission costs
     :param date: string trade date for that row usually
-        ``COMMON_DATE_FORMAT`` (``YYYY-MM-DD``) or
+        ``COMMON_DATE_FORMAT`` (``YYYY-MM-DD``)
+    :param minute: optional - string for recording the minute
+        the trade was place, and the format is
         ``COMMON_TICK_DATE_FORMAT`` (``YYYY-MM-DD HH:MM:SS``)
+        this is optional if the algorithm is set up to
+        trade using a ``day`` value for timeseries.
     :param trade_type: type of the trade - supported values:
             ``TRADE_SHARES``,
             ``TRADE_VERTICAL_BULL_SPREAD``,
@@ -319,9 +327,9 @@ def build_trade_history_entry(
 
     history_dict = {
         'ticker': ticker,
-        'algo_start_price': algo_start_price,
-        'algo_price_change': price_change_since_start,
-        'original_balance': original_balance,
+        'algo_start_price': ae_consts.to_f(algo_start_price),
+        'algo_price_change': ae_consts.to_f(price_change_since_start),
+        'original_balance': ae_consts.to_f(original_balance),
         'status': status,
         'algo_status': algo_status,
         'num_indicators_buy': num_indicators_buy,
@@ -330,29 +338,30 @@ def build_trade_history_entry(
         'min_sell_indicators': min_sell_indicators,
         'ds_id': ds_id,
         'num_owned': num_owned,
-        'close': close,
-        'balance': balance,
-        'commission': commission,
+        'close': ae_consts.to_f(close),
+        'balance': ae_consts.to_f(balance),
+        'commission': ae_consts.to_f(commission),
         'date': date,
+        'minute': minute,
         'trade_type': trade_type,
-        'high': high,
-        'low': low,
-        'open': open_val,
+        'high': ae_consts.to_f(high),
+        'low': ae_consts.to_f(low),
+        'open': ae_consts.to_f(open_val),
         'volume': volume,
-        'ask': ask,
-        'bid': bid,
-        'today_high': today_high,
-        'today_low': today_low,
-        'today_open_val': today_open_val,
-        'today_close': today_close,
-        'today_volume': today_volume,
-        'stop_loss': stop_loss,
-        'trailing_stop_loss': trailing_stop_loss,
+        'ask': ae_consts.to_f(ask),
+        'bid': ae_consts.to_f(bid),
+        'today_high': ae_consts.to_f(today_high),
+        'today_low': ae_consts.to_f(today_low),
+        'today_open_val': ae_consts.to_f(today_open_val),
+        'today_close': ae_consts.to_f(today_close),
+        'today_volume': ae_consts.to_f(today_volume),
+        'stop_loss': ae_consts.to_f(stop_loss),
+        'trailing_stop_loss': ae_consts.to_f(trailing_stop_loss),
         'buy_hold_units': buy_hold_units,
         'sell_hold_units': sell_hold_units,
         'low_strike': low_strike,
-        'low_bid': low_bid,
-        'low_ask': low_ask,
+        'low_bid': ae_consts.to_f(low_bid),
+        'low_ask': ae_consts.to_f(low_ask),
         'low_volume': low_volume,
         'low_open_int': low_open_int,
         'low_delta': low_delta,
@@ -368,8 +377,8 @@ def build_trade_history_entry(
         'low_max_covered': low_max_covered,
         'low_exp_date': low_exp_date,
         'high_strike': high_strike,
-        'high_bid': high_bid,
-        'high_ask': high_ask,
+        'high_bid': ae_consts.to_f(high_bid),
+        'high_ask': ae_consts.to_f(high_ask),
         'high_volume': high_volume,
         'high_open_int': high_open_int,
         'high_delta': high_delta,
@@ -387,11 +396,11 @@ def build_trade_history_entry(
         'spread_id': spread_id,
         'net_gain': net_gain,
         'breakeven_price': breakeven_price,
-        'max_profit': max_profit,
-        'max_loss': max_loss,
+        'max_profit': ae_consts.to_f(max_profit),
+        'max_loss': ae_consts.to_f(max_loss),
         'exp_date': exp_date,
-        'prev_balance': prev_balance,
-        'prev_num_owned': prev_num_owned,
+        'prev_balance': ae_consts.to_f(prev_balance),
+        'prev_num_owned': ae_consts.to_f(prev_num_owned),
         'total_buys': total_buys,
         'total_sells': total_sells,
         'note': note,
@@ -465,11 +474,15 @@ def build_trade_history_entry(
     history_dict['status'] = status
     history_dict['algo_status'] = algo_status
 
+    use_date = minute
+    if not use_date:
+        use_date = date
+
     log.debug(
         '{} ds_id={} {} algo={} trade={} history={}'.format(
             ticker,
             ds_id,
-            date,
+            use_date,
             ae_consts.get_status(status=history_dict['algo_status']),
             ae_consts.get_status(status=history_dict['status']),
             ae_consts.ppj(history_dict)))
