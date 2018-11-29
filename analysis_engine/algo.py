@@ -148,6 +148,7 @@ import analysis_engine.load_dataset as load_dataset
 import analysis_engine.indicators.indicator_processor as ind_processor
 import analysis_engine.prepare_history_dataset as prepare_history
 import analysis_engine.prepare_report_dataset as prepare_report
+import analysis_engine.plot_trading_history as plot_trading_history
 import spylunking.log.setup_logging as log_utils
 
 log = log_utils.build_colorized_logger(name=__name__)
@@ -558,8 +559,10 @@ class BaseAlgo:
         self.result = None
         self.name = name
         self.num_owned = None
-        self.num_buys = None
-        self.num_sells = None
+        self.num_buys = 0
+        self.num_sells = 0
+        self.ticker_buys = []
+        self.ticker_sell = []
         self.trade_price = 0.0
         self.today_high = 0.0
         self.today_low = 0.0
@@ -982,6 +985,22 @@ class BaseAlgo:
         ]
         self.buy_reason = None
         self.sell_reason = None
+
+        """
+        if this is in a juptyer notebook
+        this will show the plots at the end of
+        each day... please avoid with
+        the command line as the plot's window
+        will block the algorithm until the window
+        is closed
+        """
+        self.show_balance = ae_consts.ev(
+            'SHOW_ALGO_BALANCE',
+            '0') == '1'
+        self.red_column = 'close'
+        self.blue_column = 'balance'
+        self.green_column = None
+        self.orange_column = None
 
         self.load_from_config(
             config_dict=self.config_dict)
@@ -1598,8 +1617,11 @@ class BaseAlgo:
         if self.verbose:
             log.info('create report - create start')
 
-        data_for_tickers = self.get_supported_tickers_in_data(
-            data=self.last_handle_data)
+        if self.last_handle_data:
+            data_for_tickers = self.get_supported_tickers_in_data(
+                data=self.last_handle_data)
+        else:
+            data_for_tickers = self.tickers
 
         num_tickers = len(data_for_tickers)
         if num_tickers > 0:
@@ -1801,8 +1823,11 @@ class BaseAlgo:
         if self.verbose:
             log.info('history - create start')
 
-        data_for_tickers = self.get_supported_tickers_in_data(
-            data=self.last_handle_data)
+        if self.last_handle_data:
+            data_for_tickers = self.get_supported_tickers_in_data(
+                data=self.last_handle_data)
+        else:
+            data_for_tickers = self.tickers
 
         num_tickers = len(data_for_tickers)
         if num_tickers > 0:
@@ -2139,6 +2164,8 @@ class BaseAlgo:
         buys = None
         sells = None
         num_owned = None
+        self.num_buys = 0
+        self.num_sells = 0
         if ticker in self.positions:
             num_owned = self.positions[ticker].get(
                 'shares',
@@ -2149,6 +2176,9 @@ class BaseAlgo:
             sells = self.positions[ticker].get(
                 'sells',
                 [])
+            self.num_buys = len(buys)
+            self.num_sells = len(sells)
+
         return num_owned, buys, sells
     # end of get_ticker_positions
 
@@ -2438,8 +2468,8 @@ class BaseAlgo:
                     self.positions[ticker]['buys'].append(
                         new_buy)
                     (self.num_owned,
-                     self.num_buys,
-                     self.num_sells) = self.get_ticker_positions(
+                     self.ticker_buys,
+                     self.ticker_sells) = self.get_ticker_positions(
                         ticker=ticker)
                     self.created_buy = True
                 else:
@@ -2482,8 +2512,8 @@ class BaseAlgo:
             self.buys.append(new_buy)
 
             (self.num_owned,
-             self.num_buys,
-             self.num_sells) = self.get_ticker_positions(
+             self.ticker_buys,
+             self.ticker_sells) = self.get_ticker_positions(
                 ticker=ticker)
 
             # record the ticker's event if it's a minute timeseries
@@ -2614,8 +2644,8 @@ class BaseAlgo:
                     self.positions[ticker]['sells'].append(
                         new_sell)
                     (self.num_owned,
-                     self.num_buys,
-                     self.num_sells) = self.get_ticker_positions(
+                     self.ticker_buys,
+                     self.ticker_sells) = self.get_ticker_positions(
                         ticker=ticker)
                     self.created_sell = True
                 else:
@@ -2658,8 +2688,8 @@ class BaseAlgo:
             self.sells.append(new_sell)
 
             (self.num_owned,
-             self.num_buys,
-             self.num_sells) = self.get_ticker_positions(
+             self.ticker_buys,
+             self.ticker_sells) = self.get_ticker_positions(
                 ticker=ticker)
 
             # record the ticker's event if it's a minute timeseries
@@ -3197,6 +3227,20 @@ class BaseAlgo:
                         node=node)
                 # end of processing datasets for day vs minute
 
+                if (self.show_balance and
+                        (self.num_buys > 0 or self.num_sells > 0)):
+                    self.debug_msg = (
+                        '{} handle - plot start balance'.format(
+                            self.name))
+                    self.plot_trading_history_with_balance(
+                        algo_id=algo_id,
+                        ticker=ticker,
+                        node=node)
+                    self.debug_msg = (
+                        '{} handle - plot done balance'.format(
+                            self.name))
+                # if showing plots while the algo runs
+
                 cur_idx += 1
         # for all supported tickers
 
@@ -3233,8 +3277,8 @@ class BaseAlgo:
         self.prev_num_owned = self.num_owned
 
         (self.num_owned,
-         self.num_buys,
-         self.num_sells) = self.get_ticker_positions(
+         self.ticker_buys,
+         self.ticker_sells) = self.get_ticker_positions(
             ticker=ticker)
 
         # parse the dataset node and set member variables
@@ -3436,8 +3480,8 @@ class BaseAlgo:
                 track_label)
 
             (self.num_owned,
-             self.num_buys,
-             self.num_sells) = self.get_ticker_positions(
+             self.ticker_buys,
+             self.ticker_sells) = self.get_ticker_positions(
                 ticker=ticker)
 
             """
@@ -3531,5 +3575,68 @@ class BaseAlgo:
                     node.get('id', 'missing-id')))
         # end for all rows in the minute dataset
     # end of handle_minute_dataset
+
+    def plot_trading_history_with_balance(
+            self,
+            algo_id,
+            ticker,
+            node):
+        """
+
+        This will live plot the trading history after each
+        day is done
+
+        :param algo_id: string - algo identifier label for debugging datasets
+            during specific dates
+        :param ticker: string - ticker
+        :param node: dataset to process
+        """
+        trading_history_dict = self.get_history_dataset()
+        history_df = trading_history_dict[ticker]
+        if not hasattr(history_df, 'to_json'):
+            return
+
+        first_date = history_df['date'].iloc[0]
+        end_date = history_df['date'].iloc[-1]
+        title = (
+            'Trading History {} for Algo {}\n'
+            'Backtest dates from {} to {}'.format(
+                ticker,
+                trading_history_dict['algo_name'],
+                first_date,
+                end_date))
+        use_xcol = 'date'
+        use_as_date_format = '%d\n%b'
+        if self.config_dict['timeseries'] == 'minute':
+            use_xcol = 'minute'
+            use_as_date_format = '%d %H:%M:%S\n%b'
+        xlabel = 'Dates vs {} values'.format(
+            trading_history_dict['algo_name'])
+        ylabel = 'Algo {}\nvalues'.format(
+            trading_history_dict['algo_name'])
+        df_filter = (history_df['close'] > 0.01)
+
+        # set default columns:
+        red = self.red_column
+        blue = self.blue_column
+        green = self.green_column
+        orange = self.orange_column
+
+        plot_trading_history.plot_trading_history(
+            title=title,
+            df=history_df,
+            red=red,
+            blue=blue,
+            green=green,
+            orange=orange,
+            date_col=use_xcol,
+            date_format=use_as_date_format,
+            xlabel=xlabel,
+            ylabel=ylabel,
+            df_filter=df_filter,
+            show_plot=True,
+            dropna_for_all=True)
+
+    # end of plot_trading_history_with_balance
 
 # end of BaseAlgo
