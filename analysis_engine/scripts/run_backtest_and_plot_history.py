@@ -422,11 +422,10 @@ def run_backtest_and_plot_history(
     parser.add_argument(
         '-f',
         help=(
-            'run in mode: prepare dataset from '
-            'redis key or s3 key'),
+            'save the trading history dataframe '
+            'to this file'),
         required=False,
-        dest='prepare_mode',
-        action='store_true')
+        dest='history_json_file')
     parser.add_argument(
         '-J',
         help=(
@@ -614,6 +613,7 @@ def run_backtest_and_plot_history(
     redis_password = ae_consts.REDIS_PASSWORD
     redis_db = ae_consts.REDIS_DB
     redis_expire = ae_consts.REDIS_EXPIRE
+    history_json_file = None
 
     if args.s3_access_key:
         s3_access_key = args.s3_access_key
@@ -631,6 +631,8 @@ def run_backtest_and_plot_history(
         redis_db = args.redis_db
     if args.redis_expire:
         redis_expire = args.redis_expire
+    if args.history_json_file:
+        history_json_file = args.history_json_file
 
     use_balance = 5000.0
     use_commission = 6.0
@@ -697,6 +699,7 @@ def run_backtest_and_plot_history(
                 'Failed: unable to find config file: -c {}'.format(
                     use_config_file))
             sys.exit(1)
+
 
     if args.backtest_loc:
         backtest_loc = args.backtest_loc
@@ -797,7 +800,7 @@ def run_backtest_and_plot_history(
     # if not successful
 
     log.info(
-        'backtest: {} {} - plotting history'.format(
+        'backtest: {} {}'.format(
             algo_obj.get_name(),
             ae_consts.get_status(status=algo_res['status'])))
 
@@ -805,6 +808,17 @@ def run_backtest_and_plot_history(
     history_df = trading_history_dict[ticker]
     if not hasattr(history_df, 'to_json'):
         return
+
+    if history_json_file:
+        log.info(
+            'saving history to: {}'.format(
+                history_json_file))
+        history_df.to_json(
+            history_json_file,
+            orient='records',
+            date_format='iso')
+
+    log.info('plotting history')
 
     first_date = history_df['date'].iloc[0]
     end_date = history_df['date'].iloc[-1]
