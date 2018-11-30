@@ -31,11 +31,11 @@ def plot_local_history_file():
     :param config_dict: algorithm config dictionary
     """
 
-    log.debug('start - sa')
+    log.debug('start - plot')
 
     parser = argparse.ArgumentParser(
         description=(
-            'stock analysis tool'))
+            'plot a local algorithm trading history file'))
     parser.add_argument(
         '-f',
         help=(
