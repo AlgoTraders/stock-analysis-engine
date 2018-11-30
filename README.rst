@@ -1512,6 +1512,17 @@ Here's a bashrc alias for quickly building containers from a fork's feature bran
 
     alias bd='pushd /opt/sa >> /dev/null && source /opt/venv/bin/activate && /opt/sa/tools/update-stack.sh https://github.com/jay-johnson/stock-analysis-engine.git timeseries-charts jay && popd >> /dev/null'
 
+Debug Fetching IEX Data
+-----------------------
+
+::
+
+    ticker="SPY"
+    use_date=$(date +"%Y-%m-%d")
+    source /opt/venv/bin/activate
+    exp_date=$(/opt/sa/analysis_engine/scripts/print_next_expiration_date.py)
+    fetch -t ${ticker} -g iex -n ${ticker}_${use_date} -e ${exp_date} -Z
+
 License
 =======
 
