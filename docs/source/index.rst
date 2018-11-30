@@ -28,6 +28,93 @@ Fetch Stock Pricing for a Ticker Symbol
 
     fetch -t SPY
 
+Building Your Own Trading Algorithms
+====================================
+
+The engine supports running algorithms and fetching data for both live trading data or backtesting. Use backtesting if you want to tune an algorithm's trading performance with `algorithm-ready datasets cached in redis <https://github.com/AlgoTraders/stock-analysis-engine#extract-algorithm-ready-datasets>`__. Algorithms work the same way for live trading and historical backtesting, and building your own algorithms is as simple as deriving the `base class analysis_engine.algo.BaseAlgo as needed <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/algo.py>`__.
+
+As an example for building your own algorithms, please refer to the `minute-by-minute algorithm for live intraday trading analysis <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/mocks/example_algo_minute.py>`__ with `real-time pricing data from IEX <https://iextrading.com/developer>`__.
+
+Run a Custom Minute-by-Minute Intraday Algorithm Backtest and Plot the Trading History
+======================================================================================
+
+This will run a custom algorithm class included in the `run backtest tool <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/run_backtest_and_plot_history.py>`__. This sample algo uses a config dictionary to configure multiple `Williams %R indicators <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/run_backtest_and_plot_history.py#L49>`__ before running a backtest. The backtest will run through each trading dataset found in the redis cache and evalute how profitable this algorithm is with an initial starting capital balance of **5000.00** USD. Once finished it will display the **balance** and **close** per minute of the algorithm's backtest. This plot is built using the algo's trading history and, it is automatically saved to disk with the ``-f <save_here>`` argument.
+
+::
+
+    # this can take a few minutes to evaluate
+    # each day's 390 rows
+    bt -t SPY -f /tmp/history.json
+
+View the Minute Algorithm's Trading History from a File
+=======================================================
+
+Once the history is saved to disk, you can open it back up and plot other columns within the algorithm's trading history using this command:
+
+::
+
+    # by default this is still using algo
+    # balance vs close per minute
+    plot-history -f /tmp/history.json
+
+Run a Custom Algorithm and Save the Trading History with just Today's Pricing Data
+==================================================================================
+
+::
+
+    bt -t SPY -f /tmp/SPY-history-$(date +"%Y-%m-%d").json -j $(date +"%Y-%m-%d")
+
+Run a Local Backtest using an Algorithm Config and Extract an Algorithm-Ready Dataset
+=====================================================================================
+
+Use this command to start a local backtest with the included `algorithm config <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/tests/algo_configs/test_5_days_ahead.json>`__. This backtest will also generate a local algorithm-ready dataset file once the backtest finishes.
+
+#.  Define common values
+
+    ::
+
+        ticker=SPY
+        algo_config=tests/algo_configs/test_5_days_ahead.json
+        extract_loc=file:/tmp/algoready-SPY-latest.json
+        history_loc=file:/tmp/history-SPY-latest.json
+        load_loc=${extract_loc}
+
+Run Algo with Extraction and History Publishing
+-----------------------------------------------
+
+::
+
+    run-algo-history-to-file.sh -t ${ticker} -c ${algo_config} -e ${extract_loc} -p ${history_loc}
+
+Run a Local Backtest using an Algorithm Config and an Algorithm-Ready Dataset
+=============================================================================
+
+After generating the local algorithm-ready dataset (which can take some time), use this command to run another backtest using the file on disk:
+
+::
+
+    dev_history_loc=file:/tmp/dev-history-${ticker}-latest.json
+    run-algo-history-to-file.sh -t ${ticker} -c ${algo_config} -l ${load_loc} -p ${dev_history_loc}
+
+View Buy and Sell Transactions
+------------------------------
+
+::
+
+    run-algo-history-to-file.sh -t ${ticker} -c ${algo_config} -l ${load_loc} -p ${dev_history_loc} | grep "TRADE"
+
+Plot Trading History Tools
+==========================
+
+Plot Timeseries Trading History with High + Low + Open + Close
+--------------------------------------------------------------
+
+::
+
+    sa -t SPY -H ${dev_history_loc}
+
+Jupyter notebook coming soon!
+
 Run and Publish Trading Performance Report for a Custom Algorithm
 =================================================================
 
@@ -68,63 +155,6 @@ Write the Trading History to Minio (s3)
 ::
 
     run-algo-history-to-s3.sh -t SPY -b 60 -a /opt/sa/analysis_engine/mocks/example_algo_minute.py
-
-Building Your Own Trading Algorithms
-====================================
-
-The engine supports running algorithms with live trading data or for backtesting. Use backtesting if you want to tune an algorithm's trading performance with `algorithm-ready datasets cached in redis <https://github.com/AlgoTraders/stock-analysis-engine#extract-algorithm-ready-datasets>`__. Algorithms work the same way for live trading and historical backtesting, and building your own algorithms is as simple as deriving the `base class analysis_engine.algo.BaseAlgo as needed <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/algo.py>`__.
-
-As an example for building your own algorithms, please refer to the `minute-by-minute algorithm for live intraday trading analysis <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/mocks/example_algo_minute.py>`__ with `real-time pricing data from IEX <https://iextrading.com/developer>`__.
-
-Run a Local Backtest using an Algorithm Config and Extract an Algorithm-Ready Dataset
-=====================================================================================
-
-Use this command to start a local backtest with the included `algorithm config <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/tests/algo_configs/test_5_days_ahead.json>`__. This backtest will also generate a local algorithm-ready dataset file once the backtest finishes.
-
-#.  Define common values
-
-    ::
-
-        ticker=SPY
-        algo_config=tests/algo_configs/test_5_days_ahead.json
-        extract_loc=file:/tmp/algoready-SPY-latest.json
-        history_loc=file:/tmp/history-SPY-latest.json
-        load_loc=${extract_loc}
-
-#.  Run Algo with Extraction and History Publishing
-
-    ::
-
-        run-algo-history-to-file.sh -t ${ticker} -c ${algo_config} -e ${extract_loc} -p ${history_loc}
-
-Run a Local Backtest using an Algorithm Config and an Algorithm-Ready Dataset
-=============================================================================
-
-After generating the local algorithm-ready dataset (which can take some time), use this command to run another backtest using the file on disk:
-
-::
-
-    dev_history_loc=file:/tmp/dev-history-${ticker}-latest.json
-    run-algo-history-to-file.sh -t ${ticker} -c ${algo_config} -l ${load_loc} -p ${dev_history_loc}
-
-View Buy and Sell Transactions
-------------------------------
-
-::
-
-    run-algo-history-to-file.sh -t ${ticker} -c ${algo_config} -l ${load_loc} -p ${dev_history_loc} | grep "TRADE"
-
-Plot Trading History Tools
-==========================
-
-Plot Timeseries Trading History with High + Low + Open + Close
---------------------------------------------------------------
-
-::
-
-    sa -t SPY -H ${dev_history_loc}
-
-Jupyter notebook coming soon!
 
 Developing on AWS
 =================

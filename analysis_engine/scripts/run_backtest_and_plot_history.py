@@ -595,6 +595,21 @@ def run_backtest_and_plot_history(
         dest='verbose_indicators',
         action='store_true')
     parser.add_argument(
+        '-V',
+        help=(
+            'inspect the datasets an algorithm is processing - this'
+            'will slow down processing to show debugging'),
+        required=False,
+        dest='inspect_datasets',
+        action='store_true')
+    parser.add_argument(
+        '-j',
+        help=(
+            'run the algorithm on just this specific date in the datasets '
+            '- specify the date in a format: YYYY-MM-DD like: 2018-11-29'),
+        required=False,
+        dest='run_this_date')
+    parser.add_argument(
         '-d',
         help=(
             'debug'),
@@ -604,6 +619,19 @@ def run_backtest_and_plot_history(
     args = parser.parse_args()
 
     ticker = ae_consts.TICKER
+    use_balance = 5000.0
+    use_commission = 6.0
+    use_start_date = None
+    use_end_date = None
+    use_config_file = None
+    debug = False
+    verbose_algo = None
+    verbose_processor = None
+    verbose_indicators = None
+    inspect_datasets = None
+    history_json_file = None
+    run_this_date = None
+
     s3_access_key = ae_consts.S3_ACCESS_KEY
     s3_secret_key = ae_consts.S3_SECRET_KEY
     s3_region_name = ae_consts.S3_REGION_NAME
@@ -613,7 +641,6 @@ def run_backtest_and_plot_history(
     redis_password = ae_consts.REDIS_PASSWORD
     redis_db = ae_consts.REDIS_DB
     redis_expire = ae_consts.REDIS_EXPIRE
-    history_json_file = None
 
     if args.s3_access_key:
         s3_access_key = args.s3_access_key
@@ -633,20 +660,8 @@ def run_backtest_and_plot_history(
         redis_expire = args.redis_expire
     if args.history_json_file:
         history_json_file = args.history_json_file
-
-    use_balance = 5000.0
-    use_commission = 6.0
-    use_start_date = None
-    use_end_date = None
-    use_config_file = None
-    debug = False
-    verbose_algo = None
-    verbose_processor = None
-    verbose_indicators = None
-
     if args.ticker:
         ticker = args.ticker.upper()
-
     if args.debug:
         debug = True
     if args.verbose_algo:
@@ -655,6 +670,10 @@ def run_backtest_and_plot_history(
         verbose_processor = True
     if args.verbose_indicators:
         verbose_indicators = True
+    if args.inspect_datasets:
+        inspect_datasets = True
+    if args.run_this_date:
+        run_this_date = args.run_this_date
 
     if args.start_date:
         try:
@@ -760,12 +779,6 @@ def run_backtest_and_plot_history(
     if debug:
         log.info('starting algo')
 
-    use_balance = 5000.0
-    use_commission = 6.0
-    use_start_date = None
-    use_end_date = None
-    use_config_file = None
-
     config_dict['ticker'] = ticker
     config_dict['balance'] = use_balance
     config_dict['commission'] = use_commission
@@ -776,6 +789,10 @@ def run_backtest_and_plot_history(
         config_dict['verbose_processor'] = verbose_processor
     if verbose_indicators:
         config_dict['verbose_indicators'] = verbose_indicators
+    if inspect_datasets:
+        config_dict['inspect_datasets'] = inspect_datasets
+    if run_this_date:
+        config_dict['run_this_date'] = run_this_date
 
     algo_obj = ExampleDailyAlgo(
         ticker=config_dict['ticker'],

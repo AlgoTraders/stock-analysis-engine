@@ -148,6 +148,7 @@ import analysis_engine.load_dataset as load_dataset
 import analysis_engine.indicators.indicator_processor as ind_processor
 import analysis_engine.prepare_history_dataset as prepare_history
 import analysis_engine.prepare_report_dataset as prepare_report
+import analysis_engine.plot_trading_history as plot_trading_history
 import spylunking.log.setup_logging as log_utils
 
 log = log_utils.build_colorized_logger(name=__name__)
@@ -558,8 +559,10 @@ class BaseAlgo:
         self.result = None
         self.name = name
         self.num_owned = None
-        self.num_buys = None
-        self.num_sells = None
+        self.num_buys = 0
+        self.num_sells = 0
+        self.ticker_buys = []
+        self.ticker_sell = []
         self.trade_price = 0.0
         self.today_high = 0.0
         self.today_low = 0.0
@@ -632,6 +635,7 @@ class BaseAlgo:
         self.verbose_indicators = verbose_indicators
         self.verbose_trading = verbose_trading
         self.inspect_datasets = inspect_datasets
+        self.run_this_date = None
 
         self.verbose = ae_consts.ev(
             'AE_DEBUG',
@@ -983,6 +987,22 @@ class BaseAlgo:
         self.buy_reason = None
         self.sell_reason = None
 
+        """
+        if this is in a juptyer notebook
+        this will show the plots at the end of
+        each day... please avoid with
+        the command line as the plot's window
+        will block the algorithm until the window
+        is closed
+        """
+        self.show_balance = ae_consts.ev(
+            'SHOW_ALGO_BALANCE',
+            '0') == '1'
+        self.red_column = 'close'
+        self.blue_column = 'balance'
+        self.green_column = None
+        self.orange_column = None
+
         self.load_from_config(
             config_dict=self.config_dict)
 
@@ -1029,6 +1049,70 @@ class BaseAlgo:
                 None)
         # if indicator_processor exists
     # end of __init__
+
+    def view_date_dataset_records(
+            self,
+            algo_id,
+            ticker,
+            node):
+        """view_date_dataset_records
+
+        View the dataset contents for a single node - use it with
+        the algo config_dict by setting:
+
+        ::
+
+            "run_this_date": <string date YYYY-MM-DD>
+
+        :param algo_id: string - algo identifier label for debugging datasets
+            during specific dates
+        :param ticker: string - ticker
+        :param node: dataset to process
+        """
+        # this will happen twice
+
+        self.load_from_dataset(
+            ds_data=node)
+        self.inspect_dataset(
+            algo_id=algo_id,
+            ticker=ticker,
+            dataset=node)
+        if self.timeseries == 'minute':
+            if len(self.df_minute.index) <= 1:
+                log.error(
+                    'EMPTY minute dataset')
+                if self.raise_on_err:
+                    raise Exception(
+                        'EMPTY minute dataset')
+                return
+            for i, row in self.df_minute.iterrows():
+                log.info(
+                    'minute={} date={} close={}'.format(
+                        i,
+                        row['date'],
+                        row['close']))
+            log.info(
+                'minute df len={}'.format(
+                    len(self.df_minute.index)))
+        elif self.timeseries == 'day':
+            if len(self.df_daily.index) == 0:
+                log.error(
+                    'EMPTY daily dataset')
+                if self.raise_on_err:
+                    raise Exception(
+                        'EMPTY minute dataset')
+                return
+            if hasattr(self.daily, 'to_json'):
+                for i, row in self.df_daily.iterrows():
+                    log.info(
+                        'day={} date={} close={}'.format(
+                            i,
+                            row['date'],
+                            row['close']))
+                log.info(
+                    'day df len={}'.format(
+                        len(self.daily.index)))
+    # end of view_date_dataset_records
 
     def get_indicator_processor(
             self,
@@ -1598,8 +1682,11 @@ class BaseAlgo:
         if self.verbose:
             log.info('create report - create start')
 
-        data_for_tickers = self.get_supported_tickers_in_data(
-            data=self.last_handle_data)
+        if self.last_handle_data:
+            data_for_tickers = self.get_supported_tickers_in_data(
+                data=self.last_handle_data)
+        else:
+            data_for_tickers = self.tickers
 
         num_tickers = len(data_for_tickers)
         if num_tickers > 0:
@@ -1801,8 +1888,11 @@ class BaseAlgo:
         if self.verbose:
             log.info('history - create start')
 
-        data_for_tickers = self.get_supported_tickers_in_data(
-            data=self.last_handle_data)
+        if self.last_handle_data:
+            data_for_tickers = self.get_supported_tickers_in_data(
+                data=self.last_handle_data)
+        else:
+            data_for_tickers = self.tickers
 
         num_tickers = len(data_for_tickers)
         if num_tickers > 0:
@@ -2139,6 +2229,8 @@ class BaseAlgo:
         buys = None
         sells = None
         num_owned = None
+        self.num_buys = 0
+        self.num_sells = 0
         if ticker in self.positions:
             num_owned = self.positions[ticker].get(
                 'shares',
@@ -2149,6 +2241,9 @@ class BaseAlgo:
             sells = self.positions[ticker].get(
                 'sells',
                 [])
+            self.num_buys = len(buys)
+            self.num_sells = len(sells)
+
         return num_owned, buys, sells
     # end of get_ticker_positions
 
@@ -2438,8 +2533,8 @@ class BaseAlgo:
                     self.positions[ticker]['buys'].append(
                         new_buy)
                     (self.num_owned,
-                     self.num_buys,
-                     self.num_sells) = self.get_ticker_positions(
+                     self.ticker_buys,
+                     self.ticker_sells) = self.get_ticker_positions(
                         ticker=ticker)
                     self.created_buy = True
                 else:
@@ -2482,8 +2577,8 @@ class BaseAlgo:
             self.buys.append(new_buy)
 
             (self.num_owned,
-             self.num_buys,
-             self.num_sells) = self.get_ticker_positions(
+             self.ticker_buys,
+             self.ticker_sells) = self.get_ticker_positions(
                 ticker=ticker)
 
             # record the ticker's event if it's a minute timeseries
@@ -2614,8 +2709,8 @@ class BaseAlgo:
                     self.positions[ticker]['sells'].append(
                         new_sell)
                     (self.num_owned,
-                     self.num_buys,
-                     self.num_sells) = self.get_ticker_positions(
+                     self.ticker_buys,
+                     self.ticker_sells) = self.get_ticker_positions(
                         ticker=ticker)
                     self.created_sell = True
                 else:
@@ -2658,8 +2753,8 @@ class BaseAlgo:
             self.sells.append(new_sell)
 
             (self.num_owned,
-             self.num_buys,
-             self.num_sells) = self.get_ticker_positions(
+             self.ticker_buys,
+             self.ticker_sells) = self.get_ticker_positions(
                 ticker=ticker)
 
             # record the ticker's event if it's a minute timeseries
@@ -3178,24 +3273,68 @@ class BaseAlgo:
                         node['id'],
                         node['date']))
 
-                self.ticker = ticker
-                self.prev_bal = self.balance
-                self.prev_num_owned = self.num_owned
+                valid_run = False
+                if self.run_this_date:
+                    if node['date'] == self.run_this_date:
+                        log.critical(
+                            '{} handle - starting at date={} '
+                            'with just this dataset: '.format(
+                                self.name,
+                                node['date']))
+                        log.info(
+                            '{}'.format(
+                                node['data']))
+                        valid_run = True
+                        self.verbose = True
+                        self.verbose_trading = True
 
-                use_daily_timeseries = (
-                    self.timeseries_value == ae_consts.ALGO_TIMESERIES_DAY)
-
-                if use_daily_timeseries:
-                    self.handle_daily_dataset(
-                        algo_id=algo_id,
-                        ticker=ticker,
-                        node=node)
+                        if self.inspect_dataset:
+                            self.view_date_dataset_records(
+                                algo_id=algo_id,
+                                ticker=ticker,
+                                node=node)
                 else:
-                    self.handle_minute_dataset(
+                    valid_run = True
+
+                if valid_run:
+                    self.ticker = ticker
+                    self.prev_bal = self.balance
+                    self.prev_num_owned = self.num_owned
+
+                    (self.num_owned,
+                     self.ticker_buys,
+                     self.ticker_sells) = self.get_ticker_positions(
+                        ticker=ticker)
+
+                    use_daily_timeseries = (
+                        self.timeseries_value == ae_consts.ALGO_TIMESERIES_DAY)
+
+                    if use_daily_timeseries:
+                        self.handle_daily_dataset(
+                            algo_id=algo_id,
+                            ticker=ticker,
+                            node=node)
+                    else:
+                        self.handle_minute_dataset(
+                            algo_id=algo_id,
+                            ticker=ticker,
+                            node=node)
+                    # end of processing datasets for day vs minute
+                # if not debugging a specific dataset in the cache
+
+                if (self.show_balance and
+                        (self.num_buys > 0 or self.num_sells > 0)):
+                    self.debug_msg = (
+                        '{} handle - plot start balance'.format(
+                            self.name))
+                    self.plot_trading_history_with_balance(
                         algo_id=algo_id,
                         ticker=ticker,
                         node=node)
-                # end of processing datasets for day vs minute
+                    self.debug_msg = (
+                        '{} handle - plot done balance'.format(
+                            self.name))
+                # if showing plots while the algo runs
 
                 cur_idx += 1
         # for all supported tickers
@@ -3227,15 +3366,6 @@ class BaseAlgo:
         :param ticker: string - ticker
         :param node: dataset to process
         """
-
-        self.ticker = ticker
-        self.prev_bal = self.balance
-        self.prev_num_owned = self.num_owned
-
-        (self.num_owned,
-         self.num_buys,
-         self.num_sells) = self.get_ticker_positions(
-            ticker=ticker)
 
         # parse the dataset node and set member variables
         self.debug_msg = (
@@ -3436,8 +3566,8 @@ class BaseAlgo:
                 track_label)
 
             (self.num_owned,
-             self.num_buys,
-             self.num_sells) = self.get_ticker_positions(
+             self.ticker_buys,
+             self.ticker_sells) = self.get_ticker_positions(
                 ticker=ticker)
 
             """
@@ -3531,5 +3661,68 @@ class BaseAlgo:
                     node.get('id', 'missing-id')))
         # end for all rows in the minute dataset
     # end of handle_minute_dataset
+
+    def plot_trading_history_with_balance(
+            self,
+            algo_id,
+            ticker,
+            node):
+        """
+
+        This will live plot the trading history after each
+        day is done
+
+        :param algo_id: string - algo identifier label for debugging datasets
+            during specific dates
+        :param ticker: string - ticker
+        :param node: dataset to process
+        """
+        trading_history_dict = self.get_history_dataset()
+        history_df = trading_history_dict[ticker]
+        if not hasattr(history_df, 'to_json'):
+            return
+
+        first_date = history_df['date'].iloc[0]
+        end_date = history_df['date'].iloc[-1]
+        title = (
+            'Trading History {} for Algo {}\n'
+            'Backtest dates from {} to {}'.format(
+                ticker,
+                trading_history_dict['algo_name'],
+                first_date,
+                end_date))
+        use_xcol = 'date'
+        use_as_date_format = '%d\n%b'
+        if self.config_dict['timeseries'] == 'minute':
+            use_xcol = 'minute'
+            use_as_date_format = '%d %H:%M:%S\n%b'
+        xlabel = 'Dates vs {} values'.format(
+            trading_history_dict['algo_name'])
+        ylabel = 'Algo {}\nvalues'.format(
+            trading_history_dict['algo_name'])
+        df_filter = (history_df['close'] > 0.01)
+
+        # set default columns:
+        red = self.red_column
+        blue = self.blue_column
+        green = self.green_column
+        orange = self.orange_column
+
+        plot_trading_history.plot_trading_history(
+            title=title,
+            df=history_df,
+            red=red,
+            blue=blue,
+            green=green,
+            orange=orange,
+            date_col=use_xcol,
+            date_format=use_as_date_format,
+            xlabel=xlabel,
+            ylabel=ylabel,
+            df_filter=df_filter,
+            show_plot=True,
+            dropna_for_all=True)
+
+    # end of plot_trading_history_with_balance
 
 # end of BaseAlgo

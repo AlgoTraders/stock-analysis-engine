@@ -230,10 +230,12 @@ class TestAlgoWithIndicators(base_test.BaseTestCase):
 
         res = algo.get_result()
         print(ae_consts.ppj(res))
-        self.assertTrue(
-            len(res['history'][0]['total_sells']) == 0)
-        self.assertTrue(
-            len(res['history'][0]['total_buys']) == 1)
+        self.assertEqual(
+            res['history'][0]['total_sells'],
+            0)
+        self.assertEqual(
+            res['history'][0]['total_buys'],
+            1)
     # end of test_run_daily_indicator_with_algo_config_buy
 
     @mock.patch(
@@ -261,10 +263,12 @@ class TestAlgoWithIndicators(base_test.BaseTestCase):
 
         res = algo.get_result()
         print(ae_consts.ppj(res))
-        self.assertTrue(
-            len(res['history'][0]['total_sells']) == 1)
-        self.assertTrue(
-            len(res['history'][0]['total_buys']) == 0)
+        self.assertEqual(
+            res['history'][0]['total_sells'],
+            1)
+        self.assertEqual(
+            res['history'][0]['total_buys'],
+            0)
     # end of test_run_daily_indicator_with_algo_config_sell
 
     @mock.patch(
@@ -293,9 +297,9 @@ class TestAlgoWithIndicators(base_test.BaseTestCase):
         res = algo.get_result()
         print(ae_consts.ppj(res))
         self.assertTrue(
-            len(res['history'][0]['total_sells']) == 0)
+            res['history'][0]['total_sells'] == 0)
         self.assertTrue(
-            len(res['history'][0]['total_buys']) == 0)
+            res['history'][0]['total_buys'] == 0)
     # end of test_run_daily_indicator_with_algo_config_ignore
 
     """
@@ -335,9 +339,9 @@ class TestAlgoWithIndicators(base_test.BaseTestCase):
         res = algo.get_result()
         print(ae_consts.ppj(res))
         self.assertTrue(
-            len(res['history'][0]['total_sells']) >= 1)
+            res['history'][0]['total_sells'] >= 1)
         self.assertTrue(
-            len(res['history'][0]['total_buys']) == 0)
+            res['history'][0]['total_buys'] == 0)
     # end of test_integration_daily_indicator_with_algo_config
 
 # end of TestAlgoWithIndicators
