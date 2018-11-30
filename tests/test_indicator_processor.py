@@ -39,7 +39,7 @@ class TestIndicatorProcessor(BaseTestCase):
             },
             "indicators": [
                 {
-                    "name": "willr",
+                    "name": "willr_1",
                     "module_path": self.example_module_path,
                     "category": "technical",
                     "type": "momentum",
@@ -49,7 +49,7 @@ class TestIndicatorProcessor(BaseTestCase):
                     "sell_below": 10
                 },
                 {
-                    "name": "willr",
+                    "name": "willr_2",
                     "module_path": self.example_module_path,
                     "category": "technical",
                     "type": "momentum",

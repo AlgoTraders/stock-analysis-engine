@@ -86,12 +86,22 @@ def build_indicator_node(
                 ind_type))
     # end of supported indicator type
 
-    ind_name = '{}_{}_{}_{}_{}'.format(
+    # allow easier key discovery
+    use_unique_id = node.get(
+        'unique_id',
+        False)
+    ind_name = '{}_{}_{}_{}'.format(
         name,
         ind_category,
         ind_type,
-        uses_dataset,
-        ind_id)
+        uses_dataset)
+    if use_unique_id:
+        ind_name = '{}_{}_{}_{}_{}'.format(
+            name,
+            ind_category,
+            ind_type,
+            uses_dataset,
+            ind_id)
 
     use_module_name = None
     use_path_to_module = None

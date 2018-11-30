@@ -7,8 +7,10 @@
   "balance": 100000,
   "ticker": "SPY",
   "verbose": true,
-  "verbose_processor": true,
-  "verbose_indicators": true,
+  "verbose_processor": false,
+  "verbose_indicators": false,
+  "verbose_trading": false,
+  "inspect_datasets": false,
   "positions": {
     "SPY": {
       "shares": 10,

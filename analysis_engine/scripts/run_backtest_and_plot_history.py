@@ -325,12 +325,14 @@ class ExampleCustomAlgo(base_algo.BaseAlgo):
         sell decisions. These are your own custom logic
         for trading based off what the indicators find
         and any non-indicator data provided from within
-        the ``dataset`` dictionary. Here is what the ``dataset``
-        will look like when your algorithm's ``process``
-        method is called (assuming you have redis running
-        with actual pricing data too):
+        the ``dataset`` dictionary.
 
         **Dataset Dictionary Structure**
+
+        Here is what the ``dataset`` variable
+        looks like when your algorithm's ``process``
+        method is called (assuming you have redis running
+        with actual pricing data too):
 
         .. code-block:: python
 
