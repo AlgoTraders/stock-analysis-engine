@@ -11,7 +11,16 @@ Backtest an Algorithm and Plot the Trading History
 ==================================================
 
 .. automodule:: analysis_engine.scripts.run_backtest_and_plot_history
-   :members: build_example_algo_config,ExampleDailyAlgo,run_backtest_and_plot_history
+   :members: build_example_algo_config,ExampleCustomAlgo,run_backtest_and_plot_history
+
+Plot the Trading History from a File on Disk
+============================================
+
+.. automodule:: analysis_engine.scripts.plot_history_from_local_file
+   :members: plot_local_history_file
+
+Publish Stock Data from S3 to Redis
+===================================
 
 Publish Stock Data from S3 to Redis
 ===================================
