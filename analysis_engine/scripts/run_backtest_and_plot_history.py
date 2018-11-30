@@ -122,7 +122,7 @@ run a backtest with an algorithm config dictionary
         }
     }
 
-    class ExampleDailyAlgo(base_algo.BaseAlgo):
+    class ExampleCustomAlgo(base_algo.BaseAlgo):
         def process(self, algo_id, ticker, dataset):
             if self.verbose:
                 print(
@@ -135,10 +135,10 @@ run a backtest with an algorithm config dictionary
                         self.latest_low, self.latest_open,
                         self.latest_volume))
         # end of process
-    # end of ExampleDailyAlgo
+    # end of ExampleCustomAlgo
 
 
-    algo_obj = ExampleDailyAlgo(
+    algo_obj = ExampleCustomAlgo(
         ticker=algo_config_dict['ticker'],
         config_dict=algo_config_dict)
 
@@ -304,8 +304,8 @@ def build_example_algo_config(
 # end of build_example_algo_config
 
 
-class ExampleDailyAlgo(base_algo.BaseAlgo):
-    """ExampleDailyAlgo"""
+class ExampleCustomAlgo(base_algo.BaseAlgo):
+    """ExampleCustomAlgo"""
 
     def process(self, algo_id, ticker, dataset):
         """process
@@ -334,9 +334,24 @@ class ExampleDailyAlgo(base_algo.BaseAlgo):
 
         .. code-block:: python
 
-            dataset[ticker] = {
-                "id": "<string - cached dataset identifier>"
-                "date": "
+            dataset = {
+                'id': dataset_id,
+                'date': date,
+                'data': {
+                    'daily': pd.DataFrame([]),
+                    'minute': pd.DataFrame([]),
+                    'quote': pd.DataFrame([]),
+                    'stats': pd.DataFrame([]),
+                    'peers': pd.DataFrame([]),
+                    'news1': pd.DataFrame([]),
+                    'financials': pd.DataFrame([]),
+                    'earnings': pd.DataFrame([]),
+                    'dividends': pd.DataFrame([]),
+                    'calls': pd.DataFrame([]),
+                    'puts': pd.DataFrame([]),
+                    'pricing': pd.DataFrame([]),
+                    'news': pd.DataFrame([])
+                }
             }
 
         .. tip:: you can also inspect these datasets by setting
@@ -362,10 +377,9 @@ class ExampleDailyAlgo(base_algo.BaseAlgo):
                     self.latest_close, self.latest_high,
                     self.latest_low, self.latest_open,
                     self.latest_volume))
+    # end of process
 
-        # you can navigate it with this sample code too:
-
-# end of ExampleDailyAlgo
+# end of ExampleCustomAlgo
 
 
 def run_backtest_and_plot_history(
@@ -794,7 +808,7 @@ def run_backtest_and_plot_history(
     if run_this_date:
         config_dict['run_this_date'] = run_this_date
 
-    algo_obj = ExampleDailyAlgo(
+    algo_obj = ExampleCustomAlgo(
         ticker=config_dict['ticker'],
         config_dict=config_dict)
 
