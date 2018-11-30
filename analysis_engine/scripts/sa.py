@@ -561,7 +561,6 @@ def run_sa_tool():
     redis_serializer = 'json'
     redis_encoding = 'utf-8'
     output_redis_key = None
-    output_s3_bucket = None
     output_s3_key = None
     s3_enabled = True
     redis_enabled = True

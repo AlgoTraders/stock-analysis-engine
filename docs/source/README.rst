@@ -67,6 +67,26 @@ Here's how to run an algorithm during a live trading session. This approach assu
 
 .. note:: Using ``-j <DATE>`` will make the algorithm **jump-to-this-date** before starting any trading. This is helpful for debugging indicators, algorithms, datasets issues, and buy/sell rules as well.
 
+Run a Backtest using an External Algorithm Module and Config File
+=================================================================
+
+Run an algorithm backtest with a standalone algorithm class contained in a single python module file that can even be outside the repository using a config file on disk:
+
+::
+
+    ticker=SPY
+    config=<CUSTOM_ALGO_CONFIG_DIR>/minute_algo.json
+    algo_mod=<CUSTOM_ALGO_MODULE_DIR>/minute_algo.py
+    bt -t ${ticker} -c ${algo_config} -g ${algo_mod}
+
+Or the config can use ``"algo_path": "<PATH_TO_FILE>"`` to set the path to an external algorithm module file.
+
+::
+
+    bt -t ${ticker} -c ${algo_config}
+
+.. note:: Using a standalone algorithm class must derive from the ``analysis_engine.algo.BaseAlgo`` class
+
 Building Your Own Trading Algorithms
 ====================================
 

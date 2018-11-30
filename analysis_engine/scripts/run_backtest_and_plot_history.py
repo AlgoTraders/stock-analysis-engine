@@ -166,12 +166,14 @@ run a backtest with an algorithm config dictionary
 import os
 import sys
 import datetime
+import json
 import argparse
 import analysis_engine.consts as ae_consts
 import analysis_engine.algo as base_algo
 import analysis_engine.run_algo as run_algo
 import analysis_engine.plot_trading_history as plot_trading_history
 import analysis_engine.build_publish_request as build_publish_request
+import analysis_engine.run_custom_algo as run_custom_algo
 import spylunking.log.setup_logging as log_utils
 
 
@@ -648,15 +650,74 @@ def run_backtest_and_plot_history(
     history_json_file = None
     run_this_date = None
 
+    ssl_options = ae_consts.SSL_OPTIONS
+    transport_options = ae_consts.TRANSPORT_OPTIONS
+    broker_url = ae_consts.WORKER_BROKER_URL
+    backend_url = ae_consts.WORKER_BACKEND_URL
+    path_to_config_module = ae_consts.WORKER_CELERY_CONFIG_MODULE
+    include_tasks = ae_consts.INCLUDE_TASKS
+    load_from_s3_bucket = None
+    load_from_s3_key = None
+    load_from_redis_key = None
+    load_from_file = None
+    load_compress = False
+    load_publish = True
+    load_config = None
+    report_redis_key = None
+    report_s3_bucket = None
+    report_s3_key = None
+    report_file = None
+    report_compress = False
+    report_publish = True
+    report_config = None
+    history_redis_key = None
+    history_s3_bucket = None
+    history_s3_key = None
+    history_file = None
+    history_compress = False
+    history_publish = True
+    history_config = None
+    extract_redis_key = None
+    extract_s3_bucket = None
+    extract_s3_key = None
+    extract_file = None
+    extract_save_dir = None
+    extract_compress = False
+    extract_publish = True
+    extract_config = None
+    s3_enabled = True
     s3_access_key = ae_consts.S3_ACCESS_KEY
     s3_secret_key = ae_consts.S3_SECRET_KEY
     s3_region_name = ae_consts.S3_REGION_NAME
     s3_address = ae_consts.S3_ADDRESS
+    s3_bucket_name = ae_consts.S3_BUCKET
+    s3_key = None
     s3_secure = ae_consts.S3_SECURE
+    redis_enabled = True
     redis_address = ae_consts.REDIS_ADDRESS
+    redis_key = None
     redis_password = ae_consts.REDIS_PASSWORD
     redis_db = ae_consts.REDIS_DB
     redis_expire = ae_consts.REDIS_EXPIRE
+    redis_serializer = 'json'
+    redis_encoding = 'utf-8'
+    publish_to_s3 = True
+    publish_to_redis = True
+    publish_to_slack = True
+    slack_enabled = False
+    slack_code_block = False
+    slack_full_width = False
+
+    dataset_type = ae_consts.SA_DATASET_TYPE_ALGO_READY
+    serialize_datasets = ae_consts.DEFAULT_SERIALIZED_DATASETS
+    compress = False
+    encoding = 'utf-8'
+    debug = False
+    run_on_engine = False
+
+    auto_fill = True
+    timeseries = 'minute'
+    trade_strategy = 'count'
 
     if args.s3_access_key:
         s3_access_key = args.s3_access_key
@@ -690,7 +751,6 @@ def run_backtest_and_plot_history(
         inspect_datasets = True
     if args.run_this_date:
         run_this_date = args.run_this_date
-
     if args.start_date:
         try:
             use_start_date = '{} 00:00:00'.format(
@@ -727,6 +787,14 @@ def run_backtest_and_plot_history(
             sys.exit(1)
         # end of testing for a valid date
     # end of args.end_date
+    algo_mod_path = None
+    if args.run_algo_in_file:
+        if not os.path.exists(args.run_algo_in_file):
+            log.error(
+                'missing algorithm module file: {}'.format(
+                    args.run_algo_in_file))
+            sys.exit(1)
+        algo_mod_path = args.run_algo_in_file
     if args.config_file:
         use_config_file = args.config_file
         if not os.path.exists(use_config_file):
@@ -734,6 +802,294 @@ def run_backtest_and_plot_history(
                 'Failed: unable to find config file: -c {}'.format(
                     use_config_file))
             sys.exit(1)
+        config_dict = json.loads(open(use_config_file).read())
+        algo_mod_path = config_dict.get(
+            'algo_path',
+            algo_mod_path)
+        if not os.path.exists(algo_mod_path):
+            log.error(
+                'missing algorithm module file from config: {}'.format(
+                    algo_mod_path))
+            sys.exit(1)
+
+    """
+    Finalize the algo config
+    """
+
+    config_dict['ticker'] = ticker
+    config_dict['balance'] = use_balance
+    config_dict['commission'] = use_commission
+
+    if verbose_algo:
+        config_dict['verbose'] = verbose_algo
+    if verbose_processor:
+        config_dict['verbose_processor'] = verbose_processor
+    if verbose_indicators:
+        config_dict['verbose_indicators'] = verbose_indicators
+    if inspect_datasets:
+        config_dict['inspect_datasets'] = inspect_datasets
+    if run_this_date:
+        config_dict['run_this_date'] = run_this_date
+
+    """
+    Run a custom algo module from disk
+    """
+    if algo_mod_path:
+
+        if args.backtest_loc:
+            backtest_loc = args.backtest_loc
+            if ('file:/' not in backtest_loc and
+                    's3://' not in backtest_loc and
+                    'redis://' not in backtest_loc):
+                log.error(
+                    'invalid -b <backtest dataset file> specified. '
+                    '{} '
+                    'please use either: '
+                    '-b file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
+                    '-b s3://algoready/SPY-latest.json or '
+                    '-b redis://SPY-latest'.format(
+                        backtest_loc))
+                sys.exit(1)
+            if 's3://' in backtest_loc:
+                load_from_s3_bucket = backtest_loc.split('/')[-2]
+                load_from_s3_key = backtest_loc.split('/')[-1]
+            elif 'redis://' in backtest_loc:
+                load_from_redis_key = backtest_loc.split('/')[-1]
+            elif 'file:/' in backtest_loc:
+                load_from_file = backtest_loc.split(':')[-1]
+            load_publish = True
+        # end of parsing supported transport - loading an algo-ready
+
+        if args.algo_history_loc:
+            algo_history_loc = args.algo_history_loc
+            if ('file:/' not in algo_history_loc and
+                    's3://' not in algo_history_loc and
+                    'redis://' not in algo_history_loc):
+                log.error(
+                    'invalid -b <backtest dataset file> specified. '
+                    '{} '
+                    'please use either: '
+                    '-p file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
+                    '-p s3://algoready/SPY-latest.json or '
+                    '-p redis://SPY-latest'.format(
+                        algo_history_loc))
+                sys.exit(1)
+            if 's3://' in algo_history_loc:
+                history_s3_bucket = algo_history_loc.split('/')[-2]
+                history_s3_key = algo_history_loc.split('/')[-1]
+            elif 'redis://' in algo_history_loc:
+                history_redis_key = algo_history_loc.split('/')[-1]
+            elif 'file:/' in algo_history_loc:
+                history_file = algo_history_loc.split(':')[-1]
+            history_publish = True
+        # end of parsing supported transport - trading history
+
+        if args.algo_report_loc:
+            algo_report_loc = args.algo_report_loc
+            if ('file:/' not in algo_report_loc and
+                    's3://' not in algo_report_loc and
+                    'redis://' not in algo_report_loc):
+                log.error(
+                    'invalid -b <backtest dataset file> specified. '
+                    '{} '
+                    'please use either: '
+                    '-o file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
+                    '-o s3://algoready/SPY-latest.json or '
+                    '-o redis://SPY-latest'.format(
+                        algo_report_loc))
+                sys.exit(1)
+            if 's3://' in algo_report_loc:
+                report_s3_bucket = algo_report_loc.split('/')[-2]
+                report_s3_key = algo_report_loc.split('/')[-1]
+            elif 'redis://' in algo_report_loc:
+                report_redis_key = algo_report_loc.split('/')[-1]
+            elif 'file:/' in algo_report_loc:
+                report_file = algo_report_loc.split(':')[-1]
+            report_publish = True
+        # end of parsing supported transport - trading performance report
+
+        if args.algo_extract_loc:
+            algo_extract_loc = args.algo_extract_loc
+            if ('file:/' not in algo_extract_loc and
+                    's3://' not in algo_extract_loc and
+                    'redis://' not in algo_extract_loc):
+                log.error(
+                    'invalid -b <backtest dataset file> specified. '
+                    '{} '
+                    'please use either: '
+                    '-e file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
+                    '-e s3://algoready/SPY-latest.json or '
+                    '-e redis://SPY-latest'.format(
+                        algo_extract_loc))
+                sys.exit(1)
+            if 's3://' in algo_extract_loc:
+                extract_s3_bucket = algo_extract_loc.split('/')[-2]
+                extract_s3_key = algo_extract_loc.split('/')[-1]
+            elif 'redis://' in algo_extract_loc:
+                extract_redis_key = algo_extract_loc.split('/')[-1]
+            elif 'file:/' in algo_extract_loc:
+                extract_file = algo_extract_loc.split(':')[-1]
+            extract_publish = True
+        # end of parsing supported transport - extract algorithm-ready
+
+        if args.run_on_engine:
+            run_on_engine = True
+            if verbose_algo:
+                log.info('starting algo on the engine')
+
+        use_name = config_dict.get(
+            'name',
+            'missing-algo-name')
+        auto_fill = config_dict.get(
+            'auto_fill',
+            auto_fill)
+        timeseries = config_dict.get(
+            'timeseries',
+            timeseries)
+        trade_strategy = config_dict.get(
+            'trade_strategy',
+            trade_strategy)
+
+        algo_res = run_custom_algo.run_custom_algo(
+            mod_path=algo_mod_path,
+            ticker=config_dict['ticker'],
+            balance=config_dict['balance'],
+            commission=config_dict['balance'],
+            name=use_name,
+            start_date=use_start_date,
+            end_date=use_end_date,
+            auto_fill=auto_fill,
+            config_dict=config_dict,
+            load_from_s3_bucket=load_from_s3_bucket,
+            load_from_s3_key=load_from_s3_key,
+            load_from_redis_key=load_from_redis_key,
+            load_from_file=load_from_file,
+            load_compress=load_compress,
+            load_publish=load_publish,
+            load_config=load_config,
+            report_redis_key=report_redis_key,
+            report_s3_bucket=report_s3_bucket,
+            report_s3_key=report_s3_key,
+            report_file=report_file,
+            report_compress=report_compress,
+            report_publish=report_publish,
+            report_config=report_config,
+            history_redis_key=history_redis_key,
+            history_s3_bucket=history_s3_bucket,
+            history_s3_key=history_s3_key,
+            history_file=history_file,
+            history_compress=history_compress,
+            history_publish=history_publish,
+            history_config=history_config,
+            extract_redis_key=extract_redis_key,
+            extract_s3_bucket=extract_s3_bucket,
+            extract_s3_key=extract_s3_key,
+            extract_file=extract_file,
+            extract_save_dir=extract_save_dir,
+            extract_compress=extract_compress,
+            extract_publish=extract_publish,
+            extract_config=extract_config,
+            publish_to_slack=publish_to_slack,
+            publish_to_s3=publish_to_s3,
+            publish_to_redis=publish_to_redis,
+            dataset_type=dataset_type,
+            serialize_datasets=serialize_datasets,
+            compress=compress,
+            encoding=encoding,
+            redis_enabled=redis_enabled,
+            redis_key=redis_key,
+            redis_address=redis_address,
+            redis_db=redis_db,
+            redis_password=redis_password,
+            redis_expire=redis_expire,
+            redis_serializer=redis_serializer,
+            redis_encoding=redis_encoding,
+            s3_enabled=s3_enabled,
+            s3_key=s3_key,
+            s3_address=s3_address,
+            s3_bucket=s3_bucket_name,
+            s3_access_key=s3_access_key,
+            s3_secret_key=s3_secret_key,
+            s3_region_name=s3_region_name,
+            s3_secure=s3_secure,
+            slack_enabled=slack_enabled,
+            slack_code_block=slack_code_block,
+            slack_full_width=slack_full_width,
+            dataset_publish_extract=extract_publish,
+            dataset_publish_history=history_publish,
+            dataset_publish_report=report_publish,
+            run_on_engine=run_on_engine,
+            auth_url=broker_url,
+            backend_url=backend_url,
+            include_tasks=include_tasks,
+            ssl_options=ssl_options,
+            transport_options=transport_options,
+            path_to_config_module=path_to_config_module,
+            timeseries=timeseries,
+            trade_strategy=trade_strategy,
+            verbose=verbose_algo)
+
+        show_label = 'algo.name={}'.format(
+            use_name)
+        show_extract = '{}'.format(
+            algo_extract_loc)
+        show_history = '{}'.format(
+            algo_history_loc)
+        show_report = '{}'.format(
+            algo_report_loc)
+        base_label = (
+            'load={} '
+            'extract={} '
+            'history={} '
+            'report={}'.format(
+                args.run_algo_in_file,
+                show_extract,
+                show_history,
+                show_report))
+        show_label = (
+            '{} running in engine task_id={} {}'.format(
+                ticker,
+                algo_res['rec'].get(
+                    'task_id',
+                    'missing-task-id'),
+                base_label))
+        if not run_on_engine:
+            algo_trade_history_recs = algo_res['rec'].get(
+                'history',
+                [])
+            show_label = (
+                '{} algo.name={} {} trade_history_len={}'.format(
+                    ticker,
+                    use_name,
+                    base_label,
+                    len(algo_trade_history_recs)))
+        if args.debug:
+            log.info(
+                'algo_res={}'.format(
+                    algo_res))
+            if algo_res['status'] == ae_consts.SUCCESS:
+                log.info(
+                    '{} - done running {}'.format(
+                        ae_consts.get_status(status=algo_res['status']),
+                        show_label))
+            else:
+                log.error(
+                    '{} - done running {}'.format(
+                        ae_consts.get_status(status=algo_res['status']),
+                        show_label))
+        else:
+            if algo_res['status'] == ae_consts.SUCCESS:
+                log.info(
+                    '{} - done running {}'.format(
+                        ae_consts.get_status(status=algo_res['status']),
+                        show_label))
+            else:
+                log.error(
+                    'run_custom_algo returned error: {}'.format(
+                        algo_res['err']))
+                sys.exit(1)
+        # end of running the custom algo handler
+    # end if running a custom algorithm module
 
     if args.backtest_loc:
         backtest_loc = args.backtest_loc
@@ -794,21 +1150,6 @@ def run_backtest_and_plot_history(
 
     if debug:
         log.info('starting algo')
-
-    config_dict['ticker'] = ticker
-    config_dict['balance'] = use_balance
-    config_dict['commission'] = use_commission
-
-    if verbose_algo:
-        config_dict['verbose'] = verbose_algo
-    if verbose_processor:
-        config_dict['verbose_processor'] = verbose_processor
-    if verbose_indicators:
-        config_dict['verbose_indicators'] = verbose_indicators
-    if inspect_datasets:
-        config_dict['inspect_datasets'] = inspect_datasets
-    if run_this_date:
-        config_dict['run_this_date'] = run_this_date
 
     algo_obj = ExampleCustomAlgo(
         ticker=config_dict['ticker'],
