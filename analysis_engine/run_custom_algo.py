@@ -9,7 +9,7 @@ Example with the command line tool:
 
 ::
 
-    sa -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
+    bt -t SPY -g /opt/sa/analysis_engine/mocks/example_algo_minute.py
 
 """
 
@@ -492,11 +492,12 @@ def run_custom_algo(
         start_date = end_date - datetime.timedelta(days=75)
         use_start_date = start_date.strftime(
             ae_consts.COMMON_TICK_DATE_FORMAT)
-        log.info(
-            '{} {} setting default start_date={}'.format(
-                name,
-                ticker,
-                use_start_date))
+        if verbose:
+            log.info(
+                '{} {} setting default start_date={}'.format(
+                    name,
+                    ticker,
+                    use_start_date))
 
     # Load an algorithm-ready dataset from:
     # file, s3, or redis
@@ -745,16 +746,17 @@ def run_custom_algo(
         task_name = (
             'analysis_engine.work_tasks.'
             'run_distributed_algorithm.run_distributed_algorithm')
-        log.info(
-            'starting distributed algo task={}'.format(
-                task_name))
-        if verbose or debug:
+        if debug:
             log.info(
                 'starting distributed algo by publishing to '
                 'task={} broker={} backend={}'.format(
                     task_name,
                     auth_url,
                     backend_url))
+        elif verbose:
+            log.info(
+                'starting distributed algo task={}'.format(
+                    task_name))
 
         # Get the Celery app
         app = get_celery_app.get_celery_app(
@@ -766,12 +768,12 @@ def run_custom_algo(
             transport_options=transport_options,
             include_tasks=include_tasks)
 
-        if verbose or debug:
+        if debug:
             log.info(
                 'calling distributed algo task={} request={}'.format(
                     task_name,
                     ae_consts.ppj(algo_req)))
-        else:
+        elif verbose:
             log.info(
                 'calling distributed algo task={}'.format(
                     task_name))
@@ -779,10 +781,12 @@ def run_custom_algo(
         job_id = app.send_task(
             task_name,
             (algo_req,))
-        log.info(
-            'calling task={} - success job_id={}'.format(
-                task_name,
-                job_id))
+
+        if verbose:
+            log.info(
+                'calling task={} - success job_id={}'.format(
+                    task_name,
+                    job_id))
         rec['task_id'] = job_id
         algo_res = build_result.build_result(
             status=ae_consts.SUCCESS,
@@ -792,17 +796,19 @@ def run_custom_algo(
     # end of run_on_engine
 
     if use_custom_algo:
-        log.info(
-            'inspecting {} for class {}'.format(
-                custom_algo_module,
-                module_name))
+        if verbose:
+            log.info(
+                'inspecting {} for class {}'.format(
+                    custom_algo_module,
+                    module_name))
         use_class_member_object = None
         for member in inspect.getmembers(custom_algo_module):
             if module_name in str(member):
-                log.info(
-                    'start {} with {}'.format(
-                        name,
-                        member[1]))
+                if verbose:
+                    log.info(
+                        'start {} with {}'.format(
+                            name,
+                            member[1]))
                 use_class_member_object = member
                 break
         # end of looking over the class definition but did not find it
@@ -838,40 +844,45 @@ def run_custom_algo(
         #     '{} algorithm request: {}'.format(
         #         name,
         #         algo_req))
-        log.info(
-            '{} - run ticker={} from {} to {}'.format(
-                name,
-                ticker,
-                use_start_date,
-                use_end_date))
+        if verbose:
+            log.info(
+                '{} - run ticker={} from {} to {}'.format(
+                    name,
+                    ticker,
+                    use_start_date,
+                    use_end_date))
         algo_res = run_algo.run_algo(
             algo=new_algo_object,
             raise_on_err=raise_on_err,
             **algo_req)
         algo_res['algo'] = new_algo_object
-        log.info(
-            '{} - run ticker={} from {} to {}'.format(
-                name,
-                ticker,
-                use_start_date,
-                use_end_date))
+        if verbose:
+            log.info(
+                '{} - run ticker={} from {} to {}'.format(
+                    name,
+                    ticker,
+                    use_start_date,
+                    use_end_date))
         if custom_algo_module:
-            log.info(
-                '{} - done run_algo custom_algo_module={} module_name={} '
-                'ticker={} from {} to {}'.format(
-                    name,
-                    custom_algo_module,
-                    module_name,
-                    ticker,
-                    use_start_date,
-                    use_end_date))
+            if verbose:
+                log.info(
+                    '{} - done run_algo custom_algo_module={} module_name={} '
+                    'ticker={} from {} to {}'.format(
+                        name,
+                        custom_algo_module,
+                        module_name,
+                        ticker,
+                        use_start_date,
+                        use_end_date))
         else:
-            log.info(
-                '{} - done run_algo BaseAlgo ticker={} from {} to {}'.format(
-                    name,
-                    ticker,
-                    use_start_date,
-                    use_end_date))
+            if verbose:
+                log.info(
+                    '{} - done run_algo BaseAlgo ticker={} from {} '
+                    'to {}'.format(
+                        name,
+                        ticker,
+                        use_start_date,
+                        use_end_date))
     else:
         err = (
             'missing a derived analysis_engine.algo.BaseAlgo '
@@ -942,12 +953,13 @@ def run_custom_algo(
             use_log += ' {}'.format(
                 file_log)
 
-        log.info(
-            '{} - publish - start ticker={} algorithm-ready {}'
-            ''.format(
-                name,
-                ticker,
-                use_log))
+        if verbose:
+            log.info(
+                '{} - publish - start ticker={} algorithm-ready {}'
+                ''.format(
+                    name,
+                    ticker,
+                    use_log))
 
         publish_status = algo.publish_input_dataset(
             **extract_config)
@@ -963,12 +975,13 @@ def run_custom_algo(
                 err=err,
                 rec=None)
 
-        log.info(
-            '{} - publish - done ticker={} algorithm-ready {}'
-            ''.format(
-                name,
-                ticker,
-                use_log))
+        if verbose:
+            log.info(
+                '{} - publish - done ticker={} algorithm-ready {}'
+                ''.format(
+                    name,
+                    ticker,
+                    use_log))
     # if publish the algorithm-ready dataset
 
     if should_publish_history_dataset and dataset_publish_history:
@@ -1005,12 +1018,13 @@ def run_custom_algo(
             use_log += ' {}'.format(
                 file_log)
 
-        log.info(
-            '{} - publish - start ticker={} trading history {}'
-            ''.format(
-                name,
-                ticker,
-                use_log))
+        if verbose:
+            log.info(
+                '{} - publish - start ticker={} trading history {}'
+                ''.format(
+                    name,
+                    ticker,
+                    use_log))
 
         publish_status = algo.publish_trade_history_dataset(
             **history_config)
@@ -1026,12 +1040,13 @@ def run_custom_algo(
                 err=err,
                 rec=None)
 
-        log.info(
-            '{} - publish - done ticker={} trading history {}'
-            ''.format(
-                name,
-                ticker,
-                use_log))
+        if verbose:
+            log.info(
+                '{} - publish - done ticker={} trading history {}'
+                ''.format(
+                    name,
+                    ticker,
+                    use_log))
     # if publish an trading history dataset
 
     if should_publish_report_dataset and dataset_publish_report:
@@ -1068,12 +1083,13 @@ def run_custom_algo(
             use_log += ' {}'.format(
                 file_log)
 
-        log.info(
-            '{} - publishing ticker={} trading performance report {}'
-            ''.format(
-                name,
-                ticker,
-                use_log))
+        if verbose:
+            log.info(
+                '{} - publishing ticker={} trading performance report {}'
+                ''.format(
+                    name,
+                    ticker,
+                    use_log))
 
         publish_status = algo.publish_report_dataset(
             **report_config)
@@ -1089,20 +1105,22 @@ def run_custom_algo(
                 err=err,
                 rec=None)
 
-        log.info(
-            '{} - publish - done ticker={} trading performance report {}'
-            ''.format(
-                name,
-                ticker,
-                use_log))
+        if verbose:
+            log.info(
+                '{} - publish - done ticker={} trading performance report {}'
+                ''.format(
+                    name,
+                    ticker,
+                    use_log))
     # if publish an trading performance report dataset
 
-    log.info(
-        '{} - done publishing datasets for ticker={} from {} to {}'.format(
-            name,
-            ticker,
-            use_start_date,
-            use_end_date))
+    if verbose:
+        log.info(
+            '{} - done publishing datasets for ticker={} from {} to {}'.format(
+                name,
+                ticker,
+                use_start_date,
+                use_end_date))
 
     return algo_res
 # end of run_custom_algo

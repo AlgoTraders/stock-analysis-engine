@@ -1,6 +1,6 @@
 {
   "name": "test_5_days_ahead",
-  "algo_module_path": null,
+  "algo_path": null,
   "algo_version": 1,
   "trade_horizon_units": "day",
   "trade_horizon": 5,
