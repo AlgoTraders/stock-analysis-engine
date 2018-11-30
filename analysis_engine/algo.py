@@ -2560,7 +2560,7 @@ class BaseAlgo:
                         prev_shares,
                         prev_bal))
             else:
-                log.error(
+                log.info(
                     '{} - buy fail {} {}@{} {} shares={} cost={} '
                     'bal={} '.format(
                         self.name,
@@ -2736,7 +2736,7 @@ class BaseAlgo:
                         prev_shares,
                         prev_bal))
             else:
-                log.error(
+                log.info(
                     '{} - sell fail {} {}@{} {} shares={} cost={} '
                     'bal={} '.format(
                         self.name,

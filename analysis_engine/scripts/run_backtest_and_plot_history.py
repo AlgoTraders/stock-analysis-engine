@@ -22,7 +22,7 @@ run a backtest with an algorithm config dictionary
         'trade_horizon': 5,
         'num_owned': 10,
         'buy_shares': 10,
-        'balance': 5000.0,
+        'balance': 10000.0,
         'commission': 6.0,
         'ticker': ticker,
         'algo_module_path': None,
@@ -199,7 +199,7 @@ def build_example_algo_config(
         'trade_horizon': 5,
         'num_owned': 10,
         'buy_shares': 10,
-        'balance': 5000.0,
+        'balance': 10000.0,
         'commission': 6.0,
         'ticker': ticker,
         'algo_module_path': None,
@@ -633,7 +633,7 @@ def run_backtest_and_plot_history(
     args = parser.parse_args()
 
     ticker = ae_consts.TICKER
-    use_balance = 5000.0
+    use_balance = 10000.0
     use_commission = 6.0
     use_start_date = None
     use_end_date = None
