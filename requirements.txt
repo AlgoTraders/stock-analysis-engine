@@ -1,4 +1,5 @@
 antinex-client
+boto3
 bs4
 celery
 celery[redis]
