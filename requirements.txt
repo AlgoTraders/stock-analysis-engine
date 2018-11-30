@@ -2,7 +2,6 @@ antinex-client
 bs4
 celery
 celery[redis]
-celery-connectors
 colorlog
 coverage
 flake8<=3.4.1
