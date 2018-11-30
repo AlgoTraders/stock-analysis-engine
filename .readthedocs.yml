@@ -1,0 +1,9 @@
+# https://docs.readthedocs.io/en/latest/yaml-config.html#formats
+build:
+  image: latest
+
+python:
+  version: 3.6
+  setup_py_install: true
+
+formats: []
