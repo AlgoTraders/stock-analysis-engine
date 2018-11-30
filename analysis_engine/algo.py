@@ -635,6 +635,7 @@ class BaseAlgo:
         self.verbose_indicators = verbose_indicators
         self.verbose_trading = verbose_trading
         self.inspect_datasets = inspect_datasets
+        self.run_this_date = None
 
         self.verbose = ae_consts.ev(
             'AE_DEBUG',
@@ -1048,6 +1049,70 @@ class BaseAlgo:
                 None)
         # if indicator_processor exists
     # end of __init__
+
+    def view_date_dataset_records(
+            self,
+            algo_id,
+            ticker,
+            node):
+        """view_date_dataset_records
+
+        View the dataset contents for a single node - use it with
+        the algo config_dict by setting:
+
+        ::
+
+            "run_this_date": <string date YYYY-MM-DD>
+
+        :param algo_id: string - algo identifier label for debugging datasets
+            during specific dates
+        :param ticker: string - ticker
+        :param node: dataset to process
+        """
+        # this will happen twice
+
+        self.load_from_dataset(
+            ds_data=node)
+        self.inspect_dataset(
+            algo_id=algo_id,
+            ticker=ticker,
+            dataset=node)
+        if self.timeseries == 'minute':
+            if len(self.df_minute.index) <= 1:
+                log.error(
+                    'EMPTY minute dataset')
+                if self.raise_on_err:
+                    raise Exception(
+                        'EMPTY minute dataset')
+                return
+            for i, row in self.df_minute.iterrows():
+                log.info(
+                    'minute={} date={} close={}'.format(
+                        i,
+                        row['date'],
+                        row['close']))
+            log.info(
+                'minute df len={}'.format(
+                    len(self.df_minute.index)))
+        elif self.timeseries == 'day':
+            if len(self.df_daily.index) == 0:
+                log.error(
+                    'EMPTY daily dataset')
+                if self.raise_on_err:
+                    raise Exception(
+                        'EMPTY minute dataset')
+                return
+            if hasattr(self.daily, 'to_json'):
+                for i, row in self.df_daily.iterrows():
+                    log.info(
+                        'day={} date={} close={}'.format(
+                            i,
+                            row['date'],
+                            row['close']))
+                log.info(
+                    'day df len={}'.format(
+                        len(self.daily.index)))
+    # end of view_date_dataset_records
 
     def get_indicator_processor(
             self,
@@ -3208,24 +3273,54 @@ class BaseAlgo:
                         node['id'],
                         node['date']))
 
-                self.ticker = ticker
-                self.prev_bal = self.balance
-                self.prev_num_owned = self.num_owned
+                valid_run = False
+                if self.run_this_date:
+                    if node['date'] == self.run_this_date:
+                        log.critical(
+                            '{} handle - starting at date={} '
+                            'with just this dataset: '.format(
+                                self.name,
+                                node['date']))
+                        log.info(
+                            '{}'.format(
+                                node['data']))
+                        valid_run = True
+                        self.verbose = True
+                        self.verbose_trading = True
 
-                use_daily_timeseries = (
-                    self.timeseries_value == ae_consts.ALGO_TIMESERIES_DAY)
-
-                if use_daily_timeseries:
-                    self.handle_daily_dataset(
-                        algo_id=algo_id,
-                        ticker=ticker,
-                        node=node)
+                        if self.inspect_dataset:
+                            self.view_date_dataset_records(
+                                algo_id=algo_id,
+                                ticker=ticker,
+                                node=node)
                 else:
-                    self.handle_minute_dataset(
-                        algo_id=algo_id,
-                        ticker=ticker,
-                        node=node)
-                # end of processing datasets for day vs minute
+                    valid_run = True
+
+                if valid_run:
+                    self.ticker = ticker
+                    self.prev_bal = self.balance
+                    self.prev_num_owned = self.num_owned
+
+                    (self.num_owned,
+                     self.ticker_buys,
+                     self.ticker_sells) = self.get_ticker_positions(
+                        ticker=ticker)
+
+                    use_daily_timeseries = (
+                        self.timeseries_value == ae_consts.ALGO_TIMESERIES_DAY)
+
+                    if use_daily_timeseries:
+                        self.handle_daily_dataset(
+                            algo_id=algo_id,
+                            ticker=ticker,
+                            node=node)
+                    else:
+                        self.handle_minute_dataset(
+                            algo_id=algo_id,
+                            ticker=ticker,
+                            node=node)
+                    # end of processing datasets for day vs minute
+                # if not debugging a specific dataset in the cache
 
                 if (self.show_balance and
                         (self.num_buys > 0 or self.num_sells > 0)):
@@ -3271,15 +3366,6 @@ class BaseAlgo:
         :param ticker: string - ticker
         :param node: dataset to process
         """
-
-        self.ticker = ticker
-        self.prev_bal = self.balance
-        self.prev_num_owned = self.num_owned
-
-        (self.num_owned,
-         self.ticker_buys,
-         self.ticker_sells) = self.get_ticker_positions(
-            ticker=ticker)
 
         # parse the dataset node and set member variables
         self.debug_msg = (

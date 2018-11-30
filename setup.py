@@ -63,7 +63,7 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.3.42',
+    version='1.3.43',
     description=(
         'Build and tune your own investment '
         'algorithms using a distributed, scalable '
@@ -126,7 +126,7 @@ setup(
                 'plot_history_from_local_file'
                 ':plot_local_history_file'),
             (
-                'bth = run_backtest_and_plot_history'
+                'bt = run_backtest_and_plot_history'
                 ':start_backtest_with_plot_history'),
         ],
     },
