@@ -4,10 +4,8 @@ Date utils
 
 import datetime
 import analysis_engine.consts as ae_consts
-from functools import lru_cache
 
 
-@lru_cache(1)
 def last_close():
     """last close
 

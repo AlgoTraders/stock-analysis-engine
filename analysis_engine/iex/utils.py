@@ -17,7 +17,6 @@ from datetime import datetime
 from datetime import date
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
-from functools import lru_cache
 
 
 _TRANSLATOR = str.maketrans('', '', string.punctuation)
@@ -86,12 +85,10 @@ def construct_path(host, method):
     return urljoin(host, method)
 
 
-@lru_cache(1)
 def symbols():
     return p.symbolsDF().index.values.tolist()
 
 
-@lru_cache(1)
 def symbols_map():
     ret = {}
     for x in symbols():
@@ -104,7 +101,6 @@ def symbols_map():
     return ret
 
 
-@lru_cache(1)
 def today():
     """today starts at 4pm the previous close"""
     today = date.today()
@@ -114,13 +110,11 @@ def today():
         day=today.day)
 
 
-@lru_cache(1)
 def this_week():
     """start of week"""
     return today() - timedelta(days=datetime.today().isoweekday() % 7)
 
 
-@lru_cache(1)
 def last_close():
     """last close"""
     today = date.today()
@@ -144,7 +138,6 @@ def last_close():
         return close
 
 
-@lru_cache(1)
 def yesterday():
     """yesterday is anytime before the previous 4pm close"""
     today = date.today()
@@ -165,7 +158,6 @@ def yesterday():
         day=today.day) - timedelta(days=1)
 
 
-@lru_cache(1)
 def last_month():
     """last_month is one month before today"""
     today = date.today()
@@ -181,7 +173,6 @@ def last_month():
     return last_month
 
 
-@lru_cache(1)
 def six_months():
     """six_months is six months before today"""
     today = date.today()
@@ -197,7 +188,6 @@ def six_months():
     return six_months
 
 
-@lru_cache(1)
 def three_months():
     """three_months"""
     today = date.today()
@@ -213,7 +203,6 @@ def three_months():
     return six_months
 
 
-@lru_cache(1)
 def never():
     """never"""
     return datetime(
@@ -232,14 +221,12 @@ def append(df1, df2):
     return merged[~merged.index.duplicated(keep='first')]
 
 
-@lru_cache(1)
 def holidays():
     """holidays"""
     return get_calendar(
         'NYSE').regular_holidays.holidays().to_pydatetime().tolist()
 
 
-@lru_cache(None)
 def business_days(start, end=last_close()):
     """business_days"""
     ret = []

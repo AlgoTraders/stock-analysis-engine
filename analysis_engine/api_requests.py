@@ -11,7 +11,6 @@ Task supports:
 import datetime
 import analysis_engine.iex.utils as iex_utils
 import pandas as pd
-from functools import lru_cache
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import TICKER_ID
 from analysis_engine.consts import COMMON_DATE_FORMAT
@@ -220,7 +219,6 @@ def build_get_new_pricing_request(
 # end of build_get_new_pricing_request
 
 
-@lru_cache(1)
 def build_cache_ready_pricing_dataset(
         label=None):
     """build_cache_ready_pricing_dataset
