@@ -23,7 +23,7 @@ RUN echo "installing redis-tools" \
   && ls -l /opt/sa \
   && echo "installing notebooks from: /opt/sa/compose/docker/notebooks/ to /opt/notebooks" \
   && cp -r /opt/sa/compose/docker/notebooks/* /opt/notebooks/ \
-  && echo ". /opt/venv/bin/activate" >> /root/.bashrc
+  && echo ". /opt/venv/bin/activate" >> /root/.bashrc \
   && echo "activating venv" \
   && . /opt/venv/bin/activate \
   && cd /opt/sa \
