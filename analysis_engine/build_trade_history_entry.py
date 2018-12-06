@@ -86,6 +86,8 @@ def build_trade_history_entry(
         num_indicators_sell=None,
         min_buy_indicators=None,
         min_sell_indicators=None,
+        net_gain=None,
+        net_value=None,
         ds_id=None,
         note=None,
         err=None,
@@ -296,6 +298,16 @@ def build_trade_history_entry(
     :param min_sell_indicators: optional - integer
         minimum number of indicators required to trigger
         a ``sell`` order
+        net_gain=None,
+        net_value=None,
+    :param net_value: optional - float total value the algorithm
+        has left remaining since starting trading. this includes
+        the number of ``self.num_owned`` shares with the
+        ``self.latest_close`` price included
+    :param net_gain: optional - float amount the algorithm has
+        made since starting including owned shares
+        with the ``self.latest_close`` price included
+
     :param ds_id: optional - datset id for debugging
     :param note: optional - string for tracking high level
         testing notes on algorithm indicator ratings and
@@ -311,7 +323,6 @@ def build_trade_history_entry(
     status = ae_consts.NOT_RUN
     algo_status = ae_consts.NOT_RUN
     err = None
-    net_gain = 0.0
     balance_net_gain = 0.0
     breakeven_price = None
     max_profit = None  # only for option spreads
@@ -395,6 +406,7 @@ def build_trade_history_entry(
         'high_exp_date': high_exp_date,
         'spread_id': spread_id,
         'net_gain': net_gain,
+        'net_value': net_value,
         'breakeven_price': breakeven_price,
         'max_profit': ae_consts.to_f(max_profit),
         'max_loss': ae_consts.to_f(max_loss),

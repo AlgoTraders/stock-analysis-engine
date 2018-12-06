@@ -62,12 +62,14 @@ class BaseIndicator:
             self.name = 'ind_{}'.format(
                 str(uuid.uuid4()).replace('-', ''))
 
+        self.starter_dict = None
         self.previous_df = self.config.get(
             'previous_df',
             None)
         self.name_of_df = self.config.get(
             'uses_data',
             None)
+        self.uses_data = self.name_of_df
         self.report = self.config.get(
             'report',
             {})
@@ -106,9 +108,27 @@ class BaseIndicator:
         self.report_ignore_keys = self.config.get(
             'report_ignore_keys',
             ae_consts.INDICATOR_IGNORED_CONIGURABLE_KEYS)
+        self.use_df = pd.DataFrame(
+            ae_consts.EMPTY_DF_LIST)
         self.configurables = self.config
+        self.ind_confs = []
         self.convert_config_keys_to_members()
     # end of __init__
+
+    def get_config(
+            self):
+        """get_config"""
+        pruned_config = {}
+
+        # remove the obj
+        remove_keys = [
+            'obj'
+        ]
+        for k in self.config:
+            if k not in remove_keys:
+                pruned_config[k] = self.config[k]
+        return pruned_config
+    # end of get_config
 
     def convert_config_keys_to_members(
             self):
@@ -122,6 +142,135 @@ class BaseIndicator:
             if k not in self.report_ignore_keys:
                 self.__dict__[k] = self.config[k]
     # end of convert_config_keys_to_members
+
+    def build_configurable_node(
+            self,
+            name,
+            conf_type,
+            current_value=None,
+            default_value=None,
+            max_value=None,
+            min_value=None,
+            is_output_only=False,
+            inc_interval=None,
+            notes=None,
+            **kwargs):
+        """build_configurable_node
+
+        Helper for building a single configurable type
+        node for programmatically creating algo configs
+
+        :param name: name of the member configurable
+        :param conf_type: string - configurable type
+        :param current_value: optional - current value
+        :param default_value: optional - default value
+        :param max_value: optional - maximum value
+        :param min_value: optional - minimum value
+        :param is_output_only: optional - bool for setting
+            the input parameter as an output-only value
+            (default is ``False``)
+        :param inc_interval: optional - float value
+            for controlling how the tests should increment
+            while walking between the ``min_value`` and the
+            ``max_value``
+        :param notes: optional - string notes
+        :param kwargs: optional - derived keyword args dictionary
+        """
+        node = {
+            'name': name,
+            'type': conf_type,
+            'value': current_value,
+            'default': default_value,
+            'max': max_value,
+            'min': min_value,
+            'is_output_only': is_output_only,
+            'inc_interval': inc_interval,
+            'notes': notes
+        }
+        for k in kwargs:
+            node[k] = kwargs[k]
+        return node
+    # end of build_configurable_node
+
+    def build_base_configurables(
+            self,
+            ind_type='momentum',
+            category='technical',
+            uses_data='minute',
+            version=1):
+        """build_base_configurables
+
+        :param ind_type: string indicator type
+        :param category: string indicator category
+        :param uses_data: string indicator
+            usess this type of data
+        :param version: integer for building
+            configurables for the testing
+            generation version
+        """
+        self.ind_confs = []
+        self.ind_confs.append(self.build_configurable_node(
+            name='category',
+            conf_type='str',
+            default_value=category,
+            is_output_only=True))
+        self.ind_confs.append(self.build_configurable_node(
+            name='type',
+            conf_type='str',
+            default_value=ind_type,
+            is_output_only=True))
+        self.ind_confs.append(self.build_configurable_node(
+            name='uses_data',
+            conf_type='str',
+            default_value=self.config.get(
+                'uses_data',
+                uses_data),
+            is_output_only=True))
+
+        if version == 1:
+            self.ind_confs.append(self.build_configurable_node(
+                name='is_buy',
+                conf_type='int',
+                is_output_only=True))
+            self.ind_confs.append(self.build_configurable_node(
+                name='is_sell',
+                conf_type='int',
+                is_output_only=True))
+    # end of build_base_configurables
+
+    def get_configurables(
+            self,
+            **kwargs):
+        """get_configurables
+
+        **Derive this in your indicators**
+
+        This is used as a helper for setting up algorithm
+        configs for this indicator and to programmatically set
+        the values based off the domain rules
+
+        :param kwargs: optional keyword args
+        """
+        self.ind_confs = []
+
+        self.lg(
+            'configurables={} for class={}'.format(
+                ae_consts.ppj(self.ind_confs),
+                self.__class__.__name__))
+
+        return self.ind_confs
+    # end of get_configurables
+
+    def set_configurables(
+            self,
+            config_dict):
+        """set_configurables
+
+        :param config_dict: indicator config dictionary
+        """
+        self.configurables = config_dict
+        return self.configurables
+    # end of set_configurables
 
     def lg(
             self,
@@ -167,13 +316,6 @@ class BaseIndicator:
         """get_report_prefix"""
         return self.report_key_prefix
     # end of get_report_prefix
-
-    def set_configurables(
-            self,
-            config_dict):
-        self.configurables = config_dict
-        return self.configurables
-    # end of set_configurables
 
     def build_report_key(
             self,
@@ -255,12 +397,20 @@ class BaseIndicator:
                 use_value = None
                 if key == 'is_buy':
                     buy_value = self.__dict__[key]
-                    use_value = \
-                        ae_consts.INDICATOR_ACTIONS[buy_value]
+                    if buy_value:
+                        use_value = \
+                            ae_consts.INDICATOR_ACTIONS[buy_value]
+                    else:
+                        use_value = \
+                            ae_consts.INT_INDICATOR_NOT_PROCESSED
                 elif key == 'is_sell':
                     sell_value = self.__dict__[key]
-                    use_value = \
-                        ae_consts.INDICATOR_ACTIONS[sell_value]
+                    if sell_value:
+                        use_value = \
+                            ae_consts.INDICATOR_ACTIONS[sell_value]
+                    else:
+                        use_value = \
+                            ae_consts.INT_INDICATOR_NOT_PROCESSED
                 else:
                     use_value = self.__dict__[key]
                 # end of deciding value

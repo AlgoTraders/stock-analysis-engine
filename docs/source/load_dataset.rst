@@ -12,6 +12,18 @@ Load Algorithm Ready Dataset
 Load Trading History Dataset
 ----------------------------
 
+.. automodule:: analysis_engine.load_history_dataset
+   :members: load_history_dataset
+
+Load Trading History Dataset from S3
+------------------------------------
+
+.. automodule:: analysis_engine.load_history_dataset_from_s3
+   :members: load_history_dataset_from_s3
+
+Load Trading History Dataset from a local File
+----------------------------------------------
+
 .. automodule:: analysis_engine.load_history_dataset_from_file
    :members: load_history_dataset_from_file
 

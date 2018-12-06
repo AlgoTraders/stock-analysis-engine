@@ -76,8 +76,15 @@ datasets from the redis pipeline:
 
 **Balance Information**
 
-- ``self.balance``
-- ``self.prev_bal``
+- ``self.balance`` - current algorithm account balance
+- ``self.prev_bal`` - previous balance
+- ``self.net_value`` - total value the algorithm has
+    left remaining since starting trading. this includes
+    the number of ``self.num_owned`` shares with the
+    ``self.latest_close`` price included
+- ``self.net_gain`` - amount the algorithm has
+    made since starting including owned shares
+    with the ``self.latest_close`` price included
 
 .. note:: If a key is not in the dataset, the
     algorithms's member variable will be an empty
@@ -139,16 +146,16 @@ import datetime
 import pandas as pd
 import analysis_engine.consts as ae_consts
 import analysis_engine.utils as ae_utils
+import analysis_engine.indicators.indicator_processor as ind_processor
 import analysis_engine.build_trade_history_entry as history_utils
+import analysis_engine.plot_trading_history as plot_trading_history
 import analysis_engine.build_buy_order as buy_utils
 import analysis_engine.build_sell_order as sell_utils
 import analysis_engine.publish as publish
 import analysis_engine.build_publish_request as build_publish_request
 import analysis_engine.load_dataset as load_dataset
-import analysis_engine.indicators.indicator_processor as ind_processor
 import analysis_engine.prepare_history_dataset as prepare_history
 import analysis_engine.prepare_report_dataset as prepare_report
-import analysis_engine.plot_trading_history as plot_trading_history
 import spylunking.log.setup_logging as log_utils
 
 log = log_utils.build_colorized_logger(name=__name__)
@@ -298,7 +305,7 @@ class BaseAlgo:
             verbose_indicators=False,
             verbose_trading=False,
             inspect_datasets=False,
-            raise_on_err=False,
+            raise_on_err=True,
             **kwargs):
         """__init__
 
@@ -591,7 +598,9 @@ class BaseAlgo:
         self.config_file = config_file
         self.config_dict = config_dict
         self.positions = {}
-        self.created_date = ae_utils.utc_now_str()
+        self.created_on_date = datetime.datetime.utcnow()
+        self.created_date = self.created_on_date.strftime(
+            ae_consts.COMMON_TICK_DATE_FORMAT)
         self.created_buy = False
         self.should_buy = False
         self.buy_strength = None
@@ -1002,9 +1011,15 @@ class BaseAlgo:
         self.blue_column = 'balance'
         self.green_column = None
         self.orange_column = None
+        self.net_value = self.starting_balance
+        self.net_gain = self.net_value
 
         self.load_from_config(
             config_dict=self.config_dict)
+
+        self.starting_balance = self.balance
+        self.net_value = self.starting_balance
+        self.net_gain = self.net_value
 
         self.timeseries = str(self.timeseries).lower()
         if self.timeseries == 'day':
@@ -1048,6 +1063,7 @@ class BaseAlgo:
                 'min_indicators',
                 None)
         # if indicator_processor exists
+
     # end of __init__
 
     def view_date_dataset_records(
@@ -1152,6 +1168,19 @@ class BaseAlgo:
 
         return self.iproc
     # end of get_indicator_processor
+
+    def get_indicator_process_last_indicator(
+            self):
+        """get_indicator_process_last_indicator
+
+        Used to pull the indicator object back up
+        to any created ``analysis_engine.algo.BaseAlgo`` objects
+
+        .. tip:: this is for debugging data and code issues inside an
+            indicator
+        """
+        return self.get_indicator_processor().get_last_ind_obj()
+    # end of get_indicator_process_last_indicator
 
     def inspect_dataset(
             self,
@@ -1319,6 +1348,18 @@ class BaseAlgo:
             reason_for_sell=None):
         """trade_off_indicator_buy_and_sell_signals
 
+        Check if the minimum number of indicators
+        for a buy or a sell were found. If there
+        were, then commit the trade.
+
+        .. code-block:: python
+
+            if self.trade_off_num_indicators:
+                if self.num_latest_buys >= self.min_buy_indicators:
+                    self.should_buy = True
+                elif self.num_latest_sells >= self.min_sell_indicators:
+                    self.should_sell = True
+
         :param ticker: ticker symbol
         :param algo_id: string algo for tracking
             internal progress for debugging
@@ -1329,9 +1370,9 @@ class BaseAlgo:
         """
 
         if self.trade_off_num_indicators:
-            if self.num_latest_buys > self.min_buy_indicators:
+            if self.num_latest_buys >= self.min_buy_indicators:
                 self.should_buy = True
-            elif self.num_latest_sells > self.min_sell_indicators:
+            elif self.num_latest_sells >= self.min_sell_indicators:
                 self.should_sell = True
 
         if self.num_owned and self.should_sell:
@@ -1663,6 +1704,17 @@ class BaseAlgo:
                     s3_key,
                     redis_key,
                     num_mb))
+        else:
+            if self.verbose:
+                log.info(
+                    '{} - report not publishing for output_file={} '
+                    's3_enabled={} redis_enabled={} '
+                    'slack_enabled={}'.format(
+                        self.name,
+                        output_file,
+                        s3_enabled,
+                        redis_enabled,
+                        slack_enabled))
         # end of handling for publish
 
         return status
@@ -1680,7 +1732,7 @@ class BaseAlgo:
         """
 
         if self.verbose:
-            log.info('create report - create start')
+            log.info('report - create start')
 
         if self.last_handle_data:
             data_for_tickers = self.get_supported_tickers_in_data(
@@ -1790,6 +1842,8 @@ class BaseAlgo:
             's3_key', self.history_s3_key)
         verbose = kwargs.get(
             'verbose', self.history_verbose)
+        add_metrics_to_key = kwargs.get(
+            'add_metrics_to_key', False)
 
         status = ae_consts.NOT_RUN
 
@@ -1810,21 +1864,66 @@ class BaseAlgo:
                     'history build json - {} - tickers={}'.format(
                         self.name,
                         self.tickers))
+
+            # for mass trade history publishing, make it
+            # easy to find the best-of runs
+            if add_metrics_to_key:
+                (self.num_owned,
+                 self.ticker_buys,
+                 self.ticker_sells) = self.get_ticker_positions(
+                    ticker=self.tickers[0])
+
+                status_str = 'NEGATIVE'
+                if self.net_gain > 0:
+                    status_str = 'POSITIVE'
+
+                now = datetime.datetime.utcnow()
+                seconds = ae_consts.to_f((
+                    now - self.created_on_date).total_seconds())
+
+                # https://stackoverflow.com/questions/6870824/
+                # what-is-the-maximum-length-of-a-filename-in-s3
+                # 1024 characters
+                s3_key = (
+                    '{}_netgain_{}_netvalue_'
+                    '{}_'
+                    '{}_startbalance_{}_endbalance_'
+                    '{}_shares_{}_close_'
+                    '{}_buys_{}_sells_'
+                    '{}_minbuyinds_{}_minsellinds_'
+                    '{}_seconds_'
+                    '{}'.format(
+                        ae_consts.to_f(self.net_gain),
+                        ae_consts.to_f(self.net_value),
+                        status_str,
+                        ae_consts.to_f(self.starting_balance),
+                        ae_consts.to_f(self.balance),
+                        self.num_owned,
+                        ae_consts.to_f(self.latest_close),
+                        self.num_buys,
+                        self.num_sells,
+                        self.min_buy_indicators,
+                        self.min_sell_indicators,
+                        seconds,
+                        s3_key))[0:1023]
+            # end of if add metrics to key
+
             use_data = json.dumps(output_record)
             num_bytes = len(use_data)
             num_mb = ae_consts.get_mb(num_bytes)
             log.info(
                 'history publish - START - '
-                '{} - tickers={} '
+                '{} - ticker={} '
                 'file={} size={}MB '
-                's3={} s3_key={} '
+                's3={}/{} s3_key={} '
                 'redis={} redis_key={} '
                 'slack={}'.format(
                     self.name,
-                    self.tickers,
+                    self.tickers[0],
                     output_file,
                     num_mb,
-                    s3_enabled,
+                    s3_address,
+                    s3_bucket,
                     s3_key,
                     redis_enabled,
                     redis_key,
@@ -1869,6 +1968,17 @@ class BaseAlgo:
                     s3_key,
                     redis_key,
                     num_mb))
+        else:
+            if self.verbose:
+                log.info(
+                    '{} - history not publishing for output_file={} '
+                    's3_enabled={} redis_enabled={} '
+                    'slack_enabled={}'.format(
+                        self.name,
+                        output_file,
+                        s3_enabled,
+                        redis_enabled,
+                        slack_enabled))
         # end of handling for publish
 
         return status
@@ -1934,7 +2044,11 @@ class BaseAlgo:
                         '{} history - {} - ds={}'.format(
                             self.name,
                             algo_id,
-                            node['date']))
+                            node.get(
+                                'minute',
+                                node.get(
+                                    'date',
+                                    'no-date-set'))))
 
                 output_record[ticker].append(node)
                 cur_idx += 1
@@ -2243,6 +2357,16 @@ class BaseAlgo:
                 [])
             self.num_buys = len(buys)
             self.num_sells = len(sells)
+        # if own the ticker
+
+        self.net_value = ae_consts.to_f(self.balance)
+        if self.latest_close and num_owned:
+            self.net_value = ae_consts.to_f(
+                self.balance + (
+                    num_owned * self.latest_close))
+
+        self.net_gain = ae_consts.to_f(
+            self.net_value - self.starting_balance)
 
         return num_owned, buys, sells
     # end of get_ticker_positions
@@ -2306,6 +2430,8 @@ class BaseAlgo:
             num_indicators_sell=self.num_latest_sells,
             min_buy_indicators=self.min_buy_indicators,
             min_sell_indicators=self.min_sell_indicators,
+            net_gain=self.net_gain,
+            net_value=self.net_value,
             note=self.note,
             ds_id=self.ds_id,
             version=self.version)
@@ -2325,8 +2451,17 @@ class BaseAlgo:
             environment
         """
         if config_dict:
-            for k in config_dict:
-                self.__dict__[k] = config_dict[k]
+            if not self.verbose:
+                self.verbose = config_dict.get('verbose', False)
+                for k in config_dict:
+                    log.info(
+                        'setting algo member={} to config value={}'
+                        ''.format(
+                            k))
+                    self.__dict__[k] = config_dict[k]
+            else:
+                for k in config_dict:
+                    self.__dict__[k] = config_dict[k]
         # end of loading config
     # end of load_from_config
 
@@ -2473,13 +2608,14 @@ class BaseAlgo:
         close = row['close']
         required_amount_for_a_buy = close + self.commission
         if required_amount_for_a_buy > self.balance:
-            log.info(
-                '{} - buy - not enough funds={} < required={} with '
-                'shares={}'.format(
-                    self.name,
-                    self.balance,
-                    required_amount_for_a_buy,
-                    self.num_owned))
+            if self.verbose_trading:
+                log.info(
+                    '{} - buy - not enough funds={} < required={} with '
+                    'shares={}'.format(
+                        self.name,
+                        self.balance,
+                        required_amount_for_a_buy,
+                        self.num_owned))
             return
 
         dataset_date = row['date']
@@ -2487,13 +2623,14 @@ class BaseAlgo:
         if minute:
             use_date = minute
 
-        log.info(
-            '{} - buy start {} {}@{} - shares={}'.format(
-                self.name,
-                use_date,
-                ticker,
-                close,
-                shares))
+        if self.verbose_trading:
+            log.info(
+                '{} - buy start {} {}@{} - shares={}'.format(
+                    self.name,
+                    use_date,
+                    ticker,
+                    close,
+                    shares))
 
         new_buy = None
 
@@ -2546,31 +2683,33 @@ class BaseAlgo:
                         'sells': []
                     }
                 self.balance = new_buy['balance']
-                log.info(
-                    '{} - buy end {} {}@{} {} shares={} cost={} bal={} '
-                    'prev_shares={} prev_bal={}'.format(
-                        self.name,
-                        use_date,
-                        ticker,
-                        close,
-                        ae_consts.get_status(status=new_buy['status']),
-                        new_buy['shares'],
-                        new_buy['buy_price'],
-                        self.balance,
-                        prev_shares,
-                        prev_bal))
+                if self.verbose_trading:
+                    log.info(
+                        '{} - buy end {} {}@{} {} shares={} cost={} bal={} '
+                        'prev_shares={} prev_bal={}'.format(
+                            self.name,
+                            use_date,
+                            ticker,
+                            close,
+                            ae_consts.get_status(status=new_buy['status']),
+                            new_buy['shares'],
+                            new_buy['buy_price'],
+                            self.balance,
+                            prev_shares,
+                            prev_bal))
             else:
-                log.info(
-                    '{} - buy fail {} {}@{} {} shares={} cost={} '
-                    'bal={} '.format(
-                        self.name,
-                        use_date,
-                        ticker,
-                        close,
-                        ae_consts.get_status(status=new_buy['status']),
-                        num_owned,
-                        new_buy['buy_price'],
-                        self.balance))
+                if self.verbose_trading:
+                    log.info(
+                        '{} - buy fail {} {}@{} {} shares={} cost={} '
+                        'bal={} '.format(
+                            self.name,
+                            use_date,
+                            ticker,
+                            close,
+                            ae_consts.get_status(status=new_buy['status']),
+                            num_owned,
+                            new_buy['buy_price'],
+                            self.balance))
             # end of if trade worked or not
 
             # update the buys
@@ -2650,13 +2789,14 @@ class BaseAlgo:
         close = row['close']
         required_amount_for_a_sell = self.commission
         if required_amount_for_a_sell > self.balance:
-            log.info(
-                '{} - sell - not enough funds={} < required={} with '
-                'shareds={}'.format(
-                    self.name,
-                    self.balance,
-                    required_amount_for_a_sell,
-                    self.num_owned))
+            if self.verbose_trading:
+                log.info(
+                    '{} - sell - not enough funds={} < required={} with '
+                    'shareds={}'.format(
+                        self.name,
+                        self.balance,
+                        required_amount_for_a_sell,
+                        self.num_owned))
             return
 
         dataset_date = row['date']
@@ -2664,7 +2804,7 @@ class BaseAlgo:
         if minute:
             use_date = minute
 
-        if self.verbose:
+        if self.verbose_trading:
             log.info(
                 '{} - sell start {} {}@{}'.format(
                     self.name,
@@ -2722,31 +2862,33 @@ class BaseAlgo:
                         ]
                     }
                 self.balance = new_sell['balance']
-                log.info(
-                    '{} - sell end {} {}@{} {} shares={} cost={} bal={} '
-                    'prev_shares={} prev_bal={}'.format(
-                        self.name,
-                        use_date,
-                        ticker,
-                        close,
-                        ae_consts.get_status(status=new_sell['status']),
-                        num_owned,
-                        new_sell['sell_price'],
-                        self.balance,
-                        prev_shares,
-                        prev_bal))
+                if self.verbose_trading:
+                    log.info(
+                        '{} - sell end {} {}@{} {} shares={} cost={} bal={} '
+                        'prev_shares={} prev_bal={}'.format(
+                            self.name,
+                            use_date,
+                            ticker,
+                            close,
+                            ae_consts.get_status(status=new_sell['status']),
+                            num_owned,
+                            new_sell['sell_price'],
+                            self.balance,
+                            prev_shares,
+                            prev_bal))
             else:
-                log.info(
-                    '{} - sell fail {} {}@{} {} shares={} cost={} '
-                    'bal={} '.format(
-                        self.name,
-                        use_date,
-                        ticker,
-                        close,
-                        ae_consts.get_status(status=new_sell['status']),
-                        num_owned,
-                        new_sell['sell_price'],
-                        self.balance))
+                if self.verbose_trading:
+                    log.info(
+                        '{} - sell fail {} {}@{} {} shares={} cost={} '
+                        'bal={} '.format(
+                            self.name,
+                            use_date,
+                            ticker,
+                            close,
+                            ae_consts.get_status(status=new_sell['status']),
+                            num_owned,
+                            new_sell['sell_price'],
+                            self.balance))
             # end of if trade worked or not
 
             # update the sells
@@ -3388,7 +3530,7 @@ class BaseAlgo:
         self.latest_sells = []
         if self.iproc:
             self.debug_msg = (
-                '{} START - indicator processing'.format(
+                '{} BASEALGO-START - indicator processing'.format(
                     ticker))
             self.latest_ind_report = self.iproc.process(
                 algo_id=algo_id,
@@ -3401,7 +3543,7 @@ class BaseAlgo:
                 'sells',
                 [])
             self.debug_msg = (
-                '{} END - indicator processing'.format(
+                '{} BASEALGO-END - indicator processing'.format(
                     ticker))
         # end of indicator processing
 

@@ -428,7 +428,7 @@ def run_sa_tool():
         '-g',
         help=(
             'Path to a custom algorithm module file '
-            'on disik. This module must have a single '
+            'on disk. This module must have a single '
             'class that inherits from: '
             'https://github.com/AlgoTraders/stock-ana'
             'lysis-engine/blob/master/'

@@ -1,6 +1,9 @@
 """
-Example Custom Williams Percent R Indicator that
-uses Open instead of Close
+Custom Williams Percent R Indicator
+
+https://www.investopedia.com/terms/w/williamsr.asp
+
+Momentum
 
 **Supported environment variables**
 
@@ -39,6 +42,121 @@ class ExampleIndicatorWilliamsR(base_indicator.BaseIndicator):
         """
         super().__init__(**kwargs)
     # end of __init__
+
+    def get_configurables(
+            self,
+            **kwargs):
+        """get_configurables
+
+        helper for setting up algorithm configs for this indicator
+        and programmatically set the values based off the domain
+        rules
+
+        .. code-block:: python
+
+            from analysis_engine.mocks.example_indicator_williamsr \
+                import ExampleIndicatorWilliamsR
+            ind = ExampleIndicatorWilliamsR(config_dict={
+                    'verbose': True
+                }).get_configurables()
+
+        :param kwargs: keyword args dictionary
+        """
+        self.ind_confs = []
+
+        # common:
+        self.build_base_configurables(
+            ind_type='momentum',
+            category='technical',
+            uses_data=self.config.get(
+                'uses_data',
+                'minute'),
+            version=1)
+
+        # custom:
+        """
+        24,000 tests with this config:
+        """
+        self.ind_confs.append(self.build_configurable_node(
+            name='num_points',
+            conf_type='int',
+            max_value=200,
+            min_value=3,
+            default_value=20,
+            inc_interval=10))
+        self.ind_confs.append(self.build_configurable_node(
+            name='buy_below',
+            conf_type='float',
+            max_value=-70.0,
+            min_value=-90.0,
+            default_value=-80.0,
+            inc_interval=1))
+        self.ind_confs.append(self.build_configurable_node(
+            name='sell_above',
+            conf_type='float',
+            max_value=11.0,
+            min_value=-29.0,
+            default_value=-20.0,
+            inc_interval=1))
+
+        # output / reporting:
+        self.ind_confs.append(self.build_configurable_node(
+            name='willr_value',
+            conf_type='float',
+            is_output_only=True))
+
+        default_values_dict = {}
+        for node in self.ind_confs:
+            name = node['name']
+            default_value = node.get(
+                'default',
+                None)
+            default_values_dict[name] = default_value
+
+        use_file = None
+        try:
+            if __file__:
+                use_file = __file__
+        except Exception:
+            use_file = None
+
+        self.starter_dict = {
+            'name': self.__class__.__name__.lower().replace(
+                'indicator',
+                ''),
+            'module_path': use_file,
+            'category': default_values_dict.get(
+                'category',
+                'momentum'),
+            'type': default_values_dict.get(
+                'type',
+                'technical'),
+            'uses_data': default_values_dict.get(
+                'uses_data',
+                'minute'),
+            'verbose': default_values_dict.get(
+                'verbose',
+                False)
+        }
+        self.starter_dict.update(default_values_dict)
+
+        self.lg(
+            'configurables={} for class={} in file={} '
+            'starter:\n {}'.format(
+                ae_consts.ppj(self.ind_confs),
+                self.__class__.__name__,
+                use_file,
+                ae_consts.ppj(self.starter_dict)))
+
+        return self.ind_confs
+    # end of get_configurables
+
+    def get_starter_dict(
+            self):
+        if not self.starter_dict:
+            self.get_configurables()
+        return self.starter_dict
+    # end of get_starter_dict
 
     def process(
             self,
@@ -81,7 +199,7 @@ class ExampleIndicatorWilliamsR(base_indicator.BaseIndicator):
         """
 
         # set the algo config indicator 'uses_data' to 'day' or 'minute'
-        df_status, use_df = self.get_subscribed_dataset(
+        df_status, self.use_df = self.get_subscribed_dataset(
             dataset=dataset)
 
         self.willr_value = None
@@ -94,20 +212,30 @@ class ExampleIndicatorWilliamsR(base_indicator.BaseIndicator):
         # converts any self.config keys into useable
         # member variables automatically in your derived class
         self.lg(
-            'process - num_points={} use_df={}'.format(
+            'process - num_points={} df={}'.format(
                 self.num_points,
-                len(use_df.index)))
+                len(self.use_df.index)))
         """
         real = WILLR(high, low, close, timeperiod=14)
         """
-        num_records = len(use_df.index)
+        num_records = len(self.use_df.index)
         if num_records > self.num_points:
-            first_date = use_df['date'].iloc[0]
-            end_date = use_df['date'].iloc[-1]
+            first_date = self.use_df['date'].iloc[0]
+            end_date = self.use_df['date'].iloc[-1]
             start_row = num_records - self.num_points
-            use_df = use_df[start_row:num_records]
+            self.use_df = self.use_df[start_row:num_records].dropna(
+                axis=0,
+                how='any')
+
+            if len(self.use_df.index) == 0:
+                self.lg(
+                    'empty dataframe={} on date={}'.format(
+                        self.uses_data,
+                        end_date))
+                return
+
             """
-            for idx, row in use_df[start_row:-1].iterrows():
+            for idx, row in self.use_df[start_row:-1].iterrows():
                 high = row['high']
                 low = row['low']
                 open_val = row['open']
@@ -122,9 +250,9 @@ class ExampleIndicatorWilliamsR(base_indicator.BaseIndicator):
                         close,
                         self.num_points))
             """
-            highs = use_df['high'].values
-            lows = use_df['low'].values
-            closes = use_df['close'].values
+            highs = self.use_df['high'].values
+            lows = self.use_df['low'].values
+            closes = self.use_df['close'].values
             willr_values = talib.WILLR(
                 highs,
                 lows,

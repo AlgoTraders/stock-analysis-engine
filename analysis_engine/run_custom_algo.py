@@ -23,9 +23,9 @@ import analysis_engine.consts as ae_consts
 import analysis_engine.build_algo_request as build_algo_request
 import analysis_engine.build_publish_request as build_publish_request
 import analysis_engine.build_result as build_result
-import analysis_engine.algo as ae_algo
 import analysis_engine.run_algo as run_algo
 import analysis_engine.work_tasks.get_celery_app as get_celery_app
+import analysis_engine.algo as ae_algo
 import spylunking.log.setup_logging as log_utils
 
 log = log_utils.build_colorized_logger(name=__name__)
@@ -746,17 +746,17 @@ def run_custom_algo(
         task_name = (
             'analysis_engine.work_tasks.'
             'run_distributed_algorithm.run_distributed_algorithm')
-        if debug:
+        if verbose:
+            log.info(
+                'starting distributed algo task={}'.format(
+                    task_name))
+        elif debug:
             log.info(
                 'starting distributed algo by publishing to '
                 'task={} broker={} backend={}'.format(
                     task_name,
                     auth_url,
                     backend_url))
-        elif verbose:
-            log.info(
-                'starting distributed algo task={}'.format(
-                    task_name))
 
         # Get the Celery app
         app = get_celery_app.get_celery_app(
@@ -781,7 +781,6 @@ def run_custom_algo(
         job_id = app.send_task(
             task_name,
             (algo_req,))
-
         if verbose:
             log.info(
                 'calling task={} - success job_id={}'.format(
@@ -863,10 +862,11 @@ def run_custom_algo(
                     ticker,
                     use_start_date,
                     use_end_date))
-        if custom_algo_module:
-            if verbose:
+        if verbose or debug:
+            if custom_algo_module:
                 log.info(
-                    '{} - done run_algo custom_algo_module={} module_name={} '
+                    '{} - done run_algo custom_algo_module={} '
+                    'module_name={} '
                     'ticker={} from {} to {}'.format(
                         name,
                         custom_algo_module,
@@ -874,11 +874,10 @@ def run_custom_algo(
                         ticker,
                         use_start_date,
                         use_end_date))
-        else:
-            if verbose:
+            else:
                 log.info(
-                    '{} - done run_algo BaseAlgo ticker={} from {} '
-                    'to {}'.format(
+                    '{} - done run_algo BaseAlgo ticker={} '
+                    'from {} to {}'.format(
                         name,
                         ticker,
                         use_start_date,

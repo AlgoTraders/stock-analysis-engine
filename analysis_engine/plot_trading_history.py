@@ -18,12 +18,16 @@ def plot_trading_history(
         df,
         red,
         red_color=None,
+        red_label=None,
         blue=None,
         blue_color=None,
+        blue_label=None,
         green=None,
         green_color=None,
+        green_label=None,
         orange=None,
         orange_color=None,
+        orange_label=None,
         date_col='date',
         xlabel='Date',
         ylabel='Algo Values',
@@ -54,24 +58,32 @@ def plot_trading_history(
         accessible with:``df[red]``
     :param red_color: hex color code to plot the data in the
         ``df[red]``  (default is ``ae_consts.PLOT_COLORS['red']``)
+    :param red_label: optional - string for the label used
+        to identify the ``red`` line in the legend
     :param blue: string - column name to plot in
         ``blue_color`` (or default ``ae_consts.PLOT_COLORS['blue']``)
         where the column is in the ``df`` and
         accessible with:``df[blue]``
     :param blue_color: hex color code to plot the data in the
         ``df[blue]``  (default is ``ae_consts.PLOT_COLORS['blue']``)
+    :param blue_label: optional - string for the label used
+        to identify the ``blue`` line in the legend
     :param green: string - column name to plot in
         ``green_color`` (or default ``ae_consts.PLOT_COLORS['darkgreen']``)
         where the column is in the ``df`` and
         accessible with:``df[green]``
     :param green_color: hex color code to plot the data in the
         ``df[green]``  (default is ``ae_consts.PLOT_COLORS['darkgreen']``)
+    :param green_label: optional - string for the label used
+        to identify the ``green`` line in the legend
     :param orange: string - column name to plot in
         ``orange_color`` (or default ``ae_consts.PLOT_COLORS['orange']``)
         where the column is in the ``df`` and
         accessible with:``df[orange]``
     :param orange_color: hex color code to plot the data in the
         ``df[orange]``  (default is ``ae_consts.PLOT_COLORS['orange']``)
+    :param orange_label: optional - string for the label used
+        to identify the ``orange`` line in the legend
     :param date_col: string - date column name
         (default is ``date``)
     :param xlabel: x-axis label
@@ -216,11 +228,27 @@ def plot_trading_history(
 
     # Convert matplotlib date numbers to strings for dates to
     # avoid dealing with weekend date gaps in plots
-    date_strings, date_labels = ae_utils.get_trade_open_xticks_from_date_col(
-        use_df[date_col])
+    date_strings, date_labels = \
+        ae_utils.get_trade_open_xticks_from_date_col(
+            use_df[date_col])
 
-    use_df[date_col] = use_df[date_col].dt.strftime(
-        ae_consts.COMMON_TICK_DATE_FORMAT)
+    """
+    hit the slice warning with this approach before
+    and one trying df[date_col] = df[date_col].dt.strftime
+
+    SettingWithCopyWarning
+    Try using .loc[row_indexer,col_indexer] = value instead
+
+    use_df[date_col].replace(
+        use_df[date_col].dt.strftime(
+            ae_consts.COMMON_TICK_DATE_FORMAT),
+        inplace=True)
+    trying this:
+    https://stackoverflow.com/questions/19738169/
+    convert-column-of-date-objects-in-pandas-dataframe-to-strings
+    """
+    use_df[date_col] = use_df[date_col].apply(lambda x: x.strftime(
+        ae_consts.COMMON_TICK_DATE_FORMAT))
 
     all_axes = []
     num_plots = len(all_plots)
@@ -266,8 +294,26 @@ def plot_trading_history(
         ax_lines = cur_ax.get_lines()
         for line in ax_lines:
             label_name = str(line.get_label())
-            if len(label_name) > 10:
-                line.set_label(label_name[0:10])
+            use_label = label_name
+            if idx == 0:
+                if red_label:
+                    use_label = red_label
+            elif idx == 1:
+                if blue_label:
+                    use_label = blue_label
+            elif idx == 2:
+                use_label = label_name[-20:]
+                if green_label:
+                    use_label = green_label
+            elif idx == 3:
+                use_label = label_name[-20:]
+                if orange_label:
+                    use_label = orange_label
+            else:
+                if len(label_name) > 10:
+                    use_label = label_name[-20:]
+            # end of fixing the labels in the legend
+            line.set_label(use_label)
             if line.get_label() not in lines:
                 lines.append(line)
         rec['ax{}'.format(idx + 1)] = cur_ax
