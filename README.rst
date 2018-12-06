@@ -30,7 +30,7 @@ With pricing data in redis, you can start running backtests a few ways:
 
 - `Build, run and tune within a Jupyter Notebook and plot the balance vs the stock's closing price while running <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Run-a-Custom-Trading-Algorithm-Backtest-with-Minute-Timeseries-Pricing-Data.ipynb>`__
 - `Run with the command line backtest tool <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/run_backtest_and_plot_history.py>`__
-- `Analyze Compressed Algorithm Trading Histories Stored in S3 with this Jupyter Notebook <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Analyze%20Compressed%20Algorithm%20Trading%20Histories%20Stored%20in%20S3.ipynb>`__
+- `Analyze compressed algorithm trading histories stored in s3 with this Jupyter Notebook <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Analyze%20Compressed%20Algorithm%20Trading%20Histories%20Stored%20in%20S3.ipynb>`__
 - `Advanced - building a standalone algorithm as a class for running trading analysis <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/mocks/example_algo_minute.py>`__
 
 Running an Algorithm with the Backtest Tool
