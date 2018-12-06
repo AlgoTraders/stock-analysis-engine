@@ -404,7 +404,7 @@ def run_backtest_and_plot_history(
         '-t',
         help=(
             'ticker'),
-        required=True,
+        required=False,
         dest='ticker')
     parser.add_argument(
         '-e',
@@ -533,7 +533,7 @@ def run_backtest_and_plot_history(
         '-g',
         help=(
             'Path to a custom algorithm module file '
-            'on disik. This module must have a single '
+            'on disk. This module must have a single '
             'class that inherits from: '
             'https://github.com/AlgoTraders/stock-ana'
             'lysis-engine/blob/master/'
@@ -636,7 +636,7 @@ def run_backtest_and_plot_history(
         action='store_true')
     args = parser.parse_args()
 
-    ticker = ae_consts.TICKER
+    ticker = None
     use_balance = 10000.0
     use_commission = 6.0
     use_start_date = None
@@ -649,6 +649,11 @@ def run_backtest_and_plot_history(
     inspect_datasets = None
     history_json_file = None
     run_this_date = None
+    algo_obj = None
+    algo_history_loc = 's3://algohistory'
+    algo_report_loc = 's3://algoreport'
+    algo_extract_loc = 's3://algoready'
+    backtest_loc = None
 
     ssl_options = ae_consts.SSL_OPTIONS
     transport_options = ae_consts.TRANSPORT_OPTIONS
@@ -815,10 +820,29 @@ def run_backtest_and_plot_history(
     """
     Finalize the algo config
     """
+    if config_dict:
+        use_balance = float(config_dict.get(
+            'balance',
+            use_balance))
+        use_commission = float(config_dict.get(
+            'commission',
+            use_commission))
+        ticker = str(config_dict.get(
+            'ticker',
+            ticker)).upper()
 
-    config_dict['ticker'] = ticker
-    config_dict['balance'] = use_balance
-    config_dict['commission'] = use_commission
+        config_dict['ticker'] = ticker
+        config_dict['balance'] = use_balance
+        config_dict['commission'] = use_commission
+    else:
+        if not ticker:
+            ticker = str(config_dict.get(
+                'ticker',
+                ae_consts.TICKER)).upper()
+    if not ticker:
+        log.error(
+            'usage error: please set a ticker with -t <TICKER>')
+        sys.exit(1)
 
     if verbose_algo:
         config_dict['verbose'] = verbose_algo
@@ -954,7 +978,7 @@ def run_backtest_and_plot_history(
             mod_path=algo_mod_path,
             ticker=config_dict['ticker'],
             balance=config_dict['balance'],
-            commission=config_dict['balance'],
+            commission=config_dict['commission'],
             name=use_name,
             start_date=use_start_date,
             end_date=use_end_date,
@@ -1046,13 +1070,14 @@ def run_backtest_and_plot_history(
                 show_extract,
                 show_history,
                 show_report))
-        show_label = (
-            '{} running in engine task_id={} {}'.format(
-                ticker,
-                algo_res['rec'].get(
-                    'task_id',
-                    'missing-task-id'),
-                base_label))
+        algo_obj = algo_res.get(
+            'algo',
+            None)
+        if not algo_obj:
+            log.error(
+                '{} - failed creating algorithm object'.format(
+                    show_label))
+            sys.exit(1)
         if not run_on_engine:
             algo_trade_history_recs = algo_res['rec'].get(
                 'history',
@@ -1070,18 +1095,21 @@ def run_backtest_and_plot_history(
             if algo_res['status'] == ae_consts.SUCCESS:
                 log.info(
                     '{} - done running {}'.format(
-                        ae_consts.get_status(status=algo_res['status']),
+                        ae_consts.get_status(
+                            status=algo_res['status']),
                         show_label))
             else:
                 log.error(
                     '{} - done running {}'.format(
-                        ae_consts.get_status(status=algo_res['status']),
+                        ae_consts.get_status(
+                            status=algo_res['status']),
                         show_label))
         else:
             if algo_res['status'] == ae_consts.SUCCESS:
                 log.info(
                     '{} - done running {}'.format(
-                        ae_consts.get_status(status=algo_res['status']),
+                        ae_consts.get_status(
+                            status=algo_res['status']),
                         show_label))
             else:
                 log.error(
@@ -1089,36 +1117,37 @@ def run_backtest_and_plot_history(
                         algo_res['err']))
                 sys.exit(1)
         # end of running the custom algo handler
+
     # end if running a custom algorithm module
+    else:
+        if args.backtest_loc:
+            backtest_loc = args.backtest_loc
+            if ('file:/' not in backtest_loc and
+                    's3://' not in backtest_loc and
+                    'redis://' not in backtest_loc):
+                log.error(
+                    'invalid -b <backtest dataset file> specified. '
+                    '{} '
+                    'please use either: '
+                    '-b file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
+                    '-b s3://algoready/SPY-latest.json or '
+                    '-b redis://SPY-latest'.format(
+                        backtest_loc))
+                sys.exit(1)
+            load_from_s3_bucket = None
+            load_from_s3_key = None
+            load_from_redis_key = None
+            load_from_file = None
 
-    if args.backtest_loc:
-        backtest_loc = args.backtest_loc
-        if ('file:/' not in backtest_loc and
-                's3://' not in backtest_loc and
-                'redis://' not in backtest_loc):
-            log.error(
-                'invalid -b <backtest dataset file> specified. '
-                '{} '
-                'please use either: '
-                '-b file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
-                '-b s3://algoready/SPY-latest.json or '
-                '-b redis://SPY-latest'.format(
-                    backtest_loc))
-            sys.exit(1)
-
-        load_from_s3_bucket = None
-        load_from_s3_key = None
-        load_from_redis_key = None
-        load_from_file = None
-
-        if 's3://' in backtest_loc:
-            load_from_s3_bucket = backtest_loc.split('/')[-2]
-            load_from_s3_key = backtest_loc.split('/')[-1]
-        elif 'redis://' in backtest_loc:
-            load_from_redis_key = backtest_loc.split('/')[-1]
-        elif 'file:/' in backtest_loc:
-            load_from_file = backtest_loc.split(':')[-1]
-        # end of parsing supported transport - loading an algo-ready
+            if 's3://' in backtest_loc:
+                load_from_s3_bucket = backtest_loc.split('/')[-2]
+                load_from_s3_key = backtest_loc.split('/')[-1]
+            elif 'redis://' in backtest_loc:
+                load_from_redis_key = backtest_loc.split('/')[-1]
+            elif 'file:/' in backtest_loc:
+                load_from_file = backtest_loc.split(':')[-1]
+            # end of parsing supported transport - loading an algo-ready
+        # end of backtest_loc
 
         load_config = build_publish_request.build_publish_request(
             ticker=ticker,
@@ -1148,99 +1177,101 @@ def run_backtest_and_plot_history(
             load_config['s3_key'] = load_from_s3_key
             load_config['s3_enabled'] = True
 
-    if debug:
         log.info('starting algo')
 
-    algo_obj = ExampleCustomAlgo(
-        ticker=config_dict['ticker'],
-        config_dict=config_dict)
+        algo_obj = ExampleCustomAlgo(
+            ticker=config_dict['ticker'],
+            config_dict=config_dict)
 
-    algo_res = run_algo.run_algo(
-        ticker=ticker,
-        algo=algo_obj,
-        start_date=use_start_date,
-        end_date=use_end_date,
-        raise_on_err=True)
+        algo_res = run_algo.run_algo(
+            ticker=ticker,
+            algo=algo_obj,
+            start_date=use_start_date,
+            end_date=use_end_date,
+            raise_on_err=True)
 
-    if algo_res['status'] != ae_consts.SUCCESS:
-        log.error(
-            'failed running algo backtest '
-            '{} hit status: {} error: {}'.format(
-                algo_obj.get_name(),
-                ae_consts.get_status(status=algo_res['status']),
-                algo_res['err']))
-        return
-    # if not successful
+        if algo_res['status'] != ae_consts.SUCCESS:
+            log.error(
+                'failed running algo backtest '
+                '{} hit status: {} error: {}'.format(
+                    algo_obj.get_name(),
+                    ae_consts.get_status(status=algo_res['status']),
+                    algo_res['err']))
+            return
+        # if not successful
 
-    log.info(
-        'backtest: {} {}'.format(
-            algo_obj.get_name(),
-            ae_consts.get_status(status=algo_res['status'])))
-
-    trading_history_dict = algo_obj.get_history_dataset()
-    history_df = trading_history_dict[ticker]
-    if not hasattr(history_df, 'to_json'):
-        return
-
-    if history_json_file:
         log.info(
-            'saving history to: {}'.format(
-                history_json_file))
-        history_df.to_json(
-            history_json_file,
-            orient='records',
-            date_format='iso')
+            'backtest: {} {}'.format(
+                algo_obj.get_name(),
+                ae_consts.get_status(status=algo_res['status'])))
+    # end of use custom algo or not
 
-    log.info('plotting history')
+    if algo_obj:
 
-    first_date = history_df['date'].iloc[0]
-    end_date = history_df['date'].iloc[-1]
-    title = (
-        'Trading History {} for Algo {}\n'
-        'Backtest dates from {} to {}'.format(
-            ticker,
-            trading_history_dict['algo_name'],
-            first_date,
-            end_date))
-    use_xcol = 'date'
-    use_as_date_format = '%d\n%b'
-    if config_dict['timeseries'] == 'minute':
-        use_xcol = 'minute'
-        use_as_date_format = '%d %H:%M:%S\n%b'
-    xlabel = 'Dates vs {} values'.format(
-        trading_history_dict['algo_name'])
-    ylabel = 'Algo {}\nvalues'.format(
-        trading_history_dict['algo_name'])
-    df_filter = (history_df['close'] > 0.01)
+        trading_history_dict = algo_obj.get_history_dataset()
+        history_df = trading_history_dict[ticker]
+        if not hasattr(history_df, 'to_json'):
+            return
 
-    # set default hloc columns:
-    blue = None
-    green = None
-    orange = None
+        if history_json_file:
+            log.info(
+                'saving history to: {}'.format(
+                    history_json_file))
+            history_df.to_json(
+                history_json_file,
+                orient='records',
+                date_format='iso')
 
-    red = 'close'
-    blue = 'balance'
+        log.info('plotting history')
 
-    if debug:
-        for i, r in history_df.iterrows():
-            log.debug('{} - {}'.format(
-                r['minute'],
-                r['close']))
+        first_date = history_df['date'].iloc[0]
+        end_date = history_df['date'].iloc[-1]
+        title = (
+            'Trading History {} for Algo {}\n'
+            'Backtest dates from {} to {}'.format(
+                ticker,
+                trading_history_dict['algo_name'],
+                first_date,
+                end_date))
+        use_xcol = 'date'
+        use_as_date_format = '%d\n%b'
+        if config_dict['timeseries'] == 'minute':
+            use_xcol = 'minute'
+            use_as_date_format = '%d %H:%M:%S\n%b'
+        xlabel = 'Dates vs {} values'.format(
+            trading_history_dict['algo_name'])
+        ylabel = 'Algo {}\nvalues'.format(
+            trading_history_dict['algo_name'])
+        df_filter = (history_df['close'] > 0.01)
 
-    plot_trading_history.plot_trading_history(
-        title=title,
-        df=history_df,
-        red=red,
-        blue=blue,
-        green=green,
-        orange=orange,
-        date_col=use_xcol,
-        date_format=use_as_date_format,
-        xlabel=xlabel,
-        ylabel=ylabel,
-        df_filter=df_filter,
-        show_plot=True,
-        dropna_for_all=True)
+        # set default hloc columns:
+        blue = None
+        green = None
+        orange = None
+
+        red = 'close'
+        blue = 'balance'
+
+        if debug:
+            for i, r in history_df.iterrows():
+                log.debug('{} - {}'.format(
+                    r['minute'],
+                    r['close']))
+
+        plot_trading_history.plot_trading_history(
+            title=title,
+            df=history_df,
+            red=red,
+            blue=blue,
+            green=green,
+            orange=orange,
+            date_col=use_xcol,
+            date_format=use_as_date_format,
+            xlabel=xlabel,
+            ylabel=ylabel,
+            df_filter=df_filter,
+            show_plot=True,
+            dropna_for_all=True)
 
 # end of run_backtest_and_plot_history
 

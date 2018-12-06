@@ -40,7 +40,9 @@ class CustomTask(celery.Task):
         if len(args) > 0:
             self.log_label = 'label=[{}]'.format(args[0].get(
                 'label',
-                self.log_label))
+                args[0].get(
+                    'name',
+                    self.name)))
         else:
             return
     # end of build_log_label_from_args

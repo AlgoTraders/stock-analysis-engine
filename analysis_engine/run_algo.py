@@ -27,11 +27,11 @@ import os
 import datetime
 import json
 import analysis_engine.consts as ae_consts
+import analysis_engine.algo as base_algo
 import analysis_engine.utils as ae_utils
 import analysis_engine.build_algo_request as algo_utils
 import analysis_engine.iex.extract_df_from_redis as iex_extract_utils
 import analysis_engine.yahoo.extract_df_from_redis as yahoo_extract_utils
-import analysis_engine.algo as default_algo
 import analysis_engine.build_result as build_result
 import analysis_engine.api_requests as api_requests
 import spylunking.log.setup_logging as log_utils
@@ -87,7 +87,8 @@ def run_algo(
         config_file=None,
         config_dict=None,
         version=1,
-        raise_on_err=False):
+        raise_on_err=True,
+        **kwargs):
     """run_algo
 
     Run an algorithm with steps:
@@ -243,6 +244,8 @@ def run_algo(
         ``analysis_engine.run_algo.run_algo`` helper.
         When set to ``True`` exceptions will
         are raised to the calling functions
+
+    :param kwargs: keyword arguments dictionary
     """
 
     # dictionary structure with a list sorted on: ascending dates
@@ -368,7 +371,7 @@ def run_algo(
             last_close_str)
 
     if not algo:
-        algo = default_algo.BaseAlgo(
+        algo = base_algo.BaseAlgo(
             ticker=None,
             tickers=use_tickers,
             balance=use_balance,
@@ -382,7 +385,9 @@ def run_algo(
             publish_to_s3=publish_to_s3,
             publish_to_redis=publish_to_redis,
             raise_on_err=raise_on_err)
-        return_algo = True  # this will be in: res['rec']['algo']
+        return_algo = True
+        # the algo object is stored
+        # in the result at: res['rec']['algo']
 
     if not algo:
         msg = (
@@ -759,10 +764,64 @@ def run_algo(
         if raise_on_err:
             if algo:
                 log.error(
-                    'algo={} failed in handle_data with debug_msg'
-                    '={}'.format(
+                    'algo failure report: algo={} handle_data() '
+                    '{} and config={}'.format(
                         algo.get_name(),
-                        algo.get_debug_msg()))
+                        algo.get_debug_msg(),
+                        ae_consts.ppj(algo.config_dict)))
+                try:
+                    ind_obj = \
+                        algo.get_indicator_process_last_indicator()
+                    if ind_obj:
+
+                        found_error_hint = False
+                        if hasattr(ind_obj.use_df, 'to_json'):
+                            if len(ind_obj.use_df.index) == 0:
+                                log.critical(
+                                    'indicator failure report for '
+                                    'last module: '
+                                    '{} indicator={} config={} dataset={} '
+                                    'name_of_dataset={}'.format(
+                                        ind_obj.get_path_to_module(),
+                                        ind_obj.get_name(),
+                                        ae_consts.ppj(ind_obj.get_config()),
+                                        ind_obj.use_df,
+                                        ind_obj.uses_data))
+                                log.critical(
+                                    '--------------------------------------'
+                                    '--------------------------------------')
+                                log.critical(
+                                    'Please check if this indicator: '
+                                    '{} '
+                                    'supports Empty Dataframes: {}'.format(
+                                        ind_obj.get_path_to_module(),
+                                        ind_obj.use_df))
+                                log.critical(
+                                    '--------------------------------------'
+                                    '--------------------------------------')
+                                found_error_hint = True
+                        # indicator error hints
+
+                        if not found_error_hint:
+                            log.critical(
+                                'indicator failure report for last module: '
+                                '{} indicator={} config={} dataset={} '
+                                'name_of_dataset={}'.format(
+                                    ind_obj.get_path_to_module(),
+                                    ind_obj.get_name(),
+                                    ae_consts.ppj(ind_obj.get_config()),
+                                    ind_obj.use_df,
+                                    ind_obj.uses_data))
+                except Exception as f:
+                    log.critical(
+                        'failed to pull indicator processor '
+                        'last indicator for debugging '
+                        'from ex={} with parsing ex={}'
+                        ''.format(
+                            e,
+                            f))
+                # end of ignoring non-supported ways of creating
+                # indicator processors
             log.error(msg)
             raise e
         else:

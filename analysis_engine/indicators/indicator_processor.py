@@ -87,6 +87,7 @@ class IndicatorProcessor:
                 'Missing either a config_dict or a config_file to '
                 'create the IndicatorProcessor')
 
+        self.last_ind_obj = None
         self.ticker = ticker
         self.ind_dict = {}
         self.num_indicators = len(self.config_dict.get(
@@ -110,6 +111,12 @@ class IndicatorProcessor:
         self.build_indicators_for_config(
             config_dict=self.config_dict)
     # end of __init__
+
+    def get_last_ind_obj(
+            self):
+        """get_last_ind_obj"""
+        return self.last_ind_obj
+    # end of get_last_ind_obj
 
     def get_latest_report(
             self,
@@ -287,17 +294,19 @@ class IndicatorProcessor:
                         ind_obj.get_name(),
                         percent_label))
             # this will throw on errors to help with debugging
+            self.last_ind_obj = ind_obj
             ind_obj.handle_subscribed_dataset(
                 algo_id=algo_id,
                 ticker=ticker,
                 dataset=dataset)
+            new_report = ind_obj.get_report()
             if self.verbose:
                 log.info(
-                    '{} - {} end {}'.format(
+                    '{} - {} end {} report: {}'.format(
                         self.label,
                         ind_obj.get_name(),
-                        percent_label))
-            new_report = ind_obj.get_report()
+                        percent_label,
+                        ae_consts.ppj(new_report)))
             self.latest_report.update(new_report)
 
             is_buy_value = ind_obj.is_buy

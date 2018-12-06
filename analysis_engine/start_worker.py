@@ -1,51 +1,45 @@
 #!/usr/bin/env python
 
-from celery import signals
-from spylunking.log.setup_logging import build_colorized_logger
-from analysis_engine.work_tasks.get_celery_app import get_celery_app
-from analysis_engine.consts import APP_NAME
-from analysis_engine.consts import LOG_CONFIG_PATH
-from analysis_engine.consts import WORKER_BROKER_URL
-from analysis_engine.consts import WORKER_BACKEND_URL
-from analysis_engine.consts import WORKER_TASKS
-from analysis_engine.consts import WORKER_CELERY_CONFIG_MODULE
-from analysis_engine.consts import INCLUDE_TASKS
+import celery
+import analysis_engine.work_tasks.get_celery_app as get_celery_app
+import analysis_engine.consts as consts
+import spylunking.log.setup_logging as log_utils
 
 
 # Disable celery log hijacking
 # https://github.com/celery/celery/issues/2509
-@signals.setup_logging.connect
+@celery.signals.setup_logging.connect
 def setup_celery_logging(**kwargs):
     pass
 
 
-log = build_colorized_logger(
-    name=APP_NAME,
-    log_config_path=LOG_CONFIG_PATH)
+log = log_utils.build_colorized_logger(
+    name=consts.APP_NAME,
+    log_config_path=consts.LOG_CONFIG_PATH)
 
 log.info(
     'start - {}'.format(
-        APP_NAME))
+        consts.APP_NAME))
 
 log.info(
     'broker={} backend={} '
     'config={} include_tasks={}'.format(
-        WORKER_BROKER_URL,
-        WORKER_BACKEND_URL,
-        WORKER_CELERY_CONFIG_MODULE,
-        WORKER_TASKS))
+        consts.WORKER_BROKER_URL,
+        consts.WORKER_BACKEND_URL,
+        consts.WORKER_CELERY_CONFIG_MODULE,
+        consts.WORKER_TASKS))
 
 # Get the Celery app from the project's get_celery_app module
-app = get_celery_app(
-    name=APP_NAME,
-    path_to_config_module=WORKER_CELERY_CONFIG_MODULE,
-    auth_url=WORKER_BROKER_URL,
-    backend_url=WORKER_BACKEND_URL,
-    include_tasks=INCLUDE_TASKS)
+app = get_celery_app.get_celery_app(
+    name=consts.APP_NAME,
+    path_to_config_module=consts.WORKER_CELERY_CONFIG_MODULE,
+    auth_url=consts.WORKER_BROKER_URL,
+    backend_url=consts.WORKER_BACKEND_URL,
+    include_tasks=consts.INCLUDE_TASKS)
 
 log.info('starting celery')
 app.start()
 
 log.info(
     'end - {}'.format(
-        APP_NAME))
+        consts.APP_NAME))

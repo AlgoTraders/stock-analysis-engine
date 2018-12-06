@@ -836,7 +836,7 @@ class TestBaseAlgo(BaseTestCase):
             280.41)
         self.assertEqual(
             history['net_gain'],
-            0.0)
+            None)
     # end of test_trade_history_algo_not_trade_profitable
 
     @mock.patch(
