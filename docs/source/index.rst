@@ -473,6 +473,7 @@ Table of Contents
    README
    scripts
    example_algo_minute
+   plot_trading_history
    run_distributed_algorithms
    run_custom_algo
    run_algo
