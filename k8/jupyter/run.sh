@@ -11,19 +11,19 @@ if [[ "${found_antinex_jupyter}" ]]; then
 
     not_done=$(/usr/bin/kubectl get po | grep ${podname} | wc -l)
     while [[ "${not_done}" != "0" ]]; do
-        date -u +"%Y-%m-%d %H:%M:%S" >> ${log}
-        echo "sleeping while waiting for ${podname} to stop" >> ${log}
+        date -u +"%Y-%m-%d %H:%M:%S"
+        echo "sleeping while waiting for ${podname} to stop"
         sleep 5
-        /usr/bin/kubectl get po | grep ${podname} >> ${log}
+        /usr/bin/kubectl get po | grep ${podname}
         not_done=$(/usr/bin/kubectl get po | grep ${podname} | wc -l)
     done
 
     not_done=$(/usr/bin/kubectl get po | grep ${podname} | grep "Running" | wc -l)
     while [[ "${not_done}" == "0" ]]; do
-        date -u +"%Y-%m-%d %H:%M:%S" >> ${log}
-        echo "sleeping while waiting for ${podname} to start" >> ${log}
+        date -u +"%Y-%m-%d %H:%M:%S"
+        echo "sleeping while waiting for ${podname} to start"
         sleep 5
-        /usr/bin/kubectl get po | grep ${podname} >> ${log}
+        /usr/bin/kubectl get po | grep ${podname}
         not_done=$(/usr/bin/kubectl get po | grep ${podname} | grep "Running" | wc -l)
     done
 
