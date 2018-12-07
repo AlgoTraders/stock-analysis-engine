@@ -94,7 +94,7 @@ class ExampleIndicatorWilliamsR(base_indicator.BaseIndicator):
         self.ind_confs.append(self.build_configurable_node(
             name='sell_above',
             conf_type='float',
-            max_value=11.0,
+            max_value=-1.0,
             min_value=-29.0,
             default_value=-20.0,
             inc_interval=1))
