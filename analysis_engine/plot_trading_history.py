@@ -32,8 +32,8 @@ def plot_trading_history(
         xlabel='Date',
         ylabel='Algo Values',
         linestyle='-',
-        width=8.0,
-        height=8.0,
+        width=15.0,
+        height=15.0,
         date_format='%d\n%b',
         df_filter=None,
         start_date=None,
@@ -201,7 +201,12 @@ def plot_trading_history(
                 column_list))
 
     if hasattr(df_filter, 'to_json'):
-        use_df = use_df[df_filter][column_list]
+        # Was seeing this warning below in Jupyter:
+        # UserWarning: Boolean Series key
+        # will be reindexed to match DataFrame index
+        # use_df = use_df[df_filter][column_list]
+        # now using:
+        use_df = use_df.loc[df_filter, column_list]
 
     if verbose:
         log.info(

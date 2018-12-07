@@ -63,19 +63,17 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.4.13',
+    version='1.4.14',
     description=(
-        'Build and tune your own investment '
-        'algorithms using a distributed, scalable '
-        'platform capable of '
-        'running many backtests and live-trading '
-        'algorithms at the same time on publicly '
-        'traded companies with automated datafeeds '
-        'from: Yahoo, IEX Real-Time Price, and FinViz '
-        '(datafeeds include: pricing, options, news, '
-        'dividends, daily, intraday, screeners, '
-        'statistics, financials, earnings, and more). '
-        'Runs on Kubernetes and docker-compose.'
+        'Backtest 1000s of minute-by-minute '
+        'trading algorithms with automated '
+        'pricing data from: IEX, Yahoo and '
+        'FinViz. Datasets and trading '
+        'performance automatically published '
+        'to S3 for building AI training datasets '
+        'for teaching DNNs how to trade. '
+        'Runs on Kubernetes and docker-compose. '
+        '>150 million trading history rows generated from +5000 algorithms'
         ''),
     long_description=long_description,
     author='Jay Johnson',
