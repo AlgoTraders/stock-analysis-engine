@@ -312,6 +312,15 @@ Or manually with:
     echo "sa -t SPY -p ${history_loc} -o ${report_loc} -b ${backtest_loc} -e ${processed_loc} -s ${start_date} -n ${use_date}"
     sa -t SPY -p ${history_loc} -o ${report_loc} -b ${backtest_loc} -e ${processed_loc} -s ${start_date} -n ${use_date}
 
+Jupyter on Kubernetes
+=====================
+
+This command runs Jupyter on an `AntiNex Kubernetes cluster <https://deploy-to-kubernetes.readthedocs.io/en/latest/>`__
+
+::
+
+    ./k8/jupyter/run.sh
+
 Kubernetes Job - Export SPY Datasets and Publish to Minio
 =========================================================
 

@@ -50,7 +50,7 @@ spec:
         - -c
         - cd /opt/sa/ &&
           . /opt/venv/bin/activate &&
-          /opt/sa/start-workers.sh
+          /opt/sa/docker/jupyter/start-container.sh
         env:
         - name: POSTGRES_USER
           valueFrom:
