@@ -8,10 +8,10 @@ metadata:
 spec:
   tls:
   - hosts:
-    - jupyter.example.com
+    - sajupyter.example.com
     secretName: tls-jupyter
   rules:
-  - host: jupyter.example.com
+  - host: sajupyter.example.com
     http:
       paths:
       - path: /
