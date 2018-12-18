@@ -1,65 +1,72 @@
 #!/bin/bash
 
-# the current kubernetes cluster installs AntiNex Jupyter
-# so remove it if exists already
-antinex_deployment_name="jupyter"
-found_antinex_jupyter=$(kubectl get deployment | grep jupyter | grep -v sa-jupyter)
-if [[ "${found_antinex_jupyter}" ]]; then
-    podname="jupyter"
-    deployment_name="jupyter"
-    kubectl delete deployment ${deployment_name}
-
-    not_done=$(/usr/bin/kubectl get po | grep ${podname} | wc -l)
-    while [[ "${not_done}" != "0" ]]; do
-        date -u +"%Y-%m-%d %H:%M:%S"
-        echo "sleeping while waiting for ${podname} to stop"
-        sleep 5
-        /usr/bin/kubectl get po | grep ${podname}
-        not_done=$(/usr/bin/kubectl get po | grep ${podname} | wc -l)
-    done
-
-    not_done=$(/usr/bin/kubectl get po | grep ${podname} | grep "Running" | wc -l)
-    while [[ "${not_done}" == "0" ]]; do
-        date -u +"%Y-%m-%d %H:%M:%S"
-        echo "sleeping while waiting for ${podname} to start"
-        sleep 5
-        /usr/bin/kubectl get po | grep ${podname}
-        not_done=$(/usr/bin/kubectl get po | grep ${podname} | grep "Running" | wc -l)
-    done
-
-    echo "done removing previous jupyter deployment"
+# use the bash_colors.sh file
+found_colors="./analysis_engine/scripts/common_bash.sh"
+if [[ "${DISABLE_COLORS}" == "" ]] && [[ "${found_colors}" != "" ]] && [[ -e ${found_colors} ]]; then
+    . ${found_colors}
+else
+    inf() {
+        echo "$@"
+    }
+    anmt() {
+        echo "$@"
+    }
+    good() {
+        echo "$@"
+    }
+    err() {
+        echo "$@"
+    }
+    critical() {
+        echo "$@"
+    }
+    warn() {
+        echo "$@"
+    }
 fi
 
-echo "jupyter on kubernetes deployment starting"
+should_cleanup_before_startup=0
+deploy_suffix=""
+cert_env="dev"
+for i in "$@"
+do
+    if [[ "${i}" == "prod" ]]; then
+        cert_env="prod"
+    elif [[ "${i}" == "splunk" ]]; then
+        deploy_suffix="-splunk"
+    elif [[ "${i}" == "antinex" ]]; then
+        cert_env="an"
+    elif [[ "${i}" == "qs" ]]; then
+        cert_env="qs"
+    elif [[ "${i}" == "redten" ]]; then
+        cert_env="redten"
+    fi
+done
 
-if [[ -e ./k8/jupyter/secrets.yml ]]; then
-    echo "applying secrets"
-    kubectl apply -f k8/jupyter/secrets.yml
+use_path="."
+if [[ ! -e deployment.yml ]]; then
+    use_path="./k8/jupyter"
 fi
 
-if [[ -e ./k8/jupyter/service.yml ]]; then
-    echo "applying service"
-    kubectl apply -f k8/jupyter/service.yml
-fi
+anmt "----------------------------------------------------------------------------------"
+anmt "deploying jupyter with cert_env=${cert_env}: https://github.com/jay-johnson/deploy-to-kubernetes/blob/master/jupyter"
+inf ""
 
-if [[ -e ./k8/jupyter/ingress.yml ]]; then
-    echo "applying ingress"
-    kubectl apply -f k8/jupyter/ingress.yml
-fi
+inf "applying secrets"
+kubectl apply -f ${use_path}/secrets.yml
+inf ""
 
-if [[ -e ./k8/jupyter/deployment.yml ]]; then
-    echo "applying jupyter"
-    kubectl apply -f k8/jupyter/deployment.yml
-fi
+deploy_file=${use_path}/deployment${deploy_suffix}.yml
+warn "applying deployment: ${deploy_file}"
+kubectl apply -f ${deploy_file}
+inf ""
 
-echo "checking deployment"
-kubectl get deployment
-echo ""
+inf "applying service"
+kubectl apply -f ${use_path}/service.yml
+inf ""
 
-echo "checking pods"
-kubectl get deployment
-echo ""
+inf "applying ingress cert_env: ${cert_env}"
+kubectl apply -f ${use_path}/ingress-${cert_env}.yml
+inf ""
 
-echo "jupyter on kubernetes deployment done"
-
-exit 0
+good "done deploying: jupyter"

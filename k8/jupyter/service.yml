@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: sa-jupyter-service
+  name: ae-jupyter-service
 spec:
   ports:
   - port: 8888
@@ -9,4 +9,4 @@ spec:
     protocol: TCP
     name: http
   selector:
-    app: sa-jupyter
+    app: ae-jupyter
