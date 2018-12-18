@@ -1,7 +1,7 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: sa-jupyter
+  name: ae-jupyter
   annotations:
     description: The Stock Analysis Jupyter Application
     runtime: python3
@@ -16,12 +16,12 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: sa-jupyter
+      app: ae-jupyter
       backend: enabled
   template:
     metadata:
       labels:
-        app: sa-jupyter
+        app: ae-jupyter
         backend: enabled
         purpose: stock-analysis
         layer: backend
@@ -38,12 +38,12 @@ spec:
                 operator: In
                 values:
                 - enabled
-      hostname: sa-jupyter
+      hostname: ae-jupyter
       restartPolicy: Always
       containers:
       - image: jayjohnson/stock-analysis-jupyter:latest
         imagePullPolicy: Always
-        name: sa-jupyter
+        name: ae-jupyter
         resources: {}
         command:
         - /bin/bash
