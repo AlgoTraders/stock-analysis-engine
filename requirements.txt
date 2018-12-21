@@ -14,7 +14,7 @@ pep8>=1.7.1
 pinance
 pycodestyle<=2.3.1
 pylint
-pyEX>=0.1.5
+pyEX==0.1.5
 recommonmark
 redis
 sphinx
