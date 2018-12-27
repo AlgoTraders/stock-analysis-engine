@@ -31,6 +31,16 @@ if [[ ! -e /data ]]; then
     sudo mkdir -p -m 777 /data/minio/data
     sudo mkdir -p -m 777 /data/sa/notebooks
     sudo mkdir -p -m 777 /data/sa/notebooks/dev
+    if [[ ! -e /data/registry ]]; then
+        sudo mkdir -p -m 777 /data/registry
+    fi
+    if [[ ! -e /data/registry/auth ]]; then
+        sudo mkdir -p -m 777 /data/registry/auth
+        docker run --entrypoint htpasswd registry:2 -Bbn trex 123321 > /data/registry/auth/htpasswd
+    fi
+    if [[ ! -e /data/registry/data ]]; then
+        sudo mkdir -p -m 777 /data/registry/data
+    fi
     cp -r ./compose/docker/notebooks/* /data/sa/notebooks
 fi
 
@@ -93,6 +103,9 @@ do
         if [[ ! -z "$workers" ]]; then
             echo $workers | xargs kill -9
         fi
+    elif [[ "${i}" == "-r" ]]; then
+        debug="1"
+        compose="registry/registry.yml"
     fi
 done
 
@@ -105,6 +118,8 @@ elif [[ "${compose}" == "notebook-integration.yml" ]]; then
     inf "starting end-to-end with notebook integration stack: redis, minio, workers and jupyter"
 elif [[ "${compose}" == "automation-dataset-collection.yml" ]]; then
     inf "starting dataset collection"
+elif [[ "${compose}" == "registry/registry.yml" ]]; then
+    inf "starting registry"
 else
     err "unsupported compose file: ${compose}"
     exit 1
@@ -172,7 +187,7 @@ source ./env.sh
 rm env.sh
 # end getting ports and setting vars for containers
 
-docker-compose -f ./${compose} -p $USER up -d
+docker-compose -f ./${compose} -p $USER up -d >> /dev/null 2>&1
 
 # MacOS specific, remove the backup file that is created by sed -i 
 if [[ -n $mac && -f envs/.env$mac ]]; then
@@ -187,6 +202,8 @@ if [[ "${compose}" == "dev.yml" ]]; then
     good "started redis and minio"
 elif [[ "${compose}" == "integration.yml" ]]; then
     good "started end-to-end integration stack: redis, minio, workers and jupyter"
+elif [[ "${compose}" == "registry/registry.yml" ]]; then
+    good "started registry"
 fi
 
 exit 0

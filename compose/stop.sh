@@ -66,6 +66,9 @@ do
         if [[ ! -z "$workers" ]]; then
             echo $workers | xargs kill -9
         fi
+    elif [[ "${i}" == "-r" ]]; then
+        debug="1"
+        compose="registry.yml"
     fi
 done
 
@@ -78,6 +81,8 @@ elif [[ "${compose}" == "notebook-integration.yml" ]]; then
     inf "stopping end-to-end with notebook integration stack: redis, minio, workers and jupyter"
 elif [[ "${compose}" == "automation-dataset-collection.yml" ]]; then
     inf "stopping dataset collection"
+elif [[ "${compose}" == "registry.yml" ]]; then
+    inf "stopping registry"
 else
     err "unsupported compose file: ${compose}"
     exit 1
@@ -145,7 +150,7 @@ source ./env.sh
 rm env.sh
 # end getting ports and setting vars for containers
 
-docker-compose -f ./${compose} -p $USER down
+docker-compose -f ./${compose} -p $USER down >> /dev/null 2>&1
 
 containers=""
 if [[ "${compose}" == "dev.yml" ]]; then
@@ -160,6 +165,9 @@ elif [[ "${compose}" == "notebook-integration.yml" ]]; then
 elif [[ "${compose}" == "automation-dataset-collection.yml" ]]; then
     inf "stopping dataset collection"
     containers="sa-dataset-collection-${USER}"
+elif [[ "${compose}" == "registry.yml" ]]; then
+    inf "stopping registry"
+    containers="registry"
 else
     err "unsupported compose file: ${compose}"
     exit 1
@@ -187,6 +195,8 @@ if [[ "${compose}" == "dev.yml" ]]; then
     good "stopped redis and minio"
 elif [[ "${compose}" == "integration.yml" ]]; then
     good "stopped end-to-end integration stack: redis, minio, workers and jupyter"
+elif [[ "${compose}" == "registry.yml" ]]; then
+    good "stopped registry"
 fi
 
 exit 0
