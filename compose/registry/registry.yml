@@ -1,0 +1,22 @@
+version: '2'
+
+services:
+
+  registry:
+    container_name: "registry"
+    hostname: "registry"
+    restart: always
+    image: registry:2
+    ports:
+      - 5000:5000
+    volumes:
+      - /data/registry/data:/var/lib/registry
+      - /data/registry/auth:/auth
+      # - /path/certs:/certs
+      # - /path/auth:/auth
+    environment:
+      REGISTRY_AUTH: htpasswd
+      REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
+      REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
+   #   REGISTRY_HTTP_TLS_CERTIFICATE: /certs/domain.crt
+   #   REGISTRY_HTTP_TLS_KEY: /certs/domain.key
