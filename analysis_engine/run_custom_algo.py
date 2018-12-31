@@ -732,6 +732,9 @@ def run_custom_algo(
         label=name)
 
     algo_req['name'] = name
+    algo_req['should_publish_extract_dataset'] = should_publish_extract_dataset
+    algo_req['should_publish_history_dataset'] = should_publish_history_dataset
+    algo_req['should_publish_report_dataset'] = should_publish_report_dataset
 
     algo_res = build_result.build_result(
         status=ae_consts.NOT_RUN,
@@ -918,7 +921,7 @@ def run_custom_algo(
             err=err,
             rec=None)
 
-    if should_publish_extract_dataset and dataset_publish_extract:
+    if should_publish_extract_dataset or dataset_publish_extract:
         s3_log = ''
         redis_log = ''
         file_log = ''
@@ -983,7 +986,7 @@ def run_custom_algo(
                     use_log))
     # if publish the algorithm-ready dataset
 
-    if should_publish_history_dataset and dataset_publish_history:
+    if should_publish_history_dataset or dataset_publish_history:
         s3_log = ''
         redis_log = ''
         file_log = ''
@@ -1048,7 +1051,7 @@ def run_custom_algo(
                     use_log))
     # if publish an trading history dataset
 
-    if should_publish_report_dataset and dataset_publish_report:
+    if should_publish_report_dataset or dataset_publish_report:
         s3_log = ''
         redis_log = ''
         file_log = ''

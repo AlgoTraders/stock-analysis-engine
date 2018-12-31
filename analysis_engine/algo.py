@@ -2242,6 +2242,15 @@ class BaseAlgo:
         Inherited Algorithm classes can derive how they build a
         custom ``Algorithm-Ready`` dataset before publishing
         by implementing this method in the derived class.
+
+        Test backups with this command:
+
+        ::
+
+            source /opt/venv/bin/activate
+            sa -t SPY -a localhost:9000 -r localhost:6379 -e \
+                s3://algobackup/SPY-test.json
+
         """
 
         if self.verbose:
@@ -3462,6 +3471,10 @@ class BaseAlgo:
                             ticker=ticker,
                             node=node)
                     # end of processing datasets for day vs minute
+                    print(node['date'])
+                    print(self.df_calls)
+                    print(self.df_puts)
+
                 # if not debugging a specific dataset in the cache
 
                 if (self.show_balance and

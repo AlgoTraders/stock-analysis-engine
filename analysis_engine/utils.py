@@ -163,3 +163,21 @@ def get_trade_open_xticks_from_date_col(
 
     return date_strings, date_labels
 # end of get_trade_open_xticks_from_date_col
+
+
+def convert_epoch_to_datetime_string(
+        epoch,
+        fmt=ae_consts.COMMON_TICK_DATE_FORMAT,
+        use_utc=True):
+    """convert_epoch_to_datetime_string
+
+    :param epoch: integer epoch time value
+    :param fmt: optional string date format
+    :param use_utc: if utc or local time - default is ``True``
+    """
+
+    if use_utc:
+        return datetime.datetime.utcfromtimestamp(epoch).strftime(fmt)
+    else:
+        return datetime.datetime.fromtimestamp(epoch).strftime(fmt)
+# end of convert_epoch_to_datetime_string

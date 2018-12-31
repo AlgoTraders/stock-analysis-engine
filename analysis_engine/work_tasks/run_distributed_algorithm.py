@@ -45,10 +45,9 @@ import datetime
 import celery.task as celery_task
 import analysis_engine.consts as ae_consts
 import analysis_engine.build_result as build_result
-import analysis_engine.get_task_results as get_task_results
 import analysis_engine.work_tasks.custom_task as custom_task
-import analysis_engine.algo as ae_algo
 import analysis_engine.run_algo as run_algo
+import analysis_engine.algo as ae_algo  # base algo
 import spylunking.log.setup_logging as log_utils
 
 log = log_utils.build_colorized_logger(name=__name__)
@@ -63,7 +62,8 @@ def run_distributed_algorithm(
         algo_req):
     """run_distributed_algorithm
 
-    Process a distributed Algorithm
+    Process an Algorithm using a Celery task that is
+    processed by a Celery worker
 
     :param algo_req: dictionary for key/values for
         running an algorithm using Celery workers
@@ -73,20 +73,20 @@ def run_distributed_algorithm(
         'name',
         'ae-algo')
     verbose = algo_req.get(
-        'verbose',
+        'verbose_task',
         False)
     debug = algo_req.get(
         'debug',
         False)
 
     # please be careful logging prod passwords:
-    if verbose or debug:
+    if debug:
         log.info(
             'task - {} - start '
             'algo_req={}'.format(
                 label,
                 algo_req))
-    else:
+    elif verbose:
         log.info(
             'task - {} - start '.format(
                 label))
@@ -148,8 +148,7 @@ def run_distributed_algorithm(
         None)
     raise_on_err = algo_req.get(
         'raise_on_err',
-        False)
-
+        True)
     report_config = algo_req.get(
         'report_config',
         None)
@@ -214,9 +213,13 @@ def run_distributed_algorithm(
             status=ae_consts.ERR,
             err=err,
             rec=None)
-        return get_task_results.get_task_results(
-            work_dict=algo_req,
-            result=res)
+        task_result = {
+            'status': res['status'],
+            'err': res['err'],
+            'algo_req': algo_req,
+            'rec': rec
+        }
+        return task_result
     # if not found_algo_module
 
     use_start_date = start_date
@@ -240,24 +243,31 @@ def run_distributed_algorithm(
         False)
     try:
         if use_custom_algo:
-            log.info(
-                'inspecting {} for class {}'.format(
-                    custom_algo_module,
-                    module_name))
+            if verbose:
+                log.info(
+                    'inspecting {} for class {}'.format(
+                        custom_algo_module,
+                        module_name))
             use_class_member_object = None
             for member in inspect.getmembers(custom_algo_module):
                 if module_name in str(member):
-                    log.info(
-                        'start {} with {}'.format(
-                            name,
-                            member[1]))
+                    if verbose:
+                        log.info(
+                            'start {} with {}'.format(
+                                name,
+                                member[1]))
                     use_class_member_object = member
                     break
             # end of looking over the class definition but did not find it
 
             if use_class_member_object:
-                new_algo_object = member[1](
-                    **algo_req)
+                if algo_req.get('backtest', False):
+                    new_algo_object = member[1](
+                        ticker=algo_req['ticker'],
+                        config_dict=algo_req)
+                else:
+                    new_algo_object = member[1](
+                        **algo_req)
             else:
                 err = (
                     '{} - did not find a derived '
@@ -273,9 +283,13 @@ def run_distributed_algorithm(
                     status=ae_consts.ERR,
                     err=err,
                     rec=None)
-                return get_task_results.get_task_results(
-                    work_dict=algo_req,
-                    result=res)
+                task_result = {
+                    'status': res['status'],
+                    'err': res['err'],
+                    'algo_req': algo_req,
+                    'rec': rec
+                }
+                return task_result
             # end of finding a valid algorithm object
         else:
             new_algo_object = ae_algo.BaseAlgo(
@@ -288,41 +302,51 @@ def run_distributed_algorithm(
             #     '{} algorithm request: {}'.format(
             #         name,
             #         algo_req))
-            log.info(
-                '{} - run ticker={} from {} to {}'.format(
-                    name,
-                    ticker,
-                    use_start_date,
-                    use_end_date))
-            algo_res = run_algo.run_algo(
-                algo=new_algo_object,
-                raise_on_err=raise_on_err,
-                **algo_req)
-            created_algo_object = new_algo_object
-            log.info(
-                '{} - run ticker={} from {} to {}'.format(
-                    name,
-                    ticker,
-                    use_start_date,
-                    use_end_date))
-            if custom_algo_module:
+            if verbose:
                 log.info(
-                    '{} - done run_algo custom_algo_module={} module_name={} '
-                    'ticker={} from {} to {}'.format(
+                    '{} - run START ticker={} from {} to {}'.format(
                         name,
-                        custom_algo_module,
-                        module_name,
                         ticker,
                         use_start_date,
                         use_end_date))
+            if algo_req.get('backtest', False):
+                algo_res = run_algo.run_algo(
+                    algo=new_algo_object,
+                    config_dict=algo_req)
+                created_algo_object = new_algo_object
             else:
+                algo_res = run_algo.run_algo(
+                    algo=new_algo_object,
+                    **algo_req)
+                created_algo_object = new_algo_object
+
+            if verbose:
                 log.info(
-                    '{} - done run_algo BaseAlgo ticker={} from {} '
-                    'to {}'.format(
+                    '{} - run DONE ticker={} from {} to {}'.format(
                         name,
                         ticker,
                         use_start_date,
                         use_end_date))
+            if debug:
+                if custom_algo_module:
+                    log.info(
+                        '{} - done run_algo custom_algo_module={} '
+                        'module_name={} '
+                        'ticker={} from {} to {}'.format(
+                            name,
+                            custom_algo_module,
+                            module_name,
+                            ticker,
+                            use_start_date,
+                            use_end_date))
+                else:
+                    log.info(
+                        '{} - done run_algo BaseAlgo ticker={} from {} '
+                        'to {}'.format(
+                            name,
+                            ticker,
+                            use_start_date,
+                            use_end_date))
         else:
             err = (
                 '{} - missing a derived analysis_engine.algo.BaseAlgo '
@@ -337,9 +361,13 @@ def run_distributed_algorithm(
                 status=ae_consts.ERR,
                 err=err,
                 rec=None)
-            return get_task_results.get_task_results(
-                work_dict=algo_req,
-                result=res)
+            task_result = {
+                'status': res['status'],
+                'err': res['err'],
+                'algo_req': algo_req,
+                'rec': rec
+            }
+            return task_result
         # end of finding a valid algorithm object
 
         if not created_algo_object:
@@ -361,9 +389,13 @@ def run_distributed_algorithm(
                 status=ae_consts.ERR,
                 err=err,
                 rec=None)
-            return get_task_results.get_task_results(
-                work_dict=algo_req,
-                result=res)
+            task_result = {
+                'status': res['status'],
+                'err': res['err'],
+                'algo_req': algo_req,
+                'rec': rec
+            }
+            return task_result
         # end of stop early
 
         if should_publish_extract_dataset or dataset_publish_extract:
@@ -400,12 +432,13 @@ def run_distributed_algorithm(
                 use_log += ' {}'.format(
                     file_log)
 
-            log.info(
-                '{} - publish - start ticker={} algorithm-ready {}'
-                ''.format(
-                    name,
-                    ticker,
-                    use_log))
+            if verbose:
+                log.info(
+                    '{} - publish - start ticker={} algorithm-ready {}'
+                    ''.format(
+                        name,
+                        ticker,
+                        use_log))
 
             publish_status = created_algo_object.publish_input_dataset(
                 **extract_config)
@@ -420,17 +453,22 @@ def run_distributed_algorithm(
                     status=ae_consts.ERR,
                     err=err,
                     rec=None)
-                return get_task_results.get_task_results(
-                    work_dict=algo_req,
-                    result=res)
+                task_result = {
+                    'status': res['status'],
+                    'err': res['err'],
+                    'algo_req': algo_req,
+                    'rec': rec
+                }
+                return task_result
             # end of stop early
 
-            log.info(
-                '{} - publish - done ticker={} algorithm-ready {}'
-                ''.format(
-                    name,
-                    ticker,
-                    use_log))
+            if verbose:
+                log.info(
+                    '{} - publish - done ticker={} algorithm-ready {}'
+                    ''.format(
+                        name,
+                        ticker,
+                        use_log))
         # if publish the algorithm-ready dataset
 
         if should_publish_history_dataset or dataset_publish_history:
@@ -463,12 +501,13 @@ def run_distributed_algorithm(
                 use_log += ' {}'.format(
                     file_log)
 
-            log.info(
-                '{} - publish - start ticker={} trading history {}'
-                ''.format(
-                    name,
-                    ticker,
-                    use_log))
+            if verbose:
+                log.info(
+                    '{} - publish - start ticker={} trading history {}'
+                    ''.format(
+                        name,
+                        ticker,
+                        use_log))
 
             publish_status = \
                 created_algo_object.publish_trade_history_dataset(
@@ -484,17 +523,22 @@ def run_distributed_algorithm(
                     status=ae_consts.ERR,
                     err=err,
                     rec=None)
-                return get_task_results.get_task_results(
-                    work_dict=algo_req,
-                    result=res)
+                task_result = {
+                    'status': res['status'],
+                    'err': res['err'],
+                    'algo_req': algo_req,
+                    'rec': rec
+                }
+                return task_result
             # end of stop early
 
-            log.info(
-                '{} - publish - done ticker={} trading history {}'
-                ''.format(
-                    name,
-                    ticker,
-                    use_log))
+            if verbose:
+                log.info(
+                    '{} - publish - done ticker={} trading history {}'
+                    ''.format(
+                        name,
+                        ticker,
+                        use_log))
         # if publish an trading history dataset
 
         if should_publish_report_dataset or dataset_publish_report:
@@ -527,12 +571,13 @@ def run_distributed_algorithm(
                 use_log += ' {}'.format(
                     file_log)
 
-            log.info(
-                '{} - publishing ticker={} trading performance report {}'
-                ''.format(
-                    name,
-                    ticker,
-                    use_log))
+            if verbose:
+                log.info(
+                    '{} - publishing ticker={} trading performance report {}'
+                    ''.format(
+                        name,
+                        ticker,
+                        use_log))
 
             publish_status = created_algo_object.publish_report_dataset(
                 **report_config)
@@ -547,25 +592,35 @@ def run_distributed_algorithm(
                     status=ae_consts.ERR,
                     err=err,
                     rec=None)
-                return get_task_results.get_task_results(
-                    work_dict=algo_req,
-                    result=res)
+                task_result = {
+                    'status': res['status'],
+                    'err': res['err'],
+                    'algo_req': algo_req,
+                    'rec': rec
+                }
+                return task_result
             # end of stop early
 
-            log.info(
-                '{} - publish - done ticker={} trading performance report {}'
-                ''.format(
-                    name,
-                    ticker,
-                    use_log))
+            if verbose:
+                log.info(
+                    '{} - publish - done ticker={} trading '
+                    'performance report {}'.format(
+                        name,
+                        ticker,
+                        use_log))
         # if publish an trading performance report dataset
 
-        log.info(
-            '{} - done publishing datasets for ticker={} from {} to {}'.format(
-                name,
-                ticker,
-                use_start_date,
-                use_end_date))
+        if verbose:
+            log.info(
+                '{} - done publishing datasets for ticker={} '
+                'from {} to {}'.format(
+                    name,
+                    ticker,
+                    use_start_date,
+                    use_end_date))
+
+        rec['history_config'] = history_config
+        rec['report_config'] = report_config
 
         res = build_result.build_result(
             status=ae_consts.SUCCESS,
@@ -581,19 +636,27 @@ def run_distributed_algorithm(
                     algo_req,
                     e),
             rec=rec)
-        log.error(
-            '{} - {}'.format(
-                label,
-                res['err']))
+        if raise_on_err:
+            raise e
+        else:
+            log.error(
+                '{} - {}'.format(
+                    label,
+                    res['err']))
     # end of try/ex
 
-    log.info(
-        'task - run_distributed_algorithm done - '
-        '{} - status={}'.format(
-            label,
-            ae_consts.get_status(res['status'])))
+    if verbose:
+        log.info(
+            'task - run_distributed_algorithm done - '
+            '{} - status={}'.format(
+                label,
+                ae_consts.get_status(res['status'])))
 
-    return get_task_results.get_task_results(
-        work_dict=algo_req,
-        result=res)
+    task_result = {
+        'status': res['status'],
+        'err': res['err'],
+        'algo_req': algo_req,
+        'rec': rec
+    }
+    return task_result
 # end of run_distributed_algorithm
