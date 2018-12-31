@@ -132,6 +132,10 @@ def get_ds_dict(
     options_yahoo_redis_key = '{}_{}'.format(
         use_base_key,
         OPTIONS_S3_BUCKET_NAME)
+    call_options_yahoo_redis_key = '{}_calls'.format(
+        use_base_key)
+    put_options_yahoo_redis_key = '{}_puts'.format(
+        use_base_key)
     pricing_yahoo_redis_key = '{}_{}'.format(
         use_base_key,
         PRICING_S3_BUCKET_NAME)
@@ -151,6 +155,8 @@ def get_ds_dict(
         'dividends': dividends_redis_key,
         'company': company_redis_key,
         'options': options_yahoo_redis_key,
+        'calls': call_options_yahoo_redis_key,
+        'puts': put_options_yahoo_redis_key,
         'pricing': pricing_yahoo_redis_key,
         'news': news_yahoo_redis_key,
         'ticker': ticker,

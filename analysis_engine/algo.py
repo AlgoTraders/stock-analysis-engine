@@ -2242,6 +2242,15 @@ class BaseAlgo:
         Inherited Algorithm classes can derive how they build a
         custom ``Algorithm-Ready`` dataset before publishing
         by implementing this method in the derived class.
+
+        Test backups with this command:
+
+        ::
+
+            source /opt/venv/bin/activate
+            sa -t SPY -a localhost:9000 -r localhost:6379 -e \
+                s3://algobackup/SPY-test.json
+
         """
 
         if self.verbose:

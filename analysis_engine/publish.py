@@ -16,19 +16,13 @@ import json
 import boto3
 import redis
 import zlib
+import analysis_engine.consts as ae_consts
 import analysis_engine.set_data_in_redis_key as redis_utils
 import analysis_engine.send_to_slack as slack_utils
 import analysis_engine.write_to_file as file_utils
-from analysis_engine.consts import SUCCESS
-from analysis_engine.consts import NOT_RUN
-from analysis_engine.consts import INVALID
-from analysis_engine.consts import FILE_FAILED
-from analysis_engine.consts import REDIS_FAILED
-from analysis_engine.consts import get_status
-from analysis_engine.consts import get_mb
-from spylunking.log.setup_logging import build_colorized_logger
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
+log = log_utils.build_colorized_logger(
     name=__name__)
 
 
@@ -139,11 +133,11 @@ def publish(
         width allowed
     """
 
-    status = NOT_RUN
+    status = ae_consts.NOT_RUN
     use_data = data
     if not is_df and not use_data:
         log.info('missing data')
-        return INVALID
+        return ae_consts.INVALID
 
     if convert_to_json and not is_df:
         if verbose:
@@ -170,7 +164,7 @@ def publish(
             log.debug('compress end')
 
     num_bytes = len(use_data)
-    num_mb = get_mb(num_bytes)
+    num_mb = ae_consts.get_mb(num_bytes)
 
     if verbose:
         log.debug(
@@ -183,7 +177,7 @@ def publish(
                 compress,
                 num_mb))
 
-    if s3_enabled:
+    if s3_enabled and s3_address and s3_bucket and s3_key:
         endpoint_url = 'http://{}'.format(
             s3_address)
         if s3_secure:
@@ -240,7 +234,7 @@ def publish(
 
     # end of s3_enabled
 
-    if redis_enabled:
+    if redis_enabled and redis_address and redis_key:
         redis_split = redis_address.split(':')
         redis_host = redis_split[0]
         redis_port = int(redis_split[1])
@@ -272,12 +266,12 @@ def publish(
             nx=False,
             xx=False)
 
-        if redis_res['status'] != SUCCESS:
+        if redis_res['status'] != ae_consts.SUCCESS:
             if verbose:
                 log.debug('redis failed - {} {}'.format(
-                    get_status(status=redis_res['status']),
+                    ae_consts.get_status(status=redis_res['status']),
                     redis_res['err']))
-            return REDIS_FAILED
+            return ae_consts.REDIS_FAILED
     # end of redis_enabled
 
     if output_file:
@@ -291,7 +285,7 @@ def publish(
             if verbose:
                 log.debug('file failed - did not find output_file={}'.format(
                     output_file))
-            return FILE_FAILED
+            return ae_consts.FILE_FAILED
         if verbose:
             log.debug('file done - output_file={}'.format(
                 output_file))
@@ -308,13 +302,13 @@ def publish(
             log.debug('slack end')
     # end of sending to slack
 
-    status = SUCCESS
+    status = ae_consts.SUCCESS
 
     if verbose:
         log.debug(
             'end - {} file={} s3_key={} redis_key={} slack={} '
             'compress={} size={}MB'.format(
-                get_status(status=status),
+                ae_consts.get_status(status=status),
                 output_file,
                 s3_key,
                 redis_key,
