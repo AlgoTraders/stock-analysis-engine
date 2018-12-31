@@ -3471,10 +3471,6 @@ class BaseAlgo:
                             ticker=ticker,
                             node=node)
                     # end of processing datasets for day vs minute
-                    print(node['date'])
-                    print(self.df_calls)
-                    print(self.df_puts)
-
                 # if not debugging a specific dataset in the cache
 
                 if (self.show_balance and
