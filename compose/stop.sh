@@ -1,26 +1,9 @@
 #!/bin/bash
 
-if [[ -e /opt/deploy-to-kubernetes/tools/bash_colors.sh ]]; then
-    source /opt/deploy-to-kubernetes/tools/bash_colors.sh
-else
-    inf() {
-        echo "$@"
-    }
-    anmt() {
-        echo "$@"
-    }
-    good() {
-        echo "$@"
-    }
-    err() {
-        echo "$@"
-    }
-    critical() {
-        echo "$@"
-    }
-    warn() {
-        echo "$@"
-    }
+if [[ -e /opt/sa/analysis_engine/scripts/common_bash.sh ]]; then
+    source /opt/sa/analysis_engine/scripts/common_bash.sh
+elif [[ -e ./analysis_engine/scripts/common_bash.sh ]]; then
+    source ./analysis_engine/scripts/common_bash.sh
 fi
 
 os_type=`uname -s`
