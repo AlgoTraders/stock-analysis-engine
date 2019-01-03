@@ -19,7 +19,7 @@ dataset (from IEX) and converts it to one
 of the following data feed and returned as a
 ``pandas DataFrame``:
 
-::
+.. code-block:: python
 
     DATAFEED_DAILY = 900
     DATAFEED_MINUTE = 901
@@ -39,31 +39,13 @@ of the following data feed and returned as a
 
 import datetime
 import pandas as pd
-import analysis_engine.iex.utils
-from spylunking.log.setup_logging import build_colorized_logger
-from analysis_engine.consts import ev
-from analysis_engine.consts import IEX_DAILY_DATE_FORMAT
-from analysis_engine.consts import IEX_MINUTE_DATE_FORMAT
-from analysis_engine.consts import COMMON_TICK_DATE_FORMAT
-from analysis_engine.consts import IEX_QUOTE_DATE_FORMAT
-from analysis_engine.iex.consts import DATAFEED_DAILY
-from analysis_engine.iex.consts import DATAFEED_MINUTE
-from analysis_engine.iex.consts import DATAFEED_QUOTE
-from analysis_engine.iex.consts import DATAFEED_STATS
-from analysis_engine.iex.consts import DATAFEED_PEERS
-from analysis_engine.iex.consts import DATAFEED_NEWS
-from analysis_engine.iex.consts import DATAFEED_FINANCIALS
-from analysis_engine.iex.consts import DATAFEED_EARNINGS
-from analysis_engine.iex.consts import DATAFEED_DIVIDENDS
-from analysis_engine.iex.consts import DATAFEED_COMPANY
-from analysis_engine.iex.consts import get_datafeed_str
-from analysis_engine.yahoo.consts import DATAFEED_PRICING_YAHOO
-from analysis_engine.yahoo.consts import DATAFEED_OPTIONS_YAHOO
-from analysis_engine.yahoo.consts import DATAFEED_NEWS_YAHOO
-from analysis_engine.yahoo.consts import get_datafeed_str_yahoo
+import analysis_engine.consts as ae_consts
+import analysis_engine.utils as ae_utils
+import analysis_engine.iex.consts as iex_consts
+import analysis_engine.yahoo.consts as yahoo_consts
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def debug_msg(
@@ -87,16 +69,16 @@ def debug_msg(
 
     dft_msg = ''
     if (
-            datafeed_type == DATAFEED_PRICING_YAHOO or
-            datafeed_type == DATAFEED_OPTIONS_YAHOO or
-            datafeed_type == DATAFEED_NEWS_YAHOO):
-        dft_msg = get_datafeed_str_yahoo(
+            datafeed_type == yahoo_consts.DATAFEED_PRICING_YAHOO or
+            datafeed_type == yahoo_consts.DATAFEED_OPTIONS_YAHOO or
+            datafeed_type == yahoo_consts.DATAFEED_NEWS_YAHOO):
+        dft_msg = yahoo_consts.get_datafeed_str_yahoo(
             df_type=datafeed_type)
     else:
-        dft_msg = get_datafeed_str(
+        dft_msg = iex_consts.get_datafeed_str(
             df_type=datafeed_type)
 
-    if ev('DEBUG_FETCH', '0') == '1':
+    if ae_consts.ev('DEBUG_FETCH', '0') == '1':
         if 'START' in msg:
             log.info(
                 '{} - {} -------------------------'
@@ -144,8 +126,8 @@ def build_dates_from_df_col(
         df,
         use_date_str,
         src_col='label',
-        src_date_format=IEX_MINUTE_DATE_FORMAT,
-        output_date_format=COMMON_TICK_DATE_FORMAT):
+        src_date_format=ae_consts.IEX_MINUTE_DATE_FORMAT,
+        output_date_format=ae_consts.COMMON_TICK_DATE_FORMAT):
     """build_dates_from_df_col
 
     Converts a string date column series in a ``pandas.DataFrame``
@@ -201,7 +183,7 @@ def ingress_scrub_dataset(
     :param datafeed_type: ``analysis_engine.iex.consts.DATAFEED_*`` type
         or ``analysis_engine.yahoo.consts.DATAFEED_*```
         type
-        ::
+        .. code-block:: python
 
             DATAFEED_DAILY = 900
             DATAFEED_MINUTE = 901
@@ -216,6 +198,7 @@ def ingress_scrub_dataset(
             DATAFEED_PRICING_YAHOO = 1100
             DATAFEED_OPTIONS_YAHOO = 1101
             DATAFEED_NEWS_YAHOO = 1102
+
     :param df: ``pandas DataFrame``
     :param date_str: date string for simulating historical dates
                      or ``datetime.datetime.now()`` if not
@@ -243,15 +226,15 @@ def ingress_scrub_dataset(
         use_msg_format = 'df={} date_str={}'
 
     use_date_str = date_str
-    last_close_date = analysis_engine.iex.utils.last_close()
+    last_close_date = ae_utils.last_close()
     today_str = last_close_date.strftime('%Y-%m-%d')
 
     year_str = today_str.split('-')[0]
     if not use_date_str:
         use_date_str = today_str
 
-    daily_date_format = IEX_DAILY_DATE_FORMAT
-    minute_date_format = IEX_MINUTE_DATE_FORMAT
+    daily_date_format = ae_consts.IEX_DAILY_DATE_FORMAT
+    minute_date_format = ae_consts.IEX_MINUTE_DATE_FORMAT
 
     debug_msg(
         label=label,
@@ -263,7 +246,7 @@ def ingress_scrub_dataset(
 
     try:
         if scrub_mode == 'sort-by-date':
-            if datafeed_type == DATAFEED_DAILY:
+            if datafeed_type == iex_consts.DATAFEED_DAILY:
                 new_dates = []
                 if 'label' in df:
                     for idx, i in enumerate(out_df['label']):
@@ -286,7 +269,7 @@ def ingress_scrub_dataset(
                         new_dates,
                         format=daily_date_format)
                 # end if label is in df
-            elif datafeed_type == DATAFEED_MINUTE:
+            elif datafeed_type == iex_consts.DATAFEED_MINUTE:
                 new_dates = []
                 if 'label' in df:
                     new_dates = build_dates_from_df_col(
@@ -298,12 +281,12 @@ def ingress_scrub_dataset(
                         new_dates,
                         format='%Y-%m-%d %H:%M:%S')
                 # end if label is in df
-            elif datafeed_type == DATAFEED_QUOTE:
+            elif datafeed_type == iex_consts.DATAFEED_QUOTE:
                 columns_list = out_df.columns.values
                 if 'latestTime' in columns_list:
                     out_df['date'] = pd.to_datetime(
                         out_df['latestTime'],
-                        format=IEX_QUOTE_DATE_FORMAT)
+                        format=ae_consts.IEX_QUOTE_DATE_FORMAT)
                 if 'latestUpdate' in columns_list:
                     out_df['latest_update'] = pd.to_datetime(
                         out_df['latestUpdate'],
@@ -325,7 +308,7 @@ def ingress_scrub_dataset(
                         out_df['closeTime'],
                         unit='ns')
                 # end if label is in df
-            elif datafeed_type == DATAFEED_STATS:
+            elif datafeed_type == iex_consts.DATAFEED_STATS:
                 log.info(
                     '{} - {} - no scrub_mode={} '
                     'support'.format(
@@ -336,7 +319,7 @@ def ingress_scrub_dataset(
                     out_df['date'] = pd.to_datetime(
                         df['label'],
                         format=daily_date_format)
-            elif datafeed_type == DATAFEED_PEERS:
+            elif datafeed_type == iex_consts.DATAFEED_PEERS:
                 log.info(
                     '{} - {} - no scrub_mode={} '
                     'support'.format(
@@ -347,7 +330,7 @@ def ingress_scrub_dataset(
                     out_df['date'] = pd.to_datetime(
                         df['label'],
                         format=daily_date_format)
-            elif datafeed_type == DATAFEED_NEWS:
+            elif datafeed_type == iex_consts.DATAFEED_NEWS:
                 log.info(
                     '{} - {} - no scrub_mode={} '
                     'support'.format(
@@ -358,7 +341,7 @@ def ingress_scrub_dataset(
                     out_df['date'] = pd.to_datetime(
                         df['label'],
                         format=daily_date_format)
-            elif datafeed_type == DATAFEED_FINANCIALS:
+            elif datafeed_type == iex_consts.DATAFEED_FINANCIALS:
                 log.info(
                     '{} - {} - no scrub_mode={} '
                     'support'.format(
@@ -369,7 +352,7 @@ def ingress_scrub_dataset(
                     out_df['date'] = pd.to_datetime(
                         df['label'],
                         format=daily_date_format)
-            elif datafeed_type == DATAFEED_EARNINGS:
+            elif datafeed_type == iex_consts.DATAFEED_EARNINGS:
                 log.info(
                     '{} - {} - no scrub_mode={} '
                     'support'.format(
@@ -380,7 +363,7 @@ def ingress_scrub_dataset(
                     out_df['date'] = pd.to_datetime(
                         df['label'],
                         format=daily_date_format)
-            elif datafeed_type == DATAFEED_DIVIDENDS:
+            elif datafeed_type == iex_consts.DATAFEED_DIVIDENDS:
                 log.info(
                     '{} - {} - no scrub_mode={} '
                     'support'.format(
@@ -391,7 +374,7 @@ def ingress_scrub_dataset(
                     out_df['date'] = pd.to_datetime(
                         df['label'],
                         format=daily_date_format)
-            elif datafeed_type == DATAFEED_COMPANY:
+            elif datafeed_type == iex_consts.DATAFEED_COMPANY:
                 log.info(
                     '{} - {} - no scrub_mode={} '
                     'support'.format(
@@ -402,7 +385,7 @@ def ingress_scrub_dataset(
                     out_df['date'] = pd.to_datetime(
                         df['label'],
                         format=daily_date_format)
-            elif datafeed_type == DATAFEED_PRICING_YAHOO:
+            elif datafeed_type == yahoo_consts.DATAFEED_PRICING_YAHOO:
                 log.info(
                     '{} - {} - no scrub_mode={} '
                     'support'.format(
@@ -413,7 +396,7 @@ def ingress_scrub_dataset(
                     out_df['date'] = pd.to_datetime(
                         df['date'],
                         format=daily_date_format)
-            elif datafeed_type == DATAFEED_OPTIONS_YAHOO:
+            elif datafeed_type == yahoo_consts.DATAFEED_OPTIONS_YAHOO:
                 log.info(
                     '{} - {} - no scrub_mode={} '
                     'support'.format(
@@ -424,7 +407,7 @@ def ingress_scrub_dataset(
                     out_df['date'] = pd.to_datetime(
                         df['date'],
                         format=daily_date_format)
-            elif datafeed_type == DATAFEED_NEWS_YAHOO:
+            elif datafeed_type == yahoo_consts.DATAFEED_NEWS_YAHOO:
                 log.info(
                     '{} - {} - no scrub_mode={} '
                     'support'.format(
@@ -492,7 +475,7 @@ def extract_scrub_dataset(
     :param datafeed_type: ``analysis_engine.iex.consts.DATAFEED_*`` type
         or ``analysis_engine.yahoo.consts.DATAFEED_*```
         type
-        ::
+        .. code-block:: python
 
             DATAFEED_DAILY = 900
             DATAFEED_MINUTE = 901
