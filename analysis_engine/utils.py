@@ -9,26 +9,49 @@ import analysis_engine.consts as ae_consts
 def last_close():
     """last close
 
-    Get Last Trading Close Date
+    Get last trading close time as a python ``datetime``
+
+    How it works:
+
+    - During market hours the returned ``datetime`` will be
+        ``datetime.datetime.utcnow() - datetime.timedelta(hours=5)``
+    - Before or after market hours, the returned ``datetime``
+        will be 4:00 PM EST on the previous trading day which
+        could be a Friday if this is called on a Saturday or Sunday.
 
     .. note:: does not detect holidays and non-trading
-              days yet
-
-    last_close - get the last close trading date
+        days yet and assumes the system time is
+        set to EST or UTC
     """
-    today = datetime.date.today()
+    now = (
+        datetime.datetime.utcnow() - datetime.timedelta(hours=5))
+    today = now.date()
     close = datetime.datetime(
         year=today.year,
         month=today.month,
         day=today.day,
         hour=16)
+    market_start_time = datetime.datetime(
+        year=today.year,
+        month=today.month,
+        day=today.day,
+        hour=9,
+        minute=30)
+    market_end_time = datetime.datetime(
+        year=today.year,
+        month=today.month,
+        day=today.day,
+        hour=16,
+        minute=00)
 
     if today.weekday() == 5:
         return close - datetime.timedelta(days=1)
     elif today.weekday() == 6:
         return close - datetime.timedelta(days=2)
+    elif market_start_time <= now <= market_end_time:
+        return now
     else:
-        if datetime.datetime.now().hour < 16:
+        if now.hour < 16:
             close -= datetime.timedelta(days=1)
             if close.weekday() == 5:  # saturday
                 return close - datetime.timedelta(days=1)

@@ -10,8 +10,9 @@ import pandas as pd
 import pyEX as p
 import string
 import warnings
+import analysis_engine.utils as ae_utils
 warnings.filterwarnings("ignore")  # noqa
-from spylunking.log.setup_logging import build_colorized_logger
+import spylunking.log.setup_logging as log_utils
 from trading_calendars import get_calendar
 from datetime import datetime
 from datetime import date
@@ -24,8 +25,7 @@ _OVERRIDES = {
     'PCLN': 'BKNG'
 }
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def parse_args(argv):
@@ -113,29 +113,6 @@ def today():
 def this_week():
     """start of week"""
     return today() - timedelta(days=datetime.today().isoweekday() % 7)
-
-
-def last_close():
-    """last close"""
-    today = date.today()
-    close = datetime(
-        year=today.year,
-        month=today.month,
-        day=today.day, hour=16)
-
-    if today.weekday() == 5:
-        return close - timedelta(days=1)
-    elif today.weekday() == 6:
-        return close - timedelta(days=2)
-    else:
-        if datetime.now().hour < 16:
-            close -= timedelta(days=1)
-            if close.weekday() == 5:  # saturday
-                return close - timedelta(days=1)
-            elif close.weekday() == 6:  # sunday
-                return close - timedelta(days=2)
-            return close
-        return close
 
 
 def yesterday():
@@ -227,10 +204,10 @@ def holidays():
         'NYSE').regular_holidays.holidays().to_pydatetime().tolist()
 
 
-def business_days(start, end=last_close()):
+def business_days(start, end=ae_utils.last_close()):
     """business_days"""
     ret = []
-    while start < last_close():
+    while start < end:
         is_a_business_day = (
             start not in holidays() and
             start.weekday() != 6 and start.weekday() != 5)
@@ -251,7 +228,7 @@ def get_days_between_dates(
     """
     use_last_close = last_close_to_use
     if not use_last_close:
-        use_last_close = last_close()
+        use_last_close = ae_utils.last_close()
 
     dates = []
     while from_historical_date < last_close_to_use:
