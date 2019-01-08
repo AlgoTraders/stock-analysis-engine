@@ -25,7 +25,7 @@ This will pull pricing data from IEX (free for now) and Tradier (requires an `ac
 
     fetch -t SPY
 
-.. note:: Yahoo `disabled the YQL finance API so fetching pricing data from yahoo is disabled by default <https://developer.yahoo.com/yql/>`__:
+.. note:: Yahoo `disabled the YQL finance API so fetching pricing data from yahoo is disabled by default <https://developer.yahoo.com/yql/>`__
 
 Run a Custom Minute-by-Minute Intraday Algorithm Backtest and Plot the Trading History
 ======================================================================================

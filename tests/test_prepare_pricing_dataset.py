@@ -291,8 +291,7 @@ class TestPreparePricingDataset(BaseTestCase):
     def test_redis_get_no_data_found_for_prepare_pricing_err(self):
         """test_redis_get_no_data_found_for_prepare_pricing_err"""
         expected_err = (
-            'prepare ERR failed loading from bucket=pricing '
-            's3_key=')
+            'prepare ERR failed loading from bucket')
         test_name = 'test_redis_get_no_data_found_for_prepare_pricing_err'
         redis_key = self.build_test_key(
             test_name=test_name)
