@@ -85,7 +85,8 @@ def extract_pricing_dataset(
             port=redis_port,
             db=redis_db,
             password=work_dict.get('password', None),
-            key=redis_key)
+            key=redis_key,
+            decompress_df=True)
 
         status = redis_rec['status']
         log.debug(
@@ -219,7 +220,8 @@ def extract_yahoo_news_dataset(
             port=redis_port,
             db=redis_db,
             password=work_dict.get('password', None),
-            key=redis_key)
+            key=redis_key,
+            decompress_df=True)
 
         status = redis_rec['status']
         log.debug(
@@ -349,7 +351,8 @@ def extract_option_calls_dataset(
             port=redis_port,
             db=redis_db,
             password=work_dict.get('password', None),
-            key=redis_key)
+            key=redis_key,
+            decompress_df=True)
 
         status = redis_rec['status']
         log.debug(
@@ -492,7 +495,8 @@ def extract_option_puts_dataset(
             port=redis_port,
             db=redis_db,
             password=work_dict.get('password', None),
-            key=redis_key)
+            key=redis_key,
+            decompress_df=True)
 
         status = redis_rec['status']
         log.debug(

@@ -9,55 +9,13 @@ Task supports:
 """
 
 import datetime
-import analysis_engine.iex.utils as iex_utils
 import pandas as pd
-from analysis_engine.consts import TICKER
-from analysis_engine.consts import TICKER_ID
-from analysis_engine.consts import COMMON_DATE_FORMAT
-from analysis_engine.consts import COMMON_TICK_DATE_FORMAT
-from analysis_engine.consts import CACHE_DICT_VERSION
-from analysis_engine.consts import DAILY_S3_BUCKET_NAME
-from analysis_engine.consts import MINUTE_S3_BUCKET_NAME
-from analysis_engine.consts import QUOTE_S3_BUCKET_NAME
-from analysis_engine.consts import STATS_S3_BUCKET_NAME
-from analysis_engine.consts import PEERS_S3_BUCKET_NAME
-from analysis_engine.consts import NEWS_S3_BUCKET_NAME
-from analysis_engine.consts import FINANCIALS_S3_BUCKET_NAME
-from analysis_engine.consts import EARNINGS_S3_BUCKET_NAME
-from analysis_engine.consts import DIVIDENDS_S3_BUCKET_NAME
-from analysis_engine.consts import COMPANY_S3_BUCKET_NAME
-from analysis_engine.consts import PREPARE_S3_BUCKET_NAME
-from analysis_engine.consts import ANALYZE_S3_BUCKET_NAME
-from analysis_engine.consts import SCREENER_S3_BUCKET_NAME
-from analysis_engine.consts import PRICING_S3_BUCKET_NAME
-from analysis_engine.consts import OPTIONS_S3_BUCKET_NAME
-from analysis_engine.consts import S3_BUCKET
-from analysis_engine.consts import S3_COMPILED_BUCKET
-from analysis_engine.consts import SERVICE_VALS
-from analysis_engine.consts import IEX_DATASETS_DEFAULT
-from analysis_engine.utils import get_last_close_str
-from analysis_engine.utils import utc_date_str
-from analysis_engine.utils import utc_now_str
-from analysis_engine.iex.consts import FETCH_DAILY
-from analysis_engine.iex.consts import FETCH_MINUTE
-from analysis_engine.iex.consts import FETCH_QUOTE
-from analysis_engine.iex.consts import FETCH_STATS
-from analysis_engine.iex.consts import FETCH_PEERS
-from analysis_engine.iex.consts import FETCH_NEWS
-from analysis_engine.iex.consts import FETCH_FINANCIALS
-from analysis_engine.iex.consts import FETCH_EARNINGS
-from analysis_engine.iex.consts import FETCH_DIVIDENDS
-from analysis_engine.iex.consts import FETCH_COMPANY
-from analysis_engine.iex.consts import DATAFEED_DAILY
-from analysis_engine.iex.consts import DATAFEED_MINUTE
-from analysis_engine.iex.consts import DATAFEED_QUOTE
-from analysis_engine.iex.consts import DATAFEED_STATS
-from analysis_engine.iex.consts import DATAFEED_PEERS
-from analysis_engine.iex.consts import DATAFEED_NEWS
-from analysis_engine.iex.consts import DATAFEED_FINANCIALS
-from analysis_engine.iex.consts import DATAFEED_EARNINGS
-from analysis_engine.iex.consts import DATAFEED_DIVIDENDS
-from analysis_engine.iex.consts import DATAFEED_COMPANY
+import analysis_engine.consts as ae_consts
+import analysis_engine.utils as ae_utils
+import analysis_engine.iex.consts as iex_consts
+import analysis_engine.iex.utils as iex_utils
+import analysis_engine.td.consts as td_consts
+import analysis_engine.options_dates as opt_dates
 
 
 def get_ds_dict(
@@ -94,54 +52,61 @@ def get_ds_dict(
     if not use_base_key:
         use_base_key = '{}_{}'.format(
             ticker,
-            get_last_close_str(fmt=COMMON_DATE_FORMAT))
+            ae_utils.get_last_close_str(
+                fmt=ae_consts.COMMON_DATE_FORMAT))
 
-    date_str = utc_date_str(fmt=COMMON_DATE_FORMAT)
-    now_str = utc_now_str(fmt=COMMON_TICK_DATE_FORMAT)
+    date_str = ae_utils.utc_date_str(
+        fmt=ae_consts.COMMON_DATE_FORMAT)
+    now_str = ae_utils.utc_now_str(
+        fmt=ae_consts.COMMON_TICK_DATE_FORMAT)
 
     daily_redis_key = '{}_{}'.format(
         use_base_key,
-        DAILY_S3_BUCKET_NAME)
+        ae_consts.DAILY_S3_BUCKET_NAME)
     minute_redis_key = '{}_{}'.format(
         use_base_key,
-        MINUTE_S3_BUCKET_NAME)
+        ae_consts.MINUTE_S3_BUCKET_NAME)
     quote_redis_key = '{}_{}'.format(
         use_base_key,
-        QUOTE_S3_BUCKET_NAME)
+        ae_consts.QUOTE_S3_BUCKET_NAME)
     stats_redis_key = '{}_{}'.format(
         use_base_key,
-        STATS_S3_BUCKET_NAME)
+        ae_consts.STATS_S3_BUCKET_NAME)
     peers_redis_key = '{}_{}'.format(
         use_base_key,
-        PEERS_S3_BUCKET_NAME)
+        ae_consts.PEERS_S3_BUCKET_NAME)
     news_iex_redis_key = '{}_{}1'.format(
         use_base_key,
-        NEWS_S3_BUCKET_NAME)
+        ae_consts.NEWS_S3_BUCKET_NAME)
     financials_redis_key = '{}_{}'.format(
         use_base_key,
-        FINANCIALS_S3_BUCKET_NAME)
+        ae_consts.FINANCIALS_S3_BUCKET_NAME)
     earnings_redis_key = '{}_{}'.format(
         use_base_key,
-        EARNINGS_S3_BUCKET_NAME)
+        ae_consts.EARNINGS_S3_BUCKET_NAME)
     dividends_redis_key = '{}_{}'.format(
         use_base_key,
-        DIVIDENDS_S3_BUCKET_NAME)
+        ae_consts.DIVIDENDS_S3_BUCKET_NAME)
     company_redis_key = '{}_{}'.format(
         use_base_key,
-        COMPANY_S3_BUCKET_NAME)
+        ae_consts.COMPANY_S3_BUCKET_NAME)
     options_yahoo_redis_key = '{}_{}'.format(
         use_base_key,
-        OPTIONS_S3_BUCKET_NAME)
+        ae_consts.OPTIONS_S3_BUCKET_NAME)
     call_options_yahoo_redis_key = '{}_calls'.format(
         use_base_key)
     put_options_yahoo_redis_key = '{}_puts'.format(
         use_base_key)
     pricing_yahoo_redis_key = '{}_{}'.format(
         use_base_key,
-        PRICING_S3_BUCKET_NAME)
+        ae_consts.PRICING_S3_BUCKET_NAME)
     news_yahoo_redis_key = '{}_{}'.format(
         use_base_key,
-        NEWS_S3_BUCKET_NAME)
+        ae_consts.NEWS_S3_BUCKET_NAME)
+    call_options_td_redis_key = '{}_tdcalls'.format(
+        use_base_key)
+    put_options_td_redis_key = '{}_tdputs'.format(
+        use_base_key)
 
     ds_cache_dict = {
         'daily': daily_redis_key,
@@ -159,20 +124,22 @@ def get_ds_dict(
         'puts': put_options_yahoo_redis_key,
         'pricing': pricing_yahoo_redis_key,
         'news': news_yahoo_redis_key,
+        'tdcalls': call_options_td_redis_key,
+        'tdputs': put_options_td_redis_key,
         'ticker': ticker,
         'ds_id': ds_id,
         'label': label,
         'created': now_str,
         'date': date_str,
         'manifest_key': use_base_key,
-        'version': CACHE_DICT_VERSION
+        'version': ae_consts.CACHE_DICT_VERSION
     }
 
     # set keys/values for redis/minio from the
     # service_dict - helper method for
     # launching job chains
     if service_dict:
-        for k in SERVICE_VALS:
+        for k in ae_consts.SERVICE_VALS:
             ds_cache_dict[k] = service_dict[k]
 
     return ds_cache_dict
@@ -190,13 +157,13 @@ def build_get_new_pricing_request(
 
     :param label: log label to use
     """
-    ticker = TICKER
-    ticker_id = TICKER_ID
+    ticker = ae_consts.TICKER
+    ticker_id = ae_consts.TICKER_ID
     base_key = '{}_{}'.format(
         ticker,
         datetime.datetime.utcnow().strftime(
             '%Y_%m_%d_%H_%M_%S'))
-    s3_bucket_name = S3_BUCKET
+    s3_bucket_name = ae_consts.S3_BUCKET
     s3_key = base_key
     redis_key = base_key
     use_strike = None
@@ -389,13 +356,13 @@ def build_publish_pricing_request(
 
     :param label: log label to use
     """
-    ticker = TICKER
-    ticker_id = TICKER_ID
+    ticker = ae_consts.TICKER
+    ticker_id = ae_consts.TICKER_ID
     base_key = '{}_{}'.format(
         ticker,
         datetime.datetime.utcnow().strftime(
             '%Y_%m_%d_%H_%M_%S'))
-    s3_bucket_name = S3_BUCKET
+    s3_bucket_name = ae_consts.S3_BUCKET
     s3_key = base_key
     redis_key = base_key
     use_strike = None
@@ -431,13 +398,13 @@ def build_publish_from_s3_to_redis_request(
 
     :param label: log label to use
     """
-    ticker = TICKER
-    ticker_id = TICKER_ID
+    ticker = ae_consts.TICKER
+    ticker_id = ae_consts.TICKER_ID
     base_key = '{}_{}'.format(
         ticker,
         datetime.datetime.utcnow().strftime(
             '%Y_%m_%d_%H_%M_%S'))
-    s3_bucket_name = S3_BUCKET
+    s3_bucket_name = ae_consts.S3_BUCKET
     s3_key = base_key
     redis_key = base_key
     s3_enabled = True
@@ -471,10 +438,10 @@ def build_publish_ticker_aggregate_from_s3_request(
 
     :param label: log label to use
     """
-    ticker = TICKER
-    ticker_id = TICKER_ID
-    s3_bucket_name = S3_BUCKET
-    s3_compiled_bucket_name = S3_COMPILED_BUCKET
+    ticker = ae_consts.TICKER
+    ticker_id = ae_consts.TICKER_ID
+    s3_bucket_name = ae_consts.S3_BUCKET
+    s3_compiled_bucket_name = ae_consts.S3_COMPILED_BUCKET
     s3_key = '{}_latest'.format(ticker)
     redis_key = '{}_latest'.format(ticker)
     s3_enabled = True
@@ -509,16 +476,16 @@ def build_prepare_dataset_request(
 
     :param label: log label to use
     """
-    ticker = TICKER
-    ticker_id = TICKER_ID
+    ticker = ae_consts.TICKER
+    ticker_id = ae_consts.TICKER_ID
     base_key = '{}_{}'.format(
         ticker,
         datetime.datetime.utcnow().strftime(
             '%Y_%m_%d_%H_%M_%S'))
-    s3_bucket_name = S3_BUCKET
+    s3_bucket_name = ae_consts.S3_BUCKET
     s3_key = base_key
     redis_key = base_key
-    s3_prepared_bucket_name = PREPARE_S3_BUCKET_NAME
+    s3_prepared_bucket_name = ae_consts.PREPARE_S3_BUCKET_NAME
     s3_prepared_key = '{}.csv'.format(
         base_key)
     redis_prepared_key = '{}'.format(
@@ -559,16 +526,16 @@ def build_analyze_dataset_request(
 
     :param label: log label to use
     """
-    ticker = TICKER
-    ticker_id = TICKER_ID
+    ticker = ae_consts.TICKER
+    ticker_id = ae_consts.TICKER_ID
     base_key = '{}_{}'.format(
         ticker,
         datetime.datetime.utcnow().strftime(
             '%Y_%m_%d_%H_%M_%S'))
-    s3_bucket_name = PREPARE_S3_BUCKET_NAME
+    s3_bucket_name = ae_consts.PREPARE_S3_BUCKET_NAME
     s3_key = base_key
     redis_key = base_key
-    s3_analyzed_bucket_name = ANALYZE_S3_BUCKET_NAME
+    s3_analyzed_bucket_name = ae_consts.ANALYZE_S3_BUCKET_NAME
     s3_analyzed_key = '{}.csv'.format(
         base_key)
     redis_analyzed_key = '{}'.format(
@@ -611,20 +578,20 @@ def build_iex_fetch_daily_request(
 
     :param label: log label to use
     """
-    ticker = TICKER
+    ticker = ae_consts.TICKER
     base_key = '{}_daily_{}'.format(
         ticker,
         datetime.datetime.utcnow().strftime(
             '%Y_%m_%d_%H_%M_%S'))
-    s3_bucket_name = DAILY_S3_BUCKET_NAME
+    s3_bucket_name = ae_consts.DAILY_S3_BUCKET_NAME
     s3_key = base_key
     redis_key = base_key
     s3_enabled = True
     redis_enabled = True
 
     work = {
-        'ft_type': FETCH_DAILY,
-        'fd_type': DATAFEED_DAILY,
+        'ft_type': iex_consts.FETCH_DAILY,
+        'fd_type': iex_consts.DATAFEED_DAILY,
         'ticker': ticker,
         'timeframe': '5y',
         's3_bucket': s3_bucket_name,
@@ -650,20 +617,20 @@ def build_iex_fetch_minute_request(
 
     :param label: log label to use
     """
-    ticker = TICKER
+    ticker = ae_consts.TICKER
     base_key = '{}_minute_{}'.format(
         ticker,
         datetime.datetime.utcnow().strftime(
             '%Y_%m_%d_%H_%M_%S'))
-    s3_bucket_name = MINUTE_S3_BUCKET_NAME
+    s3_bucket_name = ae_consts.MINUTE_S3_BUCKET_NAME
     s3_key = base_key
     redis_key = base_key
     s3_enabled = True
     redis_enabled = True
 
     work = {
-        'ft_type': FETCH_MINUTE,
-        'fd_type': DATAFEED_MINUTE,
+        'ft_type': iex_consts.FETCH_MINUTE,
+        'fd_type': iex_consts.DATAFEED_MINUTE,
         'ticker': ticker,
         'timeframe': '1d',
         'from': iex_utils.last_month().strftime(
@@ -692,20 +659,20 @@ def build_iex_fetch_quote_request(
 
     :param label: log label to use
     """
-    ticker = TICKER
+    ticker = ae_consts.TICKER
     base_key = '{}_quote_{}'.format(
         ticker,
         datetime.datetime.utcnow().strftime(
             '%Y_%m_%d_%H_%M_%S'))
-    s3_bucket_name = QUOTE_S3_BUCKET_NAME
+    s3_bucket_name = ae_consts.QUOTE_S3_BUCKET_NAME
     s3_key = base_key
     redis_key = base_key
     s3_enabled = True
     redis_enabled = True
 
     work = {
-        'ft_type': FETCH_QUOTE,
-        'fd_type': DATAFEED_QUOTE,
+        'ft_type': iex_consts.FETCH_QUOTE,
+        'fd_type': iex_consts.DATAFEED_QUOTE,
         'ticker': ticker,
         's3_bucket': s3_bucket_name,
         's3_key': s3_key,
@@ -729,20 +696,20 @@ def build_iex_fetch_stats_request(
 
     :param label: log label to use
     """
-    ticker = TICKER
+    ticker = ae_consts.TICKER
     base_key = '{}_stat_{}'.format(
         ticker,
         datetime.datetime.utcnow().strftime(
             '%Y_%m_%d_%H_%M_%S'))
-    s3_bucket_name = STATS_S3_BUCKET_NAME
+    s3_bucket_name = ae_consts.STATS_S3_BUCKET_NAME
     s3_key = base_key
     redis_key = base_key
     s3_enabled = True
     redis_enabled = True
 
     work = {
-        'ft_type': FETCH_STATS,
-        'fd_type': DATAFEED_STATS,
+        'ft_type': iex_consts.FETCH_STATS,
+        'fd_type': iex_consts.DATAFEED_STATS,
         'ticker': ticker,
         'from': iex_utils.last_month().strftime(
             '%Y-%m-%d %H:%M:%S'),
@@ -768,20 +735,20 @@ def build_iex_fetch_peers_request(
 
     :param label: log label to use
     """
-    ticker = TICKER
+    ticker = ae_consts.TICKER
     base_key = '{}_peer_{}'.format(
         ticker,
         datetime.datetime.utcnow().strftime(
             '%Y_%m_%d_%H_%M_%S'))
-    s3_bucket_name = PEERS_S3_BUCKET_NAME
+    s3_bucket_name = ae_consts.PEERS_S3_BUCKET_NAME
     s3_key = base_key
     redis_key = base_key
     s3_enabled = True
     redis_enabled = True
 
     work = {
-        'ft_type': FETCH_PEERS,
-        'fd_type': DATAFEED_PEERS,
+        'ft_type': iex_consts.FETCH_PEERS,
+        'fd_type': iex_consts.DATAFEED_PEERS,
         'ticker': ticker,
         'timeframe': '1d',
         'from': iex_utils.last_month().strftime(
@@ -808,20 +775,20 @@ def build_iex_fetch_news_request(
 
     :param label: log label to use
     """
-    ticker = TICKER
+    ticker = ae_consts.TICKER
     base_key = '{}_news_{}'.format(
         ticker,
         datetime.datetime.utcnow().strftime(
             '%Y_%m_%d_%H_%M_%S'))
-    s3_bucket_name = NEWS_S3_BUCKET_NAME
+    s3_bucket_name = ae_consts.NEWS_S3_BUCKET_NAME
     s3_key = base_key
     redis_key = base_key
     s3_enabled = True
     redis_enabled = True
 
     work = {
-        'ft_type': FETCH_NEWS,
-        'fd_type': DATAFEED_NEWS,
+        'ft_type': iex_consts.FETCH_NEWS,
+        'fd_type': iex_consts.DATAFEED_NEWS,
         'ticker': ticker,
         'timeframe': '1d',
         'from': iex_utils.last_month().strftime(
@@ -848,20 +815,20 @@ def build_iex_fetch_financials_request(
 
     :param label: log label to use
     """
-    ticker = TICKER
+    ticker = ae_consts.TICKER
     base_key = '{}_financial_{}'.format(
         ticker,
         datetime.datetime.utcnow().strftime(
             '%Y_%m_%d_%H_%M_%S'))
-    s3_bucket_name = FINANCIALS_S3_BUCKET_NAME
+    s3_bucket_name = ae_consts.FINANCIALS_S3_BUCKET_NAME
     s3_key = base_key
     redis_key = base_key
     s3_enabled = True
     redis_enabled = True
 
     work = {
-        'ft_type': FETCH_FINANCIALS,
-        'fd_type': DATAFEED_FINANCIALS,
+        'ft_type': iex_consts.FETCH_FINANCIALS,
+        'fd_type': iex_consts.DATAFEED_FINANCIALS,
         'ticker': ticker,
         'timeframe': '1d',
         'from': iex_utils.last_month().strftime(
@@ -888,20 +855,20 @@ def build_iex_fetch_earnings_request(
 
     :param label: log label to use
     """
-    ticker = TICKER
+    ticker = ae_consts.TICKER
     base_key = '{}_earning_{}'.format(
         ticker,
         datetime.datetime.utcnow().strftime(
             '%Y_%m_%d_%H_%M_%S'))
-    s3_bucket_name = EARNINGS_S3_BUCKET_NAME
+    s3_bucket_name = ae_consts.EARNINGS_S3_BUCKET_NAME
     s3_key = base_key
     redis_key = base_key
     s3_enabled = True
     redis_enabled = True
 
     work = {
-        'ft_type': FETCH_EARNINGS,
-        'fd_type': DATAFEED_EARNINGS,
+        'ft_type': iex_consts.FETCH_EARNINGS,
+        'fd_type': iex_consts.DATAFEED_EARNINGS,
         'ticker': ticker,
         'timeframe': '1d',
         'from': iex_utils.last_month().strftime(
@@ -928,20 +895,20 @@ def build_iex_fetch_dividends_request(
 
     :param label: log label to use
     """
-    ticker = TICKER
+    ticker = ae_consts.TICKER
     base_key = '{}_dividend_{}'.format(
         ticker,
         datetime.datetime.utcnow().strftime(
             '%Y_%m_%d_%H_%M_%S'))
-    s3_bucket_name = DIVIDENDS_S3_BUCKET_NAME
+    s3_bucket_name = ae_consts.DIVIDENDS_S3_BUCKET_NAME
     s3_key = base_key
     redis_key = base_key
     s3_enabled = True
     redis_enabled = True
 
     work = {
-        'ft_type': FETCH_DIVIDENDS,
-        'fd_type': DATAFEED_DIVIDENDS,
+        'ft_type': iex_consts.FETCH_DIVIDENDS,
+        'fd_type': iex_consts.DATAFEED_DIVIDENDS,
         'ticker': ticker,
         'timeframe': '2y',
         'from': iex_utils.last_month().strftime(
@@ -968,20 +935,20 @@ def build_iex_fetch_company_request(
 
     :param label: log label to use
     """
-    ticker = TICKER
+    ticker = ae_consts.TICKER
     base_key = '{}_company_{}'.format(
         ticker,
         datetime.datetime.utcnow().strftime(
             '%Y_%m_%d_%H_%M_%S'))
-    s3_bucket_name = COMPANY_S3_BUCKET_NAME
+    s3_bucket_name = ae_consts.COMPANY_S3_BUCKET_NAME
     s3_key = base_key
     redis_key = base_key
     s3_enabled = True
     redis_enabled = True
 
     work = {
-        'ft_type': FETCH_COMPANY,
-        'fd_type': DATAFEED_COMPANY,
+        'ft_type': iex_consts.FETCH_COMPANY,
+        'fd_type': iex_consts.DATAFEED_COMPANY,
         'ticker': ticker,
         'timeframe': '1d',
         'from': iex_utils.last_month().strftime(
@@ -1005,7 +972,7 @@ def build_screener_analysis_request(
         tickers=None,
         fv_urls=None,
         fetch_mode='iex',
-        iex_datasets=IEX_DATASETS_DEFAULT,
+        iex_datasets=ae_consts.IEX_DATASETS_DEFAULT,
         determine_sells=None,
         determine_buys=None,
         label='screener'):
@@ -1058,7 +1025,7 @@ def build_screener_analysis_request(
         if ticker.upper() not in use_tickers:
             use_tickers.append(ticker.upper())
 
-    s3_bucket_name = SCREENER_S3_BUCKET_NAME
+    s3_bucket_name = ae_consts.SCREENER_S3_BUCKET_NAME
     s3_enabled = True
     redis_enabled = True
 
@@ -1076,3 +1043,90 @@ def build_screener_analysis_request(
     }
     return req
 # end build_screener_analysis_request
+
+
+"""
+Tradier API Requests
+"""
+
+
+def build_td_fetch_calls_request(
+        label=None):
+    """build_td_fetch_calls_request
+
+    Fetch tradier calls
+
+    :param label: log label to use
+    """
+    ticker = ae_consts.TICKER
+    base_key = '{}_tdcalls_{}'.format(
+        ticker,
+        datetime.datetime.utcnow().strftime(
+            '%Y_%m_%d_%H_%M_%S'))
+    s3_bucket_name = 'tdcalls'
+    s3_key = base_key
+    redis_key = base_key
+    s3_enabled = True
+    redis_enabled = True
+
+    exp_date = opt_dates.option_expiration().strftime(
+        ae_consts.COMMON_DATE_FORMAT)
+
+    work = {
+        'ft_type': td_consts.FETCH_TD_CALLS,
+        'fd_type': td_consts.DATAFEED_TD_CALLS,
+        'ticker': ticker,
+        'exp_date': exp_date,
+        's3_bucket': s3_bucket_name,
+        's3_key': s3_key,
+        'redis_key': redis_key,
+        's3_enabled': s3_enabled,
+        'redis_enabled': redis_enabled
+    }
+
+    if label:
+        work['label'] = label
+
+    return work
+# end of build_td_fetch_calls_request
+
+
+def build_td_fetch_puts_request(
+        label=None):
+    """build_td_fetch_puts_request
+
+    Fetch tradier puts
+
+    :param label: log label to use
+    """
+    ticker = ae_consts.TICKER
+    base_key = '{}_tdputs_{}'.format(
+        ticker,
+        datetime.datetime.utcnow().strftime(
+            '%Y_%m_%d_%H_%M_%S'))
+    s3_bucket_name = 'tdputs'
+    s3_key = base_key
+    redis_key = base_key
+    s3_enabled = True
+    redis_enabled = True
+
+    exp_date = opt_dates.option_expiration().strftime(
+        ae_consts.COMMON_DATE_FORMAT)
+
+    work = {
+        'ft_type': td_consts.FETCH_TD_PUTS,
+        'fd_type': td_consts.DATAFEED_TD_PUTS,
+        'ticker': ticker,
+        'exp_date': exp_date,
+        's3_bucket': s3_bucket_name,
+        's3_key': s3_key,
+        'redis_key': redis_key,
+        's3_enabled': s3_enabled,
+        'redis_enabled': redis_enabled
+    }
+
+    if label:
+        work['label'] = label
+
+    return work
+# end of build_td_fetch_puts_request

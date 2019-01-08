@@ -11,10 +11,6 @@ Supported environment variables:
 """
 
 import os
-from spylunking.log.setup_logging import build_colorized_logger
-
-log = build_colorized_logger(
-    name=__name__)
 
 
 FETCH_DAILY = 800
@@ -65,11 +61,45 @@ FUNDAMENTAL_DATASETS = [
 ]
 
 ENV_FETCH_DATASETS = os.getenv(
-    'DEFAULT_FETCH_DATASETS',
+    'DEFAULT_FETCH_DATASETS_IEX',
     None)
-FETCH_DATASETS = DEFAULT_FETCH_DATASETS
 if ENV_FETCH_DATASETS:
-    FETCH_DATASETS = ENV_FETCH_DATASETS.split(',')
+    SPLIT_FETCH_DATASETS_IEX = ENV_FETCH_DATASETS.split(',')
+    DEFAULT_FETCH_DATASETS = []
+    for d in SPLIT_FETCH_DATASETS_IEX:
+        if d == 'minute':
+            DEFAULT_FETCH_DATASETS.append(
+                FETCH_MINUTE)
+        elif d == 'daily':
+            DEFAULT_FETCH_DATASETS.append(
+                FETCH_DAILY)
+        elif d == 'quote':
+            DEFAULT_FETCH_DATASETS.append(
+                FETCH_QUOTE)
+        elif d == 'stats':
+            DEFAULT_FETCH_DATASETS.append(
+                FETCH_STATS)
+        elif d == 'peers':
+            DEFAULT_FETCH_DATASETS.append(
+                FETCH_PEERS)
+        elif d == 'news':
+            DEFAULT_FETCH_DATASETS.append(
+                FETCH_NEWS)
+        elif d == 'financials':
+            DEFAULT_FETCH_DATASETS.append(
+                FETCH_FINANCIALS)
+        elif d == 'earnings':
+            DEFAULT_FETCH_DATASETS.append(
+                FETCH_EARNINGS)
+        elif d == 'dividends':
+            DEFAULT_FETCH_DATASETS.append(
+                FETCH_DIVIDENDS)
+        elif d == 'company':
+            DEFAULT_FETCH_DATASETS.append(
+                FETCH_COMPANY)
+# end of building env-datasets to get
+
+FETCH_DATASETS = DEFAULT_FETCH_DATASETS
 
 
 def get_ft_str(

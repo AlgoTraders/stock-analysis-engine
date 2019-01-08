@@ -6,11 +6,10 @@ dataset
 import json
 import zlib
 import pandas as pd
-from analysis_engine.consts import DEFAULT_SERIALIZED_DATASETS
-from spylunking.log.setup_logging import build_colorized_logger
+import analysis_engine.consts as ae_consts
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def prepare_dict_for_algo(
@@ -66,7 +65,7 @@ def prepare_dict_for_algo(
 
     use_serialized_datasets = dataset_names
     if not use_serialized_datasets:
-        use_serialized_datasets = DEFAULT_SERIALIZED_DATASETS
+        use_serialized_datasets = ae_consts.DEFAULT_SERIALIZED_DATASETS
     log.info(
         'converting serialized_datasets={}'.format(
             use_serialized_datasets))

@@ -4,17 +4,15 @@ Dataset Extraction API
 
 import os
 import json
+import analysis_engine.consts as ae_consts
+import analysis_engine.utils as ae_utils
 import analysis_engine.iex.extract_df_from_redis as iex_extract_utils
 import analysis_engine.yahoo.extract_df_from_redis as yahoo_extract_utils
-from analysis_engine.consts import SUCCESS
-from analysis_engine.consts import FAILED
-from analysis_engine.utils import get_last_close_str
-from analysis_engine.api_requests import get_ds_dict
-from spylunking.log.setup_logging import build_colorized_logger
+import analysis_engine.td.extract_df_from_redis as td_extract_utils
+import analysis_engine.api_requests as api_requests
+import spylunking.log.setup_logging as log_utils
 
-
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def extract(
@@ -228,7 +226,7 @@ def extract(
         label = 'get-latest'
 
     num_tickers = len(use_tickers)
-    last_close_str = get_last_close_str()
+    last_close_str = ae_utils.get_last_close_str()
 
     if iex_datasets:
         log.info(
@@ -287,19 +285,21 @@ def extract(
     Extract Datasets
     """
 
-    iex_daily_status = FAILED
-    iex_minute_status = FAILED
-    iex_quote_status = FAILED
-    iex_stats_status = FAILED
-    iex_peers_status = FAILED
-    iex_news_status = FAILED
-    iex_financials_status = FAILED
-    iex_earnings_status = FAILED
-    iex_dividends_status = FAILED
-    iex_company_status = FAILED
-    yahoo_news_status = FAILED
-    yahoo_options_status = FAILED
-    yahoo_pricing_status = FAILED
+    iex_daily_status = ae_consts.FAILED
+    iex_minute_status = ae_consts.FAILED
+    iex_quote_status = ae_consts.FAILED
+    iex_stats_status = ae_consts.FAILED
+    iex_peers_status = ae_consts.FAILED
+    iex_news_status = ae_consts.FAILED
+    iex_financials_status = ae_consts.FAILED
+    iex_earnings_status = ae_consts.FAILED
+    iex_dividends_status = ae_consts.FAILED
+    iex_company_status = ae_consts.FAILED
+    yahoo_news_status = ae_consts.FAILED
+    yahoo_options_status = ae_consts.FAILED
+    yahoo_pricing_status = ae_consts.FAILED
+    td_calls_status = ae_consts.FAILED
+    td_puts_status = ae_consts.FAILED
 
     iex_daily_df = None
     iex_minute_df = None
@@ -315,9 +315,11 @@ def extract(
     yahoo_option_puts_df = None
     yahoo_pricing_df = None
     yahoo_news_df = None
+    td_calls_df = None
+    td_puts_df = None
 
     for ticker in use_tickers:
-        req = get_ds_dict(
+        req = api_requests.get_ds_dict(
             ticker=ticker,
             base_key=common_vals['base_key'],
             ds_id=label,
@@ -333,12 +335,16 @@ def extract(
     if extract_mode not in ['all', 'yahoo']:
         extract_yahoo = False
 
+    extract_td = True
+    if extract_mode not in ['all', 'td']:
+        extract_td = False
+
     for extract_req in extract_requests:
         if 'daily' in iex_datasets or extract_iex:
             iex_daily_status, iex_daily_df = \
                 iex_extract_utils.extract_daily_dataset(
                     extract_req)
-            if iex_daily_status != SUCCESS:
+            if iex_daily_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
                         'unable to extract iex_daily={}'.format(ticker))
@@ -346,7 +352,7 @@ def extract(
             iex_minute_status, iex_minute_df = \
                 iex_extract_utils.extract_minute_dataset(
                     extract_req)
-            if iex_minute_status != SUCCESS:
+            if iex_minute_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
                         'unable to extract iex_minute={}'.format(ticker))
@@ -354,7 +360,7 @@ def extract(
             iex_quote_status, iex_quote_df = \
                 iex_extract_utils.extract_quote_dataset(
                     extract_req)
-            if iex_quote_status != SUCCESS:
+            if iex_quote_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
                         'unable to extract iex_quote={}'.format(ticker))
@@ -362,7 +368,7 @@ def extract(
             iex_stats_df, iex_stats_df = \
                 iex_extract_utils.extract_stats_dataset(
                     extract_req)
-            if iex_stats_status != SUCCESS:
+            if iex_stats_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
                         'unable to extract iex_stats={}'.format(ticker))
@@ -370,7 +376,7 @@ def extract(
             iex_peers_df, iex_peers_df = \
                 iex_extract_utils.extract_peers_dataset(
                     extract_req)
-            if iex_peers_status != SUCCESS:
+            if iex_peers_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
                         'unable to extract iex_peers={}'.format(ticker))
@@ -378,7 +384,7 @@ def extract(
             iex_news_status, iex_news_df = \
                 iex_extract_utils.extract_news_dataset(
                     extract_req)
-            if iex_news_status != SUCCESS:
+            if iex_news_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
                         'unable to extract iex_news={}'.format(ticker))
@@ -386,7 +392,7 @@ def extract(
             iex_financials_status, iex_financials_df = \
                 iex_extract_utils.extract_financials_dataset(
                     extract_req)
-            if iex_financials_status != SUCCESS:
+            if iex_financials_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
                         'unable to extract iex_financials={}'.format(ticker))
@@ -394,7 +400,7 @@ def extract(
             iex_earnings_status, iex_earnings_df = \
                 iex_extract_utils.extract_earnings_dataset(
                     extract_req)
-            if iex_earnings_status != SUCCESS:
+            if iex_earnings_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
                         'unable to extract iex_earnings={}'.format(ticker))
@@ -402,7 +408,7 @@ def extract(
             iex_dividends_status, iex_dividends_df = \
                 iex_extract_utils.extract_dividends_dataset(
                     extract_req)
-            if iex_dividends_status != SUCCESS:
+            if iex_dividends_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
                         'unable to extract iex_dividends={}'.format(ticker))
@@ -410,7 +416,7 @@ def extract(
             iex_company_status, iex_company_df = \
                 iex_extract_utils.extract_company_dataset(
                     extract_req)
-            if iex_company_status != SUCCESS:
+            if iex_company_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
                         'unable to extract iex_company={}'.format(ticker))
@@ -423,25 +429,42 @@ def extract(
             yahoo_options_status, yahoo_option_puts_df = \
                 yahoo_extract_utils.extract_option_puts_dataset(
                     extract_req)
-            if yahoo_options_status != SUCCESS:
+            if yahoo_options_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
                         'unable to extract yahoo_options={}'.format(ticker))
             yahoo_pricing_status, yahoo_pricing_df = \
                 yahoo_extract_utils.extract_pricing_dataset(
                     extract_req)
-            if yahoo_pricing_status != SUCCESS:
+            if yahoo_pricing_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
                         'unable to extract yahoo_pricing={}'.format(ticker))
             yahoo_news_status, yahoo_news_df = \
                 yahoo_extract_utils.extract_yahoo_news_dataset(
                     extract_req)
-            if yahoo_news_status != SUCCESS:
+            if yahoo_news_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
                         'unable to extract yahoo_news={}'.format(ticker))
         # end of yahoo extracts
+
+        if extract_td:
+            td_calls_status, td_calls_df = \
+                td_extract_utils.extract_option_calls_dataset(
+                    extract_req)
+            if td_calls_status != ae_consts.SUCCESS:
+                if verbose:
+                    log.warning(
+                        'unable to extract tdcalls={}'.format(ticker))
+            td_puts_status, td_puts_df = \
+                td_extract_utils.extract_option_puts_dataset(
+                    extract_req)
+            if td_puts_status != ae_consts.SUCCESS:
+                if verbose:
+                    log.warning(
+                        'unable to extract tdputs={}'.format(ticker))
+        # td extracts
 
         ticker_data = {}
         ticker_data['daily'] = iex_daily_df
@@ -458,6 +481,8 @@ def extract(
         ticker_data['puts'] = yahoo_option_puts_df
         ticker_data['pricing'] = yahoo_pricing_df
         ticker_data['news'] = yahoo_news_df
+        ticker_data['tdcalls'] = td_calls_df
+        ticker_data['tdputs'] = td_puts_df
 
         rec[ticker] = ticker_data
     # end of for service_dict in extract_requests

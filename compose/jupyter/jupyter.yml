@@ -1,0 +1,25 @@
+version: '2'
+
+services:
+
+  # Jupyter notebooks, converted noteooks as presentation html slides, and tensorboard
+  ae-jupyter:
+    container_name: "ae-jupyter"
+    hostname: "ae-jupyter"
+    image: jayjohnson/stock-analysis-jupyter:latest
+    tty: true
+    environment:
+      # reduce the logs printed to notebooks by loading a custom log config
+      - SHARED_LOG_CFG=/opt/sa/analysis_engine/log/error-logging.json
+    env_file:
+      - ../envs/jupyter.env
+    volumes:
+      # please run this from the repo
+      # base directory
+      - /data/sa/notebooks:/data/sa/notebooks
+    ports:
+      - "8888:8888"
+      - "8889:8889"
+      - "8890:8890"
+      - "6006:6006"
+    entrypoint: "/opt/sa/docker/jupyter/start-container.sh"

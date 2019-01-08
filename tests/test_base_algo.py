@@ -1,7 +1,7 @@
 """
 Test file for classes and functions:
 
-- analysis_engine.algo.BaseAlgo
+- analysis_engine.algo.base_algo.BaseAlgo
 - analysis_engine.run_algo.run_algo
 - analysis_engine.build_algo_request
 - analysis_engine.build_buy_order
@@ -18,6 +18,8 @@ import pandas as pd
 import mock
 import analysis_engine.show_dataset as show_dataset
 import analysis_engine.mocks.mock_talib as mock_talib
+import analysis_engine.algo as base_algo
+from analysis_engine.run_algo import run_algo
 from analysis_engine.mocks.mock_boto3_s3 import build_boto3_resource
 from analysis_engine.mocks.mock_redis import MockRedis
 from analysis_engine.mocks.base_test import BaseTestCase
@@ -35,8 +37,6 @@ from analysis_engine.build_sell_order import build_sell_order
 from analysis_engine.build_trade_history_entry import build_trade_history_entry
 from analysis_engine.build_publish_request import build_publish_request
 from analysis_engine.get_data_from_redis_key import get_data_from_redis_key
-from analysis_engine.algo import BaseAlgo
-from analysis_engine.run_algo import run_algo
 from types import SimpleNamespace
 
 
@@ -237,20 +237,24 @@ class TestBaseAlgo(BaseTestCase):
                         self.ticker,
                         idx))
                 """
-                self.assertTrue(
-                    ds_key in ds_data)
-                self.assertTrue(
-                    hasattr(
-                        ds_data[ds_key],
-                        'empty'))
-                self.assertTrue(
-                    hasattr(
-                        ds_data[ds_key],
-                        'to_json'))
-                self.assertTrue(
-                    hasattr(
-                        ds_data[ds_key],
-                        'index'))
+                if ds_key not in [
+                            'tdcalls',
+                            'tdputs'
+                        ]:
+                    self.assertTrue(
+                        ds_key in ds_data)
+                    self.assertTrue(
+                        hasattr(
+                            ds_data[ds_key],
+                            'empty'))
+                    self.assertTrue(
+                        hasattr(
+                            ds_data[ds_key],
+                            'to_json'))
+                    self.assertTrue(
+                        hasattr(
+                            ds_data[ds_key],
+                            'index'))
             # for all keys make sure the required fields exist
             idx += 1
         # for all ordered dataset nodes
@@ -593,7 +597,7 @@ class TestBaseAlgo(BaseTestCase):
     def test_run_daily(self):
         """test_run_daily"""
         test_name = 'test_run_daily'
-        algo = BaseAlgo(
+        algo = base_algo.BaseAlgo(
             ticker=self.ticker,
             balance=self.balance,
             timeseries=self.timeseries,
@@ -618,7 +622,7 @@ class TestBaseAlgo(BaseTestCase):
         new=mock_write_to_file)
     def test_run_daily_with_config(self):
         """test_run_daily_with_config"""
-        algo = BaseAlgo(
+        algo = base_algo.BaseAlgo(
             ticker=self.ticker,
             balance=self.balance,
             timeseries=self.timeseries,
@@ -643,7 +647,7 @@ class TestBaseAlgo(BaseTestCase):
         test_name = 'test_run_algo_daily'
         balance = self.balance
         commission = 13.5
-        algo = BaseAlgo(
+        algo = base_algo.BaseAlgo(
             ticker=self.ticker,
             balance=balance,
             commission=commission,
@@ -681,7 +685,7 @@ class TestBaseAlgo(BaseTestCase):
             'num_owned': 7,
             'balance': 2000.0
         }
-        demo_algo = BaseAlgo(
+        demo_algo = base_algo.BaseAlgo(
             ticker=ticker,
             balance=1000.00,
             commission=6.00,
@@ -718,7 +722,7 @@ class TestBaseAlgo(BaseTestCase):
     def test_sample_algo_code_in_docstring(self):
         """test_sample_algo_code_in_docstring"""
         ticker = 'SPY'
-        demo_algo = BaseAlgo(
+        demo_algo = base_algo.BaseAlgo(
             ticker=ticker,
             balance=1000.00,
             commission=6.00,
@@ -775,6 +779,8 @@ class TestBaseAlgo(BaseTestCase):
                         'financials': pd.DataFrame([]),
                         'stats': pd.DataFrame([]),
                         'peers': pd.DataFrame([]),
+                        'tdcalls': pd.DataFrame([]),
+                        'tdputs': pd.DataFrame([]),
                         'company': pd.DataFrame([])
                         # DEFAULT_SERIALIZED_DATASETS
                     }
@@ -848,7 +854,7 @@ class TestBaseAlgo(BaseTestCase):
         balance = self.balance
         commission = 13.5
 
-        class DerivedAlgoTest(BaseAlgo):
+        class DerivedAlgoTest(base_algo.BaseAlgo):
             """
             # alternative inheritance - python 2
             def __init__(
@@ -999,7 +1005,7 @@ class TestBaseAlgo(BaseTestCase):
         test_name = 'test_run_algo_daily'
         balance = self.balance
         commission = 13.5
-        algo = BaseAlgo(
+        algo = base_algo.BaseAlgo(
             ticker=self.ticker,
             balance=balance,
             commission=commission,
@@ -1074,7 +1080,7 @@ class TestBaseAlgo(BaseTestCase):
         test_name = 'test_run_algo_daily'
         balance = self.balance
         commission = 13.5
-        algo = BaseAlgo(
+        algo = base_algo.BaseAlgo(
             ticker=self.ticker,
             balance=balance,
             commission=commission,
@@ -1146,7 +1152,7 @@ class TestBaseAlgo(BaseTestCase):
         test_name = 'test_run_algo_daily'
         balance = self.balance
         commission = 13.5
-        algo = BaseAlgo(
+        algo = base_algo.BaseAlgo(
             ticker=self.ticker,
             balance=balance,
             commission=commission,
@@ -1221,7 +1227,7 @@ class TestBaseAlgo(BaseTestCase):
             'test_integration_algo_publish_input_dataset_to_redis')
         balance = self.balance
         commission = 13.5
-        algo = BaseAlgo(
+        algo = base_algo.BaseAlgo(
             ticker=self.ticker,
             balance=balance,
             commission=commission,
@@ -1301,7 +1307,7 @@ class TestBaseAlgo(BaseTestCase):
             'test_integration_algo_publish_input_dataset_to_file')
         balance = self.balance
         commission = 13.5
-        algo = BaseAlgo(
+        algo = base_algo.BaseAlgo(
             ticker=self.ticker,
             balance=balance,
             commission=commission,
@@ -1382,7 +1388,7 @@ class TestBaseAlgo(BaseTestCase):
                 test_name,
                 str(uuid.uuid4())))
         if len(files) == 0:
-            algo = BaseAlgo(
+            algo = base_algo.BaseAlgo(
                 ticker=self.ticker,
                 balance=self.balance,
                 commission=6.0,
@@ -1424,7 +1430,7 @@ class TestBaseAlgo(BaseTestCase):
             compress=False,
             redis_enabled=False,
             s3_enabled=False)
-        file_algo = BaseAlgo(
+        file_algo = base_algo.BaseAlgo(
             ticker=self.ticker,
             balance=self.balance,
             commission=6.0,
@@ -1447,7 +1453,7 @@ class TestBaseAlgo(BaseTestCase):
             'test_integration_algo_publish_input_s3_and_load')
         balance = self.balance
         commission = 13.5
-        algo = BaseAlgo(
+        algo = base_algo.BaseAlgo(
             ticker=self.ticker,
             balance=balance,
             commission=commission,
@@ -1532,7 +1538,7 @@ class TestBaseAlgo(BaseTestCase):
         print('starting s3 load integration test')
 
         load_config_req['s3_key'] = s3_key
-        s3_algo = BaseAlgo(
+        s3_algo = base_algo.BaseAlgo(
             ticker=self.ticker,
             balance=balance,
             commission=commission,
@@ -1555,7 +1561,7 @@ class TestBaseAlgo(BaseTestCase):
             'test_integration_algo_publish_input_redis_and_load')
         balance = self.balance
         commission = 13.5
-        algo = BaseAlgo(
+        algo = base_algo.BaseAlgo(
             ticker=self.ticker,
             balance=balance,
             commission=commission,
@@ -1640,7 +1646,7 @@ class TestBaseAlgo(BaseTestCase):
         print('starting redis publish integration test')
 
         load_config_req['redis_key'] = s3_key
-        redis_algo = BaseAlgo(
+        redis_algo = base_algo.BaseAlgo(
             ticker=self.ticker,
             balance=balance,
             commission=commission,
@@ -1661,7 +1667,7 @@ class TestBaseAlgo(BaseTestCase):
             'test_integration_algo_restore_ready_back_to_redis')
         balance = self.balance
         commission = 13.5
-        algo = BaseAlgo(
+        algo = base_algo.BaseAlgo(
             ticker=self.ticker,
             balance=balance,
             commission=commission,
@@ -1745,7 +1751,7 @@ class TestBaseAlgo(BaseTestCase):
         print('starting redis publish integration test')
 
         load_config_req['redis_key'] = s3_key
-        redis_algo = BaseAlgo(
+        redis_algo = base_algo.BaseAlgo(
             ticker=self.ticker,
             balance=balance,
             commission=commission,

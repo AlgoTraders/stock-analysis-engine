@@ -18,17 +18,12 @@ Debug redis calls with:
 
 import redis
 import pandas as pd
+import analysis_engine.consts as ae_consts
 import analysis_engine.build_result as build_result
 import analysis_engine.get_data_from_redis_key as redis_get
-from spylunking.log.setup_logging import build_colorized_logger
-from analysis_engine.consts import SUCCESS
-from analysis_engine.consts import NOT_RUN
-from analysis_engine.consts import ERR
-from analysis_engine.consts import ev
-from analysis_engine.consts import ppj
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def build_df_from_redis(
@@ -41,6 +36,7 @@ def build_df_from_redis(
         db=None,
         key=None,
         expire=None,
+        is_compressed=True,
         serializer='json',
         encoding='utf-8',
         orient='records'):
@@ -55,12 +51,15 @@ def build_df_from_redis(
     :param db: redis db
     :param key: redis key
     :param expire: not used yet - redis expire
+    :param is_compressed: optional boolean - the
+        object is a compressed string and the
+        default is ``True``
     :param serializer: support for future
-                       pickle objects in redis
+        pickle objects in redis
     :param encoding: format of the encoded key in redis
     :param orient: use the same orient value as
-                   the ``to_json(orient='records')`` used
-                   to deserialize the DataFrame correctly.
+        the ``to_json(orient='records')`` used
+        to deserialize the DataFrame correctly.
     """
 
     data = None
@@ -72,7 +71,7 @@ def build_df_from_redis(
         'data': data
     }
     res = build_result.build_result(
-        status=NOT_RUN,
+        status=ae_consts.NOT_RUN,
         err=None,
         rec=rec)
 
@@ -114,21 +113,22 @@ def build_df_from_redis(
             db=db,
             key=key,
             expire=expire,
+            decompress_df=is_compressed,
             serializer='json',
             encoding=encoding)
 
         valid_df = False
-        if redis_res['status'] == SUCCESS:
+        if redis_res['status'] == ae_consts.SUCCESS:
             data = redis_res['rec'].get(
                 'data',
                 None)
             if data:
-                if ev('DEBUG_REDIS', '0') == '1':
+                if ae_consts.ev('DEBUG_REDIS', '0') == '1':
                     log.info(
                         '{} - found key={} data={}'.format(
                             log_id,
                             key,
-                            ppj(data)))
+                            ae_consts.ppj(data)))
                 else:
                     log.debug(
                         '{} - loading df from key={}'.format(
@@ -149,7 +149,7 @@ def build_df_from_redis(
             rec['valid_df'] = valid_df
 
             res = build_result.build_result(
-                status=SUCCESS,
+                status=ae_consts.SUCCESS,
                 err=None,
                 rec=rec)
             return res
@@ -159,7 +159,7 @@ def build_df_from_redis(
                     log_id,
                     key))
             res = build_result.build_result(
-                status=SUCCESS,
+                status=ae_consts.SUCCESS,
                 err=None,
                 rec=rec)
             return res
@@ -173,7 +173,7 @@ def build_df_from_redis(
                 e))
         log.error(err)
         res = build_result.build_result(
-            status=ERR,
+            status=ae_consts.ERR,
             err=err,
             rec=rec)
     # end of try/ex for getting redis data

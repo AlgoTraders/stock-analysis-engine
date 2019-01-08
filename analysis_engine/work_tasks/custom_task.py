@@ -15,12 +15,11 @@ Debug values with the environment variable:
 """
 
 import celery
-from spylunking.log.setup_logging import build_colorized_logger
-from analysis_engine.consts import ev
-from analysis_engine.send_to_slack import post_failure
+import analysis_engine.consts as ae_consts
+import analysis_engine.send_to_slack as slack_utils
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 class CustomTask(celery.Task):
@@ -69,7 +68,7 @@ class CustomTask(celery.Task):
         self.build_log_label_from_args(
             args=args)
 
-        if ev('DEBUG_TASK', '0') == '1':
+        if ae_consts.ev('DEBUG_TASK', '0') == '1':
             log.info(
                 'on_success {} - retval={} task_id={} '
                 'args={} kwargs={}'.format(
@@ -112,7 +111,7 @@ class CustomTask(celery.Task):
             args=args)
 
         use_exc = str(exc)
-        if ev('DEBUG_TASK', '0') == '1':
+        if ae_consts.ev('DEBUG_TASK', '0') == '1':
             log.error(
                 'on_failure {} - exc={} '
                 'args={} kwargs={}'.format(
@@ -125,9 +124,10 @@ class CustomTask(celery.Task):
                 'on_failure {} - exc={} '.format(
                     self.log_label,
                     use_exc))
-        if ev('PROD_SLACK_ALERTS', '0') == '1':
-            post_failure(['on_failure {}'.format(self.log_label),
-                          'exc={}'.format(use_exc)])
+        if ae_consts.ev('PROD_SLACK_ALERTS', '0') == '1':
+            slack_utils.post_failure(['on_failure {}'.format(
+                self.log_label),
+                    'exc={}'.format(use_exc)])
     # end of on_failure
 
 # end of CustomTask

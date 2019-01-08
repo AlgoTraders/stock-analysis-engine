@@ -14,6 +14,8 @@ if [[ ! -e /data ]]; then
     sudo mkdir -p -m 777 /data/minio/data
     sudo mkdir -p -m 777 /data/sa/notebooks
     sudo mkdir -p -m 777 /data/sa/notebooks/dev
+    sudo mkdir -p -m 777 /data/sa/notebooks
+    sudo mkdir -p -m 777 /data/sa/notebooks/dev
     if [[ ! -e /data/registry ]]; then
         sudo mkdir -p -m 777 /data/registry
     fi
@@ -67,7 +69,7 @@ do
         compose="integration.yml"
     # end-to-end integration testing with notebook editing
     # over <repo base>/docker/notebooks:
-    elif [[ "${i}" == "-j" ]]; then
+    elif [[ "${i}" == "-j1" ]]; then
         debug="1"
         compose="notebook-integration.yml"
     # overriding notebooks
@@ -75,20 +77,29 @@ do
         debug="1"
         compose="notebook-integration.yml"
         rm -rf /data/sa/notebooks/
-        sudo mkdir -p -m 777 /data/sa/notebooks
-        sudo mkdir -p -m 777 /data/sa/notebooks/dev
         cp -r ./compose/docker/notebooks/* /data/sa/notebooks
     # automation - dataset collection
     elif [[ "${i}" == "-c" ]]; then
         debug="1"
         compose="automation-dataset-collection.yml"
-        workers=`ps auwwx | grep $USER | grep -i python | grep start_worker | awk '{print $2}'`
-        if [[ ! -z "$workers" ]]; then
-            echo $workers | xargs kill -9
+        # new v2 location that requires a new env file:
+        # ./compose/envs/fetch.env
+        # that is created manually
+        if [[ -e ./compose/fetch/fetch.yml ]]; then
+            compose="fetch/fetch.yml"
         fi
+    elif [[ "${i}" == "-b" ]]; then
+        debug="1"
+        compose="bt/backtester.yml"
+    elif [[ "${i}" == "-j" ]]; then
+        debug="1"
+        compose="jupyter/jupyter.yml"
     elif [[ "${i}" == "-r" ]]; then
         debug="1"
         compose="registry/registry.yml"
+    elif [[ "${i}" == "-s" ]]; then
+        debug="1"
+        compose="components/stack.yml"
     fi
 done
 
@@ -101,8 +112,16 @@ elif [[ "${compose}" == "notebook-integration.yml" ]]; then
     inf "starting end-to-end with notebook integration stack: redis, minio, workers and jupyter"
 elif [[ "${compose}" == "automation-dataset-collection.yml" ]]; then
     inf "starting dataset collection"
+elif [[ "${compose}" == "bt/backtester.yml" ]]; then
+    inf "starting backtester"
+elif [[ "${compose}" == "fetch/fetch.yml" ]]; then
+    inf "starting dataset collection - version 2"
+elif [[ "${compose}" == "jupyter/jupyter.yml" ]]; then
+    inf "starting jupyter - version 2"
 elif [[ "${compose}" == "registry/registry.yml" ]]; then
     inf "starting registry"
+elif [[ "${compose}" == "components/stack.yml" ]]; then
+    inf "starting stack: workers, backtester and jupyter"
 else
     err "unsupported compose file: ${compose}"
     exit 1
@@ -113,69 +132,7 @@ if [[ ! -e ./${compose} ]]; then
     down_dir="1"
 fi
 
-# start getting ports and setting vars for containers
-if [[ -z `cat envs/.env | grep $USER` ]]; then
-    sed -i $mac "s/redis:/redis-$USER:/g" envs/.env
-    sed -i $mac "s/-$USER:\/\//:\/\//" envs/.env
-    sed -i $mac "s/minio:/minio-$USER:/g" envs/.env
-fi
-
-# if containers for the current user are not running
-if [[ -z `docker ps | grep $USER | grep redis` ]]; then
-    BASE_REDIS_PORT=6379
-    while [[ ! -z `echo "$active_ports" | grep $BASE_REDIS_PORT` ]]
-    do
-        BASE_REDIS_PORT=$((BASE_REDIS_PORT+1))
-    done
-else
-    BASE_REDIS_PORT=`docker ps | grep $USER | grep redis | cut -f1 -d">" | sed -e 's/.*://' | cut -f1 -d"-"`
-fi
-
-if [[ -z `docker ps | grep $USER | grep minio` ]]; then
-    BASE_MINIO_PORT=9000
-    while [[ ! -z `echo "$active_ports" | grep $BASE_MINIO_PORT` ]]
-    do
-        BASE_MINIO_PORT=$((BASE_MINIO_PORT+1))
-    done
-else
-    BASE_MINIO_PORT=`docker ps | grep $USER | grep minio | cut -f1 -d">" | sed -e 's/.*://' | cut -f1 -d"-"`
-fi
-
-if [[ -z `docker ps | grep $USER | grep jupyter` ]]; then
-    BASE_JUPYTER_PORT_1=8888
-    BASE_JUPYTER_PORT_2=8889
-    BASE_JUPYTER_PORT_3=8890
-    BASE_JUPYTER_PORT_4=6006
-    while [[ ! -z `echo "$active_ports" | grep $BASE_JUPYTER_PORT_1` ]]
-    do
-        BASE_JUPYTER_PORT_1=$((BASE_JUPYTER_PORT_1+3))
-        BASE_JUPYTER_PORT_2=$((BASE_JUPYTER_PORT_2+3))
-        BASE_JUPYTER_PORT_3=$((BASE_JUPYTER_PORT_3+3))
-        BASE_JUPYTER_PORT_4=$((BASE_JUPYTER_PORT_4+1))
-    done
-else
-    BASE_JUPYTER_PORT_1=`docker ps | grep $USER | grep jupyter | sed -e 's/.*,//' | cut -f1 -d">" | sed -e 's/.*://' | cut -f1 -d"-"`
-    BASE_JUPYTER_PORT_2=$((BASE_JUPYTER_PORT_1+1))
-    BASE_JUPYTER_PORT_3=$((BASE_JUPYTER_PORT_2+1))
-    BASE_JUPYTER_PORT_4=`docker ps | grep $USER | grep jupyter | cut -f1 -d">" | sed -e 's/.*://' | cut -f1 -d"-"`
-fi
-
-echo "export REDIS_PORT=$BASE_REDIS_PORT" > env.sh
-echo "export MINIO_PORT=$BASE_MINIO_PORT" >> env.sh
-echo "export JUPYTER_PORT_1=$BASE_JUPYTER_PORT_1" >> env.sh
-echo "export JUPYTER_PORT_2=$BASE_JUPYTER_PORT_2" >> env.sh
-echo "export JUPYTER_PORT_3=$BASE_JUPYTER_PORT_3" >> env.sh
-echo "export JUPYTER_PORT_4=$BASE_JUPYTER_PORT_4" >> env.sh
-source ./env.sh
-rm env.sh
-# end getting ports and setting vars for containers
-
-docker-compose -f ./${compose} -p $USER up -d >> /dev/null 2>&1
-
-# MacOS specific, remove the backup file that is created by sed -i 
-if [[ -n $mac && -f envs/.env$mac ]]; then
-    rm envs/.env$mac
-fi
+/usr/local/bin/docker-compose -f ./${compose} up -d >> /dev/null 2>&1
 
 if [[ "${down_dir}" == "1" ]]; then
     popd >> /dev/null
@@ -185,8 +142,17 @@ if [[ "${compose}" == "dev.yml" ]]; then
     good "started redis and minio"
 elif [[ "${compose}" == "integration.yml" ]]; then
     good "started end-to-end integration stack: redis, minio, workers and jupyter"
+elif [[ "${compose}" == "bt/backtester.yml" ]]; then
+    good "started backtester"
+elif [[ "${compose}" == "fetch/fetch.yml" ]]; then
+    good "started dataset collection - version 2"
+    docker ps -a | grep ae-fetch
+elif [[ "${compose}" == "jupyter/jupyter.yml" ]]; then
+    good "started jupyter - version 2"
 elif [[ "${compose}" == "registry/registry.yml" ]]; then
     good "started registry"
+elif [[ "${compose}" == "components/stack.yml" ]]; then
+    good "started stack: workers, backtester and jupyter"
 fi
 
 exit 0

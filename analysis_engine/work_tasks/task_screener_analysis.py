@@ -10,29 +10,21 @@ Work in progress - screener-driven analysis task
 """
 
 import os
-import analysis_engine.get_task_results as task_utils
+import celery.task as celery_task
+import analysis_engine.consts as ae_consts
+import analysis_engine.get_task_results as get_task_results
 import analysis_engine.fetch as fetch_utils
 import analysis_engine.build_result as build_result
 import analysis_engine.finviz.fetch_api as finviz_utils
-import analysis_engine.work_tasks.custom_task as use_task_class
-from celery.task import task
-from analysis_engine.consts import is_celery_disabled
-from analysis_engine.consts import SUCCESS
-from analysis_engine.consts import NOT_RUN
-from analysis_engine.consts import ERR
-from analysis_engine.consts import IEX_DATASETS_DEFAULT
-from analysis_engine.consts import get_status
-from analysis_engine.consts import ev
-from analysis_engine.consts import ppj
-from spylunking.log.setup_logging import build_colorized_logger
+import analysis_engine.work_tasks.custom_task as custom_task
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
-@task(
+@celery_task(
     bind=True,
-    base=use_task_class.CustomTask,
+    base=custom_task.CustomTask,
     queue='task_screener_analysis')
 def task_screener_analysis(
         self,
@@ -52,7 +44,7 @@ def task_screener_analysis(
 
     rec = {}
     res = build_result.build_result(
-        status=NOT_RUN,
+        status=ae_consts.NOT_RUN,
         err=None,
         rec=rec)
 
@@ -69,7 +61,7 @@ def task_screener_analysis(
 
     if not ticker and not org_tickers:
         res = build_result.build_result(
-            status=ERR,
+            status=ae_consts.ERR,
             err='missing ticker or tickers',
             rec=rec)
 
@@ -98,7 +90,7 @@ def task_screener_analysis(
         'iex_datasets',
         os.getenv(
             'IEX_DATASETS_DEFAULT',
-            IEX_DATASETS_DEFAULT))
+            ae_consts.IEX_DATASETS_DEFAULT))
 
     # if defined, these are task functions for
     # calling customiized determine Celery tasks
@@ -132,7 +124,7 @@ def task_screener_analysis(
 
         if not fv_urls:
             res = build_result.build_result(
-                status=ERR,
+                status=ae_consts.ERR,
                 err='missing required urls list of screeners',
                 rec=rec)
 
@@ -149,7 +141,7 @@ def task_screener_analysis(
                     iex_datasets,
                     res['err']))
 
-            return task_utils.get_task_results(
+            return get_task_results.get_task_results(
                 work_dict=work_dict,
                 result=res)
         # end of input validation checks
@@ -170,7 +162,7 @@ def task_screener_analysis(
                     url))
             fv_res = finviz_utils.fetch_tickers_from_screener(
                 url=url)
-            if fv_res['status'] == SUCCESS:
+            if fv_res['status'] == ae_consts.SUCCESS:
                 fv_dfs.append(fv_res['rec']['data'])
                 for ft_tick in fv_res['rec']['tickers']:
                     upper_ft_ticker = ft_tick.upper()
@@ -217,7 +209,7 @@ def task_screener_analysis(
             """
 
             res = build_result.build_result(
-                status=SUCCESS,
+                status=ae_consts.SUCCESS,
                 err=None,
                 rec=rec)
         else:
@@ -229,7 +221,7 @@ def task_screener_analysis(
                     fetch_mode,
                     iex_datasets))
             res = build_result.build_result(
-                status=ERR,
+                status=ae_consts.ERR,
                 err=err,
                 rec=rec)
 
@@ -245,12 +237,12 @@ def task_screener_analysis(
                 e))
         log.error(err)
         res = build_result.build_result(
-            status=ERR,
+            status=ae_consts.ERR,
             err=err,
             rec=rec)
     # end of try/ex
 
-    return task_utils.get_task_results(
+    return get_task_results.get_task_results(
         work_dict=work_dict,
         result=res)
 # end of task_screener_analysis
@@ -277,13 +269,13 @@ def run_screener_analysis(
             label))
 
     response = build_result.build_result(
-        status=NOT_RUN,
+        status=ae_consts.NOT_RUN,
         err=None,
         rec={})
     task_res = {}
 
     # allow running without celery
-    if is_celery_disabled(
+    if ae_consts.is_celery_disabled(
             work_dict=work_dict):
         work_dict['celery_disabled'] = True
         task_res = task_screener_analysis(
@@ -292,10 +284,10 @@ def run_screener_analysis(
             response = task_res.get(
                 'result',
                 task_res)
-            if ev('DEBUG_RESULTS', '0') == '1':
+            if ae_consts.ev('DEBUG_RESULTS', '0') == '1':
                 response_details = response
                 try:
-                    response_details = ppj(response)
+                    response_details = ae_consts.ppj(response)
                 except Exception:
                     response_details = response
 
@@ -317,18 +309,18 @@ def run_screener_analysis(
             'task_id': task_res
         }
         response = build_result.build_result(
-            status=SUCCESS,
+            status=ae_consts.SUCCESS,
             err=None,
             rec=rec)
     # if celery enabled
 
     if response:
-        if ev('DEBUG_RESULTS', '0') == '1':
+        if ae_consts.ev('DEBUG_RESULTS', '0') == '1':
             log.info(
                 '{} - done '
                 'status={} err={} rec={}'.format(
                     label,
-                    get_status(response['status']),
+                    ae_consts.get_status(response['status']),
                     response['err'],
                     response['rec']))
         else:
@@ -336,7 +328,7 @@ def run_screener_analysis(
                 '{} - done '
                 'status={} err={}'.format(
                     label,
-                    get_status(response['status']),
+                    ae_consts.get_status(response['status']),
                     response['err']))
     else:
         log.info(

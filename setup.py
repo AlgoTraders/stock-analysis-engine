@@ -63,13 +63,15 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.4.23',
+    version='1.5.0',
     description=(
         'Backtest 1000s of minute-by-minute '
         'trading algorithms with automated '
-        'pricing data from: IEX, Yahoo and '
+        'pricing data from: '
+        'IEX (https://iextrading.com/developer/docs/), '
+        'Tradier (https://tradier.com/) and '
         'FinViz. Datasets and trading '
-        'performance automatically published '
+        'performance automatically compressed and published '
         'to S3 for building AI training datasets '
         'for teaching DNNs how to trade. '
         'Runs on Kubernetes and docker-compose. '
@@ -87,6 +89,7 @@ setup(
         'analysis_engine.indicators',
         'analysis_engine.log',
         'analysis_engine.scripts',
+        'analysis_engine.td',
         'analysis_engine.work_tasks',
         'analysis_engine.yahoo'
     ],
@@ -96,6 +99,7 @@ setup(
     tests_require=[
     ],
     scripts=[
+        'analysis_engine/scripts/aws_backup.py',
         'analysis_engine/scripts/fetch_new_stock_datasets.py',
         'analysis_engine/scripts/plot_history_from_local_file.py',
         'analysis_engine/scripts/publish_from_s3_to_redis.py',

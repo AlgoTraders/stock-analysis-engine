@@ -16,20 +16,17 @@ Supported Datasets:
     export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
 """
 
+import analysis_engine.consts as ae_consts
 import analysis_engine.load_dataset as load_dataset
-from analysis_engine.consts import DEFAULT_SERIALIZED_DATASETS
-from analysis_engine.consts import SA_DATASET_TYPE_ALGO_READY
-from analysis_engine.consts import ppj
-from spylunking.log.setup_logging import build_colorized_logger
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def show_dataset(
         algo_dataset=None,
-        dataset_type=SA_DATASET_TYPE_ALGO_READY,
-        serialize_datasets=DEFAULT_SERIALIZED_DATASETS,
+        dataset_type=ae_consts.SA_DATASET_TYPE_ALGO_READY,
+        serialize_datasets=ae_consts.DEFAULT_SERIALIZED_DATASETS,
         path_to_file=None,
         compress=False,
         encoding='utf-8',
@@ -163,7 +160,7 @@ def show_dataset(
             return None
     # load if not created
 
-    if dataset_type == SA_DATASET_TYPE_ALGO_READY:
+    if dataset_type == ae_consts.SA_DATASET_TYPE_ALGO_READY:
         print('-----------------------------------')
         print('dates found in dataset')
         root_keys = []
@@ -225,7 +222,7 @@ def show_dataset(
                     show_first[ds_key] = first_node[ds_key]
             print('')
             print('first node:')
-            print(ppj(show_first))
+            print(ae_consts.ppj(show_first))
 
             print('')
             num_records = len(all_ids)
@@ -250,7 +247,7 @@ def show_dataset(
                     'node={}/{} values:'.format(
                         cur_cell,
                         num_records))
-                print(ppj(show_node))
+                print(ae_consts.ppj(show_node))
                 print('')
                 cur_cell += 1
             # end of end_nodes

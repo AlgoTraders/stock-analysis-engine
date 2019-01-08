@@ -23,6 +23,8 @@ datasets from the redis pipeline:
 - ``self.df_dividends``
 - ``self.df_company``
 - ``self.df_yahoo_news``
+- ``self.df_tdcalls``
+- ``self.df_tdputs``
 
 **Recent Pricing Information**
 
@@ -633,6 +635,8 @@ class BaseAlgo:
         self.df_calls = pd.DataFrame([{}])
         self.df_puts = pd.DataFrame([{}])
         self.df_pricing = pd.DataFrame([{}])
+        self.df_tdcalls = pd.DataFrame([{}])
+        self.df_tdputs = pd.DataFrame([{}])
         self.empty_pd = pd.DataFrame([{}])
         self.empty_pd_str = ae_consts.EMPTY_DF_STR
 
@@ -1049,8 +1053,8 @@ class BaseAlgo:
                     '{} - Please implement a process methond in the '
                     'IndicatorProcessor - the current object={} '
                     'is missing one. Please refer to the example: '
-                    'https://github.com/AlgoTraders/stock-analys'
-                    'is-engine/blob/master/analysis_engine/indica'
+                    'https://github.com/AlgoTraders/stock-analysis-engine'
+                    '/blob/master/analysis_engine/indica'
                     'tors/indicator_processor.py'.format(
                         self.name,
                         self.iproc))
@@ -1645,7 +1649,7 @@ class BaseAlgo:
                     'report build json - {} - tickers={}'.format(
                         self.name,
                         self.tickers))
-                use_data = json.dumps(output_record)
+            use_data = json.dumps(output_record)
             num_bytes = len(use_data)
             num_mb = ae_consts.get_mb(num_bytes)
             log.info(
@@ -2242,15 +2246,6 @@ class BaseAlgo:
         Inherited Algorithm classes can derive how they build a
         custom ``Algorithm-Ready`` dataset before publishing
         by implementing this method in the derived class.
-
-        Test backups with this command:
-
-        ::
-
-            source /opt/venv/bin/activate
-            sa -t SPY -a localhost:9000 -r localhost:6379 -e \
-                s3://algobackup/SPY-test.json
-
         """
 
         if self.verbose:
@@ -2394,8 +2389,8 @@ class BaseAlgo:
                 could be a bug in how you are using the member
                 variables (likely created an invalid math
                 calculation) or could be a bug in the helper:
-                `build_trade_history_entry <https://github.c
-                om/AlgoTraders/stock-analysis-engine/blob/ma
+                `build_trade_history_entry <https://
+                github.com/AlgoTraders/stock-analysis-engine/blob/ma
                 ster/analysis_engine/build_trade_history_entry.py>`__
         """
         history_dict = history_utils.build_trade_history_entry(
@@ -3004,6 +2999,8 @@ class BaseAlgo:
         - ``self.df_dividends``
         - ``self.df_company``
         - ``self.df_yahoo_news``
+        - ``self.df_tdcalls``
+        - ``self.df_tdputs``
 
         .. note:: If a key is not in the dataset, the
             algorithms's member variable will be an empty
@@ -3075,6 +3072,12 @@ class BaseAlgo:
         self.df_pricing = self.ds_data.get(
             'pricing',
             {})
+        self.df_tdcalls = self.ds_data.get(
+            'tdcalls',
+            self.empty_pd)
+        self.df_tdputs = self.ds_data.get(
+            'tdputs',
+            self.empty_pd)
 
         self.latest_min = None
         self.backtest_date = self.ds_date
@@ -3088,6 +3091,15 @@ class BaseAlgo:
             if 'date' in self.df_minute:
                 self.latest_min = self.df_minute['date'].iloc[-1]
                 self.found_minute_data = True
+        if not self.found_minute_data:
+            if ae_consts.is_df(self.df_tdcalls):
+                if 'date' in self.df_tdcalls:
+                    self.latest_min = self.df_tdcalls['date'].iloc[-1]
+                    self.found_minute_data = True
+            if ae_consts.is_df(self.df_tdputs):
+                if 'date' in self.df_tdputs:
+                    self.latest_min = self.df_tdputs['date'].iloc[-1]
+                    self.found_minute_data = True
         if not hasattr(self.df_stats, 'index'):
             self.df_stats = self.empty_pd
         if not hasattr(self.df_peers, 'index'):
@@ -3112,6 +3124,10 @@ class BaseAlgo:
             self.df_puts = self.empty_pd
         if not hasattr(self.df_pricing, 'index'):
             self.df_pricing = self.empty_pd
+        if not hasattr(self.df_tdcalls, 'index'):
+            self.df_tdcalls = self.empty_pd
+        if not hasattr(self.df_tdputs, 'index'):
+            self.df_tdputs = self.empty_pd
 
         # set internal values:
         self.trade_date = self.ds_date

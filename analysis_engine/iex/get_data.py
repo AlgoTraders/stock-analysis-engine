@@ -11,32 +11,15 @@ Supported environment variables:
 
 import datetime
 import copy
+import analysis_engine.consts as ae_consts
+import analysis_engine.iex.consts as iex_consts
 import analysis_engine.build_result as build_result
 import analysis_engine.api_requests as api_requests
 import analysis_engine.iex.fetch_data as iex_fetch_data
-import analysis_engine.work_tasks.publish_pricing_update as \
-    publisher
-from spylunking.log.setup_logging import build_colorized_logger
-from analysis_engine.consts import TICKER
-from analysis_engine.consts import SUCCESS
-from analysis_engine.consts import NOT_RUN
-from analysis_engine.consts import ERR
-from analysis_engine.consts import NOT_SET
-from analysis_engine.consts import get_status
-from analysis_engine.consts import ev
-from analysis_engine.iex.consts import FETCH_DAILY
-from analysis_engine.iex.consts import FETCH_MINUTE
-from analysis_engine.iex.consts import FETCH_QUOTE
-from analysis_engine.iex.consts import FETCH_STATS
-from analysis_engine.iex.consts import FETCH_PEERS
-from analysis_engine.iex.consts import FETCH_NEWS
-from analysis_engine.iex.consts import FETCH_FINANCIALS
-from analysis_engine.iex.consts import FETCH_EARNINGS
-from analysis_engine.iex.consts import FETCH_DIVIDENDS
-from analysis_engine.iex.consts import FETCH_COMPANY
+import analysis_engine.work_tasks.publish_pricing_update as publisher
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def get_data_from_iex(
@@ -60,7 +43,7 @@ def get_data_from_iex(
         'updated': None
     }
     res = {
-        'status': NOT_RUN,
+        'status': ae_consts.NOT_RUN,
         'err': None,
         'rec': rec
     }
@@ -73,7 +56,7 @@ def get_data_from_iex(
 
         ticker = work_dict.get(
             'ticker',
-            TICKER)
+            ae_consts.TICKER)
         field = work_dict.get(
             'field',
             'daily')
@@ -89,44 +72,44 @@ def get_data_from_iex(
             'records')
 
         iex_req = None
-        if ft_type == FETCH_DAILY or ft_str == 'daily':
-            ft_type == FETCH_DAILY
+        if ft_type == iex_consts.FETCH_DAILY or ft_str == 'daily':
+            ft_type == iex_consts.FETCH_DAILY
             iex_req = api_requests.build_iex_fetch_daily_request(
                 label=label)
-        elif ft_type == FETCH_MINUTE or ft_str == 'minute':
-            ft_type == FETCH_MINUTE
+        elif ft_type == iex_consts.FETCH_MINUTE or ft_str == 'minute':
+            ft_type == iex_consts.FETCH_MINUTE
             iex_req = api_requests.build_iex_fetch_minute_request(
                 label=label)
-        elif ft_type == FETCH_QUOTE or ft_str == 'quote':
-            ft_type == FETCH_QUOTE
+        elif ft_type == iex_consts.FETCH_QUOTE or ft_str == 'quote':
+            ft_type == iex_consts.FETCH_QUOTE
             iex_req = api_requests.build_iex_fetch_quote_request(
                 label=label)
-        elif ft_type == FETCH_STATS or ft_str == 'stats':
-            ft_type == FETCH_STATS
+        elif ft_type == iex_consts.FETCH_STATS or ft_str == 'stats':
+            ft_type == iex_consts.FETCH_STATS
             iex_req = api_requests.build_iex_fetch_stats_request(
                 label=label)
-        elif ft_type == FETCH_PEERS or ft_str == 'peers':
-            ft_type == FETCH_PEERS
+        elif ft_type == iex_consts.FETCH_PEERS or ft_str == 'peers':
+            ft_type == iex_consts.FETCH_PEERS
             iex_req = api_requests.build_iex_fetch_peers_request(
                 label=label)
-        elif ft_type == FETCH_NEWS or ft_str == 'news':
-            ft_type == FETCH_NEWS
+        elif ft_type == iex_consts.FETCH_NEWS or ft_str == 'news':
+            ft_type == iex_consts.FETCH_NEWS
             iex_req = api_requests.build_iex_fetch_news_request(
                 label=label)
-        elif ft_type == FETCH_FINANCIALS or ft_str == 'financials':
-            ft_type == FETCH_FINANCIALS
+        elif ft_type == iex_consts.FETCH_FINANCIALS or ft_str == 'financials':
+            ft_type == iex_consts.FETCH_FINANCIALS
             iex_req = api_requests.build_iex_fetch_financials_request(
                 label=label)
-        elif ft_type == FETCH_EARNINGS or ft_str == 'earnings':
-            ft_type == FETCH_EARNINGS
+        elif ft_type == iex_consts.FETCH_EARNINGS or ft_str == 'earnings':
+            ft_type == iex_consts.FETCH_EARNINGS
             iex_req = api_requests.build_iex_fetch_earnings_request(
                 label=label)
-        elif ft_type == FETCH_DIVIDENDS or ft_str == 'dividends':
-            ft_type == FETCH_DIVIDENDS
+        elif ft_type == iex_consts.FETCH_DIVIDENDS or ft_str == 'dividends':
+            ft_type == iex_consts.FETCH_DIVIDENDS
             iex_req = api_requests.build_iex_fetch_dividends_request(
                 label=label)
-        elif ft_type == FETCH_COMPANY or ft_str == 'company':
-            ft_type == FETCH_COMPANY
+        elif ft_type == iex_consts.FETCH_COMPANY or ft_str == 'company':
+            ft_type == iex_consts.FETCH_COMPANY
             iex_req = api_requests.build_iex_fetch_company_request(
                 label=label)
         else:
@@ -167,7 +150,7 @@ def get_data_from_iex(
                     work_dict))
             log.error(err)
             res = build_result.build_result(
-                status=ERR,
+                status=ae_consts.ERR,
                 err=err,
                 rec=rec)
             return res
@@ -205,7 +188,7 @@ def get_data_from_iex(
                     f))
         # end of try/ex
 
-        if ev('DEBUG_IEX_DATA', '0') == '1':
+        if ae_consts.ev('DEBUG_IEX_DATA', '0') == '1':
             log.info(
                 '{} ticker={} field={} data={} to_json'.format(
                     label,
@@ -246,11 +229,11 @@ def get_data_from_iex(
                 work_dict=upload_and_cache_req)
             update_status = update_res.get(
                 'status',
-                NOT_SET)
+                ae_consts.NOT_SET)
             log.info(
                 '{} publish update status={} data={}'.format(
                     label,
-                    get_status(status=update_status),
+                    ae_consts.get_status(status=update_status),
                     update_res))
         except Exception as f:
             err = (
@@ -272,13 +255,13 @@ def get_data_from_iex(
         # end of if/else
 
         res = build_result.build_result(
-            status=SUCCESS,
+            status=ae_consts.SUCCESS,
             err=None,
             rec=rec)
 
     except Exception as e:
         res = build_result.build_result(
-            status=ERR,
+            status=ae_consts.ERR,
             err=(
                 'failed - get_data_from_iex '
                 'dict={} with ex={}').format(
@@ -291,7 +274,7 @@ def get_data_from_iex(
         'task - get_data_from_iex done - '
         '{} - status={} err={}'.format(
             label,
-            get_status(res['status']),
+            ae_consts.get_status(res['status']),
             res['err']))
 
     return res

@@ -1,0 +1,16 @@
+version: '2'
+
+services:
+
+  # Analysis Engine
+  # Automation Dataset Collector
+  ae-fetch:
+    container_name: "ae-fetch"
+    hostname: "ae-fetch"
+    image: jayjohnson/stock-analysis-engine:latest
+    tty: true
+    env_file:
+      - ../envs/fetch.env
+    entrypoint: "/bin/sh -c 'cd /opt/sa &&
+                 . /opt/venv/bin/activate &&
+                 /opt/sa/tools/start-dataset-collection.sh'"

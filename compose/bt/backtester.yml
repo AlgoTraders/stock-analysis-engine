@@ -1,0 +1,15 @@
+version: '2'
+
+services:
+
+  # AE Backtester
+  ae-backtester:
+    container_name: "ae-backtester"
+    hostname: "ae-backtester"
+    image: jayjohnson/stock-analysis-engine:latest
+    tty: true
+    env_file:
+      - ../envs/backtester.env
+    entrypoint: "/bin/sh -c 'cd /opt/sa &&
+                 . /opt/venv/bin/activate &&
+                 /opt/sa/start-workers.sh 15'"

@@ -43,6 +43,7 @@ import analysis_engine.consts as ae_consts
 import analysis_engine.utils as ae_utils
 import analysis_engine.iex.consts as iex_consts
 import analysis_engine.yahoo.consts as yahoo_consts
+import analysis_engine.td.consts as td_consts
 import spylunking.log.setup_logging as log_utils
 
 log = log_utils.build_colorized_logger(name=__name__)
@@ -73,6 +74,11 @@ def debug_msg(
             datafeed_type == yahoo_consts.DATAFEED_OPTIONS_YAHOO or
             datafeed_type == yahoo_consts.DATAFEED_NEWS_YAHOO):
         dft_msg = yahoo_consts.get_datafeed_str_yahoo(
+            df_type=datafeed_type)
+    elif (
+            datafeed_type == td_consts.DATAFEED_TD_CALLS or
+            datafeed_type == td_consts.DATAFEED_TD_PUTS):
+        dft_msg = td_consts.get_datafeed_str_td(
             df_type=datafeed_type)
     else:
         dft_msg = iex_consts.get_datafeed_str(
@@ -418,6 +424,20 @@ def ingress_scrub_dataset(
                     out_df['date'] = pd.to_datetime(
                         df['date'],
                         format=daily_date_format)
+            elif datafeed_type == td_consts.DATAFEED_TD_CALLS:
+                log.debug(
+                    '{} - {} - no scrub_mode={} '
+                    'support'.format(
+                        label,
+                        datafeed_type,
+                        scrub_mode))
+            elif datafeed_type == td_consts.DATAFEED_TD_PUTS:
+                log.debug(
+                    '{} - {} - no scrub_mode={} '
+                    'support'.format(
+                        label,
+                        datafeed_type,
+                        scrub_mode))
             else:
                 log.info(
                     '{} - {} - no scrub_mode={} '

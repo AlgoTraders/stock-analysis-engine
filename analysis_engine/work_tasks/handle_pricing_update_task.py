@@ -10,8 +10,8 @@ building a list of publishing sub-task:
 **Sample work_dict request for this method**
 
 `analysis_engine.api_requests.publish_pricing_update <https://
-github.com/AlgoTraders/stock-analysis-engine/blob/master/ana
-lysis_engine/api_requests.py#L218>`__
+github.com/AlgoTraders/stock-analysis-engine/blob/master/
+analysis_engine/api_requests.py#L218>`__
 
 ::
 
@@ -44,32 +44,20 @@ lysis_engine/api_requests.py#L218>`__
 """
 
 import datetime
-import analysis_engine.get_task_results
-import analysis_engine.work_tasks.custom_task
+import celery.task as celery_task
+import analysis_engine.consts as ae_consts
+import analysis_engine.get_task_results as get_task_results
+import analysis_engine.work_tasks.custom_task as custom_task
 import analysis_engine.build_result as build_result
-import analysis_engine.work_tasks.publish_pricing_update as \
-    publisher
-import analysis_engine.options_dates
-import analysis_engine.get_pricing
-from celery.task import task
-from spylunking.log.setup_logging import build_colorized_logger
-from analysis_engine.consts import SUCCESS
-from analysis_engine.consts import NOT_RUN
-from analysis_engine.consts import ERR
-from analysis_engine.consts import TICKER
-from analysis_engine.consts import EMPTY_DF_STR
-from analysis_engine.consts import get_status
-from analysis_engine.consts import is_celery_disabled
-from analysis_engine.consts import ppj
-from analysis_engine.consts import ev
+import analysis_engine.work_tasks.publish_pricing_update as publisher
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
-@task(
+@celery_task(
     bind=True,
-    base=analysis_engine.work_tasks.custom_task.CustomTask,
+    base=custom_task.CustomTask,
     queue='handle_pricing_update_task')
 def handle_pricing_update_task(
         self,
@@ -87,7 +75,7 @@ def handle_pricing_update_task(
         'task - {} - start'.format(
             label))
 
-    ticker = TICKER
+    ticker = ae_consts.TICKER
     ticker_id = 1
     rec = {
         'ticker': None,
@@ -106,14 +94,14 @@ def handle_pricing_update_task(
         'options_redis_key': None
     }
     res = build_result.build_result(
-        status=NOT_RUN,
+        status=ae_consts.NOT_RUN,
         err=None,
         rec=rec)
 
     try:
         ticker = work_dict.get(
             'ticker',
-            TICKER)
+            ae_consts.TICKER)
         ticker_id = int(work_dict.get(
             'ticker_id',
             1))
@@ -126,10 +114,10 @@ def handle_pricing_update_task(
         options_data = work_dict['options']
         calls_data = options_data.get(
             'calls',
-            EMPTY_DF_STR)
+            ae_consts.EMPTY_DF_STR)
         puts_data = options_data.get(
             'puts',
-            EMPTY_DF_STR)
+            ae_consts.EMPTY_DF_STR)
         updated = work_dict['updated']
         label = work_dict.get(
             'label',
@@ -310,19 +298,19 @@ def handle_pricing_update_task(
                     ticker,
                     ridx,
                     total_payloads,
-                    get_status(status=payload_res['status']),
+                    ae_consts.get_status(status=payload_res['status']),
                     r['s3_key'],
                     r['redis_key']))
         # end of for all payloads to publish
 
         res = build_result.build_result(
-            status=SUCCESS,
+            status=ae_consts.SUCCESS,
             err=None,
             rec=rec)
 
     except Exception as e:
         res = build_result.build_result(
-            status=ERR,
+            status=ae_consts.ERR,
             err=(
                 'failed - handle_pricing_update_task '
                 'dict={} with ex={}').format(
@@ -339,9 +327,9 @@ def handle_pricing_update_task(
         'task - handle_pricing_update_task done - '
         '{} - status={}'.format(
             label,
-            get_status(res['status'])))
+            ae_consts.get_status(res['status'])))
 
-    return analysis_engine.get_task_results.get_task_results(
+    return get_task_results.get_task_results(
         work_dict=work_dict,
         result=res)
 # end of handle_pricing_update_task
@@ -365,7 +353,7 @@ def run_handle_pricing_update_task(
             label))
 
     response = build_result.build_result(
-        status=NOT_RUN,
+        status=ae_consts.NOT_RUN,
         err=None,
         rec={})
     task_res = {}
@@ -374,12 +362,12 @@ def run_handle_pricing_update_task(
         'run_handle_pricing_update_task - {} - done '
         'status={} err={} rec={}'.format(
             label,
-            get_status(response['status']),
+            ae_consts.get_status(response['status']),
             response['err'],
             response['rec']))
 
     # allow running without celery
-    if is_celery_disabled(
+    if ae_consts.is_celery_disabled(
             work_dict=work_dict):
         work_dict['celery_disabled'] = True
         task_res = handle_pricing_update_task(
@@ -388,10 +376,10 @@ def run_handle_pricing_update_task(
             response = task_res.get(
                 'result',
                 task_res)
-            if ev('DEBUG_RESULTS', '0') == '1':
+            if ae_consts.ev('DEBUG_RESULTS', '0') == '1':
                 response_details = response
                 try:
-                    response_details = ppj(response)
+                    response_details = ae_consts.ppj(response)
                 except Exception:
                     response_details = response
                 log.info(
@@ -413,18 +401,18 @@ def run_handle_pricing_update_task(
             'task_id': task_res
         }
         response = build_result.build_result(
-            status=SUCCESS,
+            status=ae_consts.SUCCESS,
             err=None,
             rec=rec)
     # if celery enabled
 
     if response:
-        if ev('DEBUG_RESULTS', '0') == '1':
+        if ae_consts.ev('DEBUG_RESULTS', '0') == '1':
             log.info(
                 'run_handle_pricing_update_task - {} - done '
                 'status={} err={} rec={}'.format(
                     label,
-                    get_status(response['status']),
+                    ae_consts.get_status(response['status']),
                     response['err'],
                     response['rec']))
         else:
@@ -432,7 +420,7 @@ def run_handle_pricing_update_task(
                 'run_handle_pricing_update_task - {} - done '
                 'status={} err={}'.format(
                     label,
-                    get_status(response['status']),
+                    ae_consts.get_status(response['status']),
                     response['err']))
     else:
         log.info(

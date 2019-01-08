@@ -6,22 +6,11 @@ using
 with the factory method ``fetch_data``
 """
 
+import analysis_engine.iex.consts as iex_consts
 import analysis_engine.iex.fetch_api as fetch_api
-from spylunking.log.setup_logging import build_colorized_logger
-from analysis_engine.iex.consts import FETCH_DAILY
-from analysis_engine.iex.consts import FETCH_MINUTE
-from analysis_engine.iex.consts import FETCH_QUOTE
-from analysis_engine.iex.consts import FETCH_STATS
-from analysis_engine.iex.consts import FETCH_PEERS
-from analysis_engine.iex.consts import FETCH_NEWS
-from analysis_engine.iex.consts import FETCH_FINANCIALS
-from analysis_engine.iex.consts import FETCH_EARNINGS
-from analysis_engine.iex.consts import FETCH_DIVIDENDS
-from analysis_engine.iex.consts import FETCH_COMPANY
+import spylunking.log.setup_logging as log_utils
 
-
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def fetch_data(
@@ -38,16 +27,16 @@ def fetch_data(
 
     ::
 
-        fetch_type = FETCH_DAILY
-        fetch_type = FETCH_MINUTE
-        fetch_type = FETCH_QUOTE
-        fetch_type = FETCH_STATS
-        fetch_type = FETCH_PEERS
-        fetch_type = FETCH_NEWS
-        fetch_type = FETCH_FINANCIALS
-        fetch_type = FETCH_EARNINGS
-        fetch_type = FETCH_DIVIDENDS
-        fetch_type = FETCH_COMPANY
+        fetch_type = iex_consts.FETCH_DAILY
+        fetch_type = iex_consts.FETCH_MINUTE
+        fetch_type = iex_consts.FETCH_QUOTE
+        fetch_type = iex_consts.FETCH_STATS
+        fetch_type = iex_consts.FETCH_PEERS
+        fetch_type = iex_consts.FETCH_NEWS
+        fetch_type = iex_consts.FETCH_FINANCIALS
+        fetch_type = iex_consts.FETCH_EARNINGS
+        fetch_type = iex_consts.FETCH_DIVIDENDS
+        fetch_type = iex_consts.FETCH_COMPANY
 
     Supported ``work_dict['ft_type']`` string values:
 
@@ -83,34 +72,54 @@ def fetch_data(
             fetch_type,
             work_dict))
 
-    if use_fetch_name == 'daily' or fetch_type == FETCH_DAILY:
+    if (
+            use_fetch_name == 'daily' or
+            fetch_type == iex_consts.FETCH_DAILY):
         return fetch_api.fetch_daily(
             work_dict=work_dict)
-    elif use_fetch_name == 'minute' or fetch_type == FETCH_MINUTE:
+    elif (
+            use_fetch_name == 'minute' or
+            fetch_type == iex_consts.FETCH_MINUTE):
         return fetch_api.fetch_minute(
             work_dict=work_dict)
-    elif use_fetch_name == 'quote' or fetch_type == FETCH_QUOTE:
+    elif (
+            use_fetch_name == 'quote' or
+            fetch_type == iex_consts.FETCH_QUOTE):
         return fetch_api.fetch_quote(
             work_dict=work_dict)
-    elif use_fetch_name == 'stats' or fetch_type == FETCH_STATS:
+    elif (
+            use_fetch_name == 'stats' or
+            fetch_type == iex_consts.FETCH_STATS):
         return fetch_api.fetch_stats(
             work_dict=work_dict)
-    elif use_fetch_name == 'peers' or fetch_type == FETCH_PEERS:
+    elif (
+            use_fetch_name == 'peers' or
+            fetch_type == iex_consts.FETCH_PEERS):
         return fetch_api.fetch_peers(
             work_dict=work_dict)
-    elif use_fetch_name == 'news' or fetch_type == FETCH_NEWS:
+    elif (
+            use_fetch_name == 'news' or
+            fetch_type == iex_consts.FETCH_NEWS):
         return fetch_api.fetch_news(
             work_dict=work_dict)
-    elif use_fetch_name == 'financials' or fetch_type == FETCH_FINANCIALS:
+    elif (
+            use_fetch_name == 'financials' or
+            fetch_type == iex_consts.FETCH_FINANCIALS):
         return fetch_api.fetch_financials(
             work_dict=work_dict)
-    elif use_fetch_name == 'earnings' or fetch_type == FETCH_EARNINGS:
+    elif (
+            use_fetch_name == 'earnings' or
+            fetch_type == iex_consts.FETCH_EARNINGS):
         return fetch_api.fetch_earnings(
             work_dict=work_dict)
-    elif use_fetch_name == 'dividends' or fetch_type == FETCH_DIVIDENDS:
+    elif (
+            use_fetch_name == 'dividends' or
+            fetch_type == iex_consts.FETCH_DIVIDENDS):
         return fetch_api.fetch_dividends(
             work_dict=work_dict)
-    elif use_fetch_name == 'company' or fetch_type == FETCH_COMPANY:
+    elif (
+            use_fetch_name == 'company' or
+            fetch_type == iex_consts.FETCH_COMPANY):
         return fetch_api.fetch_company(
             work_dict=work_dict)
     else:

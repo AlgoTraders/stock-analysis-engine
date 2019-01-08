@@ -1,6 +1,6 @@
 #!/bin/bash
 
-container="sa-dataset-collection-${USER}"
+container="ae-dataset-collection"
 echo ""
 echo "docker logs -f ${container}"
 docker logs -f ${container}

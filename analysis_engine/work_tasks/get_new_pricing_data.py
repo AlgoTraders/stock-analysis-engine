@@ -16,7 +16,7 @@ and more) from these sources:
     from analysis_engine.api_requests
     import build_get_new_pricing_request
     from analysis_engine.work_tasks.get_new_pricing_data
-    import get_new_pricing_data
+        import get_new_pricing_data
 
     # store data
     cur_date = datetime.datetime.now().strftime('%Y-%m-%d')
@@ -59,8 +59,8 @@ and more) from these sources:
 **Sample work_dict request for this method**
 
 `analysis_engine.api_requests.build_get_new_pricing_request <https://
-github.com/AlgoTraders/stock-analysis-engine/blob/master/ana
-lysis_engine/api_requests.py#L49>`__
+github.com/AlgoTraders/stock-analysis-engine/blob/master/
+analysis_engine/api_requests.py#L49>`__
 
 **Supported Environment Variables**
 
@@ -72,58 +72,28 @@ lysis_engine/api_requests.py#L49>`__
 
 import datetime
 import copy
+import celery
+import analysis_engine.consts as ae_consts
+import analysis_engine.utils as ae_utils
+import analysis_engine.iex.consts as iex_consts
+import analysis_engine.td.consts as td_consts
 import analysis_engine.build_result as build_result
-import analysis_engine.get_task_results
-import analysis_engine.work_tasks.custom_task
-import analysis_engine.options_dates
-import analysis_engine.work_tasks.publish_pricing_update as \
-    publisher
+import analysis_engine.get_task_results as get_task_results
+import analysis_engine.work_tasks.custom_task as custom_task
+import analysis_engine.options_dates as opt_dates
+import analysis_engine.work_tasks.publish_pricing_update as publisher
 import analysis_engine.yahoo.get_data as yahoo_data
 import analysis_engine.iex.get_data as iex_data
+import analysis_engine.td.get_data as td_data
 import analysis_engine.send_to_slack as slack_utils
-from celery.task import task
-from spylunking.log.setup_logging import build_colorized_logger
-from analysis_engine.consts import SUCCESS
-from analysis_engine.consts import NOT_RUN
-from analysis_engine.consts import ERR
-from analysis_engine.consts import NOT_SET
-from analysis_engine.consts import TICKER
-from analysis_engine.consts import TICKER_ID
-from analysis_engine.consts import EMPTY_DF_STR
-from analysis_engine.consts import ENABLED_S3_UPLOAD
-from analysis_engine.consts import S3_ACCESS_KEY
-from analysis_engine.consts import S3_SECRET_KEY
-from analysis_engine.consts import S3_REGION_NAME
-from analysis_engine.consts import S3_ADDRESS
-from analysis_engine.consts import S3_SECURE
-from analysis_engine.consts import S3_BUCKET
-from analysis_engine.consts import S3_KEY
-from analysis_engine.consts import ENABLED_REDIS_PUBLISH
-from analysis_engine.consts import REDIS_ADDRESS
-from analysis_engine.consts import REDIS_KEY
-from analysis_engine.consts import REDIS_PASSWORD
-from analysis_engine.consts import REDIS_DB
-from analysis_engine.consts import REDIS_EXPIRE
-from analysis_engine.consts import get_status
-from analysis_engine.consts import ev
-from analysis_engine.consts import ppj
-from analysis_engine.consts import is_celery_disabled
-from analysis_engine.consts import FETCH_MODE_ALL
-from analysis_engine.consts import FETCH_MODE_YHO
-from analysis_engine.consts import FETCH_MODE_IEX
-from analysis_engine.consts import DATASET_COLLECTION_VERSION
-from analysis_engine.utils import utc_now_str
-from analysis_engine.iex.consts import DEFAULT_FETCH_DATASETS
-from analysis_engine.iex.consts import get_ft_str
+import spylunking.log.setup_logging as log_utils
+
+log = log_utils.build_colorized_logger(name=__name__)
 
 
-log = build_colorized_logger(
-    name=__name__)
-
-
-@task(
+@celery.task(
     bind=True,
-    base=analysis_engine.work_tasks.custom_task.CustomTask,
+    base=custom_task.CustomTask,
     queue='get_new_pricing_data')
 def get_new_pricing_data(
         self,
@@ -147,8 +117,8 @@ def get_new_pricing_data(
             label,
             work_dict))
 
-    ticker = TICKER
-    ticker_id = TICKER_ID
+    ticker = ae_consts.TICKER
+    ticker_id = ae_consts.TICKER_ID
     rec = {
         'pricing': None,
         'options': None,
@@ -167,12 +137,12 @@ def get_new_pricing_data(
         'company': None,
         'exp_date': None,
         'publish_pricing_update': None,
-        'date': utc_now_str(),
+        'date': ae_utils.utc_now_str(),
         'updated': None,
-        'version': DATASET_COLLECTION_VERSION
+        'version': ae_consts.DATASET_COLLECTION_VERSION
     }
     res = {
-        'status': NOT_RUN,
+        'status': ae_consts.NOT_RUN,
         'err': None,
         'rec': rec
     }
@@ -183,16 +153,16 @@ def get_new_pricing_data(
             ticker)
         ticker_id = work_dict.get(
             'ticker_id',
-            TICKER_ID)
+            ae_consts.TICKER_ID)
         s3_bucket = work_dict.get(
             's3_bucket',
-            S3_BUCKET)
+            ae_consts.S3_BUCKET)
         s3_key = work_dict.get(
             's3_key',
-            S3_KEY)
+            ae_consts.S3_KEY)
         redis_key = work_dict.get(
             'redis_key',
-            REDIS_KEY)
+            ae_consts.REDIS_KEY)
         exp_date = work_dict.get(
             'exp_date',
             None)
@@ -208,38 +178,54 @@ def get_new_pricing_data(
             label)
         iex_datasets = work_dict.get(
             'iex_datasets',
-            DEFAULT_FETCH_DATASETS)
+            iex_consts.DEFAULT_FETCH_DATASETS)
+        td_datasets = work_dict.get(
+            'td_datasets',
+            td_consts.DEFAULT_FETCH_DATASETS_TD)
         fetch_mode = work_dict.get(
             'fetch_mode',
-            FETCH_MODE_ALL)
+            ae_consts.FETCH_MODE_ALL)
 
         # control flags to deal with feed issues:
-        get_yahoo_data = True
         get_iex_data = True
+        get_td_data = True
 
         if (
-                fetch_mode == FETCH_MODE_ALL
+                fetch_mode == ae_consts.FETCH_MODE_ALL
                 or str(fetch_mode).lower() == 'all'):
-            get_yahoo_data = True
             get_iex_data = True
+            get_td_data = True
         elif (
-                fetch_mode == FETCH_MODE_YHO
+                fetch_mode == ae_consts.FETCH_MODE_YHO
                 or str(fetch_mode).lower() == 'yahoo'):
-            get_yahoo_data = True
             get_iex_data = False
+            get_td_data = False
         elif (
-                fetch_mode == FETCH_MODE_IEX
+                fetch_mode == ae_consts.FETCH_MODE_IEX
                 or str(fetch_mode).lower() == 'iex'):
-            get_yahoo_data = False
             get_iex_data = True
+            get_td_data = False
+        elif (
+                fetch_mode == ae_consts.FETCH_MODE_TD
+                or str(fetch_mode).lower() == 'td'):
+            get_iex_data = False
+            get_td_data = True
         else:
             log.debug(
                 '{} - unsupported fetch_mode={} value'.format(
                     label,
                     fetch_mode))
 
+        """
+        as of Thursday, Jan. 3, 2019:
+        https://developer.yahoo.com/yql/
+        Important EOL Notice: As of Thursday, Jan. 3, 2019
+        the YQL service at query.yahooapis.com will be retired
+        """
+        get_yahoo_data = False
+
         if not exp_date:
-            exp_date = analysis_engine.options_dates.option_expiration(
+            exp_date = opt_dates.option_expiration(
                 date=exp_date)
         else:
             exp_date = datetime.datetime.strptime(
@@ -271,6 +257,7 @@ def get_new_pricing_data(
             'updated': None
         }
 
+        # disabled on 2019-01-03
         if get_yahoo_data:
             log.info(
                 '{} yahoo ticker={}'.format(
@@ -278,38 +265,41 @@ def get_new_pricing_data(
                     ticker))
             yahoo_res = yahoo_data.get_data_from_yahoo(
                 work_dict=work_dict)
-            if yahoo_res['status'] == SUCCESS:
+            if yahoo_res['status'] == ae_consts.SUCCESS:
                 yahoo_rec = yahoo_res['rec']
                 log.info(
                     '{} yahoo ticker={} '
                     'status={} err={}'.format(
                         label,
                         ticker,
-                        get_status(status=yahoo_res['status']),
+                        ae_consts.get_status(status=yahoo_res['status']),
                         yahoo_res['err']))
                 rec['pricing'] = yahoo_rec.get('pricing', '{}')
                 rec['news'] = yahoo_rec.get('news', '{}')
                 rec['options'] = yahoo_rec.get('options', '{}')
-                rec['calls'] = rec['options'].get('calls', EMPTY_DF_STR)
-                rec['puts'] = rec['options'].get('puts', EMPTY_DF_STR)
+                rec['calls'] = rec['options'].get(
+                    'calls', ae_consts.EMPTY_DF_STR)
+                rec['puts'] = rec['options'].get(
+                    'puts', ae_consts.EMPTY_DF_STR)
             else:
                 log.error(
                     '{} failed YAHOO ticker={} '
                     'status={} err={}'.format(
                         label,
                         ticker,
-                        get_status(status=yahoo_res['status']),
+                        ae_consts.get_status(status=yahoo_res['status']),
                         yahoo_res['err']))
         # end of get from yahoo
 
         if get_iex_data:
             num_iex_ds = len(iex_datasets)
             log.debug(
-                '{} iex datasaets={}'.format(
+                '{} iex datasets={}'.format(
                     label,
                     num_iex_ds))
             for idx, ft_type in enumerate(iex_datasets):
-                dataset_field = get_ft_str(ft_type=ft_type)
+                dataset_field = iex_consts.get_ft_str(
+                    ft_type=ft_type)
 
                 log.info(
                     '{} iex={}/{} field={} ticker={}'.format(
@@ -329,7 +319,7 @@ def get_new_pricing_data(
                 iex_res = iex_data.get_data_from_iex(
                     work_dict=iex_req)
 
-                if iex_res['status'] == SUCCESS:
+                if iex_res['status'] == ae_consts.SUCCESS:
                     iex_rec = iex_res['rec']
                     log.info(
                         '{} iex ticker={} field={} '
@@ -337,7 +327,7 @@ def get_new_pricing_data(
                             label,
                             ticker,
                             dataset_field,
-                            get_status(status=iex_res['status']),
+                            ae_consts.get_status(status=iex_res['status']),
                             iex_res['err']))
                     if dataset_field == 'news':
                         rec['iex_news'] = iex_rec['data']
@@ -350,11 +340,68 @@ def get_new_pricing_data(
                             label,
                             ticker,
                             dataset_field,
-                            get_status(status=iex_res['status']),
+                            ae_consts.get_status(status=iex_res['status']),
                             iex_res['err']))
                 # end of if/else succcess
             # end idx, ft_type in enumerate(iex_datasets):
         # end of if get_iex_data
+
+        if get_td_data:
+            num_td_ds = len(td_datasets)
+            log.debug(
+                '{} td datasets={}'.format(
+                    label,
+                    num_td_ds))
+            for idx, ft_type in enumerate(td_datasets):
+                dataset_field = td_consts.get_ft_str_td(
+                    ft_type=ft_type)
+
+                log.info(
+                    '{} td={}/{} field={} ticker={}'.format(
+                        label,
+                        idx,
+                        num_td_ds,
+                        dataset_field,
+                        ticker))
+                td_label = '{}-{}'.format(
+                    label,
+                    dataset_field)
+                td_req = copy.deepcopy(work_dict)
+                td_req['label'] = td_label
+                td_req['ft_type'] = ft_type
+                td_req['field'] = dataset_field
+                td_req['ticker'] = ticker
+                td_res = td_data.get_data_from_td(
+                    work_dict=td_req)
+
+                if td_res['status'] == ae_consts.SUCCESS:
+                    td_rec = td_res['rec']
+                    log.info(
+                        '{} td ticker={} field={} '
+                        'status={} err={}'.format(
+                            label,
+                            ticker,
+                            dataset_field,
+                            ae_consts.get_status(status=td_res['status']),
+                            td_res['err']))
+                    if dataset_field == 'tdcalls':
+                        rec['tdcalls'] = td_rec['data']
+                    if dataset_field == 'tdputs':
+                        rec['tdputs'] = td_rec['data']
+                    else:
+                        rec[dataset_field] = td_rec['data']
+                else:
+                    log.critical(
+                        '{} failed TD ticker={} field={} '
+                        'status={} err={}'.format(
+                            label,
+                            ticker,
+                            dataset_field,
+                            ae_consts.get_status(status=td_res['status']),
+                            td_res['err']))
+                # end of if/else succcess
+            # end idx, ft_type in enumerate(td_datasets):
+        # end of if get_td_data
 
         update_req = {
             'data': rec
@@ -365,67 +412,67 @@ def get_new_pricing_data(
         update_req['contract'] = contract_type
         update_req['s3_enabled'] = work_dict.get(
             's3_enabled',
-            ENABLED_S3_UPLOAD)
+            ae_consts.ENABLED_S3_UPLOAD)
         update_req['redis_enabled'] = work_dict.get(
             'redis_enabled',
-            ENABLED_REDIS_PUBLISH)
+            ae_consts.ENABLED_REDIS_PUBLISH)
         update_req['s3_bucket'] = s3_bucket
         update_req['s3_key'] = s3_key
         update_req['s3_access_key'] = work_dict.get(
             's3_access_key',
-            S3_ACCESS_KEY)
+            ae_consts.S3_ACCESS_KEY)
         update_req['s3_secret_key'] = work_dict.get(
             's3_secret_key',
-            S3_SECRET_KEY)
+            ae_consts.S3_SECRET_KEY)
         update_req['s3_region_name'] = work_dict.get(
             's3_region_name',
-            S3_REGION_NAME)
+            ae_consts.S3_REGION_NAME)
         update_req['s3_address'] = work_dict.get(
             's3_address',
-            S3_ADDRESS)
+            ae_consts.S3_ADDRESS)
         update_req['s3_secure'] = work_dict.get(
             's3_secure',
-            S3_SECURE)
+            ae_consts.S3_SECURE)
         update_req['redis_key'] = redis_key
         update_req['redis_address'] = work_dict.get(
             'redis_address',
-            REDIS_ADDRESS)
+            ae_consts.REDIS_ADDRESS)
         update_req['redis_password'] = work_dict.get(
             'redis_password',
-            REDIS_PASSWORD)
+            ae_consts.REDIS_PASSWORD)
         update_req['redis_db'] = int(work_dict.get(
             'redis_db',
-            REDIS_DB))
+            ae_consts.REDIS_DB))
         update_req['redis_expire'] = work_dict.get(
             'redis_expire',
-            REDIS_EXPIRE)
+            ae_consts.REDIS_EXPIRE)
         update_req['updated'] = rec['updated']
         update_req['label'] = label
         update_req['celery_disabled'] = True
-        update_status = NOT_SET
+        update_status = ae_consts.NOT_SET
 
         try:
             update_res = publisher.run_publish_pricing_update(
                 work_dict=update_req)
             update_status = update_res.get(
                 'status',
-                NOT_SET)
-            if ev('DEBUG_RESULTS', '0') == '1':
+                ae_consts.NOT_SET)
+            if ae_consts.ev('DEBUG_RESULTS', '0') == '1':
                 log.info(
                     '{} update_res status={} data={}'.format(
                         label,
-                        get_status(status=update_status),
-                        ppj(update_res)))
+                        ae_consts.get_status(status=update_status),
+                        ae_consts.ppj(update_res)))
             else:
                 log.info(
                     '{} run_publish_pricing_update status={}'.format(
                         label,
-                        get_status(status=update_status)))
+                        ae_consts.get_status(status=update_status)))
             # end of if/else
 
             rec['publish_pricing_update'] = update_res
             res = build_result.build_result(
-                status=SUCCESS,
+                status=ae_consts.SUCCESS,
                 err=None,
                 rec=rec)
         except Exception as f:
@@ -436,14 +483,14 @@ def get_new_pricing_data(
                     f))
             log.error(err)
             res = build_result.build_result(
-                status=ERR,
+                status=ae_consts.ERR,
                 err=err,
                 rec=rec)
         # end of trying to publish results to connected services
 
     except Exception as e:
         res = build_result.build_result(
-            status=ERR,
+            status=ae_consts.ERR,
             err=(
                 'failed - get_new_pricing_data '
                 'dict={} with ex={}').format(
@@ -456,9 +503,9 @@ def get_new_pricing_data(
                 res['err']))
     # end of try/ex
 
-    if ev('DATASET_COLLECTION_SLACK_ALERTS', '0') == '1':
+    if ae_consts.ev('DATASET_COLLECTION_SLACK_ALERTS', '0') == '1':
         env_name = 'DEV'
-        if ev('PROD_SLACK_ALERTS', '1') == '1':
+        if ae_consts.ev('PROD_SLACK_ALERTS', '1') == '1':
             env_name = 'PROD'
         done_msg = (
             'Dataset collected ticker=*{}* on env=*{}* '
@@ -473,7 +520,7 @@ def get_new_pricing_data(
             '{} sending slack msg={}'.format(
                 label,
                 done_msg))
-        if res['status'] == SUCCESS:
+        if res['status'] == ae_consts.SUCCESS:
             slack_utils.post_success(
                 msg=done_msg,
                 block=False,
@@ -490,9 +537,9 @@ def get_new_pricing_data(
         'task - get_new_pricing_data done - '
         '{} - status={}'.format(
             label,
-            get_status(res['status'])))
+            ae_consts.get_status(res['status'])))
 
-    return analysis_engine.get_task_results.get_task_results(
+    return get_task_results.get_task_results(
         work_dict=work_dict,
         result=res)
 # end of get_new_pricing_data
@@ -516,13 +563,13 @@ def run_get_new_pricing_data(
             label))
 
     response = build_result.build_result(
-        status=NOT_RUN,
+        status=ae_consts.NOT_RUN,
         err=None,
         rec={})
     task_res = {}
 
     # allow running without celery
-    if is_celery_disabled(
+    if ae_consts.is_celery_disabled(
             work_dict=work_dict):
         work_dict['celery_disabled'] = True
         task_res = get_new_pricing_data(
@@ -531,10 +578,10 @@ def run_get_new_pricing_data(
             response = task_res.get(
                 'result',
                 task_res)
-            if ev('DEBUG_RESULTS', '0') == '1':
+            if ae_consts.ev('DEBUG_RESULTS', '0') == '1':
                 response_details = response
                 try:
-                    response_details = ppj(response)
+                    response_details = ae_consts.ppj(response)
                 except Exception:
                     response_details = response
 
@@ -556,18 +603,18 @@ def run_get_new_pricing_data(
             'task_id': task_res
         }
         response = build_result.build_result(
-            status=SUCCESS,
+            status=ae_consts.SUCCESS,
             err=None,
             rec=rec)
     # if celery enabled
 
     if response:
-        if ev('DEBUG_RESULTS', '0') == '1':
+        if ae_consts.ev('DEBUG_RESULTS', '0') == '1':
             log.info(
                 'run_get_new_pricing_data - {} - done '
                 'status={} err={} rec={}'.format(
                     label,
-                    get_status(response['status']),
+                    ae_consts.get_status(response['status']),
                     response['err'],
                     response['rec']))
         else:
@@ -575,7 +622,7 @@ def run_get_new_pricing_data(
                 'run_get_new_pricing_data - {} - done '
                 'status={} err={}'.format(
                     label,
-                    get_status(response['status']),
+                    ae_consts.get_status(response['status']),
                     response['err']))
     else:
         log.info(

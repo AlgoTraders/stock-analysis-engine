@@ -38,7 +38,7 @@ do
         compose="integration.yml"
     # end-to-end integration testing with notebook editing
     # over <repo base>/docker/notebooks:
-    elif [[ "${i}" == "-j" ]]; then
+    elif [[ "${i}" == "-j1" ]]; then
         debug="1"
         compose="notebook-integration.yml"
     # automation - dataset collection
@@ -49,23 +49,56 @@ do
         if [[ ! -z "$workers" ]]; then
             echo $workers | xargs kill -9
         fi
+        # new v2 location that requires a new env file:
+        # ./compose/envs/fetch.env
+        # that is created manually
+        if [[ -e ./compose/fetch/fetch.yml ]]; then
+            compose="fetch/fetch.yml"
+        fi
+    elif [[ "${i}" == "-b" ]]; then
+        debug="1"
+        compose="bt/backtester.yml"
+    elif [[ "${i}" == "-j" ]]; then
+        debug="1"
+        compose="jupyter/jupyter.yml"
     elif [[ "${i}" == "-r" ]]; then
         debug="1"
-        compose="registry.yml"
+        compose="registry/registry.yml"
+    elif [[ "${i}" == "-s" ]]; then
+        debug="1"
+        compose="components/stack.yml"
     fi
 done
 
 anmt "-------------"
+containers=""
 if [[ "${compose}" == "dev.yml" ]]; then
     inf "stopping redis and minio"
+    containers="redis minio"
 elif [[ "${compose}" == "integration.yml" ]]; then
     inf "stopping integration stack: redis, minio, workers and jupyter"
+    containers="ae-workers ae-jupyter redis minio"
 elif [[ "${compose}" == "notebook-integration.yml" ]]; then
     inf "stopping end-to-end with notebook integration stack: redis, minio, workers and jupyter"
+    containers="ae-workers ae-jupyter redis minio"
 elif [[ "${compose}" == "automation-dataset-collection.yml" ]]; then
     inf "stopping dataset collection"
-elif [[ "${compose}" == "registry.yml" ]]; then
+    containers="ae-dataset-collection ae-fetch"
+elif [[ "${compose}" == "bt/backtester.yml" ]]; then
+    inf "stopping backtester"
+    containers="ae-backtester"
+elif [[ "${compose}" == "fetch/fetch.yml" ]]; then
+    inf "stopping dataset collection - version 2"
+    containers="ae-fetch"
+elif [[ "${compose}" == "jupyter/jupyter.yml" ]]; then
+    inf "stopping jupyter - version 2"
+    containers="ae-jupyter"
+elif [[ "${compose}" == "registry/registry.yml" ]]; then
     inf "stopping registry"
+    containers="registry"
+elif [[ "${compose}" == "components/stack.yml" ]]; then
+    inf "stopping stack: workers, backtester and jupyter"
+    containers="ae-workers ae-backtester ae-jupyter"
 else
     err "unsupported compose file: ${compose}"
     exit 1
@@ -76,85 +109,7 @@ if [[ ! -e ./${compose} ]]; then
     down_dir="1"
 fi
 
-# start getting ports and setting vars for containers
-if [[ -z `cat envs/.env | grep $USER` ]]; then
-    sed -i $mac "s/redis:/redis-$USER:/g" envs/.env
-    sed -i $mac "s/-$USER:\/\//:\/\//" envs/.env
-    sed -i $mac "s/minio:/minio-$USER:/g" envs/.env
-fi
-
-# if containers for the current user are not running
-if [[ -z `docker ps | grep $USER | grep redis` ]]; then
-    BASE_REDIS_PORT=6379
-    while [[ ! -z `echo "$active_ports" | grep $BASE_REDIS_PORT` ]]
-    do
-        BASE_REDIS_PORT=$((BASE_REDIS_PORT+1))
-    done
-else
-    BASE_REDIS_PORT=`docker ps | grep $USER | grep redis | cut -f1 -d">" | sed -e 's/.*://' | cut -f1 -d"-"`
-fi
-
-if [[ -z `docker ps | grep $USER | grep minio` ]]; then
-    BASE_MINIO_PORT=9000
-    while [[ ! -z `echo "$active_ports" | grep $BASE_MINIO_PORT` ]]
-    do
-        BASE_MINIO_PORT=$((BASE_MINIO_PORT+1))
-    done
-else
-    BASE_MINIO_PORT=`docker ps | grep $USER | grep minio | cut -f1 -d">" | sed -e 's/.*://' | cut -f1 -d"-"`
-fi
-
-if [[ -z `docker ps | grep $USER | grep jupyter` ]]; then
-    BASE_JUPYTER_PORT_1=8888
-    BASE_JUPYTER_PORT_2=8889
-    BASE_JUPYTER_PORT_3=8890
-    BASE_JUPYTER_PORT_4=6006
-    while [[ ! -z `echo "$active_ports" | grep $BASE_JUPYTER_PORT_1` ]]
-    do
-        BASE_JUPYTER_PORT_1=$((BASE_JUPYTER_PORT_1+3))
-        BASE_JUPYTER_PORT_2=$((BASE_JUPYTER_PORT_2+3))
-        BASE_JUPYTER_PORT_3=$((BASE_JUPYTER_PORT_3+3))
-        BASE_JUPYTER_PORT_4=$((BASE_JUPYTER_PORT_4+1))
-    done
-else
-    BASE_JUPYTER_PORT_1=`docker ps | grep $USER | grep jupyter | sed -e 's/.*,//' | cut -f1 -d">" | sed -e 's/.*://' | cut -f1 -d"-"`
-    BASE_JUPYTER_PORT_2=$((BASE_JUPYTER_PORT_1+1))
-    BASE_JUPYTER_PORT_3=$((BASE_JUPYTER_PORT_2+1))
-    BASE_JUPYTER_PORT_4=`docker ps | grep $USER | grep jupyter | cut -f1 -d">" | sed -e 's/.*://' | cut -f1 -d"-"`
-fi
-
-echo "export REDIS_PORT=$BASE_REDIS_PORT" > env.sh
-echo "export MINIO_PORT=$BASE_MINIO_PORT" >> env.sh
-echo "export JUPYTER_PORT_1=$BASE_JUPYTER_PORT_1" >> env.sh
-echo "export JUPYTER_PORT_2=$BASE_JUPYTER_PORT_2" >> env.sh
-echo "export JUPYTER_PORT_3=$BASE_JUPYTER_PORT_3" >> env.sh
-echo "export JUPYTER_PORT_4=$BASE_JUPYTER_PORT_4" >> env.sh
-source ./env.sh
-rm env.sh
-# end getting ports and setting vars for containers
-
-docker-compose -f ./${compose} -p $USER down >> /dev/null 2>&1
-
-containers=""
-if [[ "${compose}" == "dev.yml" ]]; then
-    inf "stopping redis and minio"
-    containers="redis-${USER} minio-${USER}"
-elif [[ "${compose}" == "integration.yml" ]]; then
-    inf "stopping integration stack: redis, minio, workers and jupyter"
-    containers="sa-workers-${USER} sa-jupyter-${USER} redis-${USER} minio-${USER}"
-elif [[ "${compose}" == "notebook-integration.yml" ]]; then
-    inf "stopping end-to-end with notebook integration stack: redis, minio, workers and jupyter"
-    containers="sa-workers-${USER} sa-jupyter-${USER} redis-${USER} minio-${USER}"
-elif [[ "${compose}" == "automation-dataset-collection.yml" ]]; then
-    inf "stopping dataset collection"
-    containers="sa-dataset-collection-${USER}"
-elif [[ "${compose}" == "registry.yml" ]]; then
-    inf "stopping registry"
-    containers="registry"
-else
-    err "unsupported compose file: ${compose}"
-    exit 1
-fi
+/usr/local/bin/docker-compose -f ./${compose} down >> /dev/null 2>&1
 
 for c in ${containers}; do
     test_exists=$(docker ps -a | grep ${c} | wc -l)
@@ -165,11 +120,6 @@ for c in ${containers}; do
     fi
 done
 
-# MacOS specific, remove the backup file that is created by sed -i 
-if [[ -n $mac && -f envs/.env$mac ]]; then
-    rm envs/.env$mac
-fi
-
 if [[ "${down_dir}" == "1" ]]; then
     popd >> /dev/null
 fi
@@ -178,8 +128,16 @@ if [[ "${compose}" == "dev.yml" ]]; then
     good "stopped redis and minio"
 elif [[ "${compose}" == "integration.yml" ]]; then
     good "stopped end-to-end integration stack: redis, minio, workers and jupyter"
-elif [[ "${compose}" == "registry.yml" ]]; then
+elif [[ "${compose}" == "bt/backtester.yml" ]]; then
+    good "stopped backtester"
+elif [[ "${compose}" == "fetch/fetch.yml" ]]; then
+    good "stopped dataset collection - version 2"
+elif [[ "${compose}" == "jupyter/jupyter.yml" ]]; then
+    good "stopped jupyter - version 2"
+elif [[ "${compose}" == "registry/registry.yml" ]]; then
     good "stopped registry"
+elif [[ "${compose}" == "components/stack.yml" ]]; then
+    good "stopped stack: workers, backtester and jupyter"
 fi
 
 exit 0

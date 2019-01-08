@@ -96,7 +96,7 @@ Stock and Analysis Environment Variables
     DEFAULT_TICKERS = ev(
         'DEFAULT_TICKERS',
         'SPY,AMZN,TSLA,NFLX').split(',')
-    NEXT_EXP = analysis_engine.options_dates.option_expiration()
+    NEXT_EXP = opt_dates.option_expiration()
     NEXT_EXP_STR = NEXT_EXP.strftime('%Y-%m-%d')
 
 Logging Environment Variables
@@ -124,22 +124,16 @@ Celery Environment Variables
     TRANSPORT_OPTIONS = {}
     WORKER_BROKER_URL = ev(
         'WORKER_BROKER_URL',
-        'redis://localhost:6379/13')
+        'redis://localhost:6379/11')
     WORKER_BACKEND_URL = ev(
         'WORKER_BACKEND_URL',
-        'redis://localhost:6379/14')
+        'redis://localhost:6379/12')
     WORKER_CELERY_CONFIG_MODULE = ev(
         'WORKER_CELERY_CONFIG_MODULE',
         'analysis_engine.work_tasks.celery_config')
     WORKER_TASKS = ev(
         'WORKER_TASKS',
-        ('analysis_engine.work_tasks.get_new_pricing_data,'
-         'analysis_engine.work_tasks.handle_pricing_update_task,'
-         'analysis_engine.work_tasks.prepare_pricing_dataset,'
-         'analysis_engine.work_tasks.publish_from_s3_to_redis,'
-         'analysis_engine.work_tasks.publish_pricing_update,'
-         'analysis_engine.work_tasks.task_screener_analysis,'
-         'analysis_engine.work_tasks.publish_ticker_aggregate_from_s3'))
+        ('analysis_engine.work_tasks.task_run_algo'))
     INCLUDE_TASKS = WORKER_TASKS.split(',')
 
 Supported S3 Environment Variables
@@ -161,7 +155,7 @@ Supported S3 Environment Variables
         'us-east-1')
     S3_ADDRESS = ev(
         'S3_ADDRESS',
-        'localhost:9000')
+        '0.0.0.0:9000')
     S3_SECURE = ev(
         'S3_SECURE',
         '0') == '1'
@@ -249,7 +243,7 @@ Supported Redis Environment Variables
 import os
 import sys
 import json
-import analysis_engine.options_dates
+import analysis_engine.options_dates as opt_dates
 
 
 def ev(
@@ -375,6 +369,8 @@ INDICATOR_USES_CALLS_DATA = 512
 INDICATOR_USES_PUTS_DATA = 513
 INDICATOR_USES_DATA_UNSUPPORTED = 514
 INDICATOR_USES_DATA_ANY = 515
+INDICATOR_USES_TDCALLS_DATA = 516
+INDICATOR_USES_TDPUTS_DATA = 517
 
 INT_INDICATOR_NOT_PROCESSED = 600
 INT_INDICATOR_IGNORE_ACTION = 601
@@ -407,6 +403,7 @@ PLOT_ACTION_SAVE_AS_FILE = 20002
 FETCH_MODE_ALL = 30000
 FETCH_MODE_YHO = 30001
 FETCH_MODE_IEX = 30002
+FETCH_MODE_TD = 30003
 
 # version of python
 IS_PY2 = sys.version[0] == '2'
@@ -414,7 +411,7 @@ NUM_BYTES_IN_AN_MB = 1048576
 
 APP_NAME = ev(
     'APP_NAME',
-    'pr')
+    'ae')
 LOG_CONFIG_PATH = ev(
     'LOG_CONFIG_PATH',
     './analysis_engine/log/logging.json')
@@ -431,15 +428,14 @@ WORKER_CELERY_CONFIG_MODULE = ev(
     'analysis_engine.work_tasks.celery_config')
 WORKER_TASKS = ev(
     'WORKER_TASKS',
-    ('analysis_engine.work_tasks.get_new_pricing_data,'
+    ('analysis_engine.work_tasks.task_run_algo,'
+     'analysis_engine.work_tasks.get_new_pricing_data,'
      'analysis_engine.work_tasks.handle_pricing_update_task,'
      'analysis_engine.work_tasks.prepare_pricing_dataset,'
      'analysis_engine.work_tasks.publish_from_s3_to_redis,'
      'analysis_engine.work_tasks.publish_pricing_update,'
      'analysis_engine.work_tasks.task_screener_analysis,'
-     'analysis_engine.work_tasks.run_distributed_algorithm,'
-     'analysis_engine.work_tasks.publish_ticker_aggregate_from_s3'
-     ''))
+     'analysis_engine.work_tasks.publish_ticker_aggregate_from_s3'))
 INCLUDE_TASKS = WORKER_TASKS.split(',')
 CELERY_DISABLED = ev('CELERY_DISABLED', '0') == '1'
 
@@ -457,7 +453,7 @@ TICKER_ID = int(ev(
 DEFAULT_TICKERS = ev(
     'DEFAULT_TICKERS',
     'SPY,AMZN,TSLA,NFLX').split(',')
-NEXT_EXP = analysis_engine.options_dates.option_expiration()
+NEXT_EXP = opt_dates.option_expiration()
 NEXT_EXP_STR = NEXT_EXP.strftime('%Y-%m-%d')
 DAILY_S3_BUCKET_NAME = ev(
     'DAILY_S3_BUCKET_NAME',
@@ -491,7 +487,7 @@ COMPANY_S3_BUCKET_NAME = ev(
     'company')
 FETCH_MODE = ev(
     'FETCH_MODE',
-    'full')
+    'all')
 PREPARE_S3_BUCKET_NAME = ev(
     'PREPARE_S3_BUCKET_NAME',
     'prepared')
@@ -593,7 +589,7 @@ ALGO_LOAD_COMPRESS = (ev(
     '0') == '1')
 ALGO_HISTORY_COMPRESS = (ev(
     'ALGO_HISTORY_COMPRESS',
-    '0') == '1')
+    '1') == '1')
 ALGO_HISTORY_VERSION = ev(
     'ALGO_HISTORY_VERSION',
     '1')
@@ -617,7 +613,9 @@ DEFAULT_SERIALIZED_DATASETS = [
     'news',
     'calls',
     'puts',
-    'pricing'
+    'pricing',
+    'tdcalls',
+    'tdputs'
 ]
 EMPTY_DF_STR = '[{}]'
 EMPTY_DF_LIST = [{}]
@@ -736,7 +734,7 @@ S3_REGION_NAME = ev(
     'us-east-1')
 S3_ADDRESS = ev(
     'S3_ADDRESS',
-    'localhost:9000')
+    '0.0.0.0:9000')
 S3_SECURE = ev(
     'S3_SECURE',
     '0') == '1'
@@ -1085,6 +1083,8 @@ INDICATOR_USES_DATA_MAPPING = {
     'calls': INDICATOR_USES_CALLS_DATA,
     'puts': INDICATOR_USES_PUTS_DATA,
     'unsupported': INDICATOR_USES_DATA_UNSUPPORTED,
+    'tdcalls': INDICATOR_USES_TDCALLS_DATA,
+    'tdputs': INDICATOR_USES_TDPUTS_DATA,
     'any': INDICATOR_USES_DATA_ANY
 }
 
@@ -1185,3 +1185,16 @@ def get_algo_timeseries_from_int(
         'unsupported algorithm timeseries value={}'.format(
             val))
 # end of get_algo_timeseries_from_int
+
+
+def is_df(
+        df):
+    """is_df
+
+    Test if ``df`` is a valid ``pandas.DataFrame``
+
+    :param df: ``pandas.DataFrame``
+    """
+    return (
+        hasattr(df, 'to_json'))
+# end of is_df

@@ -1,7 +1,7 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: sa-engine
+  name: ae-engine
   annotations:
     description: The Stock Analysis Engine
     runtime: python3
@@ -16,12 +16,12 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: sa-engine
+      app: ae-engine
       backend: enabled
   template:
     metadata:
       labels:
-        app: sa-engine
+        app: ae-engine
         backend: enabled
         purpose: stock-analysis
         layer: backend
@@ -38,12 +38,12 @@ spec:
                 operator: In
                 values:
                 - enabled
-      hostname: sa-engine
+      hostname: ae-engine
       restartPolicy: Always
       containers:
       - image: jayjohnson/stock-analysis-engine:latest
         imagePullPolicy: Always
-        name: sa-engine
+        name: ae-engine
         resources: {}
         command:
         - /bin/bash
@@ -99,3 +99,25 @@ spec:
         # set to "1" to publish Celery task failures to Slack
         - name: PROD_SLACK_ALERTS
           value: "0"
+        # Tradier Account Config:
+        - name: TD_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: ae.k8.tradier
+              key: td_token
+        - name: TD_ENDPOINT_API
+          valueFrom:
+            secretKeyRef:
+              name: ae.k8.tradier
+              key: td_endpoint_api
+        - name: TD_ENDPOINT_DATA
+          valueFrom:
+            secretKeyRef:
+              name: ae.k8.tradier
+              key: td_endpoint_data
+        - name: TD_ENDPOINT_STREAM
+          valueFrom:
+            secretKeyRef:
+              name: ae.k8.tradier
+              key: td_endpoint_stream
+        # end Tradier

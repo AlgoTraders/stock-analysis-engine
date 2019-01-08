@@ -6,7 +6,7 @@ Algorithm API Reference
    :caption: Available algorithm modules, functions and objects
 
    example_algo_minute
-   run_distributed_algorithms
+   task_run_algo
    run_algo
    example_algos
    build_algo_request

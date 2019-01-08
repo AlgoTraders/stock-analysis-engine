@@ -13,8 +13,8 @@ file in s3 and redis automatically.
 **Sample work_dict request for this method**
 
 `analysis_engine.api_requests.build_prepare_dataset_request <https://
-github.com/AlgoTraders/stock-analysis-engine/blob/master/ana
-lysis_engine/api_requests.py#L300>`__
+github.com/AlgoTraders/stock-analysis-engine/blob/master/
+analysis_engine/api_requests.py#L300>`__
 
 ::
 
@@ -49,47 +49,23 @@ lysis_engine/api_requests.py#L300>`__
 
 import datetime
 import redis
+import celery.task as celery_task
+import analysis_engine.consts as ae_consts
 import analysis_engine.build_result as build_result
 import analysis_engine.api_requests as api_requests
 import analysis_engine.get_data_from_redis_key as redis_get
-import analysis_engine.get_task_results
-import analysis_engine.work_tasks.custom_task
-import analysis_engine.options_dates
-import analysis_engine.get_pricing
-import analysis_engine.work_tasks.publish_from_s3_to_redis as \
-    s3_to_redis
-import analysis_engine.dict_to_csv
-from celery.task import task
-from spylunking.log.setup_logging import build_colorized_logger
-from analysis_engine.consts import SUCCESS
-from analysis_engine.consts import NOT_RUN
-from analysis_engine.consts import ERR
-from analysis_engine.consts import TICKER
-from analysis_engine.consts import TICKER_ID
-from analysis_engine.consts import S3_ACCESS_KEY
-from analysis_engine.consts import S3_SECRET_KEY
-from analysis_engine.consts import S3_REGION_NAME
-from analysis_engine.consts import S3_ADDRESS
-from analysis_engine.consts import S3_SECURE
-from analysis_engine.consts import REDIS_ADDRESS
-from analysis_engine.consts import REDIS_KEY
-from analysis_engine.consts import REDIS_PASSWORD
-from analysis_engine.consts import REDIS_DB
-from analysis_engine.consts import REDIS_EXPIRE
-from analysis_engine.consts import PREPARE_DATA_MIN_SIZE
-from analysis_engine.consts import get_status
-from analysis_engine.consts import ev
-from analysis_engine.consts import is_celery_disabled
-from analysis_engine.consts import to_f
-from analysis_engine.consts import ppj
+import analysis_engine.get_task_results as get_task_results
+import analysis_engine.work_tasks.custom_task as custom_task
+import analysis_engine.work_tasks.publish_from_s3_to_redis as s3_to_redis
+import analysis_engine.dict_to_csv as dict_to_csv
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
-@task(
+@celery_task(
     bind=True,
-    base=analysis_engine.work_tasks.custom_task.CustomTask,
+    base=custom_task.CustomTask,
     queue='prepare_pricing_dataset')
 def prepare_pricing_dataset(
         self,
@@ -113,8 +89,8 @@ def prepare_pricing_dataset(
 
     initial_data = None
 
-    ticker = TICKER
-    ticker_id = TICKER_ID
+    ticker = ae_consts.TICKER
+    ticker_id = ae_consts.TICKER_ID
     rec = {
         'ticker': None,
         'ticker_id': None,
@@ -134,21 +110,21 @@ def prepare_pricing_dataset(
         'updated': None
     }
     res = build_result.build_result(
-        status=NOT_RUN,
+        status=ae_consts.NOT_RUN,
         err=None,
         rec=rec)
 
     try:
         ticker = work_dict.get(
             'ticker',
-            TICKER)
+            ae_consts.TICKER)
         ticker_id = int(work_dict.get(
             'ticker_id',
-            TICKER_ID))
+            ae_consts.TICKER_ID))
 
         if not ticker:
             res = build_result.build_result(
-                status=ERR,
+                status=ae_consts.ERR,
                 err='missing ticker',
                 rec=rec)
             return res
@@ -164,38 +140,38 @@ def prepare_pricing_dataset(
             'pricing')
         s3_access_key = work_dict.get(
             's3_access_key',
-            S3_ACCESS_KEY)
+            ae_consts.S3_ACCESS_KEY)
         s3_secret_key = work_dict.get(
             's3_secret_key',
-            S3_SECRET_KEY)
+            ae_consts.S3_SECRET_KEY)
         s3_region_name = work_dict.get(
             's3_region_name',
-            S3_REGION_NAME)
+            ae_consts.S3_REGION_NAME)
         s3_address = work_dict.get(
             's3_address',
-            S3_ADDRESS)
+            ae_consts.S3_ADDRESS)
         s3_secure = work_dict.get(
             's3_secure',
-            S3_SECURE) == '1'
+            ae_consts.S3_SECURE) == '1'
         redis_address = work_dict.get(
             'redis_address',
-            REDIS_ADDRESS)
+            ae_consts.REDIS_ADDRESS)
         redis_key = work_dict.get(
             'redis_key',
-            REDIS_KEY)
+            ae_consts.REDIS_KEY)
         redis_password = work_dict.get(
             'redis_password',
-            REDIS_PASSWORD)
+            ae_consts.REDIS_PASSWORD)
         redis_db = work_dict.get(
             'redis_db',
             None)
         if not redis_db:
-            redis_db = REDIS_DB
+            redis_db = ae_consts.REDIS_DB
         redis_expire = None
         if 'redis_expire' in work_dict:
             redis_expire = work_dict.get(
                 'redis_expire',
-                REDIS_EXPIRE)
+                ae_consts.REDIS_EXPIRE)
         updated = work_dict.get(
             'updated',
             datetime.datetime.utcnow().strftime(
@@ -271,7 +247,7 @@ def prepare_pricing_dataset(
                     redis_db,
                     e))
             res = build_result.build_result(
-                status=ERR,
+                status=ae_consts.ERR,
                 err=err,
                 rec=rec)
             return res
@@ -286,7 +262,7 @@ def prepare_pricing_dataset(
             '{} get redis key={} status={} err={}'.format(
                 label,
                 redis_key,
-                get_status(initial_data_res['status']),
+                ae_consts.get_status(initial_data_res['status']),
                 initial_data_res['err']))
 
         initial_data = initial_data_res['rec'].get(
@@ -332,7 +308,9 @@ def prepare_pricing_dataset(
                 get_from_s3_req['celery_disabled'] = True
                 task_res = s3_to_redis.run_publish_from_s3_to_redis(
                     get_from_s3_req)
-                if task_res.get('status', ERR) == SUCCESS:
+                if task_res.get(
+                        'status',
+                        ae_consts.ERR) == ae_consts.SUCCESS:
                     log.info(
                         '{} loaded s3={}:{} '
                         'to redis={} retrying'.format(
@@ -349,7 +327,7 @@ def prepare_pricing_dataset(
                         '{} get redis try=2 key={} status={} err={}'.format(
                             label,
                             redis_key,
-                            get_status(initial_data_res['status']),
+                            ae_consts.get_status(initial_data_res['status']),
                             initial_data_res['err']))
 
                     initial_data = initial_data_res['rec'].get(
@@ -366,7 +344,7 @@ def prepare_pricing_dataset(
                             task_res))
                     log.error(err)
                     res = build_result.build_result(
-                        status=ERR,
+                        status=ae_consts.ERR,
                         err=err,
                         rec=rec)
                     return res
@@ -383,7 +361,7 @@ def prepare_pricing_dataset(
                         e))
                 log.error(err)
                 res = build_result.build_result(
-                    status=ERR,
+                    status=ae_consts.ERR,
                     err=err,
                     rec=rec)
                 return res
@@ -400,7 +378,7 @@ def prepare_pricing_dataset(
                     s3_bucket_name))
             log.error(err)
             res = build_result.build_result(
-                status=ERR,
+                status=ae_consts.ERR,
                 err=err,
                 rec=rec)
             return res
@@ -408,7 +386,7 @@ def prepare_pricing_dataset(
         initial_data_num_chars = len(str(initial_data))
         initial_size_value = None
         initial_size_str = None
-        if initial_data_num_chars < PREPARE_DATA_MIN_SIZE:
+        if initial_data_num_chars < ae_consts.PREPARE_DATA_MIN_SIZE:
             err = (
                 '{} not enough data={} in redis_key={} or '
                 's3_key={} in bucket={}'.format(
@@ -419,14 +397,14 @@ def prepare_pricing_dataset(
                     s3_bucket_name))
             log.error(err)
             res = build_result.build_result(
-                status=ERR,
+                status=ae_consts.ERR,
                 err=err,
                 rec=rec)
             return res
         else:
             initial_size_value = initial_data_num_chars / 1024000
-            initial_size_str = to_f(initial_size_value)
-            if ev('DEBUG_PREPARE', '0') == '1':
+            initial_size_str = ae_consts.to_f(initial_size_value)
+            if ae_consts.ev('DEBUG_PREPARE', '0') == '1':
                 log.info(
                     '{} initial - redis_key={} data={}'.format(
                         label,
@@ -446,12 +424,12 @@ def prepare_pricing_dataset(
         prepare_data = None
 
         try:
-            if ev('DEBUG_PREPARE', '0') == '1':
+            if ae_consts.ev('DEBUG_PREPARE', '0') == '1':
                 log.info(
                     '{} data={} - flatten - {} MB from '
                     'redis_key={}'.format(
                         label,
-                        ppj(initial_data),
+                        ae_consts.ppj(initial_data),
                         initial_size_str,
                         redis_key))
             else:
@@ -461,7 +439,7 @@ def prepare_pricing_dataset(
                         label,
                         initial_size_str,
                         redis_key))
-            prepare_data = analysis_engine.dict_to_csv.flatten_dict(
+            prepare_data = dict_to_csv.flatten_dict(
                 data=initial_data)
         except Exception as e:
             prepare_data = None
@@ -473,7 +451,7 @@ def prepare_pricing_dataset(
                     redis_key))
             log.error(err)
             res = build_result.build_result(
-                status=ERR,
+                status=ae_consts.ERR,
                 err=err,
                 rec=rec)
             return res
@@ -489,7 +467,7 @@ def prepare_pricing_dataset(
                     s3_bucket_name))
             log.error(err)
             res = build_result.build_result(
-                status=ERR,
+                status=ae_consts.ERR,
                 err=err,
                 rec=rec)
             return res
@@ -498,7 +476,7 @@ def prepare_pricing_dataset(
         prepare_data_num_chars = len(str(prepare_data))
         prepare_size_value = None
 
-        if prepare_data_num_chars < PREPARE_DATA_MIN_SIZE:
+        if prepare_data_num_chars < ae_consts.PREPARE_DATA_MIN_SIZE:
             err = (
                 '{} prepare - there is not enough data={} in redis_key={}'
                 ''.format(
@@ -507,19 +485,19 @@ def prepare_pricing_dataset(
                     redis_key))
             log.error(err)
             res = build_result.build_result(
-                status=ERR,
+                status=ae_consts.ERR,
                 err=err,
                 rec=rec)
             return res
         else:
             prepare_size_value = prepare_data_num_chars / 1024000
-            prepare_size_str = to_f(prepare_size_value)
-            if ev('DEBUG_PREPARE', '0') == '1':
+            prepare_size_str = ae_consts.to_f(prepare_size_value)
+            if ae_consts.ev('DEBUG_PREPARE', '0') == '1':
                 log.info(
                     '{} data={} - prepare - redis_key={}'.format(
                         label,
                         redis_key,
-                        ppj(prepare_data)))
+                        ae_consts.ppj(prepare_data)))
             else:
                 log.info(
                     '{} prepare - redis_key={} data size={} MB'.format(
@@ -532,7 +510,7 @@ def prepare_pricing_dataset(
         rec['prepared_size'] = prepare_data_num_chars
 
         res = build_result.build_result(
-            status=SUCCESS,
+            status=ae_consts.SUCCESS,
             err=None,
             rec=rec)
 
@@ -540,7 +518,7 @@ def prepare_pricing_dataset(
 
     except Exception as e:
         res = build_result.build_result(
-            status=ERR,
+            status=ae_consts.ERR,
             err=(
                 'failed - prepare_pricing_dataset '
                 'dict={} with ex={}').format(
@@ -557,9 +535,9 @@ def prepare_pricing_dataset(
         'task - prepare_pricing_dataset done - '
         '{} - status={}'.format(
             label,
-            get_status(res['status'])))
+            ae_consts.get_status(res['status'])))
 
-    return analysis_engine.get_task_results.get_task_results(
+    return get_task_results.get_task_results(
         work_dict=work_dict,
         result=res)
 # end of prepare_pricing_dataset
@@ -583,13 +561,13 @@ def run_prepare_pricing_dataset(
             label))
 
     response = build_result.build_result(
-        status=NOT_RUN,
+        status=ae_consts.NOT_RUN,
         err=None,
         rec={})
     task_res = {}
 
     # allow running without celery
-    if is_celery_disabled(
+    if ae_consts.is_celery_disabled(
             work_dict=work_dict):
         work_dict['celery_disabled'] = True
         task_res = prepare_pricing_dataset(
@@ -598,10 +576,10 @@ def run_prepare_pricing_dataset(
             response = task_res.get(
                 'result',
                 task_res)
-            if ev('DEBUG_RESULTS', '0') == '1':
+            if ae_consts.ev('DEBUG_RESULTS', '0') == '1':
                 response_details = response
                 try:
-                    response_details = ppj(response)
+                    response_details = ae_consts.ppj(response)
                 except Exception:
                     response_details = response
                 log.info(
@@ -622,18 +600,18 @@ def run_prepare_pricing_dataset(
             'task_id': task_res
         }
         response = build_result.build_result(
-            status=SUCCESS,
+            status=ae_consts.SUCCESS,
             err=None,
             rec=rec)
     # if celery enabled
 
     if response:
-        if ev('DEBUG_RESULTS', '0') == '1':
+        if ae_consts.ev('DEBUG_RESULTS', '0') == '1':
             log.info(
                 'run_prepare_pricing_dataset - {} - done '
                 'status={} err={} rec={}'.format(
                     label,
-                    get_status(response['status']),
+                    ae_consts.get_status(response['status']),
                     response['err'],
                     response['rec']))
         else:
@@ -641,7 +619,7 @@ def run_prepare_pricing_dataset(
                 'run_prepare_pricing_dataset - {} - done '
                 'status={} err={}'.format(
                     label,
-                    get_status(response['status']),
+                    ae_consts.get_status(response['status']),
                     response['err']))
     else:
         log.info(

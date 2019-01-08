@@ -7,29 +7,22 @@ Supported Datasets:
 - ``SA_DATASET_TYPE_ALGO_READY`` - Algorithm-ready datasets
 """
 
+import analysis_engine.consts as ae_consts
 import analysis_engine.load_dataset as load_dataset
 import analysis_engine.show_dataset as show_dataset
 import analysis_engine.get_data_from_redis_key as redis_utils
 import analysis_engine.publish as publish
-from analysis_engine.consts import SUCCESS
-from analysis_engine.consts import REDIS_ADDRESS
-from analysis_engine.consts import DEFAULT_SERIALIZED_DATASETS
-from analysis_engine.consts import DATASET_COLLECTION_VERSION
-from analysis_engine.consts import SA_DATASET_TYPE_ALGO_READY
-from analysis_engine.consts import EMPTY_DF_STR
-from analysis_engine.consts import get_percent_done
-from spylunking.log.setup_logging import build_colorized_logger
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def restore_dataset(
         show_summary=True,
         force_restore=False,
         algo_dataset=None,
-        dataset_type=SA_DATASET_TYPE_ALGO_READY,
-        serialize_datasets=DEFAULT_SERIALIZED_DATASETS,
+        dataset_type=ae_consts.SA_DATASET_TYPE_ALGO_READY,
+        serialize_datasets=ae_consts.DEFAULT_SERIALIZED_DATASETS,
         path_to_file=None,
         compress=False,
         encoding='utf-8',
@@ -53,6 +46,7 @@ def restore_dataset(
         slack_enabled=False,
         slack_code_block=False,
         slack_full_width=False,
+        datasets_compressed=True,
         verbose=False):
     """restore_dataset
 
@@ -132,13 +126,17 @@ def restore_dataset(
 
     Additonal arguments
 
+    :param datasets_compressed: optional - boolean for
+        publishing as compressed strings
+        default is ``True``
+
     :param verbose: optional - bool for increasing
         logging
     """
 
     use_ds = algo_dataset
-    redis_host = REDIS_ADDRESS.split(':')[0]
-    redis_port = int(REDIS_ADDRESS.split(':')[1])
+    redis_host = ae_consts.REDIS_ADDRESS.split(':')[0]
+    redis_port = int(ae_consts.REDIS_ADDRESS.split(':')[1])
     if redis_address:
         redis_host = redis_address.split(':')[0]
         redis_port = int(redis_address.split(':')[1])
@@ -219,7 +217,7 @@ def restore_dataset(
             log.info(
                 'restore - parent_key={} - {} {}/{}'.format(
                     ds_parent_key,
-                    get_percent_done(
+                    ae_consts.get_percent_done(
                         progress=num_done,
                         total=total_to_restore),
                     num_done,
@@ -233,13 +231,15 @@ def restore_dataset(
                 password=redis_password,
                 db=redis_db,
                 key=ds_parent_key,
+                decompress_df=datasets_compressed,
                 serializer=redis_serializer,
                 encoding=redis_encoding,
                 expire=redis_expire,
                 label='restore-{}'.format(ds_parent_key))
+
             should_restore = False
             if (not force_restore and
-                    cache_res['status'] == SUCCESS and
+                    cache_res['status'] == ae_consts.SUCCESS and
                     'data' in cache_res['rec'] and
                     cache_res['rec']['data'] and
                     len(cache_res['rec']['data']) > 10):
@@ -255,7 +255,7 @@ def restore_dataset(
                     'publish_pricing_update': None,
                     'date': ds_node['date'],
                     'updated': None,
-                    'version': DATASET_COLLECTION_VERSION
+                    'version': ae_consts.DATASET_COLLECTION_VERSION
                 }
                 for sname in serialize_datasets:
                     if sname in ds_node['data']:
@@ -272,8 +272,6 @@ def restore_dataset(
 
                 publish.publish(
                     data=new_parent_rec,
-                    convert_to_json=False,
-                    compress=compress,
                     redis_enabled=True,
                     redis_key=ds_parent_key,
                     redis_db=redis_output_db,
@@ -284,6 +282,7 @@ def restore_dataset(
                     redis_encoding=redis_encoding,
                     s3_enabled=False,
                     output_file=None,
+                    df_compress=datasets_compressed,
                     verbose=verbose)
 
             for ds_key in ds_node['data']:
@@ -307,20 +306,24 @@ def restore_dataset(
                                 password=redis_password,
                                 db=redis_db,
                                 key=new_key,
+                                decompress_df=datasets_compressed,
                                 serializer=redis_serializer,
                                 encoding=redis_encoding,
                                 expire=redis_expire,
                                 label='restore-{}'.format(new_key))
+
                             should_restore = False
+                            success_status = (
+                                cache_res['status'] == ae_consts.SUCCESS)
                             if (not force_restore and
-                                    cache_res['status'] == SUCCESS and
+                                    success_status and
                                     'data' in cache_res['rec'] and
                                     cache_res['rec']['data'] and
                                     len(cache_res['rec']['data']) > 10):
                                 should_restore = False
                             else:
                                 if (str(cache_res['rec']['data']) !=
-                                        EMPTY_DF_STR):
+                                        ae_consts.EMPTY_DF_STR):
                                     should_restore = True
                             if should_restore:
                                 log.info(
@@ -329,8 +332,6 @@ def restore_dataset(
                                         new_key))
                                 publish.publish(
                                     data=loaded_df,
-                                    is_df=True,
-                                    compress=compress,
                                     redis_enabled=True,
                                     redis_key=new_key,
                                     redis_db=redis_output_db,
@@ -341,6 +342,7 @@ def restore_dataset(
                                     redis_encoding=redis_encoding,
                                     s3_enabled=False,
                                     output_file=None,
+                                    df_compress=datasets_compressed,
                                     verbose=verbose)
                             else:
                                 if verbose:

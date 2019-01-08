@@ -10,10 +10,10 @@ import mock
 import analysis_engine.mocks.mock_talib as mock_talib
 import analysis_engine.consts as ae_consts
 import analysis_engine.indicators.load_indicator_from_module as load_ind
-from analysis_engine.mocks.base_test import BaseTestCase
+import analysis_engine.mocks.base_test as base_test
 
 
-class TestLoadIndicatorFromFile(BaseTestCase):
+class TestLoadIndicatorFromFile(base_test.BaseTestCase):
     """TestLoadIndicatorFromFile"""
 
     ticker = None

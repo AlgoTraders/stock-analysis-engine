@@ -1,15 +1,12 @@
 """
-Celery Get Application Helper
-=============================
+Get a Celery Application Helper
 """
 
 import os
 import celery
-from spylunking.log.setup_logging import build_colorized_logger
+import spylunking.log.setup_logging as log_utils
 
-
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def get_celery_app(
@@ -18,10 +15,10 @@ def get_celery_app(
             'worker'),
         auth_url=os.getenv(
             'WORKER_BROKER_URL',
-            'redis://localhost:6379/13'),
+            'redis://localhost:6379/11'),
         backend_url=os.getenv(
             'WORKER_BACKEND_URL',
-            'redis://localhost:6379/14'),
+            'redis://localhost:6379/12'),
         include_tasks=[],
         ssl_options=None,
         transport_options=None,
@@ -37,8 +34,8 @@ def get_celery_app(
     Build a Celery app with support for environment variables
     to set endpoints locations.
 
-    - export WORKER_BROKER_URL=redis://localhost:6379/13
-    - export WORKER_BACKEND_URL=redis://localhost:6379/14
+    - export WORKER_BROKER_URL=redis://localhost:6379/11
+    - export WORKER_BACKEND_URL=redis://localhost:6379/12
     - export WORKER_CELERY_CONFIG_MODULE=analysis_engine.work_tasks.cel
       ery_config
 
@@ -47,17 +44,17 @@ def get_celery_app(
         service_config`` value which uses resolvable hostnames with
         docker compose:
 
-        - export WORKER_BROKER_URL=redis://redis:6379/13
-        - export WORKER_BACKEND_URL=redis://redis:6379/14
+        - export WORKER_BROKER_URL=redis://redis:6379/11
+        - export WORKER_BACKEND_URL=redis://redis:6379/12
 
     :param name: name for this app
     :param auth_url: Celery broker address
-        (default is ``redis://localhost:6379/13``
+        (default is ``redis://localhost:6379/11``
         or ``analysis_engine.consts.WORKER_BROKER_URL``
         environment variable)
         this is required for distributing algorithms
     :param backend_url: Celery backend address
-        (default is ``redis://localhost:6379/14``
+        (default is ``redis://localhost:6379/12``
         or ``analysis_engine.consts.WORKER_BACKEND_URL``
         environment variable)
         this is required for distributing algorithms

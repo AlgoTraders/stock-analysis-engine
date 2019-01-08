@@ -7,7 +7,7 @@ import analysis_engine.consts as ae_consts
 
 
 def last_close():
-    """last close
+    """last_close
 
     Get last trading close time as a python ``datetime``
 
@@ -36,13 +36,15 @@ def last_close():
         month=today.month,
         day=today.day,
         hour=9,
-        minute=30)
+        minute=30,
+        second=0)
     market_end_time = datetime.datetime(
         year=today.year,
         month=today.month,
         day=today.day,
         hour=16,
-        minute=00)
+        minute=0,
+        second=0)
 
     if today.weekday() == 5:
         return close - datetime.timedelta(days=1)
@@ -204,3 +206,35 @@ def convert_epoch_to_datetime_string(
     else:
         return datetime.datetime.fromtimestamp(epoch).strftime(fmt)
 # end of convert_epoch_to_datetime_string
+
+
+def epoch_to_dt(
+        epoch,
+        use_utc=False,
+        convert_to_est=True):
+    """epoch_to_dt
+
+    Convert epoch milliseconds to datetime
+
+    :param epoch: integer milliseconds
+    :param use_utc: boolean to convert from ``UTC``
+        default is ``False``
+    :param convert_to_est: boolean to convert from
+        ``UTC`` to ``EST``
+    """
+
+    converted_time = None
+    if use_utc:
+        converted_time = datetime.datetime.utcfromtimestamp(
+            epoch)
+    else:
+        converted_time = datetime.datetime.fromtimestamp(
+            epoch)
+    # if/else
+
+    if convert_to_est:
+        converted_time = (
+            converted_time - datetime.timedelta(hours=5))
+
+    return converted_time
+# end of epoch_to_dt

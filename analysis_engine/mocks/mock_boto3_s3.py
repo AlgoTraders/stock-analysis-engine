@@ -4,14 +4,10 @@ Mock boto3 s3 objects
 
 import os
 import json
-from spylunking.log.setup_logging import build_colorized_logger
-from analysis_engine.consts import SUCCESS
-from analysis_engine.consts import ERR
-from analysis_engine.consts import ev
+import analysis_engine.consts as ae_consts
+import spylunking.log.setup_logging as log_utils
 
-
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def mock_s3_read_contents_from_key_ev(
@@ -30,7 +26,7 @@ def mock_s3_read_contents_from_key_ev(
     """
 
     env_key = 'TEST_S3_CONTENTS'
-    str_contents = ev(
+    str_contents = ae_consts.ev(
         env_key,
         None)
 
@@ -63,7 +59,7 @@ def mock_publish_from_s3_to_redis(
     redis_key = work_dict.get(
         'redis_key',
         env_key)
-    str_dict = ev(
+    str_dict = ae_consts.ev(
         env_key,
         None)
     log.info(
@@ -79,7 +75,7 @@ def mock_publish_from_s3_to_redis(
         os.environ[redis_key] = ''
         data = None
 
-    status = SUCCESS
+    status = ae_consts.SUCCESS
     err = None
     return {
         'status': status,
@@ -102,7 +98,7 @@ def mock_publish_from_s3_to_redis_err(
     redis_key = work_dict.get(
         'redis_key',
         env_key)
-    str_dict = ev(
+    str_dict = ae_consts.ev(
         env_key,
         None)
     log.info(
@@ -118,7 +114,7 @@ def mock_publish_from_s3_to_redis_err(
         os.environ[redis_key] = ''
         data = None
 
-    status = ERR
+    status = ae_consts.ERR
     err = None
     return {
         'status': status,

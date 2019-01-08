@@ -1,9 +1,10 @@
 """
 This is a wrapper for running your own custom algorithms
 
-.. note:: Please refer to the `sa.py <https://github.com/Algo
-    Traders/stock-analysis-engine/blob/master/analysi
-    s_engine/scripts/sa.py>`__ for the lastest usage examples.
+.. note:: Please refer to the `sa.py <https://
+    github.com/AlgoTraders/stock-analysis-engine/blob/master/
+    analysis_engine/scripts/sa.py>`__
+    for the lastest usage examples.
 
 Example with the command line tool:
 
@@ -164,17 +165,17 @@ def run_custom_algo(
 
     :param run_on_engine: optional - boolean
         flag for publishing custom algorithms
-        to Celery analysis_engine workers for distributing
+        to Celery ae workers for distributing
         algorithm workloads
         (default is ``False`` which will run algos locally)
         this is required for distributing algorithms
     :param auth_url: Celery broker address
-        (default is ``redis://localhost:6379/13``
+        (default is ``redis://localhost:6379/11``
         or ``analysis_engine.consts.WORKER_BROKER_URL``
         environment variable)
         this is required for distributing algorithms
     :param backend_url: Celery backend address
-        (default is ``redis://localhost:6379/14``
+        (default is ``redis://localhost:6379/12``
         or ``analysis_engine.consts.WORKER_BACKEND_URL``
         environment variable)
         this is required for distributing algorithms
@@ -579,6 +580,8 @@ def run_custom_algo(
             extract_config['s3_key'] = extract_s3_key
             extract_config['s3_enabled'] = True
             should_publish_extract_dataset = True
+        else:
+            extract_config['s3_enabled'] = False
     # end of building extract_config dictionary if not already set
 
     # Automatically save the trading performance report:
@@ -748,7 +751,7 @@ def run_custom_algo(
         }
         task_name = (
             'analysis_engine.work_tasks.'
-            'run_distributed_algorithm.run_distributed_algorithm')
+            'task_run_algo.task_run_algo')
         if verbose:
             log.info(
                 'starting distributed algo task={}'.format(
@@ -865,8 +868,8 @@ def run_custom_algo(
                     ticker,
                     use_start_date,
                     use_end_date))
-        if verbose or debug:
-            if custom_algo_module:
+        if custom_algo_module:
+            if verbose:
                 log.info(
                     '{} - done run_algo custom_algo_module={} '
                     'module_name={} '
@@ -877,7 +880,8 @@ def run_custom_algo(
                         ticker,
                         use_start_date,
                         use_end_date))
-            else:
+        else:
+            if verbose:
                 log.info(
                     '{} - done run_algo BaseAlgo ticker={} '
                     'from {} to {}'.format(
@@ -1014,6 +1018,7 @@ def run_custom_algo(
                 s3_log)
         else:
             history_config['s3_enabled'] = False
+
         if history_config['output_file']:
             file_log = 'file:{}'.format(
                 history_config['output_file'])

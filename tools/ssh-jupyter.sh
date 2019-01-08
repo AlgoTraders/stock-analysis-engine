@@ -1,6 +1,6 @@
 #!/bin/bash
 
-container="sa-jupyter-${USER}"
+container="ae-jupyter"
 echo ""
 echo "docker exec -it ${container} bash"
 docker exec -it ${container} bash

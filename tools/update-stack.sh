@@ -2,7 +2,7 @@
 
 echo "starting updates"
 date -u +"%Y-%m-%d %H:%M:%S"
-containers_to_update="sa-workers-${USER} sa-jupyter-${USER}"
+containers_to_update="ae-workers ae-jupyter"
 
 use_fork="0"
 remote_uri="https://github.com/AlgoTraders/stock-analysis-engine.git"
@@ -51,7 +51,7 @@ for c in ${containers_to_update}; do
         container_id=$(docker ps | grep ${c} | awk '{print $1}')
         echo "saving container changes to container: ${c} with id: ${container_id}"
         image_name="jayjohnson/stock-analysis-engine"
-        if [[ "${c}" == "sa-jupyter-${USER}" ]]; then
+        if [[ "${c}" == "ae-jupyter" ]]; then
             image_name="jayjohnson/stock-analysis-jupyter"
         fi
         echo "saving container changes as latest: container: ${c} container id: ${container_id} as image: ${image_name}"

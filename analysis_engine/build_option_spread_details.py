@@ -2,16 +2,10 @@
 Build option spread pricing details
 """
 
-from analysis_engine.consts import NOT_RUN
-from analysis_engine.consts import TRADE_ENTRY
-from analysis_engine.consts import SPREAD_VERTICAL_BULL
-from analysis_engine.consts import OPTION_CALL
-from analysis_engine.consts import to_f
-from analysis_engine.consts import get_status
-from spylunking.log.setup_logging import build_colorized_logger
+import analysis_engine.consts as ae_consts
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def build_option_spread_details(
@@ -57,7 +51,7 @@ def build_option_spread_details(
     """
 
     details = {
-        'status': NOT_RUN,
+        'status': ae_consts.NOT_RUN,
         'trade_type': trade_type,
         'spread_type': spread_type,
         'option_type': option_type,
@@ -83,7 +77,7 @@ def build_option_spread_details(
 
     low_distance = int(close) - low_strike
     high_distance = high_strike - int(close)
-    details['strike_width'] = to_f(
+    details['strike_width'] = ae_consts.to_f(
         high_strike - low_strike)
     details['spread_id'] = 'S_{}_O_{}_low_{}_high_{}_w_{}'.format(
         trade_type,
@@ -92,31 +86,31 @@ def build_option_spread_details(
         low_distance,
         high_distance,
         details['strike_width'])
-    details['low_bidask_mid'] = to_f(low_bid + low_ask / 2.0)
-    details['high_bidask_mid'] = to_f(high_bid + high_ask / 2.0)
-    details['mid_price'] = to_f(abs(
+    details['low_bidask_mid'] = ae_consts.to_f(low_bid + low_ask / 2.0)
+    details['high_bidask_mid'] = ae_consts.to_f(high_bid + high_ask / 2.0)
+    details['mid_price'] = ae_consts.to_f(abs(
         details['low_bidask_mid'] - details['high_bidask_mid']))
-    details['nat_price'] = to_f(abs(
+    details['nat_price'] = ae_consts.to_f(abs(
         details['low_bidask_mid'] - details['high_bidask_mid']))
 
     cost_of_contracts_at_mid_price = None
     revenue_of_contracts_at_mid_price = None
 
-    if trade_type == TRADE_ENTRY:
-        cost_of_contracts_at_mid_price = to_f(
+    if trade_type == ae_consts.TRADE_ENTRY:
+        cost_of_contracts_at_mid_price = ae_consts.to_f(
             100.0 * num_contracts * details['mid_price'])
-        revenue_of_contracts_at_mid_price = to_f(
+        revenue_of_contracts_at_mid_price = ae_consts.to_f(
             100.0 * num_contracts * (
                 details['strike_width'] - details['mid_price']))
-        if spread_type == SPREAD_VERTICAL_BULL:
-            if option_type == OPTION_CALL:  # debit spread
+        if spread_type == ae_consts.SPREAD_VERTICAL_BULL:
+            if option_type == ae_consts.OPTION_CALL:  # debit spread
                 details['max_loss'] = cost_of_contracts_at_mid_price
                 details['max_profit'] = revenue_of_contracts_at_mid_price
             else:
                 details['max_loss'] = cost_of_contracts_at_mid_price
                 details['max_profit'] = revenue_of_contracts_at_mid_price
         else:  # bear
-            if option_type == OPTION_CALL:  # debit spread
+            if option_type == ae_consts.OPTION_CALL:  # debit spread
                 details['max_loss'] = cost_of_contracts_at_mid_price
                 details['max_profit'] = revenue_of_contracts_at_mid_price
             else:
@@ -124,20 +118,20 @@ def build_option_spread_details(
                 details['max_profit'] = revenue_of_contracts_at_mid_price
 
     else:  # trade exit calculations:
-        revenue_of_contracts_at_mid_price = to_f(
+        revenue_of_contracts_at_mid_price = ae_consts.to_f(
             100.0 * num_contracts * details['mid_price'])
-        cost_of_contracts_at_mid_price = to_f(
+        cost_of_contracts_at_mid_price = ae_consts.to_f(
             100.0 * num_contracts * (
                 details['strike_width'] - details['mid_price']))
-        if spread_type == SPREAD_VERTICAL_BULL:
-            if option_type == OPTION_CALL:  # credit spread
+        if spread_type == ae_consts.SPREAD_VERTICAL_BULL:
+            if option_type == ae_consts.OPTION_CALL:  # credit spread
                 details['max_profit'] = revenue_of_contracts_at_mid_price
                 details['max_loss'] = cost_of_contracts_at_mid_price
             else:
                 details['max_profit'] = revenue_of_contracts_at_mid_price
                 details['max_loss'] = cost_of_contracts_at_mid_price
         else:  # bear
-            if option_type == OPTION_CALL:  # credit spread
+            if option_type == ae_consts.OPTION_CALL:  # credit spread
                 details['max_profit'] = revenue_of_contracts_at_mid_price
                 details['max_loss'] = cost_of_contracts_at_mid_price
             else:
@@ -152,9 +146,9 @@ def build_option_spread_details(
         'type={} spread={} option={} close={} spread_id={} '
         'revenue={} cost={} mid={} width={} '
         'max_profit={} max_loss={}'.format(
-            get_status(status=trade_type),
-            get_status(status=spread_type),
-            get_status(status=option_type),
+            ae_consts.get_status(status=trade_type),
+            ae_consts.get_status(status=spread_type),
+            ae_consts.get_status(status=option_type),
             close,
             details['spread_id'],
             revenue_of_contracts_at_mid_price,

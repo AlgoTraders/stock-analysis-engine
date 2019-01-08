@@ -6,7 +6,7 @@
 Stock Analysis Engine
 =====================
 
-Build and tune your own investment algorithms using a distributed, fault-resilient approach capable of running many backtests and live-trading algorithms at the same time on publicly traded companies with automated datafeeds from: `Yahoo <https://finance.yahoo.com/>`__, `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__ and `FinViz <https://finviz.com>`__ (includes: pricing, options, news, dividends, daily, intraday, screeners, statistics, financials, earnings, and more). Runs on Kubernetes and docker-compose.
+Build and tune investment algorithms with a distributed stack for running backtests and live-trading algorithms on publicly traded companies with automated datafeeds from: `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__, `Tradier <https://tradier.com/>`__ and `FinViz <https://finviz.com>`__ (includes: pricing, options, news, dividends, daily, intraday, screeners, statistics, financials, earnings, and more). Runs on Kubernetes and docker-compose. Pricing data is automatically compressed and there are included Kubernetes yaml files for showing how to fetch new pricing data as fast as per minute and backup all pricing assets to your own AWS S3 buckets (for a nightly backup).
 
 .. image:: https://i.imgur.com/pH368gy.png
 
@@ -24,9 +24,13 @@ Fetch Stock Pricing for a Ticker Symbol
 
 .. note:: Make sure to run through the `Getting Started before running fetch and algorithms <https://github.com/AlgoTraders/stock-analysis-engine#getting-started>`__
 
+This will pull pricing data from IEX (free for now) and Tradier (requires an `account and developer token <https://developer.tradier.com/getting_started>`__):
+
 ::
 
     fetch -t SPY
+
+.. note:: Yahoo `disabled the YQL finance API so fetching pricing data from yahoo is disabled by default <https://developer.yahoo.com/yql/>`__:
 
 Run a Custom Minute-by-Minute Intraday Algorithm Backtest and Plot the Trading History
 ======================================================================================
@@ -240,18 +244,11 @@ While not required for backtesting, running the full stack is required for runni
 #.  Start the stack with the `integration.yml docker compose file (minio, redis, engine worker, jupyter) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/integration.yml>`__
 
     .. note:: The containers are set up to run price point predictions using AI with Tensorflow and Keras. Including these in the container image is easier for deployment, but inflated the docker image size to over ``2.8 GB``. Please wait while the images download as it can take a few minutes depending on your internet speed.
-        ::
-
-            (venv) jay@home1:/opt/sa$ docker images
-            REPOSITORY                          TAG                 IMAGE ID            CREATED             SIZE
-            jayjohnson/stock-analysis-jupyter   latest              071f97d2517e        12 hours ago        2.94GB
-            jayjohnson/stock-analysis-engine    latest              1cf690880894        12 hours ago        2.94GB
-            minio/minio                         latest              3a3963612183        6 weeks ago         35.8MB
-            redis                               4.0.9-alpine        494c839f5bb5        5 months ago        27.8MB
 
     ::
 
-        ./compose/start.sh -a
+        ./compose/start.sh
+        ./compose/start.sh -s
 
 #.  Start the dataset collection job with the `automation-dataset-collection.yml docker compose file <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/automation-dataset-collection.yml>`__:
 
@@ -266,6 +263,15 @@ While not required for backtesting, running the full stack is required for runni
     ::
 
         logs-workers.sh
+
+Fetching New Pricing Tradier Every Minute with Kubernetes
+=========================================================
+
+If you want to fetch and append new option pricing data from `Tradier <https://developer.tradier.com/getting_started>`__, you can use the included kubernetes job with a cron to pull new data every minute:
+
+::
+
+    kubectl -f apply /opt/sa/k8/datasets/pull_tradier_per_minute.yml
 
 Run a Distributed 60-day Backtest on SPY and Publish the Trading Report, Trading History and Algorithm-Ready Dataset to S3
 ==========================================================================================================================
@@ -319,7 +325,14 @@ This command runs Jupyter on an `AntiNex Kubernetes cluster <https://deploy-to-k
 
 ::
 
-    ./k8/jupyter/run.sh
+    ./k8/jupyter/run.sh ceph dev
+
+Kubernetes - Analyze and Tune Algorithms from a Trading History
+===============================================================
+
+With the Analysis Engine's Jupyter instance deployed you can tune algorithms from a trading history using this notebook:
+
+https://aejupyter.example.com/notebooks/Analyze%20Compressed%20Algorithm%20Trading%20Histories%20Stored%20in%20S3.ipynb
 
 Kubernetes Job - Export SPY Datasets and Publish to Minio
 =========================================================
@@ -329,7 +342,7 @@ Manually run with an ``ssh-eng`` alias:
 ::
 
     function ssheng() {
-        pod_name=$(kubectl get po | grep sa-engine | grep Running |tail -1 | awk '{print $1}')
+        pod_name=$(kubectl get po | grep ae-engine | grep Running |tail -1 | awk '{print $1}')
         echo "logging into ${pod_name}"
         kubectl exec -it ${pod_name} bash
     }
@@ -483,9 +496,10 @@ Table of Contents
    scripts
    example_algo_minute
    plot_trading_history
-   run_distributed_algorithms
+   task_run_algo
    run_custom_algo
    run_algo
+   tradier
    example_algos
    indicators_examples
    indicators_load_from_module
@@ -508,6 +522,7 @@ Table of Contents
    publish
    extract
    fetch
+   compress_data
    build_publish_request
    api_reference
    iex_api

@@ -3,8 +3,7 @@ Mock Pinance Object for unittests
 """
 
 import os
-from analysis_engine.api_requests \
-    import build_cache_ready_pricing_dataset
+import analysis_engine.api_requests as api_requests
 
 
 def mock_get_options(
@@ -22,7 +21,7 @@ def mock_get_options(
                             ``strike=None`` then the ``contract_type``
                             is ignored
     """
-    mock_cache_data = build_cache_ready_pricing_dataset(
+    mock_cache_data = api_requests.build_cache_ready_pricing_dataset(
         label='ticker')
     options_data = os.getenv(
         'TEST_OPTIONS',
@@ -42,7 +41,7 @@ class MockPinance:
         :param symbol: ticker
         """
 
-        mock_cache_data = build_cache_ready_pricing_dataset(
+        mock_cache_data = api_requests.build_cache_ready_pricing_dataset(
             label='ticker')
         self.symbol = symbol
         self.quotes_data = mock_cache_data['pricing']

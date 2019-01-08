@@ -13,13 +13,14 @@ pull screeners from FinViz.
 import os
 import argparse
 import celery
+import analysis_engine.work_tasks.get_celery_app as get_celery_app
+import analysis_engine.consts as ae_consts
+import analysis_engine.iex.consts as iex_consts
 import analysis_engine.api_requests as api_requests
 import analysis_engine.work_tasks.get_new_pricing_data as task_pricing
 import analysis_engine.work_tasks.task_screener_analysis as screener_utils
-import spylunking.log.setup_logging as log_utils
-import analysis_engine.work_tasks.get_celery_app as get_celery_app
-import analysis_engine.consts as ae_consts
 import analysis_engine.utils as ae_utils
+import spylunking.log.setup_logging as log_utils
 
 
 # Disable celery log hijacking
@@ -102,7 +103,7 @@ def fetch_new_stock_datasets():
         help=(
             'optional - fetch mode: '
             'all = fetch from all data sources (default), '
-            'yahoo = fetch from just Yahoo sources, '
+            'td = fetch from just Tradier sources, '
             'iex = fetch from just IEX sources'),
         required=False,
         dest='fetch_mode')
@@ -392,6 +393,7 @@ def fetch_new_stock_datasets():
     work['redis_enabled'] = redis_enabled
     work['fetch_mode'] = fetch_mode
     work['analysis_type'] = analysis_type
+    work['iex_datasets'] = iex_consts.DEFAULT_FETCH_DATASETS
     work['debug'] = debug
     work['label'] = 'ticker={}'.format(
         ticker)

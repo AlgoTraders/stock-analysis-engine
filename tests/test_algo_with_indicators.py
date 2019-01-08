@@ -16,11 +16,11 @@ Test file for classes and functions:
 import pandas as pd
 import json
 import mock
+import analysis_engine.utils as ae_utils
+import analysis_engine.consts as ae_consts
+import analysis_engine.algo as base_algo
 import analysis_engine.mocks.mock_talib as mock_talib
 import analysis_engine.mocks.base_test as base_test
-import analysis_engine.consts as ae_consts
-import analysis_engine.utils as ae_utils
-import analysis_engine.algo as base_algo
 
 
 def mock_write_to_file(

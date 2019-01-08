@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: sa-dataset-backup-to-aws
+  name: ae-dataset-backup-to-aws
   annotations:
     description: The Stock Analysis Dataset Backup to S3 job. This will loop over all the DEFAULT_TICKERS and extract then publish them to the configured S3_ADDRESS endpoint. Set your secrets in the /opt/sa/k8/secrets/secrets.yml file under the ae.k8.aws.s3 section. Then start with kubectl apply -f /opt/jay/sa/k8/secrets/secrets.yml to add your AWS credentials to this job's runtime.
     runtime: python3
@@ -16,7 +16,7 @@ spec:
   template:
     metadata:
       labels:
-        app: sa-dataset-backup-to-aws
+        app: ae-dataset-backup-to-aws
         backend: enabled
         purpose: stock-analysis
         layer: backend
@@ -24,12 +24,12 @@ spec:
         cache: redis
         pubsub: publisher
     spec:
-      hostname: sa-dataset-backup-to-aws
+      hostname: ae-dataset-backup-to-aws
       restartPolicy: Never
       containers:
       - image: jayjohnson/stock-analysis-engine:latest
         imagePullPolicy: Always
-        name: sa-dataset-backup-to-aws
+        name: ae-dataset-backup-to-aws
         resources: {}
         command: ["/bin/bash", "-c", "cd /opt/sa/ && . /opt/venv/bin/activate && /opt/sa/tools/archive-tickers-to-s3.sh -q ${S3_BUCKET}"]
         env:
@@ -76,6 +76,7 @@ spec:
         # Stock Analysis - Dataset Backup to AWS S3 Envs:
         - name: S3_BUCKET
           value: YOUR_BUCKET
+        # Set your tickers to backup here:
         - name: DEFAULT_TICKERS
           value: SPY,TSLA,AMZN,NFLX
         # set to your Slack webhook url:

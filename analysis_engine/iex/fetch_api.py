@@ -11,22 +11,12 @@ Supported environment variables:
 """
 
 import pyEX.stocks as pyex_stocks
+import analysis_engine.iex.consts as iex_consts
 import analysis_engine.iex.utils as fetch_utils
 import analysis_engine.dataset_scrub_utils as scrub_utils
-from spylunking.log.setup_logging import build_colorized_logger
-from analysis_engine.iex.consts import DATAFEED_DAILY
-from analysis_engine.iex.consts import DATAFEED_MINUTE
-from analysis_engine.iex.consts import DATAFEED_QUOTE
-from analysis_engine.iex.consts import DATAFEED_STATS
-from analysis_engine.iex.consts import DATAFEED_PEERS
-from analysis_engine.iex.consts import DATAFEED_NEWS
-from analysis_engine.iex.consts import DATAFEED_FINANCIALS
-from analysis_engine.iex.consts import DATAFEED_EARNINGS
-from analysis_engine.iex.consts import DATAFEED_DIVIDENDS
-from analysis_engine.iex.consts import DATAFEED_COMPANY
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def fetch_daily(
@@ -40,7 +30,7 @@ def fetch_daily(
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    datafeed_type = DATAFEED_DAILY
+    datafeed_type = iex_consts.DATAFEED_DAILY
     ticker = work_dict.get(
         'ticker',
         None)
@@ -92,7 +82,7 @@ def fetch_minute(
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    datafeed_type = DATAFEED_MINUTE
+    datafeed_type = iex_consts.DATAFEED_MINUTE
     ticker = work_dict.get(
         'ticker',
         None)
@@ -157,7 +147,7 @@ def fetch_quote(
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    datafeed_type = DATAFEED_QUOTE
+    datafeed_type = iex_consts.DATAFEED_QUOTE
     ticker = work_dict.get(
         'ticker',
         None)
@@ -201,7 +191,7 @@ def fetch_stats(
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    datafeed_type = DATAFEED_STATS
+    datafeed_type = iex_consts.DATAFEED_STATS
     ticker = work_dict.get(
         'ticker',
         None)
@@ -245,7 +235,7 @@ def fetch_peers(
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    datafeed_type = DATAFEED_PEERS
+    datafeed_type = iex_consts.DATAFEED_PEERS
     ticker = work_dict.get(
         'ticker',
         None)
@@ -289,7 +279,7 @@ def fetch_news(
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    datafeed_type = DATAFEED_NEWS
+    datafeed_type = iex_consts.DATAFEED_NEWS
     ticker = work_dict.get(
         'ticker',
         None)
@@ -334,7 +324,7 @@ def fetch_financials(
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    datafeed_type = DATAFEED_FINANCIALS
+    datafeed_type = iex_consts.DATAFEED_FINANCIALS
     ticker = work_dict.get(
         'ticker',
         None)
@@ -378,7 +368,7 @@ def fetch_earnings(
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    datafeed_type = DATAFEED_EARNINGS
+    datafeed_type = iex_consts.DATAFEED_EARNINGS
     ticker = work_dict.get(
         'ticker',
         None)
@@ -422,7 +412,7 @@ def fetch_dividends(
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    datafeed_type = DATAFEED_DIVIDENDS
+    datafeed_type = iex_consts.DATAFEED_DIVIDENDS
     ticker = work_dict.get(
         'ticker',
         None)
@@ -472,7 +462,7 @@ def fetch_company(
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    datafeed_type = DATAFEED_COMPANY
+    datafeed_type = iex_consts.DATAFEED_COMPANY
     ticker = work_dict.get(
         'ticker',
         None)

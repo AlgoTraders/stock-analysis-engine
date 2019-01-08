@@ -19,8 +19,8 @@ import argparse
 import analysis_engine.work_tasks.publish_ticker_aggregate_from_s3 \
     as task_publisher
 from celery import signals
-from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.work_tasks.get_celery_app import get_celery_app
+from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.api_requests import \
     build_publish_ticker_aggregate_from_s3_request
 from analysis_engine.consts import LOG_CONFIG_PATH
