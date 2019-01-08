@@ -14,17 +14,14 @@ Debug redis calls with:
     export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
 
 """
+
 import json
 import redis
+import analysis_engine.consts as ae_consts
 import analysis_engine.build_result as build_result
-from spylunking.log.setup_logging import build_colorized_logger
-from analysis_engine.consts import SUCCESS
-from analysis_engine.consts import NOT_RUN
-from analysis_engine.consts import ERR
-from analysis_engine.consts import ev
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def set_data_in_redis_key(
@@ -40,6 +37,7 @@ def set_data_in_redis_key(
         px=None,
         nx=False,
         xx=False,
+        already_compressed=False,
         serializer='json',
         encoding='utf-8'):
     """set_data_in_redis_key
@@ -57,7 +55,9 @@ def set_data_in_redis_key(
     :param nx: redis nx
     :param xx: redis xx
     :param serializer: not used yet - support for future
-                       pickle objects in redis
+        pickle objects in redis
+    :param already_compressed: bool for handling
+        compression to string already has happend
     :param encoding: format of the encoded key in redis
     """
 
@@ -66,7 +66,7 @@ def set_data_in_redis_key(
 
     rec = {}
     res = build_result.build_result(
-        status=NOT_RUN,
+        status=ae_consts.NOT_RUN,
         err=None,
         rec=rec)
 
@@ -79,28 +79,31 @@ def set_data_in_redis_key(
                 serializer,
                 encoding,
                 key))
-        if serializer == 'json':
-            data_str = json.dumps(data)
-            encoded_data = data_str.encode(encoding)
+        if already_compressed:
+            encoded_data = data
         else:
-            encoded_data = None
-            err = (
-                '{} unsupported serializer={} '
-                'encoding={} key={}'.format(
-                    log_id,
-                    serializer,
-                    encoding,
-                    key))
-            log.error(err)
-            res = build_result.build_result(
-                status=ERR,
-                err=err,
-                rec=rec)
-            return res
+            if serializer == 'json':
+                data_str = json.dumps(data)
+                encoded_data = data_str.encode(encoding)
+            else:
+                encoded_data = None
+                err = (
+                    '{} unsupported serializer={} '
+                    'encoding={} key={}'.format(
+                        log_id,
+                        serializer,
+                        encoding,
+                        key))
+                log.error(err)
+                res = build_result.build_result(
+                    status=ae_consts.ERR,
+                    err=err,
+                    rec=rec)
+                return res
         # if supported serializer
 
         if encoded_data:
-            if ev('DEBUG_REDIS', '0') == '1':
+            if ae_consts.ev('DEBUG_REDIS', '0') == '1':
                 log.debug(
                     '{} set - key={} data={}'.format(
                         log_id,
@@ -136,7 +139,7 @@ def set_data_in_redis_key(
                 nx=nx,
                 xx=xx)
             res = build_result.build_result(
-                status=SUCCESS,
+                status=ae_consts.SUCCESS,
                 err=None,
                 rec=rec)
             return res
@@ -147,7 +150,7 @@ def set_data_in_redis_key(
                     key))
             log.error(err)
             res = build_result.build_result(
-                status=ERR,
+                status=ae_consts.ERR,
                 err=err,
                 rec=rec)
             return res
@@ -157,13 +160,13 @@ def set_data_in_redis_key(
             '{} failed - redis set from data={} encoded_data={} '
             'key={} ex={}'.format(
                 log_id,
-                data,
-                encoded_data,
+                str(data)[0:200],
+                str(encoded_data)[0:200],
                 key,
                 e))
         log.error(err)
         res = build_result.build_result(
-            status=ERR,
+            status=ae_consts.ERR,
             err=err,
             rec=rec)
     # end of try/ex for setting redis data

@@ -17,22 +17,19 @@ Supported Datasets:
 """
 
 import os
+import analysis_engine.consts as ae_consts
 import analysis_engine.load_algo_dataset_from_file as file_utils
 import analysis_engine.load_algo_dataset_from_s3 as s3_utils
 import analysis_engine.load_algo_dataset_from_redis as redis_utils
-from analysis_engine.consts import DEFAULT_SERIALIZED_DATASETS
-from analysis_engine.consts import SA_DATASET_TYPE_ALGO_READY
-from analysis_engine.consts import get_status
-from spylunking.log.setup_logging import build_colorized_logger
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def load_dataset(
         algo_dataset=None,
-        dataset_type=SA_DATASET_TYPE_ALGO_READY,
-        serialize_datasets=DEFAULT_SERIALIZED_DATASETS,
+        dataset_type=ae_consts.SA_DATASET_TYPE_ALGO_READY,
+        serialize_datasets=ae_consts.DEFAULT_SERIALIZED_DATASETS,
         path_to_file=None,
         compress=False,
         encoding='utf-8',
@@ -132,14 +129,14 @@ def load_dataset(
     if not use_ds:
         log.info(
             'loading {} from file={} s3={} redis={}'.format(
-                get_status(status=dataset_type),
+                ae_consts.get_status(status=dataset_type),
                 path_to_file,
                 s3_key,
                 redis_key))
     # load if not created
 
     supported_type = False
-    if dataset_type == SA_DATASET_TYPE_ALGO_READY:
+    if dataset_type == ae_consts.SA_DATASET_TYPE_ALGO_READY:
         supported_type = True
         if (path_to_file and
                 not use_ds):

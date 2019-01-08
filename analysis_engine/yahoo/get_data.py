@@ -5,12 +5,12 @@ Parse data from yahoo
 import copy
 import datetime
 import pinance
-import analysis_engine.options_dates
-import analysis_engine.get_pricing
+import analysis_engine.options_dates as opt_dates
+import analysis_engine.get_pricing as yahoo_get_pricing
 import analysis_engine.build_result as build_result
 import analysis_engine.work_tasks.publish_pricing_update as \
     publisher
-from spylunking.log.setup_logging import build_colorized_logger
+import spylunking.log.setup_logging as log_utils
 from analysis_engine.consts import TICKER
 from analysis_engine.consts import SUCCESS
 from analysis_engine.consts import NOT_RUN
@@ -22,7 +22,7 @@ from analysis_engine.consts import get_status
 from analysis_engine.consts import ppj
 from analysis_engine.utils import get_last_close_str
 
-log = build_colorized_logger(
+log = log_utils.build_colorized_logger(
     name=__name__)
 
 
@@ -103,7 +103,7 @@ def get_data_from_yahoo(
 
         use_date = exp_date
         if not exp_date:
-            exp_date = analysis_engine.options_dates.option_expiration(
+            exp_date = opt_dates.option_expiration(
                  date=exp_date)
             use_date = exp_date.strftime('%Y-%m-%d')
 
@@ -281,7 +281,7 @@ def get_data_from_yahoo(
                     cur_strike))
 
             options_dict = \
-                analysis_engine.get_pricing.get_options(
+                yahoo_get_pricing.get_options(
                     ticker=ticker,
                     exp_date_str=use_date,
                     contract_type=contract_type,

@@ -66,7 +66,11 @@ kubectl apply -f ${use_path}/service.yml
 inf ""
 
 inf "applying ingress cert_env: ${cert_env}"
-kubectl apply -f ${use_path}/ingress-${cert_env}.yml
+if [[ -e ${use_path}/ingress-${cert_env}.yml ]]; then
+    kubectl apply -f ${use_path}/ingress-${cert_env}.yml
+else
+    kubectl apply -f ${use_path}/ingress.yml
+fi
 inf ""
 
 good "done deploying: jupyter"

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-container="sa-jupyter-${USER}"
+container="ae-jupyter"
 echo ""
 echo "docker logs -f ${container}"
 docker logs -f ${container}

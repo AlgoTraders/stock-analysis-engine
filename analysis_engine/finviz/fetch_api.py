@@ -10,16 +10,15 @@ import requests
 import bs4
 import pandas as pd
 import analysis_engine.build_result as req_utils
-from spylunking.log.setup_logging import build_colorized_logger
 from analysis_engine.utils import get_last_close_str
 from analysis_engine.consts import NOT_RUN
 from analysis_engine.consts import SUCCESS
 from analysis_engine.consts import ERR
 from analysis_engine.consts import EX
 from analysis_engine.finviz.consts import DEFAULT_FINVIZ_COLUMNS
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def fetch_tickers_from_screener(

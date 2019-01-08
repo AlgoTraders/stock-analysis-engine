@@ -20,8 +20,9 @@ def build_indicator_node(
     and return a dicationry
 
     Supported values found in:
-    `analysis_engine/consts.py <https://github.com/AlgoTraders/sto
-    ck-analysis-engine/blob/master/analysis_engine/consts.py>`__
+    `analysis_engine/consts.py <https://
+    github.com/AlgoTraders/stock-analysis-engine/
+    blob/master/analysis_engine/consts.py>`__
 
     :param node: single dictionary from the config's ``indicators`` list
     :param label: optional - string log tracking

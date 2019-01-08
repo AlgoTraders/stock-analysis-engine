@@ -2,6 +2,8 @@ version: '2'
 
 services:
 
+  # login to the registry with:
+  # docker login <HOST_IP>:5000
   registry:
     container_name: "registry"
     hostname: "registry"

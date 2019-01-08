@@ -24,22 +24,11 @@ Supported environment variables:
 """
 
 import copy
+import analysis_engine.iex.consts as iex_consts
 import analysis_engine.extract_utils as extract_utils
-from spylunking.log.setup_logging import build_colorized_logger
-from analysis_engine.iex.consts import DATAFEED_DAILY
-from analysis_engine.iex.consts import DATAFEED_MINUTE
-from analysis_engine.iex.consts import DATAFEED_QUOTE
-from analysis_engine.iex.consts import DATAFEED_STATS
-from analysis_engine.iex.consts import DATAFEED_PEERS
-from analysis_engine.iex.consts import DATAFEED_NEWS
-from analysis_engine.iex.consts import DATAFEED_FINANCIALS
-from analysis_engine.iex.consts import DATAFEED_EARNINGS
-from analysis_engine.iex.consts import DATAFEED_DIVIDENDS
-from analysis_engine.iex.consts import DATAFEED_COMPANY
-from analysis_engine.iex.consts import get_datafeed_str
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def extract_daily_dataset(
@@ -54,8 +43,8 @@ def extract_daily_dataset(
     :param scrub_mode: type of scrubbing handler to run
     """
     label = work_dict.get('label', 'extract')
-    df_type = DATAFEED_DAILY
-    df_str = get_datafeed_str(df_type=df_type)
+    df_type = iex_consts.DATAFEED_DAILY
+    df_str = iex_consts.get_datafeed_str(df_type=df_type)
     req = copy.deepcopy(work_dict)
 
     if 'redis_key' not in work_dict:
@@ -90,8 +79,8 @@ def extract_minute_dataset(
     :param scrub_mode: type of scrubbing handler to run
     """
     label = work_dict.get('label', 'extract')
-    df_type = DATAFEED_MINUTE
-    df_str = get_datafeed_str(df_type=df_type)
+    df_type = iex_consts.DATAFEED_MINUTE
+    df_str = iex_consts.get_datafeed_str(df_type=df_type)
     req = copy.deepcopy(work_dict)
 
     if 'redis_key' not in work_dict:
@@ -126,8 +115,8 @@ def extract_quote_dataset(
     :param scrub_mode: type of scrubbing handler to run
     """
     label = work_dict.get('label', 'extract')
-    df_type = DATAFEED_QUOTE
-    df_str = get_datafeed_str(df_type=df_type)
+    df_type = iex_consts.DATAFEED_QUOTE
+    df_str = iex_consts.get_datafeed_str(df_type=df_type)
     req = copy.deepcopy(work_dict)
 
     if 'redis_key' not in work_dict:
@@ -162,8 +151,8 @@ def extract_stats_dataset(
     :param scrub_mode: type of scrubbing handler to run
     """
     label = work_dict.get('label', 'extract')
-    df_type = DATAFEED_STATS
-    df_str = get_datafeed_str(df_type=df_type)
+    df_type = iex_consts.DATAFEED_STATS
+    df_str = iex_consts.get_datafeed_str(df_type=df_type)
     req = copy.deepcopy(work_dict)
 
     if 'redis_key' not in work_dict:
@@ -198,8 +187,8 @@ def extract_peers_dataset(
     :param scrub_mode: type of scrubbing handler to run
     """
     label = work_dict.get('label', 'extract')
-    df_type = DATAFEED_PEERS
-    df_str = get_datafeed_str(df_type=df_type)
+    df_type = iex_consts.DATAFEED_PEERS
+    df_str = iex_consts.get_datafeed_str(df_type=df_type)
     req = copy.deepcopy(work_dict)
 
     if 'redis_key' not in work_dict:
@@ -234,8 +223,8 @@ def extract_news_dataset(
     :param scrub_mode: type of scrubbing handler to run
     """
     label = work_dict.get('label', 'extract')
-    df_type = DATAFEED_NEWS
-    df_str = get_datafeed_str(df_type=df_type)
+    df_type = iex_consts.DATAFEED_NEWS
+    df_str = iex_consts.get_datafeed_str(df_type=df_type)
     req = copy.deepcopy(work_dict)
 
     if 'redis_key' not in work_dict:
@@ -270,8 +259,8 @@ def extract_financials_dataset(
     :param scrub_mode: type of scrubbing handler to run
     """
     label = work_dict.get('label', 'extract')
-    df_type = DATAFEED_FINANCIALS
-    df_str = get_datafeed_str(df_type=df_type)
+    df_type = iex_consts.DATAFEED_FINANCIALS
+    df_str = iex_consts.get_datafeed_str(df_type=df_type)
     req = copy.deepcopy(work_dict)
 
     if 'redis_key' not in work_dict:
@@ -306,8 +295,8 @@ def extract_earnings_dataset(
     :param scrub_mode: type of scrubbing handler to run
     """
     label = work_dict.get('label', 'extract')
-    df_type = DATAFEED_EARNINGS
-    df_str = get_datafeed_str(df_type=df_type)
+    df_type = iex_consts.DATAFEED_EARNINGS
+    df_str = iex_consts.get_datafeed_str(df_type=df_type)
     req = copy.deepcopy(work_dict)
 
     if 'redis_key' not in work_dict:
@@ -342,8 +331,8 @@ def extract_dividends_dataset(
     :param scrub_mode: type of scrubbing handler to run
     """
     label = work_dict.get('label', 'extract')
-    df_type = DATAFEED_DIVIDENDS
-    df_str = get_datafeed_str(df_type=df_type)
+    df_type = iex_consts.DATAFEED_DIVIDENDS
+    df_str = iex_consts.get_datafeed_str(df_type=df_type)
     req = copy.deepcopy(work_dict)
 
     if 'redis_key' not in work_dict:
@@ -378,8 +367,8 @@ def extract_company_dataset(
     :param scrub_mode: type of scrubbing handler to run
     """
     label = work_dict.get('label', 'extract')
-    df_type = DATAFEED_COMPANY
-    df_str = get_datafeed_str(df_type=df_type)
+    df_type = iex_consts.DATAFEED_COMPANY
+    df_str = iex_consts.get_datafeed_str(df_type=df_type)
     req = copy.deepcopy(work_dict)
 
     if 'redis_key' not in work_dict:

@@ -32,6 +32,7 @@ import analysis_engine.utils as ae_utils
 import analysis_engine.build_algo_request as algo_utils
 import analysis_engine.iex.extract_df_from_redis as iex_extract_utils
 import analysis_engine.yahoo.extract_df_from_redis as yahoo_extract_utils
+import analysis_engine.td.extract_df_from_redis as td_extract_utils
 import analysis_engine.build_result as build_result
 import analysis_engine.api_requests as api_requests
 import spylunking.log.setup_logging as log_utils
@@ -337,11 +338,11 @@ def run_algo(
     if not broker_url:
         broker_url = os.getenv(
             'WORKER_BROKER_URL',
-            'redis://0.0.0.0:6379/13')
+            'redis://0.0.0.0:6379/11')
     if not result_backend:
         result_backend = os.getenv(
             'WORKER_BACKEND_URL',
-            'redis://0.0.0.0:6379/14')
+            'redis://0.0.0.0:6379/12')
 
     if not label:
         label = 'run-algo'
@@ -443,6 +444,8 @@ def run_algo(
     yahoo_news_status = ae_consts.FAILED
     yahoo_options_status = ae_consts.FAILED
     yahoo_pricing_status = ae_consts.FAILED
+    td_calls_status = ae_consts.FAILED
+    td_puts_status = ae_consts.FAILED
 
     iex_daily_df = None
     iex_minute_df = None
@@ -458,6 +461,8 @@ def run_algo(
     yahoo_option_puts_df = None
     yahoo_pricing_df = None
     yahoo_news_df = None
+    td_calls_df = None
+    td_puts_df = None
 
     use_start_date_str = start_date
     use_end_date_str = end_date
@@ -549,11 +554,33 @@ def run_algo(
     if extract_mode not in ['all', 'yahoo']:
         extract_yahoo = False
 
+    extract_td = True
+    if extract_mode not in ['all', 'td']:
+        extract_td = False
+
     first_extract_date = None
     last_extract_date = None
     total_extract_requests = len(extract_requests)
     cur_idx = 1
     for idx, extract_node in enumerate(extract_requests):
+
+        iex_daily_df = None
+        iex_minute_df = None
+        iex_quote_df = None
+        iex_stats_df = None
+        iex_peers_df = None
+        iex_news_df = None
+        iex_financials_df = None
+        iex_earnings_df = None
+        iex_dividends_df = None
+        iex_company_df = None
+        yahoo_option_calls_df = None
+        yahoo_option_puts_df = None
+        yahoo_pricing_df = None
+        yahoo_news_df = None
+        td_calls_df = None
+        td_puts_df = None
+
         extract_ticker = extract_node['ticker']
         extract_date = extract_node['date']
         extract_req = extract_node['req']
@@ -684,6 +711,28 @@ def run_algo(
                         'unable to extract yahoo_news={}'.format(ticker))
         # end of yahoo extracts
 
+        if extract_td:
+            """
+            Debug by setting:
+
+            extract_req['verbose_td'] = True
+            """
+            td_calls_status, td_calls_df = \
+                td_extract_utils.extract_option_calls_dataset(
+                    extract_req)
+            if td_calls_status != ae_consts.SUCCESS:
+                if verbose:
+                    log.warning(
+                        'unable to extract tdcalls={}'.format(ticker))
+            td_puts_status, td_puts_df = \
+                td_extract_utils.extract_option_puts_dataset(
+                    extract_req)
+            if td_puts_status != ae_consts.SUCCESS:
+                if verbose:
+                    log.warning(
+                        'unable to extract tdputs={}'.format(ticker))
+        # td extracts
+
         # map extracted data to DEFAULT_SERIALIZED_DATASETS
         ticker_data = {}
         ticker_data['daily'] = iex_daily_df
@@ -700,6 +749,8 @@ def run_algo(
         ticker_data['puts'] = yahoo_option_puts_df
         ticker_data['pricing'] = yahoo_pricing_df
         ticker_data['news'] = yahoo_news_df
+        ticker_data['tdcalls'] = td_calls_df
+        ticker_data['tdputs'] = td_puts_df
 
         if ticker not in algo_data_req:
             algo_data_req[ticker] = []

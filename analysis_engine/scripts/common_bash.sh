@@ -11,7 +11,7 @@ export COLORS_SUPPORTED=1
 # source /opt/sa/analysis_engine/scripts/bash_common.sh
 # 
 # now print out the colors:
-# ign testing ignore_message; inf testing info_message; good testing good_message; amnt testing annoucement_message; warn testing warn_message; err testing err_message; critical testing critical_message
+# ign testing ignore_message; inf testing info_message; good testing good_message; anmt testing annoucement_message; warn testing warn_message; err testing err_message; critical testing critical_message
 #
 # want to change colors up? use:
 # show_colors

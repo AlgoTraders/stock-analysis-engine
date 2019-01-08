@@ -75,14 +75,14 @@ datasets from the redis pipeline:
     export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
 """
 
-from analysis_engine.algo import BaseAlgo
-from analysis_engine.utils import utc_now_str
-from spylunking.log.setup_logging import build_colorized_logger
+import analysis_engine.algo as base_algo
+import analysis_engine.utils as ae_utils
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
-class ExampleMinuteAlgo(BaseAlgo):
+class ExampleMinuteAlgo(base_algo.BaseAlgo):
     """ExampleMinuteAlgo"""
 
     def __init__(
@@ -95,8 +95,8 @@ class ExampleMinuteAlgo(BaseAlgo):
 
         Please refer to the `analysis_engine.algo.Ba
         seAlgo source code for the latest supported parameters <ht
-        tps://github.com/AlgoTraders/stock
-        -analysis-engine/blob/master/
+        tps://github.com/AlgoTraders/stock-analysis-engine
+        /blob/master/
         analysis_engine/algo.py>`__
 
         :param kwargs: keyword arguments
@@ -245,7 +245,7 @@ class ExampleMinuteAlgo(BaseAlgo):
         """get_result"""
 
         log.info('building results')
-        finished_date = utc_now_str()
+        finished_date = ae_utils.utc_now_str()
         self.result = {
             'name': self.name,
             'created': self.created_date,

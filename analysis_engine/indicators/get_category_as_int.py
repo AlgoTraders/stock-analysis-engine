@@ -2,6 +2,7 @@
 Algo data helper for mapping indicator category
 to an integer label value for downstream dataset predictions
 """
+
 import analysis_engine.consts as ae_consts
 import spylunking.log.setup_logging as log_utils
 

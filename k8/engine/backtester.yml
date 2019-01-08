@@ -1,0 +1,137 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ae-backtester
+  annotations:
+    description: Analysis Engine Backtester for Automating Backtests
+    runtime: python3
+  labels:
+    sa: engine
+    purpose: stock-analysis
+    layer: backend
+    messaging: redis
+    cache: redis
+    pubsub: publisher
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ae-backtester
+      backend: enabled
+  template:
+    metadata:
+      labels:
+        app: ae-backtester
+        backend: enabled
+        purpose: stock-analysis
+        layer: backend
+        messaging: redis
+        cache: redis
+        pubsub: publisher
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: backend
+                operator: In
+                values:
+                - enabled
+      hostname: ae-backtester
+      restartPolicy: Always
+      containers:
+      - image: jayjohnson/stock-analysis-engine:latest
+        imagePullPolicy: Always
+        name: ae-backtester
+        resources: {}
+        command:
+        - /bin/bash
+        - -c
+        - cd /opt/sa/ &&
+          . /opt/venv/bin/activate &&
+          /opt/sa/start-workers.sh
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: api.db
+              key: username
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: api.db
+              key: password
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: api.db
+              key: dbname
+        - name: S3_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ae.k8.minio.s3
+              key: aws_access_key_id
+        - name: S3_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ae.k8.minio.s3
+              key: aws_secret_access_key
+        - name: S3_ADDRESS
+          value: minio-service:9000
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: ae.k8.minio.s3
+              key: aws_access_key_id
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ae.k8.minio.s3
+              key: aws_secret_access_key
+        - name: S3_REGION_NAME
+          value: us-east-1
+        # Jupyter pod and other celery apps
+        # use these broker addresses to
+        # prevent saturating the engine workers
+        # /opt/sa/k8/jupyter/deployment.yml
+        - name: WORKER_BROKER_URL
+          value: redis://redis-master:6379/11
+        - name: WORKER_BACKEND_URL
+          value: redis://redis-master:6379/12
+        - name: REDIS_ADDRESS
+          value: redis-master:6379
+        - name: REDIS_DB
+          value: "0"
+        # set to your Slack webhook url:
+        - name: SLACK_WEBHOOK
+          value: https://hooks.slack.com/services/YOUR_WEBHOOK_HERE
+        # set to "1" to enable publishing to slack when
+        # each ticker's job completes
+        - name: DATASET_COLLECTION_SLACK_ALERTS
+          value: "0"
+        # set to "1" to publish Celery task failures to Slack
+        - name: PROD_SLACK_ALERTS
+          value: "0"
+        # Tradier Account Config:
+        - name: TD_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: ae.k8.tradier
+              key: td_token
+        - name: TD_ENDPOINT_API
+          valueFrom:
+            secretKeyRef:
+              name: ae.k8.tradier
+              key: td_endpoint_api
+        - name: TD_ENDPOINT_DATA
+          valueFrom:
+            secretKeyRef:
+              name: ae.k8.tradier
+              key: td_endpoint_data
+        - name: TD_ENDPOINT_STREAM
+          valueFrom:
+            secretKeyRef:
+              name: ae.k8.tradier
+              key: td_endpoint_stream
+        # end Tradier

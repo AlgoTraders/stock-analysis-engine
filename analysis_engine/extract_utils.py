@@ -30,29 +30,12 @@ Supported environment variables:
 
 """
 
+import analysis_engine.consts as ae_consts
 import analysis_engine.build_df_from_redis as build_df
 import analysis_engine.dataset_scrub_utils as scrub_utils
-from spylunking.log.setup_logging import build_colorized_logger
-from analysis_engine.consts import SUCCESS
-from analysis_engine.consts import FAILED
-from analysis_engine.consts import ENABLED_S3_UPLOAD
-from analysis_engine.consts import S3_ACCESS_KEY
-from analysis_engine.consts import S3_SECRET_KEY
-from analysis_engine.consts import S3_REGION_NAME
-from analysis_engine.consts import S3_ADDRESS
-from analysis_engine.consts import S3_SECURE
-from analysis_engine.consts import S3_BUCKET
-from analysis_engine.consts import S3_KEY
-from analysis_engine.consts import REDIS_ADDRESS
-from analysis_engine.consts import REDIS_KEY
-from analysis_engine.consts import REDIS_PASSWORD
-from analysis_engine.consts import REDIS_DB
-from analysis_engine.consts import REDIS_EXPIRE
-from analysis_engine.consts import ev
-from analysis_engine.consts import get_status
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def perform_extract(
@@ -74,7 +57,7 @@ def perform_extract(
     :param scrub_mode: scrubbing mode on extraction for
                        one-off cleanup before analysis
     """
-    status = FAILED
+    status = ae_consts.FAILED
     ds_id = work_dict.get(
         dataset_id_key,
         None)
@@ -83,43 +66,43 @@ def perform_extract(
         'extract')
     s3_bucket = work_dict.get(
         's3_bucket',
-        S3_BUCKET)
+        ae_consts.S3_BUCKET)
     s3_key = work_dict.get(
         's3_key',
-        S3_KEY)
+        ae_consts.S3_KEY)
     redis_key = work_dict.get(
         'redis_key',
-        REDIS_KEY)
+        ae_consts.REDIS_KEY)
     s3_enabled = work_dict.get(
         's3_enabled',
-        ENABLED_S3_UPLOAD)
+        ae_consts.ENABLED_S3_UPLOAD)
     s3_access_key = work_dict.get(
         's3_access_key',
-        S3_ACCESS_KEY)
+        ae_consts.S3_ACCESS_KEY)
     s3_secret_key = work_dict.get(
         's3_secret_key',
-        S3_SECRET_KEY)
+        ae_consts.S3_SECRET_KEY)
     s3_region_name = work_dict.get(
         's3_region_name',
-        S3_REGION_NAME)
+        ae_consts.S3_REGION_NAME)
     s3_address = work_dict.get(
         's3_address',
-        S3_ADDRESS)
+        ae_consts.S3_ADDRESS)
     s3_secure = work_dict.get(
         's3_secure',
-        S3_SECURE)
+        ae_consts.S3_SECURE)
     redis_address = work_dict.get(
         'redis_address',
-        REDIS_ADDRESS)
+        ae_consts.REDIS_ADDRESS)
     redis_password = work_dict.get(
         'redis_password',
-        REDIS_PASSWORD)
+        ae_consts.REDIS_PASSWORD)
     redis_db = work_dict.get(
         'redis_db',
-        REDIS_DB)
+        ae_consts.REDIS_DB)
     redis_expire = work_dict.get(
         'redis_expire',
-        REDIS_EXPIRE)
+        ae_consts.REDIS_EXPIRE)
 
     log.debug(
         '{} - {} - START - ds_id={} scrub_mode={} '
@@ -137,7 +120,7 @@ def perform_extract(
             s3_bucket,
             s3_key))
 
-    if ev('DEBUG_REDIS_EXTRACT', '0') == '1':
+    if ae_consts.ev('DEBUG_REDIS_EXTRACT', '0') == '1':
         log.info(
             '{} - {} - ds_id={} redis '
             'pw={} expire={}'.format(
@@ -147,7 +130,7 @@ def perform_extract(
                 redis_password,
                 redis_expire))
 
-    if ev('DEBUG_S3_EXTRACT', '0') == '1':
+    if ae_consts.ev('DEBUG_S3_EXTRACT', '0') == '1':
         log.info(
             '{} - {} - ds_id={} s3 '
             'ak={} sk={} region={} secure={}'.format(
@@ -184,18 +167,19 @@ def perform_extract(
         return status, None
 
     valid_df = (
-        extract_res['status'] == SUCCESS
+        extract_res['status'] == ae_consts.SUCCESS
         and extract_res['rec']['valid_df'])
 
     if not valid_df:
-        if ev('DEBUG_S3_EXTRACT', '0') == '1':
+        if ae_consts.ev('DEBUG_S3_EXTRACT', '0') == '1':
             log.error(
                 '{} - {} ds_id={} invalid df '
                 'status={} extract_res={}'.format(
                     label,
                     df_str,
                     ds_id,
-                    get_status(status=extract_res['status']),
+                    ae_consts.get_status(
+                        status=extract_res['status']),
                     extract_res))
         return status, None
 
@@ -216,7 +200,7 @@ def perform_extract(
         ds_id=ds_id,
         df=extract_df)
 
-    status = SUCCESS
+    status = ae_consts.SUCCESS
 
     return status, scrubbed_df
 # end of perform_extract

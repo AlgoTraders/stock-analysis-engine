@@ -2,10 +2,10 @@ import os
 
 broker_url = os.getenv(
     'WORKER_BROKER_URL',
-    'redis://redis:6379/13')
+    'redis://redis:6379/11')
 result_backend = os.getenv(
     'WORKER_BACKEND_URL',
-    'redis://redis:6379/14')
+    'redis://redis:6379/12')
 
 # http://docs.celeryproject.org/en/latest/userguide/optimizing.html
 

@@ -2,15 +2,15 @@ version: '2'
 
 services:
 
-  # Stock Analysis Engine
+  # Analysis Engine
   # Automation Dataset Collector
-  sa-dataset-collection:
-    container_name: "sa-dataset-collection-${USER}"
-    hostname: "sa-dataset-collection-1-${USER}"
+  ae-dataset-collection:
+    container_name: "ae-dataset-collection"
+    hostname: "ae-dataset-collection"
     image: jayjohnson/stock-analysis-engine:latest
     tty: true
     env_file:
-      - ./envs/.env
-    entrypoint: "/bin/sh -c 'cd /opt/sa && 
+      - ./envs/dataset_collection.env
+    entrypoint: "/bin/sh -c 'cd /opt/sa &&
                  . /opt/venv/bin/activate &&
                  /opt/sa/tools/start-dataset-collection.sh'"

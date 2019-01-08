@@ -7,11 +7,11 @@ Test file for classes and functions:
 """
 
 import analysis_engine.consts as ae_consts
-from analysis_engine.mocks.base_test import BaseTestCase
-from analysis_engine.indicators.indicator_processor import IndicatorProcessor
+import analysis_engine.mocks.base_test as base_test
+import analysis_engine.indicators.indicator_processor as ind_proc
 
 
-class TestIndicatorProcessor(BaseTestCase):
+class TestIndicatorProcessor(base_test.BaseTestCase):
     """TestIndicatorProcessor"""
 
     ticker = None
@@ -74,7 +74,7 @@ class TestIndicatorProcessor(BaseTestCase):
     def test_build_indicator_processor(self):
         """test_build_algo_request_daily"""
         print(self.test_data)
-        proc = IndicatorProcessor(
+        proc = ind_proc.IndicatorProcessor(
             config_dict=self.test_data)
         self.assertTrue(
             len(proc.get_indicators()) == 3)

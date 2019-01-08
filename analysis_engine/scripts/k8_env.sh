@@ -53,12 +53,12 @@ k8_wait_for_completed() {
 }
 
 k8_restart_pod() {
-    # ae_k8_pod_engine="sa-engine"
+    # ae_k8_pod_engine="ae-engine"
     # ae_k8_file_engine="/opt/sa/k8/engine/deployment.yml"
-    # ae_k8_pod_dataset_collector="sa-dataset-collector"
+    # ae_k8_pod_dataset_collector="ae-dataset-collector"
     # ae_k8_file_dataset_collector="/opt/sa/k8/datasets/job.yml"
 
-    ae_pod_name="sa-dataset-collector"
+    ae_pod_name="ae-dataset-collector"
     ae_k8_file="/opt/sa/k8/datasets/job.yml"
     use_kube_config="${KUBECONFIG}"
 

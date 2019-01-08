@@ -16,17 +16,13 @@ Debug redis calls with:
 """
 
 import json
+import zlib
 import redis
+import analysis_engine.consts as ae_consts
 import analysis_engine.build_result as build_result
-from spylunking.log.setup_logging import build_colorized_logger
-from analysis_engine.consts import SUCCESS
-from analysis_engine.consts import NOT_RUN
-from analysis_engine.consts import ERR
-from analysis_engine.consts import ev
-from analysis_engine.consts import ppj
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def get_data_from_redis_key(
@@ -38,6 +34,7 @@ def get_data_from_redis_key(
         db=None,
         key=None,
         expire=None,
+        decompress_df=False,
         serializer='json',
         encoding='utf-8'):
     """get_data_from_redis_key
@@ -50,6 +47,8 @@ def get_data_from_redis_key(
     :param db: not used yet - redis db
     :param key: not used yet - redis key
     :param expire: not used yet - redis expire
+    :param decompress_df: used for decompressing
+        ``pandas.DataFrame`` automatically
     :param serializer: not used yet - support for future
                        pickle objects in redis
     :param encoding: format of the encoded key in redis
@@ -62,7 +61,7 @@ def get_data_from_redis_key(
         'data': data
     }
     res = build_result.build_result(
-        status=NOT_RUN,
+        status=ae_consts.NOT_RUN,
         err=None,
         rec=rec)
 
@@ -96,44 +95,76 @@ def get_data_from_redis_key(
             name=key)
 
         if raw_data:
-            log.debug(
-                '{} decoding key={} encoding={}'.format(
-                    log_id,
-                    key,
-                    encoding))
-            decoded_data = raw_data.decode(encoding)
 
-            log.debug(
-                '{} deserial key={} serializer={}'.format(
-                    log_id,
-                    key,
-                    serializer))
+            if decompress_df:
+                try:
+                    data = zlib.decompress(
+                        raw_data).decode(
+                            encoding)
+                    rec['data'] = json.loads(data)
 
-            if serializer == 'json':
-                data = json.loads(decoded_data)
-            elif serializer == 'df':
-                data = decoded_data
-            else:
-                data = decoded_data
+                    return build_result.build_result(
+                        status=ae_consts.SUCCESS,
+                        err=None,
+                        rec=rec)
+                except Exception as f:
+                    if (
+                            'while decompressing data: '
+                            'incorrect header check') in str(f):
+                        data = None
+                        log.critical(
+                            'unable to decompress_df in redis_key={} '
+                            'ex={}'.format(
+                                key,
+                                f))
+                    else:
+                        log.error(
+                            'failed decompress_df in redis_key={} '
+                            'ex={}'.format(
+                                key,
+                                f))
+                        raise f
+            # allow decompression failure to fallback to previous method
 
-            if data:
-                if ev('DEBUG_REDIS', '0') == '1':
-                    log.info(
-                        '{} - found key={} data={}'.format(
-                            log_id,
-                            key,
-                            ppj(data)))
+            if not data:
+                log.debug(
+                    '{} decoding key={} encoding={}'.format(
+                        log_id,
+                        key,
+                        encoding))
+                decoded_data = raw_data.decode(encoding)
+
+                log.debug(
+                    '{} deserial key={} serializer={}'.format(
+                        log_id,
+                        key,
+                        serializer))
+
+                if serializer == 'json':
+                    data = json.loads(decoded_data)
+                elif serializer == 'df':
+                    data = decoded_data
                 else:
-                    log.debug(
-                        '{} - found key={}'.format(
-                            log_id,
-                            key))
+                    data = decoded_data
+
+                if data:
+                    if ae_consts.ev('DEBUG_REDIS', '0') == '1':
+                        log.info(
+                            '{} - found key={} data={}'.format(
+                                log_id,
+                                key,
+                                ae_consts.ppj(data)))
+                    else:
+                        log.debug(
+                            '{} - found key={}'.format(
+                                log_id,
+                                key))
             # log snippet - if data
 
             rec['data'] = data
 
             return build_result.build_result(
-                status=SUCCESS,
+                status=ae_consts.SUCCESS,
                 err=None,
                 rec=rec)
         else:
@@ -142,7 +173,7 @@ def get_data_from_redis_key(
                     log_id,
                     key))
             return build_result.build_result(
-                status=SUCCESS,
+                status=ae_consts.SUCCESS,
                 err=None,
                 rec=rec)
     except Exception as e:
@@ -156,7 +187,7 @@ def get_data_from_redis_key(
                 e))
         log.error(err)
         res = build_result.build_result(
-            status=ERR,
+            status=ae_consts.ERR,
             err=err,
             rec=rec)
     # end of try/ex for getting redis data

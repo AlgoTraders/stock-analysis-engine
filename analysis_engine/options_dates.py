@@ -15,13 +15,12 @@ and for calculating historical option expiration dates.
         2018-10-19
 
 """
+
 import datetime
-from pandas.tseries.offsets import BDay
-from spylunking.log.setup_logging import build_colorized_logger
+import pandas.tseries.offsets as pd_bday
+import spylunking.log.setup_logging as log_utils
 
-
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def get_options_for_years(
@@ -253,9 +252,9 @@ def get_options_for_today():
         exp_date_str = exp_date.strftime(
             '%Y-%m-%d')
 
-        cycle_start_date = exp_date - BDay(19)
+        cycle_start_date = exp_date - pd_bday.BDay(19)
         if previous_exp:
-            cycle_start_date = previous_exp + BDay(1)
+            cycle_start_date = previous_exp + pd_bday.BDay(1)
         cycle_start_date_str = cycle_start_date.strftime(
             '%m-%d-%Y')
         valid_option_exps.append({

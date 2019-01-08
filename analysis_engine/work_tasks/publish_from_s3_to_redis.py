@@ -10,8 +10,8 @@ and s3 (if either of them are running and enabled)
 **Sample work_dict request for this method**
 
 `analysis_engine.api_requests.build_publish_from_s3_to_redis_request <https://
-github.com/AlgoTraders/stock-analysis-engine/blob/master/ana
-lysis_engine/api_requests.py#L386>`__
+github.com/AlgoTraders/stock-analysis-engine/blob/master/
+analysis_engine/api_requests.py#L386>`__
 
 ::
 
@@ -41,44 +41,21 @@ lysis_engine/api_requests.py#L386>`__
 
 import boto3
 import redis
+import celery.task as celery_task
+import analysis_engine.consts as ae_consts
 import analysis_engine.build_result as build_result
-import analysis_engine.get_task_results
-import analysis_engine.work_tasks.custom_task
-import analysis_engine.options_dates
-import analysis_engine.get_pricing
+import analysis_engine.get_task_results as get_task_results
+import analysis_engine.work_tasks.custom_task as custom_task
 import analysis_engine.set_data_in_redis_key as redis_set
-from celery.task import task
-from spylunking.log.setup_logging import build_colorized_logger
-from analysis_engine.consts import SUCCESS
-from analysis_engine.consts import NOT_RUN
-from analysis_engine.consts import ERR
-from analysis_engine.consts import TICKER
-from analysis_engine.consts import TICKER_ID
-from analysis_engine.consts import get_status
-from analysis_engine.consts import S3_ACCESS_KEY
-from analysis_engine.consts import S3_SECRET_KEY
-from analysis_engine.consts import S3_REGION_NAME
-from analysis_engine.consts import S3_ADDRESS
-from analysis_engine.consts import S3_SECURE
-from analysis_engine.consts import REDIS_ADDRESS
-from analysis_engine.consts import REDIS_KEY
-from analysis_engine.consts import REDIS_PASSWORD
-from analysis_engine.consts import REDIS_DB
-from analysis_engine.consts import REDIS_EXPIRE
-from analysis_engine.consts import ev
-from analysis_engine.consts import ppj
-from analysis_engine.consts import to_f
-from analysis_engine.consts import is_celery_disabled
-import analysis_engine.s3_read_contents_from_key as \
-    s3_read_contents_from_key
+import analysis_engine.s3_read_contents_from_key as s3_read_contents_from_key
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
-@task(
+@celery_task(
     bind=True,
-    base=analysis_engine.work_tasks.custom_task.CustomTask,
+    base=custom_task.CustomTask,
     queue='publish_from_s3_to_redis')
 def publish_from_s3_to_redis(
         self,
@@ -98,8 +75,8 @@ def publish_from_s3_to_redis(
             label,
             work_dict))
 
-    ticker = TICKER
-    ticker_id = TICKER_ID
+    ticker = ae_consts.TICKER
+    ticker_id = ae_consts.TICKER_ID
     rec = {
         'ticker': None,
         'ticker_id': None,
@@ -111,21 +88,21 @@ def publish_from_s3_to_redis(
         'updated': None
     }
     res = build_result.build_result(
-        status=NOT_RUN,
+        status=ae_consts.NOT_RUN,
         err=None,
         rec=rec)
 
     try:
         ticker = work_dict.get(
             'ticker',
-            TICKER)
+            ae_consts.TICKER)
         ticker_id = int(work_dict.get(
             'ticker_id',
-            TICKER_ID))
+            ae_consts.TICKER_ID))
 
         if not ticker:
             res = build_result.build_result(
-                status=ERR,
+                status=ae_consts.ERR,
                 err='missing ticker',
                 rec=rec)
             return res
@@ -173,19 +150,19 @@ def publish_from_s3_to_redis(
                     label))
             access_key = work_dict.get(
                 's3_access_key',
-                S3_ACCESS_KEY)
+                ae_consts.S3_ACCESS_KEY)
             secret_key = work_dict.get(
                 's3_secret_key',
-                S3_SECRET_KEY)
+                ae_consts.S3_SECRET_KEY)
             region_name = work_dict.get(
                 's3_region_name',
-                S3_REGION_NAME)
+                ae_consts.S3_REGION_NAME)
             service_address = work_dict.get(
                 's3_address',
-                S3_ADDRESS)
+                ae_consts.S3_ADDRESS)
             secure = work_dict.get(
                 's3_secure',
-                S3_SECURE) == '1'
+                ae_consts.S3_SECURE) == '1'
 
             endpoint_url = 'http://{}'.format(
                 service_address)
@@ -248,14 +225,14 @@ def publish_from_s3_to_redis(
 
                 initial_size_value = \
                     len(str(data)) / 1024000
-                initial_size_str = to_f(initial_size_value)
-                if ev('DEBUG_S3', '0') == '1':
+                initial_size_str = ae_consts.to_f(initial_size_value)
+                if ae_consts.ev('DEBUG_S3', '0') == '1':
                     log.info(
                         '{} read s3={}/{} data={}'.format(
                             label,
                             s3_bucket_name,
                             s3_key,
-                            ppj(data)))
+                            ae_consts.ppj(data)))
                 else:
                     log.info(
                         '{} read s3={}/{} data size={} MB'.format(
@@ -274,7 +251,7 @@ def publish_from_s3_to_redis(
                 log.error(
                     err)
                 res = build_result.build_result(
-                    status=NOT_RUN,
+                    status=ae_consts.NOT_RUN,
                     err=err,
                     rec=rec)
             # end of try/ex for creating bucket
@@ -290,23 +267,23 @@ def publish_from_s3_to_redis(
         if enable_redis_publish:
             redis_address = work_dict.get(
                 'redis_address',
-                REDIS_ADDRESS)
+                ae_consts.REDIS_ADDRESS)
             redis_key = work_dict.get(
                 'redis_key',
-                REDIS_KEY)
+                ae_consts.REDIS_KEY)
             redis_password = work_dict.get(
                 'redis_password',
-                REDIS_PASSWORD)
+                ae_consts.REDIS_PASSWORD)
             redis_db = work_dict.get(
                 'redis_db',
                 None)
             if not redis_db:
-                redis_db = REDIS_DB
+                redis_db = ae_consts.REDIS_DB
             redis_expire = None
             if 'redis_expire' in work_dict:
                 redis_expire = work_dict.get(
                     'redis_expire',
-                    REDIS_EXPIRE)
+                    ae_consts.REDIS_EXPIRE)
             log.info(
                 'redis enabled address={}@{} '
                 'key={}'.format(
@@ -316,7 +293,7 @@ def publish_from_s3_to_redis(
             redis_host = redis_address.split(':')[0]
             redis_port = redis_address.split(':')[1]
             try:
-                if ev('DEBUG_REDIS', '0') == '1':
+                if ae_consts.ev('DEBUG_REDIS', '0') == '1':
                     log.info(
                         '{} publishing redis={}:{} '
                         'db={} key={} '
@@ -329,7 +306,7 @@ def publish_from_s3_to_redis(
                             redis_key,
                             updated,
                             redis_expire,
-                            ppj(data)))
+                            ae_consts.ppj(data)))
                 else:
                     log.info(
                         '{} publishing redis={}:{} '
@@ -365,7 +342,7 @@ def publish_from_s3_to_redis(
                 log.info(
                     '{} redis_set status={} err={}'.format(
                         label,
-                        get_status(redis_set_res['status']),
+                        ae_consts.get_status(redis_set_res['status']),
                         redis_set_res['err']))
 
             except Exception as e:
@@ -385,13 +362,13 @@ def publish_from_s3_to_redis(
         # end of if enable_redis_publish
 
         res = build_result.build_result(
-            status=SUCCESS,
+            status=ae_consts.SUCCESS,
             err=None,
             rec=rec)
 
     except Exception as e:
         res = build_result.build_result(
-            status=ERR,
+            status=ae_consts.ERR,
             err=(
                 'failed - publish_from_s3_to_redis '
                 'dict={} with ex={}').format(
@@ -408,9 +385,9 @@ def publish_from_s3_to_redis(
         'task - publish_from_s3_to_redis done - '
         '{} - status={}'.format(
             label,
-            get_status(res['status'])))
+            ae_consts.get_status(res['status'])))
 
-    return analysis_engine.get_task_results.get_task_results(
+    return get_task_results.get_task_results(
         work_dict=work_dict,
         result=res)
 # end of publish_from_s3_to_redis
@@ -434,13 +411,13 @@ def run_publish_from_s3_to_redis(
             label))
 
     response = build_result.build_result(
-        status=NOT_RUN,
+        status=ae_consts.NOT_RUN,
         err=None,
         rec={})
     task_res = {}
 
     # allow running without celery
-    if is_celery_disabled(
+    if ae_consts.is_celery_disabled(
             work_dict=work_dict):
         work_dict['celery_disabled'] = True
         task_res = publish_from_s3_to_redis(
@@ -449,10 +426,10 @@ def run_publish_from_s3_to_redis(
             response = task_res.get(
                 'result',
                 task_res)
-            if ev('DEBUG_RESULTS', '0') == '1':
+            if ae_consts.ev('DEBUG_RESULTS', '0') == '1':
                 response_details = response
                 try:
-                    response_details = ppj(response)
+                    response_details = ae_consts.ppj(response)
                 except Exception:
                     response_details = response
                 log.info(
@@ -473,18 +450,18 @@ def run_publish_from_s3_to_redis(
             'task_id': task_res
         }
         response = build_result.build_result(
-            status=SUCCESS,
+            status=ae_consts.SUCCESS,
             err=None,
             rec=rec)
     # if celery enabled
 
     if response:
-        if ev('DEBUG_RESULTS', '0') == '1':
+        if ae_consts.ev('DEBUG_RESULTS', '0') == '1':
             log.info(
                 'run_publish_from_s3_to_redis - {} - done '
                 'status={} err={} rec={}'.format(
                     label,
-                    get_status(response['status']),
+                    ae_consts.get_status(response['status']),
                     response['err'],
                     response['rec']))
         else:
@@ -492,7 +469,7 @@ def run_publish_from_s3_to_redis(
                 'run_publish_from_s3_to_redis - {} - done '
                 'status={} err={}'.format(
                     label,
-                    get_status(response['status']),
+                    ae_consts.get_status(response['status']),
                     response['err']))
     else:
         log.info(

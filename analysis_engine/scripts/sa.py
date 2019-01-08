@@ -24,8 +24,8 @@
 
     You can tune algorithm performance by deriving your own algorithm
     from the `analysis_engine.algo.BaseAlgo <ht
-    tps://github.com/AlgoTraders/stock-analysis-engine/blob/master/ana
-    lysis_engine/algo.py>`__ and then loading the dataset from
+    tps://github.com/AlgoTraders/stock-analysis-engine/blob/master/
+    analysis_engine/algo.py>`__ and then loading the dataset from
     s3, redis or a file by passing the correct arguments.
 
     Command line actions:
@@ -73,17 +73,17 @@ import datetime
 import argparse
 import celery
 import analysis_engine.consts as ae_consts
-import analysis_engine.charts as ae_charts
+import analysis_engine.run_custom_algo as run_custom_algo
+import analysis_engine.work_tasks.get_celery_app as get_celery_app
 import analysis_engine.plot_trading_history as plot_trading_history
+import analysis_engine.charts as ae_charts
 import analysis_engine.iex.extract_df_from_redis as extract_utils
 import analysis_engine.show_dataset as show_dataset
 import analysis_engine.load_history_dataset_from_file as load_history
 import analysis_engine.load_report_dataset_from_file as load_report
 import analysis_engine.restore_dataset as restore_dataset
 import analysis_engine.work_tasks.prepare_pricing_dataset as prep_dataset
-import analysis_engine.work_tasks.get_celery_app as get_celery_app
 import analysis_engine.api_requests as api_requests
-import analysis_engine.run_custom_algo as run_custom_algo
 import spylunking.log.setup_logging as log_utils
 
 
@@ -372,7 +372,7 @@ def run_sa_tool():
         '-w',
         help=(
             'optional - flag for publishing an algorithm job '
-            'using Celery to the analysis_engine workers'),
+            'using Celery to the ae workers'),
         required=False,
         dest='run_on_engine',
         action='store_true')
@@ -430,12 +430,12 @@ def run_sa_tool():
             'Path to a custom algorithm module file '
             'on disk. This module must have a single '
             'class that inherits from: '
-            'https://github.com/AlgoTraders/stock-ana'
-            'lysis-engine/blob/master/'
+            'https://github.com/AlgoTraders/stock-analysis-engine/'
+            'blob/master/'
             'analysis_engine/algo.py Additionally you '
             'can find the Example-Minute-Algorithm here: '
-            'https://github.com/AlgoTraders/stock-anal'
-            'ysis-engine/blob/master/analysis_engine/mocks/'
+            'https://github.com/AlgoTraders/stock-analysis-engine/'
+            'blob/master/analysis_engine/mocks/'
             'example_algo_minute.py'),
         required=False,
         dest='run_algo_in_file')
@@ -561,6 +561,7 @@ def run_sa_tool():
     redis_serializer = 'json'
     redis_encoding = 'utf-8'
     output_redis_key = None
+    output_s3_bucket = None
     output_s3_key = None
     s3_enabled = True
     redis_enabled = True
@@ -727,7 +728,7 @@ def run_sa_tool():
     extract_compress = False
     extract_publish = True
     extract_config = None
-    publish_to_slack = True
+    publish_to_slack = False
     publish_to_s3 = True
     publish_to_redis = True
     use_timeseries = 'day'
@@ -862,7 +863,7 @@ def run_sa_tool():
                     's3://' not in algo_history_loc and
                     'redis://' not in algo_history_loc):
                 log.error(
-                    'invalid -b <backtest dataset file> specified. '
+                    'invalid -p <backtest dataset file> specified. '
                     '{} '
                     'please use either: '
                     '-p file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
@@ -886,7 +887,7 @@ def run_sa_tool():
                     's3://' not in algo_report_loc and
                     'redis://' not in algo_report_loc):
                 log.error(
-                    'invalid -b <backtest dataset file> specified. '
+                    'invalid -o <backtest dataset file> specified. '
                     '{} '
                     'please use either: '
                     '-o file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
@@ -910,7 +911,7 @@ def run_sa_tool():
                     's3://' not in algo_extract_loc and
                     'redis://' not in algo_extract_loc):
                 log.error(
-                    'invalid -b <backtest dataset file> specified. '
+                    'invalid -e <backtest dataset file> specified. '
                     '{} '
                     'please use either: '
                     '-e file:/opt/sa/tests/datasets/algo/SPY-latest.json or '

@@ -18,9 +18,9 @@ Steps:
 import argparse
 import analysis_engine.work_tasks.publish_from_s3_to_redis \
     as task_publisher
+from analysis_engine.work_tasks.get_celery_app import get_celery_app
 from celery import signals
 from spylunking.log.setup_logging import build_colorized_logger
-from analysis_engine.work_tasks.get_celery_app import get_celery_app
 from analysis_engine.api_requests import build_publish_from_s3_to_redis_request
 from analysis_engine.consts import LOG_CONFIG_PATH
 from analysis_engine.consts import TICKER

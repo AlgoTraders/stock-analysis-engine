@@ -4,11 +4,9 @@ Utility to output an n-level nested dictionary as a CSV
 
 import csv
 import os
-from spylunking.log.setup_logging import build_colorized_logger
+import spylunking.log.setup_logging as log_utils
 
-
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def flatten_dict(

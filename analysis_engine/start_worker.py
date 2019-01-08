@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 import celery
-import analysis_engine.work_tasks.get_celery_app as get_celery_app
 import analysis_engine.consts as consts
+import analysis_engine.work_tasks.get_celery_app as get_celery_app
 import spylunking.log.setup_logging as log_utils
 
 

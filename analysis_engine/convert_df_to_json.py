@@ -3,10 +3,9 @@ Convert json to a pandas dataframe
 """
 
 import pandas as pd
-from spylunking.log.setup_logging import build_colorized_logger
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def convert_json_to_df(

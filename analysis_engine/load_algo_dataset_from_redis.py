@@ -12,14 +12,12 @@ Helper for loading datasets from redis
     export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
 """
 
+import analysis_engine.consts as ae_consts
 import analysis_engine.get_data_from_redis_key as redis_utils
 import analysis_engine.prepare_dict_for_algo as prepare_utils
-from analysis_engine.consts import SUCCESS
-from analysis_engine.consts import DEFAULT_SERIALIZED_DATASETS
-from spylunking.log.setup_logging import build_colorized_logger
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def load_algo_dataset_from_redis(
@@ -29,7 +27,7 @@ def load_algo_dataset_from_redis(
         redis_password,
         redis_expire=None,
         redis_serializer='json',
-        serialize_datasets=DEFAULT_SERIALIZED_DATASETS,
+        serialize_datasets=ae_consts.DEFAULT_SERIALIZED_DATASETS,
         compress=False,
         encoding='utf-8'):
     """load_algo_dataset_from_redis
@@ -61,7 +59,7 @@ def load_algo_dataset_from_redis(
         serializer=redis_serializer,
         encoding=encoding)
 
-    if redis_res['status'] != SUCCESS:
+    if redis_res['status'] != ae_consts.SUCCESS:
         log.error(
             'failed getting data from redis={}:{}/{}'.format(
                 redis_address,

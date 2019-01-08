@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ae-jupyter-ingress
+  namespace: default
+  annotations:
+    nginx.org/websocket-services: "ae-jupyter-service"
+spec:
+  tls:
+  - hosts:
+    - aejupyter.example.com
+    secretName: tls-jupyter
+  rules:
+  - host: aejupyter.example.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: ae-jupyter-service
+          servicePort: 8888

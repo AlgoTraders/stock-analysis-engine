@@ -6,7 +6,6 @@ import json
 import zlib
 import spylunking.log.setup_logging as log_utils
 
-
 log = log_utils.build_colorized_logger(name=__name__)
 
 

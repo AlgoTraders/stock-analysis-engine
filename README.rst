@@ -1,7 +1,7 @@
 Stock Analysis Engine
 =====================
 
-Build and tune your own investment algorithms using a distributed, fault-resilient approach capable of running many backtests and live-trading algorithms at the same time on publicly traded companies with automated datafeeds from: `Yahoo <https://finance.yahoo.com/>`__, `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__ and `FinViz <https://finviz.com>`__ (includes: pricing, options, news, dividends, daily, intraday, screeners, statistics, financials, earnings, and more). Runs on Kubernetes and docker-compose.
+Build and tune investment algorithms with a distributed stack for running backtests and live-trading algorithms on publicly traded companies with automated datafeeds from: `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__, `Tradier <https://tradier.com/>`__ and `FinViz <https://finviz.com>`__ (includes: pricing, options, news, dividends, daily, intraday, screeners, statistics, financials, earnings, and more). Runs on Kubernetes and docker-compose. Pricing data is automatically compressed and there are included Kubernetes yaml files for showing how to fetch new pricing data as fast as per minute and backup all pricing assets to your own AWS S3 buckets (for a nightly backup).
 
 .. image:: https://i.imgur.com/pH368gy.png
 
@@ -19,9 +19,13 @@ Fetch Stock Pricing for a Ticker Symbol
 
 .. note:: Make sure to run through the `Getting Started before running fetch and algorithms <https://github.com/AlgoTraders/stock-analysis-engine#getting-started>`__
 
+This will pull pricing data from IEX (free for now) and Tradier (requires an `account and developer token <https://developer.tradier.com/getting_started>`__):
+
 ::
 
     fetch -t SPY
+
+.. note:: Yahoo `disabled the YQL finance API so fetching pricing data from yahoo is disabled by default <https://developer.yahoo.com/yql/>`__:
 
 Run a Custom Minute-by-Minute Intraday Algorithm Backtest and Plot the Trading History
 ======================================================================================
@@ -235,18 +239,11 @@ While not required for backtesting, running the full stack is required for runni
 #.  Start the stack with the `integration.yml docker compose file (minio, redis, engine worker, jupyter) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/integration.yml>`__
 
     .. note:: The containers are set up to run price point predictions using AI with Tensorflow and Keras. Including these in the container image is easier for deployment, but inflated the docker image size to over ``2.8 GB``. Please wait while the images download as it can take a few minutes depending on your internet speed.
-        ::
-
-            (venv) jay@home1:/opt/sa$ docker images
-            REPOSITORY                          TAG                 IMAGE ID            CREATED             SIZE
-            jayjohnson/stock-analysis-jupyter   latest              071f97d2517e        12 hours ago        2.94GB
-            jayjohnson/stock-analysis-engine    latest              1cf690880894        12 hours ago        2.94GB
-            minio/minio                         latest              3a3963612183        6 weeks ago         35.8MB
-            redis                               4.0.9-alpine        494c839f5bb5        5 months ago        27.8MB
 
     ::
 
-        ./compose/start.sh -a
+        ./compose/start.sh
+        ./compose/start.sh -s
 
 #.  Start the dataset collection job with the `automation-dataset-collection.yml docker compose file <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/automation-dataset-collection.yml>`__:
 
@@ -261,6 +258,15 @@ While not required for backtesting, running the full stack is required for runni
     ::
 
         logs-workers.sh
+
+Fetching New Pricing Tradier Every Minute with Kubernetes
+=========================================================
+
+If you want to fetch and append new option pricing data from `Tradier <https://developer.tradier.com/getting_started>`__, you can use the included kubernetes job with a cron to pull new data every minute:
+
+::
+
+    kubectl -f apply /opt/sa/k8/datasets/pull_tradier_per_minute.yml
 
 Run a Distributed 60-day Backtest on SPY and Publish the Trading Report, Trading History and Algorithm-Ready Dataset to S3
 ==========================================================================================================================
@@ -331,7 +337,7 @@ Manually run with an ``ssh-eng`` alias:
 ::
 
     function ssheng() {
-        pod_name=$(kubectl get po | grep sa-engine | grep Running |tail -1 | awk '{print $1}')
+        pod_name=$(kubectl get po | grep ae-engine | grep Running |tail -1 | awk '{print $1}')
         echo "logging into ${pod_name}"
         kubectl exec -it ${pod_name} bash
     }
@@ -507,10 +513,7 @@ With the stack already running, please refer to the `Intro Stock Analysis using 
 
     ::
 
-        docker ps
-        CONTAINER ID        IMAGE                COMMAND                  CREATED             STATUS                   PORTS                    NAMES
-        c2d46e73c355        minio/minio          "/usr/bin/docker-ent…"   4 hours ago         Up 4 hours (healthy)                              minio
-        b32838e43edb        redis:4.0.9-alpine   "docker-entrypoint.s…"   4 days ago          Up 4 hours               0.0.0.0:6379->6379/tcp   redis
+        docker ps | grep -E "redis|minio"
 
 Running on Ubuntu and CentOS
 ============================
@@ -648,7 +651,7 @@ View the Engine Worker Logs
 
 ::
 
-    docker logs sa-workers-${USER}
+    docker logs ae-workers
 
 Running Inside Docker Containers
 --------------------------------
@@ -659,7 +662,7 @@ Please set these values as needed to publish and archive the dataset artifacts i
 
 ::
 
-    fetch -t SPY -a minio-${USER}:9000 -r redis-${USER}:6379
+    fetch -t SPY -a 0.0.0.0:9000 -r 0.0.0.0:6379
 
 .. warning:: It is not recommended sharing the same Redis server with multiple engine workers from inside docker containers and outside docker. This is because the ``REDIS_ADDRESS`` and ``S3_ADDRESS`` can only be one string value at the moment. So if a job is picked up by the wrong engine (which cannot connect to the correct Redis and Minio), then it can lead to data not being cached or archived correctly and show up as connectivity failures.
 
@@ -703,7 +706,7 @@ Please refer to the `fetch_new_stock_datasets.py script <https://github.com/Algo
     -h, --help          show this help message and exit
     -t TICKER           ticker
     -g FETCH_MODE       optional - fetch mode: all = fetch from all data sources
-                        (default), yahoo = fetch from just Yahoo sources, iex =
+                        (default), td = fetch from just Tradier sources, iex =
                         fetch from just IEX sources
     -i TICKER_ID        optional - ticker id not used without a database
     -e EXP_DATE_STR     optional - options expiration date
@@ -1032,6 +1035,94 @@ Deploy Jupyter to a Kubernetes cluster with:
 
     ./k8/jupyter/run.sh
 
+Kubernetes with a Private Docker Registry
+=========================================
+
+You can deploy a private docker registry that can be used to pull images from outside a kubernetes cluster with the following steps:
+
+#.  Deploy Docker Registry
+
+    ::
+
+        ./compose/start.sh -r
+
+#.  Configure Kubernetes hosts and other docker daemons for insecure registries
+
+    ::
+
+        cat /etc/docker/daemon.json
+        {
+            "insecure-registries": [
+                "<public ip address/fqdn for host running the registry container>:5000"
+            ]
+        }
+
+#.  Restart all Docker daemons
+
+    ::
+
+        sudo systemctl restart docker
+
+#.  Login to Docker Registry from all Kubernetes hosts and other daemons that need access to the registry
+
+    .. note:: Change the default registry password by either changing the ``./compose/start.sh`` file that uses ``trex`` and ``123321`` as the credentials or you can edit the volume mounted file ``/data/registry/auth/htpasswd``. Here is how to find the registry's default login set up:
+
+        ::
+
+            grep docker compose/start.sh  | grep htpass
+
+    ::
+
+        docker login <public ip address/fqdn for host running the registry container>:5000
+
+#.  Setup Kubernetes Secrets for All Credentials
+
+    Set each of the fields according to your own buckets, docker registry and Tradier account token:
+
+    ::
+
+        cat /opt/sa/k8/secrets/secrets.yml | grep SETYOUR
+        aws_access_key_id: SETYOURENCODEDAWSACCESSKEYID
+        aws_secret_access_key: SETYOURENCODEDAWSSECRETACCESSKEY
+        .dockerconfigjson: SETYOURDOCKERCREDS
+        td_token: SETYOURTDTOKEN
+
+#.  Deploy Kubernetes Secrets
+
+    ::
+
+        kubectl apply -f /opt/sa/k8/secrets/secrets.yml
+
+#.  Confirm Kubernetes Secrets are Deployed
+
+    ::
+
+        kubectl get secrets ae.docker.creds
+        NAME              TYPE                             DATA   AGE
+        ae.docker.creds   kubernetes.io/dockerconfigjson   1      4d1h
+
+    ::
+
+        kubectl get secrets | grep "ae\."
+        ae.docker.creds         kubernetes.io/dockerconfigjson        1      4d1h
+        ae.k8.aws.s3            Opaque                                3      4d1h
+        ae.k8.minio.s3          Opaque                                3      4d1h
+        ae.k8.tradier           Opaque                                4      4d1h
+
+#.  Configure Kubernetes Deployments for using an External Private Docker Registry
+
+    Add these lines to a Kubernetes deployment yaml file based off your set up:
+
+    ::
+
+        imagePullSecrets:
+        - name: ae.docker.creds
+        containers:
+        - image: <public ip address/fqdn for host running the registry container>:5000/my-own-stock-ae:latest
+          imagePullPolicy: Always
+
+.. tip:: After spending a sad amount of time debugging, please make sure to delete pods before applying new ones that are pulling docker images from an external registry. After running the ``kubectl delete pod <name>``, you can apply/create the pod to get the latest image running.
+
 Testing
 =======
 
@@ -1105,43 +1196,19 @@ Start all the containers for full end-to-end integration testing with real docke
 ::
 
     ./compose/start.sh -a
-    -------------
-    starting end-to-end integration stack: redis, minio, workers and jupyter
-    Creating network "compose_default" with the default driver
-    Creating redis ... done
-    Creating minio ... done
-    Creating sa-jupyter ... done
-    Creating sa-workers ... done
-    started end-to-end integration stack: redis, minio, workers and jupyter
 
 Verify Containers are running:
 
 ::
 
-    docker ps
-    CONTAINER ID        IMAGE                                     COMMAND                  CREATED             STATUS                    PORTS                    NAMES
-    f1b81a91c215        jayjohnson/stock-analysis-engine:latest   "/opt/antinex/core/d…"   35 seconds ago      Up 34 seconds                                      sa-jupyter
-    183b01928d1f        jayjohnson/stock-analysis-engine:latest   "/bin/sh -c 'cd /opt…"   35 seconds ago      Up 34 seconds                                      sa-workers
-    11d46bf1f0f7        minio/minio:latest                        "/usr/bin/docker-ent…"   36 seconds ago      Up 35 seconds (healthy)                            minio
-    9669494b49a2        redis:4.0.9-alpine                        "docker-entrypoint.s…"   36 seconds ago      Up 35 seconds             0.0.0.0:6379->6379/tcp   redis
+    docker ps | grep -E "stock-analysis|redis|minio"
 
 Stop End-to-End Stack:
 
 ::
 
-    ./compose/stop.sh -a
-    -------------
-    stopping integration stack: redis, minio, workers and jupyter
-    Stopping sa-jupyter ... done
-    Stopping sa-workers ... done
-    Stopping minio      ... done
-    Stopping redis      ... done
-    Removing sa-jupyter ... done
-    Removing sa-workers ... done
-    Removing minio      ... done
-    Removing redis      ... done
-    Removing network compose_default
-    stopped end-to-end integration stack: redis, minio, workers and jupyter
+    ./compose/stop.sh
+    ./compose/stop.sh -s
 
 Integration UnitTests
 =====================
@@ -1322,34 +1389,6 @@ IEX Test - Extract Company Dataset
 ::
 
     python -m unittest tests.test_iex_dataset_extraction.TestIEXDatasetExtraction.test_integration_extract_company_dataset
-
-Yahoo Test - Extract Pricing
-----------------------------
-
-::
-
-    python -m unittest tests.test_yahoo_dataset_extraction.TestYahooDatasetExtraction.test_integration_extract_pricing
-
-Yahoo Test - Extract News
--------------------------
-
-::
-
-    python -m unittest tests.test_yahoo_dataset_extraction.TestYahooDatasetExtraction.test_integration_extract_yahoo_news
-
-Yahoo Test - Extract Option Calls
----------------------------------
-
-::
-
-    python -m unittest tests.test_yahoo_dataset_extraction.TestYahooDatasetExtraction.test_integration_extract_option_calls
-
-Yahoo Test - Extract Option Puts
---------------------------------
-
-::
-
-    python -m unittest tests.test_yahoo_dataset_extraction.TestYahooDatasetExtraction.test_integration_extract_option_puts
 
 FinViz Test - Fetch Tickers from Screener URL
 ---------------------------------------------
@@ -1553,7 +1592,7 @@ Terms of Service
 Data Attribution
 ================
 
-This repository currently uses yahoo and `IEX <https://iextrading.com/developer/docs/>`__ for pricing data. Usage of these feeds require the following agreements in the terms of service.
+This repository currently uses `Tradier <https://tradier.com/>`__ and `IEX <https://iextrading.com/developer/docs/>`__ for pricing data. Usage of these feeds require the following agreements in the terms of service.
 
 IEX Real-Time Price
 ===================

@@ -81,10 +81,12 @@ spec:
           value: minio-service:9000
         - name: S3_REGION_NAME
           value: us-east-1
+        # Uses ae-backtester pods
+        # /opt/sa/k8/engine/backtester.yml
         - name: WORKER_BROKER_URL
-          value: redis://redis-master:6379/13
+          value: redis://redis-master:6379/11
         - name: WORKER_BACKEND_URL
-          value: redis://redis-master:6379/14
+          value: redis://redis-master:6379/12
         - name: REDIS_ADDRESS
           value: redis-master:6379
         - name: REDIS_DB

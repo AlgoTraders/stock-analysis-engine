@@ -13,17 +13,16 @@ https://github.com/neberej/pinance/master/pinance/engine/yfinance2.py
 
 import datetime
 import json
+import random
 import urllib.request
 import urllib.error
 import urllib.parse
 import pandas as pd
-from random import randrange
-from spylunking.log.setup_logging import build_colorized_logger
-from analysis_engine.consts import COMMON_TICK_DATE_FORMAT
-from analysis_engine.utils import get_last_close_str
+import analysis_engine.consts as ae_consts
+import analysis_engine.utils as ae_utils
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def create_url(
@@ -34,7 +33,7 @@ def create_url(
     :param ticker: ticker to look up
     :param exp_date_str: expiration
     """
-    srv = randrange(1, 3, 1)
+    srv = random.randrange(1, 3, 1)
     if exp_date_str:
         return (
             'https://query{}.finance.yahoo.com/v7/'
@@ -190,7 +189,7 @@ def get_options(
             contract_type=contract_type,
             strike=strike)
         options_dict = {
-            'date': get_last_close_str(),
+            'date': ae_utils.get_last_close_str(),
             'exp_date': None,
             'num_calls': None,
             'num_puts': None,
@@ -202,7 +201,7 @@ def get_options(
             options_dict['exp_date'] = \
                 datetime.datetime.fromtimestamp(
                     epoch_exp).strftime(
-                        COMMON_TICK_DATE_FORMAT)
+                        ae_consts.COMMON_TICK_DATE_FORMAT)
         calls_df = pd.DataFrame(
             options_data[0]['calls'])
         options_dict['num_calls'] = len(

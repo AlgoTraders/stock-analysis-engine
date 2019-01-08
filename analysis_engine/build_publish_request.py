@@ -3,23 +3,10 @@ Helper for building a dictionary for the:
 ``analysis_engine.publish.publish`` function
 """
 
-from analysis_engine.consts import ENABLED_REDIS_PUBLISH
-from analysis_engine.consts import REDIS_ADDRESS
-from analysis_engine.consts import REDIS_DB
-from analysis_engine.consts import REDIS_PASSWORD
-from analysis_engine.consts import REDIS_EXPIRE
-from analysis_engine.consts import ENABLED_S3_UPLOAD
-from analysis_engine.consts import S3_ADDRESS
-from analysis_engine.consts import S3_BUCKET
-from analysis_engine.consts import S3_ACCESS_KEY
-from analysis_engine.consts import S3_SECRET_KEY
-from analysis_engine.consts import S3_REGION_NAME
-from analysis_engine.consts import S3_SECURE
-from analysis_engine.consts import ppj
-from spylunking.log.setup_logging import build_colorized_logger
+import analysis_engine.consts as ae_consts
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def build_publish_request(
@@ -28,22 +15,22 @@ def build_publish_request(
         convert_to_json=False,
         output_file=None,
         compress=False,
-        redis_enabled=ENABLED_REDIS_PUBLISH,
+        redis_enabled=ae_consts.ENABLED_REDIS_PUBLISH,
         redis_key=None,
-        redis_address=REDIS_ADDRESS,
-        redis_db=REDIS_DB,
-        redis_password=REDIS_PASSWORD,
-        redis_expire=REDIS_EXPIRE,
+        redis_address=ae_consts.REDIS_ADDRESS,
+        redis_db=ae_consts.REDIS_DB,
+        redis_password=ae_consts.REDIS_PASSWORD,
+        redis_expire=ae_consts.REDIS_EXPIRE,
         redis_serializer='json',
         redis_encoding='utf-8',
-        s3_enabled=ENABLED_S3_UPLOAD,
+        s3_enabled=ae_consts.ENABLED_S3_UPLOAD,
         s3_key=None,
-        s3_address=S3_ADDRESS,
-        s3_bucket=S3_BUCKET,
-        s3_access_key=S3_ACCESS_KEY,
-        s3_secret_key=S3_SECRET_KEY,
-        s3_region_name=S3_REGION_NAME,
-        s3_secure=S3_SECURE,
+        s3_address=ae_consts.S3_ADDRESS,
+        s3_bucket=ae_consts.S3_BUCKET,
+        s3_access_key=ae_consts.S3_ACCESS_KEY,
+        s3_secret_key=ae_consts.S3_SECRET_KEY,
+        s3_region_name=ae_consts.S3_REGION_NAME,
+        s3_secure=ae_consts.S3_SECURE,
         slack_enabled=False,
         slack_code_block=False,
         slack_full_width=False,
@@ -159,7 +146,7 @@ def build_publish_request(
 
     log.debug(
         'created publish_request={}'.format(
-            ppj(work)))
+            ae_consts.ppj(work)))
 
     return work
 # end of build_publish_request

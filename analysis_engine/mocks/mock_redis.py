@@ -2,11 +2,10 @@
 Mock redis objects
 """
 
-from spylunking.log.setup_logging import build_colorized_logger
-from analysis_engine.consts import ev
+import analysis_engine.consts as ae_consts
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 class MockRedisFailToConnect:
@@ -120,7 +119,7 @@ class MockRedis:
             name,
             None)
         if not value_in_dict:
-            value_in_env = ev(
+            value_in_env = ae_consts.ev(
                 name,
                 None)
             log.info(

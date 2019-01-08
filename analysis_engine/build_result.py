@@ -2,11 +2,11 @@
 Build a result dictionary
 """
 
-from analysis_engine.consts import NOT_RUN
+import analysis_engine.consts as ae_consts
 
 
 def build_result(
-        status=NOT_RUN,
+        status=ae_consts.NOT_RUN,
         err=None,
         rec=None):
     """build_result

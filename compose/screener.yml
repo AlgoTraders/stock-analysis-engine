@@ -3,13 +3,13 @@ version: '2'
 services:
 
   # Screener-driven Analysis
-  sa-screener:
-    container_name: "sa-screener-${USER}"
-    hostname: "sa-screener-1-${USER}"
+  ae-screener:
+    container_name: "ae-screener"
+    hostname: "ae-screener"
     image: jayjohnson/stock-analysis-engine:latest
     tty: true
     env_file:
-      - ./envs/.env
-    entrypoint: "/bin/sh -c 'cd /opt/sa && 
+      - ./envs/local.env
+    entrypoint: "/bin/sh -c 'cd /opt/sa &&
                  . /opt/venv/bin/activate &&
                  /opt/sa/tools/start-screener.sh'"

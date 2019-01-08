@@ -9,17 +9,10 @@ Debug by setting the environment variable:
 
 """
 
-from analysis_engine.consts import NOT_SET
-from analysis_engine.consts import SUCCESS
-from analysis_engine.consts import get_status
-from analysis_engine.consts import ev
-from analysis_engine.consts import is_celery_disabled
-from analysis_engine.consts import ppj
-from spylunking.log.setup_logging import build_colorized_logger
+import analysis_engine.consts as ae_consts
+import spylunking.log.setup_logging as log_utils
 
-
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def get_task_results(
@@ -46,21 +39,21 @@ def get_task_results(
     send_results_back = None
     cel_disabled = False
     if work_dict:
-        if is_celery_disabled(
+        if ae_consts.is_celery_disabled(
                 work_dict=work_dict):
             send_results_back = result
             cel_disabled = True
     # end of sending back results if told to do so
 
-    if ev('DEBUG_TASK', '0') == '1':
-        status = NOT_SET
+    if ae_consts.ev('DEBUG_TASK', '0') == '1':
+        status = ae_consts.NOT_SET
         err = None
         record = None
         label = None
         if result:
             status = result.get(
                 'status',
-                NOT_SET)
+                ae_consts.NOT_SET)
             err = result.get(
                 'err',
                 None)
@@ -78,17 +71,17 @@ def get_task_results(
 
         result_details = record
         if record:
-            result_details = ppj(record)
+            result_details = ae_consts.ppj(record)
 
         status_details = status
         if status:
-            status_details = get_status(status=status)
+            status_details = ae_consts.get_status(status=status)
 
         work_details = work_dict
         if work_dict:
-            work_details = ppj(work_dict)
+            work_details = ae_consts.ppj(work_dict)
 
-        if status == SUCCESS:
+        if status == ae_consts.SUCCESS:
             log.info(
                 '{} celery_disabled={} '
                 'status={} err={} work_dict={} result={}'.format(

@@ -15,15 +15,10 @@ import os
 import json
 import requests
 import tabulate as tb
-from analysis_engine.consts import ev
-from analysis_engine.consts import SUCCESS
-from analysis_engine.consts import FAILED
-from analysis_engine.consts import ERR
-from spylunking.log.setup_logging import build_colorized_logger
+import analysis_engine.consts as ae_consts
+import spylunking.log.setup_logging as log_utils
 
-
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def post_success(msg,
@@ -34,7 +29,7 @@ def post_success(msg,
 
     :param msg: A string, list, or dict to send to slack
     """
-    result = {'status': FAILED}
+    result = {'status': ae_consts.FAILED}
     if not os.getenv('SLACK_WEBHOOK', False):
         log.info(
             'post_success - please add a SLACK_WEBHOOK environment '
@@ -61,7 +56,7 @@ def post_failure(msg,
 
     :param msg: A string, list, or dict to send to slack
     """
-    result = {'status': FAILED}
+    result = {'status': ae_consts.FAILED}
     if not os.getenv('SLACK_WEBHOOK', False):
         log.info(
             'post_failure - please add a SLACK_WEBHOOK environment '
@@ -88,7 +83,7 @@ def post_message(msg,
 
     :param msg: A string, list, or dict to send to slack
     """
-    result = {'status': FAILED}
+    result = {'status': ae_consts.FAILED}
     if not os.getenv('SLACK_WEBHOOK', False):
         log.info(
             'post_message - please add a SLACK_WEBHOOK environment '
@@ -140,8 +135,8 @@ def post(attachments, jupyter=False):
 
     :param attachments: Values to post to slack
     """
-    SLACK_WEBHOOK = ev('SLACK_WEBHOOK', None)
-    result = {'status': FAILED}
+    SLACK_WEBHOOK = ae_consts.ev('SLACK_WEBHOOK', None)
+    result = {'status': ae_consts.FAILED}
     if not os.getenv('SLACK_WEBHOOK', False):
         log.info(
             'post - please add a SLACK_WEBHOOK environment '
@@ -149,24 +144,25 @@ def post(attachments, jupyter=False):
         return result
     if attachments and SLACK_WEBHOOK:
         try:
-            if not jupyter:
-                log.info(('Attempting to post attachments={} '
-                          'to slack_webhook exists').format(attachments))
+            # if not jupyter:
+            #     log.debug(('Attempting to post attachments={} '
+            #               'to slack_webhook exists').format(attachments))
             for attachment in attachments:
                 r = requests.post(SLACK_WEBHOOK, data=json.dumps(attachment))
                 if str(r.status_code) == "200":
-                    log.info(('Successful post of attachment={} '
-                              'to slack_webhook').format(
-                                  attachment if not jupyter else
-                                  True if attachment else False))
-                    result['status'] = SUCCESS
+                    # log.info((
+                    #   'Successful post of attachment={} '
+                    #   'to slack_webhook').format(
+                    #       attachment if not jupyter else
+                    #       True if attachment else False))
+                    result['status'] = ae_consts.SUCCESS
                 else:
                     log.error(('Failed to post attachment={} '
                                'with status_code={}').format(
                                    attachment if not jupyter else
                                    True if attachment else False,
                                    r.status_code))
-                    result['status'] = FAILED
+                    result['status'] = ae_consts.FAILED
                     break
         except Exception as e:
             log.error(('Failed to post attachments={} '
@@ -174,7 +170,7 @@ def post(attachments, jupyter=False):
                            attachments if not jupyter else
                            True if attachments else False,
                            e))
-            result['status'] = ERR
+            result['status'] = ae_consts.ERR
             result['err'] = e
     else:
         log.info(('Skipping post to slack due to missing '

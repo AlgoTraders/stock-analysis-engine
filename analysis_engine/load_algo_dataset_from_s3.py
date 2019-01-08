@@ -13,13 +13,12 @@ Helper for loading datasets from s3
 """
 
 import boto3
+import analysis_engine.consts as ae_consts
 import analysis_engine.prepare_dict_for_algo as prepare_utils
 import analysis_engine.s3_read_contents_from_key as s3_utils
-from analysis_engine.consts import DEFAULT_SERIALIZED_DATASETS
-from spylunking.log.setup_logging import build_colorized_logger
+import spylunking.log.setup_logging as log_utils
 
-log = build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def load_algo_dataset_from_s3(
@@ -30,7 +29,7 @@ def load_algo_dataset_from_s3(
         s3_secret_key,
         s3_region_name,
         s3_secure,
-        serialize_datasets=DEFAULT_SERIALIZED_DATASETS,
+        serialize_datasets=ae_consts.DEFAULT_SERIALIZED_DATASETS,
         compress=False,
         encoding='utf-8'):
     """load_algo_dataset_from_s3

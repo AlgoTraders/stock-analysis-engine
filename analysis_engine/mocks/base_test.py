@@ -11,8 +11,7 @@ unittests:
 
 import os
 import unittest
-from analysis_engine.api_requests \
-    import build_cache_ready_pricing_dataset
+import analysis_engine.api_requests as api_requests
 
 
 class BaseTestCase(unittest.TestCase):
@@ -90,7 +89,7 @@ class BaseTestCase(unittest.TestCase):
             self,
             test_name=None):
         """get_pricing_test_data"""
-        test_data = build_cache_ready_pricing_dataset()
+        test_data = api_requests.build_cache_ready_pricing_dataset()
         if test_name:
             test_data['_TEST_NAME'] = test_name
         else:

@@ -4,60 +4,62 @@ services:
 
   # Redis
   redis:
-    container_name: "redis-${USER}"
-    hostname: "redis-${USER}"
-    image: redis:4.0.9-alpine
+    container_name: "redis"
+    hostname: "redis"
+    image: redis:4.0.12-alpine
     ports:
-      - "${REDIS_PORT}:6379"
+      - "6379:6379"
+    volumes:
+      - /data/redis/data:/data
 
   # Minio
   minio:
-    container_name: "minio-${USER}"
-    hostname: "minio-${USER}"
+    container_name: "minio"
+    hostname: "minio"
     image: minio/minio:latest
     env_file:
-      - ./envs/.env
+      - ./envs/local.env
     ports:
-      - "${MINIO_PORT}:9000"
+      - "9000:9000"
     volumes:
       - /data/minio/data:/data
     command: "server /data"
 
-  # Stock Analysis Engine
-  sa-workers:
-    container_name: "sa-workers-${USER}"
-    hostname: "sa-workers-${USER}"
+  # Analysis Engine
+  ae-workers:
+    container_name: "ae-workers"
+    hostname: "ae-workers"
     image: jayjohnson/stock-analysis-engine:latest
     tty: true
     env_file:
-      - ./envs/.env
+      - ./envs/workers.env
     depends_on:
       - redis
       - minio
-    entrypoint: "/bin/sh -c 'cd /opt/sa && 
+    entrypoint: "/bin/sh -c 'cd /opt/sa &&
                  /opt/sa/start-workers.sh'"
 
   # Jupyter notebooks, converted noteooks as presentation html slides, and tensorboard
-  sa-jupyter:
-    container_name: "sa-jupyter-${USER}"
-    hostname: "sa-jupyter-${USER}"
+  ae-jupyter:
+    container_name: "ae-jupyter"
+    hostname: "ae-jupyter"
     image: jayjohnson/stock-analysis-jupyter:latest
     tty: true
     environment:
       # reduce the logs printed to notebooks by loading a custom log config
       - SHARED_LOG_CFG=/opt/sa/analysis_engine/log/error-logging.json
     env_file:
-      - ./envs/.env
+      - ./envs/jupyter.env
     depends_on:
       - redis
       - minio
     volumes:
       # please run this from the repo
       # base directory
-      - /data/sa/notebooks:/opt/notebooks
+      - /data/sa/notebooks:/data/sa/notebooks
     ports:
-      - "${JUPYTER_PORT_1}:8888"
-      - "${JUPYTER_PORT_2}:8889"
-      - "${JUPYTER_PORT_3}:8890"
-      - "${JUPYTER_PORT_4}:6006"
+      - "8888:8888"
+      - "8889:8889"
+      - "8890:8890"
+      - "6006:6006"
     entrypoint: "/opt/sa/docker/jupyter/start-container.sh"

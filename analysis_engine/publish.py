@@ -17,13 +17,13 @@ import boto3
 import redis
 import zlib
 import analysis_engine.consts as ae_consts
+import analysis_engine.compress_data as compress_data
 import analysis_engine.set_data_in_redis_key as redis_utils
 import analysis_engine.send_to_slack as slack_utils
 import analysis_engine.write_to_file as file_utils
 import spylunking.log.setup_logging as log_utils
 
-log = log_utils.build_colorized_logger(
-    name=__name__)
+log = log_utils.build_colorized_logger(name=__name__)
 
 
 def publish(
@@ -32,6 +32,7 @@ def publish(
         convert_to_json=False,
         is_df=False,
         output_file=None,
+        df_compress=False,
         compress=False,
         redis_enabled=True,
         redis_key=None,
@@ -75,6 +76,8 @@ def publish(
     :param label: log tracking label
     :param output_file: path to save the data
         to a file
+    :param df_compress: optional - compress data that is a
+        ``pandas.DataFrame`` before publishing
     :param compress: optional - compress before publishing
         (default is ``False``)
     :param verbose: optional - boolean to log output
@@ -135,7 +138,10 @@ def publish(
 
     status = ae_consts.NOT_RUN
     use_data = data
-    if not is_df and not use_data:
+    if (
+            not df_compress and
+            not is_df and
+            not use_data):
         log.info('missing data')
         return ae_consts.INVALID
 
@@ -162,6 +168,12 @@ def publish(
                 redis_encoding), 9)
         if verbose:
             log.debug('compress end')
+
+    already_compressed = False
+    if df_compress:
+        use_data = compress_data.compress_data(
+            data=data)
+        already_compressed = True
 
     num_bytes = len(use_data)
     num_mb = ae_consts.get_mb(num_bytes)
@@ -259,6 +271,7 @@ def publish(
             client=rc,
             key=redis_key,
             data=use_data,
+            already_compressed=already_compressed,
             serializer=redis_serializer,
             encoding=redis_encoding,
             expire=redis_expire,

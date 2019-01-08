@@ -1,6 +1,6 @@
 #!/bin/bash
 
-container="sa-workers-${USER}"
+container="ae-workers"
 echo ""
 echo "docker logs -f ${container}"
 docker logs -f ${container}
