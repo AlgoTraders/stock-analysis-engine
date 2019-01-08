@@ -151,6 +151,10 @@ def extract_option_calls_dataset(
                 """
                 exp_date_str = (
                     calls_df['exp_date'].iloc[-1])
+
+                calls_df['date'] = calls_df['date'].dt.strftime(
+                    ae_consts.COMMON_TICK_DATE_FORMAT)
+
             except Exception as f:
                 log.error(
                     '{} - {} redis_key={} '
@@ -201,9 +205,6 @@ def extract_option_calls_dataset(
                 df_str,
                 ds_id,
                 scrub_mode))
-
-    calls_df['date'] = calls_df['date'].dt.strftime(
-        ae_consts.COMMON_TICK_DATE_FORMAT)
 
     scrubbed_df = scrub_utils.extract_scrub_dataset(
         label=label,
@@ -336,6 +337,10 @@ def extract_option_puts_dataset(
                 """
                 exp_date_str = (
                     puts_df['exp_date'].iloc[-1])
+
+                puts_df['date'] = puts_df['date'].dt.strftime(
+                    ae_consts.COMMON_TICK_DATE_FORMAT)
+
             except Exception as f:
                 log.debug(
                     '{} - {} redis_key={} '
@@ -385,9 +390,6 @@ def extract_option_puts_dataset(
                 df_str,
                 ds_id,
                 scrub_mode))
-
-    puts_df['date'] = puts_df['date'].dt.strftime(
-        ae_consts.COMMON_TICK_DATE_FORMAT)
 
     scrubbed_df = scrub_utils.extract_scrub_dataset(
         label=label,
