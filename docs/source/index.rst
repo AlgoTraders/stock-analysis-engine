@@ -13,26 +13,27 @@ Build and tune investment algorithms with a distributed stack for running backte
 Clone and Start Redis and Minio
 -------------------------------
 
-::
+#.  Clone to /opt/sa
 
-    git clone https://github.com/AlgoTraders/stock-analysis-engine.git /opt/sa
-    cd /opt/sa
-    ./compose/start.sh
+    ::
 
-Fetch Stock Pricing for a Ticker Symbol
-=======================================
+        git clone https://github.com/AlgoTraders/stock-analysis-engine.git /opt/sa
+        cd /opt/sa
+
+#.  Create Docker Mount Points and Start the Stack and Run the Pricing Data Collection job
+
+    This will pull the `~3.0 GB stock-analysis-engine docker image <https://hub.docker.com/r/jayjohnson/stock-analysis-engine>`__ and redis and minio alpine images.
+
+    ::
+
+        ./compose/start.sh
+
+Manually Fetching Stock Pricing Data
+====================================
 
 .. note:: Make sure to run through the `Getting Started before running fetch and algorithms <https://github.com/AlgoTraders/stock-analysis-engine#getting-started>`__
 
 This will pull pricing data from IEX (free for now) and Tradier (requires an `account and developer token <https://developer.tradier.com/getting_started>`__):
-
-#.  Optional - Export Tradier Account Token
-
-    You will see logs about failing to fetch Tradier data if you do not set your account token before trying to fetch data:
-
-    ::
-
-        export TD_TOKEN=YOUR_TRADIER_TOKEN
 
 #.  Fetch All Pricing Data
 
@@ -40,13 +41,22 @@ This will pull pricing data from IEX (free for now) and Tradier (requires an `ac
 
         fetch -t SPY
 
-    Or if you do not have a valid Tradier account token, then you can just pull IEX data with:
+#.  Fetch from Just Tradier
 
-    ::
+    #.  `Sign up for a free account <https://developer.tradier.com/user/sign_up>`__
 
-        fetch -t SPY -g iex
+    #.  Set the **TD_TOKEN** environment variable to fetch Trading pricing data with:
 
-    .. note:: Yahoo `disabled the YQL finance API so fetching pricing data from yahoo is disabled by default <https://developer.yahoo.com/yql/>`__
+        ::
+
+            export TD_TOKEN=YOUR_TRADIER_TOKEN
+
+    #.  Fetch with **-g td**:
+
+        ::
+
+            fetch -t SPY -g td
+            # and fetch from just IEX with: fetch -t SPY -g iex
 
 #.  View the Compressed Pricing Data in Redis
 
@@ -54,6 +64,8 @@ This will pull pricing data from IEX (free for now) and Tradier (requires an `ac
 
         redis-cli keys "SPY_*"
         redis-cli get "<key like SPY_2019-01-08_minute>"
+
+.. note:: Yahoo `disabled the YQL finance API so fetching pricing data from yahoo is disabled by default <https://developer.yahoo.com/yql/>`__
 
 Run a Custom Minute-by-Minute Intraday Algorithm Backtest and Plot the Trading History
 ======================================================================================
