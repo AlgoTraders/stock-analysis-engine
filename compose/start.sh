@@ -11,11 +11,15 @@ fi
 # /data to Docker -> Preferences -> File Sharing
 if [[ ! -e /data ]]; then
     sudo mkdir -p -m 777 /data
-    sudo mkdir -p -m 777 /data/minio/data
-    sudo mkdir -p -m 777 /data/sa/notebooks
-    sudo mkdir -p -m 777 /data/sa/notebooks/dev
-    sudo mkdir -p -m 777 /data/sa/notebooks
-    sudo mkdir -p -m 777 /data/sa/notebooks/dev
+    if [[ ! -e /data/redis/data ]]; then
+        sudo mkdir -p -m 777 /data/redis/data
+    fi
+    if [[ ! -e /data/minio/data ]]; then
+        sudo mkdir -p -m 777 /data/minio/data
+    fi
+    if [[ ! -e /data/sa/notebooks/dev ]]; then
+        sudo mkdir -p -m 777 /data/sa/notebooks/dev
+    fi
     if [[ ! -e /data/registry ]]; then
         sudo mkdir -p -m 777 /data/registry
     fi
@@ -29,6 +33,7 @@ if [[ ! -e /data ]]; then
     cp -r ./compose/docker/notebooks/* /data/sa/notebooks
 fi
 
+is_mac="0"
 os_type=`uname -s`
 case "$os_type" in
     Linux*)
@@ -48,6 +53,7 @@ case "$os_type" in
         active_ports=`lsof -i -P -n | grep LISTEN`
         # sed replace without the '' does seem to work on mac and linux the same
         mac=".bak"
+        is_mac="1"
         ;;
     *)
         warn "Unsupported OS, exiting."
@@ -57,7 +63,7 @@ esac
 
 down_dir="0"
 debug="0"
-compose="dev.yml"
+compose="integration.yml"
 for i in "$@"
 do
     # just redis and minio testing:
@@ -81,13 +87,21 @@ do
     # automation - dataset collection
     elif [[ "${i}" == "-c" ]]; then
         debug="1"
-        compose="automation-dataset-collection.yml"
         # new v2 location that requires a new env file:
         # ./compose/envs/fetch.env
         # that is created manually
-        if [[ -e ./compose/fetch/fetch.yml ]]; then
-            compose="fetch/fetch.yml"
+        compose="integration.yml"
+        down_dir="0"
+        if [[ ! -e ./${compose} ]]; then
+            pushd compose >> /dev/null
+            down_dir="1"
         fi
+        anmt "starting with: /usr/local/bin/docker-compose -f ./${compose} up -d"
+        /usr/local/bin/docker-compose -f ./${compose} start ae-dataset-collection
+        if [[ "${down_dir}" == "1" ]]; then
+            popd >> /dev/null
+        fi
+        exit 0
     elif [[ "${i}" == "-b" ]]; then
         debug="1"
         compose="bt/backtester.yml"
@@ -132,7 +146,8 @@ if [[ ! -e ./${compose} ]]; then
     down_dir="1"
 fi
 
-/usr/local/bin/docker-compose -f ./${compose} up -d >> /dev/null 2>&1
+anmt "starting with: /usr/local/bin/docker-compose -f ./${compose} up -d"
+/usr/local/bin/docker-compose -f ./${compose} up -d
 
 if [[ "${down_dir}" == "1" ]]; then
     popd >> /dev/null

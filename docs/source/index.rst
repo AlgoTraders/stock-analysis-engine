@@ -26,11 +26,34 @@ Fetch Stock Pricing for a Ticker Symbol
 
 This will pull pricing data from IEX (free for now) and Tradier (requires an `account and developer token <https://developer.tradier.com/getting_started>`__):
 
-::
+#.  Optional - Export Tradier Account Token
 
-    fetch -t SPY
+    You will see logs about failing to fetch Tradier data if you do not set your account token before trying to fetch data:
 
-.. note:: Yahoo `disabled the YQL finance API so fetching pricing data from yahoo is disabled by default <https://developer.yahoo.com/yql/>`__
+    ::
+
+        export TD_TOKEN=YOUR_TRADIER_TOKEN
+
+#.  Fetch All Pricing Data
+
+    ::
+
+        fetch -t SPY
+
+    Or if you do not have a valid Tradier account token, then you can just pull IEX data with:
+
+    ::
+
+        fetch -t SPY -g iex
+
+    .. note:: Yahoo `disabled the YQL finance API so fetching pricing data from yahoo is disabled by default <https://developer.yahoo.com/yql/>`__
+
+#.  View the Compressed Pricing Data in Redis
+
+    ::
+
+        redis-cli keys "SPY_*"
+        redis-cli get "<key like SPY_2019-01-08_minute>"
 
 Run a Custom Minute-by-Minute Intraday Algorithm Backtest and Plot the Trading History
 ======================================================================================
@@ -50,7 +73,8 @@ The command line tool uses an algorithm config to build multiple `Williams %R in
 ::
 
     # this can take a few minutes to evaluate
-    # each day's 390 rows
+    # as more data is collected
+    # because each day has 390 rows to process
     bt -t SPY -f /tmp/history.json
 
 .. note:: The algorithm's **trading history** dataset provides many additional columns to review for tuning indicators and custom buy/sell rules. To reduce the time spent waiting on an algorithm to finish processing, you can save the entire trading history to disk with the ``-f <save_to_file>`` argument.
@@ -241,14 +265,15 @@ Running the Full Stack Locally
 
 While not required for backtesting, running the full stack is required for running algorithms during a live trading session. Here is how to deploy the full stack locally using docker compose.
 
-#.  Start the stack with the `integration.yml docker compose file (minio, redis, engine worker, jupyter) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/integration.yml>`__
+#.  Start the stack with the `integration.yml docker compose file (minio, redis, engine worker, backtester, jupyter) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/integration.yml>`__
 
     .. note:: The containers are set up to run price point predictions using AI with Tensorflow and Keras. Including these in the container image is easier for deployment, but inflated the docker image size to over ``2.8 GB``. Please wait while the images download as it can take a few minutes depending on your internet speed.
 
     ::
 
         ./compose/start.sh
-        ./compose/start.sh -s
+
+    .. tip:: For Mac OS X users please note that `there is a known docker compose issue with network_mode: "host" <https://github.com/docker/for-mac/issues/1031`>`__
 
 #.  Start the dataset collection job with the `automation-dataset-collection.yml docker compose file <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/automation-dataset-collection.yml>`__:
 
@@ -257,6 +282,12 @@ While not required for backtesting, running the full stack is required for runni
     ::
 
         ./compose/start.sh -c
+
+    View for dataset collection logs:
+
+    ::
+
+        logs-dataset-collection.sh
 
     Wait for pricing engine logs to stop with ``ctrl+c``
 

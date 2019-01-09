@@ -26,7 +26,7 @@ esac
 
 down_dir="0"
 debug="0"
-compose="dev.yml"
+compose="integration.yml"
 for i in "$@"
 do
     # just redis and minio testing:
@@ -77,7 +77,7 @@ if [[ "${compose}" == "dev.yml" ]]; then
     containers="redis minio"
 elif [[ "${compose}" == "integration.yml" ]]; then
     inf "stopping integration stack: redis, minio, workers and jupyter"
-    containers="ae-workers ae-jupyter redis minio"
+    containers="ae-workers ae-jupyter ae-backtester ae-dataset-collection redis minio"
 elif [[ "${compose}" == "notebook-integration.yml" ]]; then
     inf "stopping end-to-end with notebook integration stack: redis, minio, workers and jupyter"
     containers="ae-workers ae-jupyter redis minio"

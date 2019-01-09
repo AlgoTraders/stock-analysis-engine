@@ -21,11 +21,34 @@ Fetch Stock Pricing for a Ticker Symbol
 
 This will pull pricing data from IEX (free for now) and Tradier (requires an `account and developer token <https://developer.tradier.com/getting_started>`__):
 
-::
+#.  Optional - Export Tradier Account Token
 
-    fetch -t SPY
+    You will see logs about failing to fetch Tradier data if you do not set your account token before trying to fetch data:
 
-.. note:: Yahoo `disabled the YQL finance API so fetching pricing data from yahoo is disabled by default <https://developer.yahoo.com/yql/>`__
+    ::
+
+        export TD_TOKEN=YOUR_TRADIER_TOKEN
+
+#.  Fetch All Pricing Data
+
+    ::
+
+        fetch -t SPY
+
+    Or if you do not have a valid Tradier account token, then you can just pull IEX data with:
+
+    ::
+
+        fetch -t SPY -g iex
+
+    .. note:: Yahoo `disabled the YQL finance API so fetching pricing data from yahoo is disabled by default <https://developer.yahoo.com/yql/>`__
+
+#.  View the Compressed Pricing Data in Redis
+
+    ::
+
+        redis-cli keys "SPY_*"
+        redis-cli get "<key like SPY_2019-01-08_minute>"
 
 Run a Custom Minute-by-Minute Intraday Algorithm Backtest and Plot the Trading History
 ======================================================================================
@@ -45,7 +68,8 @@ The command line tool uses an algorithm config to build multiple `Williams %R in
 ::
 
     # this can take a few minutes to evaluate
-    # each day's 390 rows
+    # as more data is collected
+    # because each day has 390 rows to process
     bt -t SPY -f /tmp/history.json
 
 .. note:: The algorithm's **trading history** dataset provides many additional columns to review for tuning indicators and custom buy/sell rules. To reduce the time spent waiting on an algorithm to finish processing, you can save the entire trading history to disk with the ``-f <save_to_file>`` argument.
@@ -236,14 +260,15 @@ Running the Full Stack Locally
 
 While not required for backtesting, running the full stack is required for running algorithms during a live trading session. Here is how to deploy the full stack locally using docker compose.
 
-#.  Start the stack with the `integration.yml docker compose file (minio, redis, engine worker, jupyter) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/integration.yml>`__
+#.  Start the stack with the `integration.yml docker compose file (minio, redis, engine worker, backtester, jupyter) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/integration.yml>`__
 
     .. note:: The containers are set up to run price point predictions using AI with Tensorflow and Keras. Including these in the container image is easier for deployment, but inflated the docker image size to over ``2.8 GB``. Please wait while the images download as it can take a few minutes depending on your internet speed.
 
     ::
 
         ./compose/start.sh
-        ./compose/start.sh -s
+
+    .. tip:: For Mac OS X users please note that `there is a known docker compose issue with network_mode: "host" <https://github.com/docker/for-mac/issues/1031`>`__
 
 #.  Start the dataset collection job with the `automation-dataset-collection.yml docker compose file <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/automation-dataset-collection.yml>`__:
 
@@ -252,6 +277,12 @@ While not required for backtesting, running the full stack is required for runni
     ::
 
         ./compose/start.sh -c
+
+    View for dataset collection logs:
+
+    ::
+
+        logs-dataset-collection.sh
 
     Wait for pricing engine logs to stop with ``ctrl+c``
 
@@ -496,14 +527,39 @@ From a technical perspective, the engine uses `Celery workers to process heavywe
 
 With the stack already running, please refer to the `Intro Stock Analysis using Jupyter Notebook <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro.ipynb>`__ for more getting started examples.
 
+Setting up Your Tradier Account with Docker Compose
+===================================================
+
+Please set your Tradier account token in the docker environment files before starting the stack:
+
+::
+
+    grep -r SETYOURTRADIERTOKENHERE compose/*
+    compose/envs/backtester.env:TD_TOKEN=SETYOURTRADIERTOKENHERE
+    compose/envs/workers.env:TD_TOKEN=SETYOURTRADIERTOKENHER
+
+Please export the variable for developing locally:
+
+::
+
+    export TD_TOKEN=<TRADIER_ACCOUNT_TOKEN>
+
+.. note:: Please restart the stack with ``./compose/stop.sh`` then ``./compose/start.sh`` after setting the Tradier token environment variable
+
 #.  Start Redis and Minio
 
-    .. note:: The Minio container is set up to save data to ``/data`` so S3 files can survive a restart/reboot. On Mac OS X, please make sure to add ``/data`` (and ``/data/sa/notebooks`` for Jupyter notebooks) on the Docker Preferences -> File Sharing tab and let the docker daemon restart before trying to start the containers. If not, you will likely see errors like:
+    .. note:: The Redis and Minio container are set up to save data to ``/data`` so files can survive a restart/reboot. On Mac OS X, please make sure to add ``/data`` (and ``/data/sa/notebooks`` for Jupyter notebooks) on the Docker Preferences -> File Sharing tab and let the docker daemon restart before trying to start the containers. If not, you will likely see errors like:
 
        ::
 
             ERROR: for minio  Cannot start service minio:
             b'Mounts denied: \r\nThe path /data/minio/data\r\nis not shared from OS X
+
+        Here is the command to manully creaate the shared volume directories:
+
+        ::
+
+            sudo mkdir -p -m 777 /data/redis/data /data/minio/data /data/sa/notebooks/dev /data/registry/auth /data/registry/data
 
     ::
 
@@ -892,13 +948,9 @@ Jupyter
 
 You can run the Jupyter notebooks by starting the `notebook-integration.yml stack <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/notebook-integration.yml>`__ with the command:
 
-::
+.. warning:: On Mac OS X, Jupyter does not work with the Analysis Engine at the moment. PR's are welcomed, but we have not figured out how to share the notebooks and access redis and minio with the `known docker compose issue with network_host on Mac OS X <https://github.com/docker/for-mac/issues/1031>`__
 
-    ./compose/start.sh -j
-
-.. warning:: On Mac OS X, please make sure ``/data/sa/notebooks`` is a shared directory on the Docker Preferences -> File Sharing tab and restart the docker daemon.
-
-With the included Jupyter container running, you can access the `Stock Analysis Intro notebook <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro.ipynb>`__ at the url (default login password is ``admin``):
+For Linux users, the Jupyter container hosts the `Stock Analysis Intro notebook <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro.ipynb>`__ at the url (default login password is ``admin``):
 
 http://localhost:8888/notebooks/Stock-Analysis-Intro.ipynb
 
@@ -932,54 +984,6 @@ After running the dataset collection container, the datasets should be auto-cach
 
     ./tools/redis-cli.sh
     127.0.0.1:6379> keys *
-    1) "SPY_2018-10-06"
-    2) "AMZN_2018-10-06_peers"
-    3) "AMZN_2018-10-06_pricing"
-    4) "TSLA_2018-10-06_options"
-    5) "SPY_2018-10-06_dividends"
-    6) "NFLX_2018-10-06_minute"
-    7) "TSLA_2018-10-06_news"
-    8) "SPY_2018-10-06_quote"
-    9) "AMZN_2018-10-06_company"
-    10) "TSLA_2018-10-06"
-    11) "TSLA_2018-10-06_pricing"
-    12) "SPY_2018-10-06_company"
-    13) "SPY_2018-10-06_stats"
-    14) "NFLX_2018-10-06_peers"
-    15) "NFLX_2018-10-06_quote"
-    16) "SPY_2018-10-06_news1"
-    17) "AMZN_2018-10-06_stats"
-    18) "TSLA_2018-10-06_news1"
-    19) "AMZN_2018-10-06_news"
-    20) "TSLA_2018-10-06_company"
-    21) "AMZN_2018-10-06_minute"
-    22) "AMZN_2018-10-06_quote"
-    23) "NFLX_2018-10-06_dividends"
-    24) "NFLX_2018-10-06_options"
-    25) "TSLA_2018-10-06_daily"
-    26) "SPY_2018-10-06_news"
-    27) "SPY_2018-10-06_options"
-    28) "NFLX_2018-10-06"
-    29) "NFLX_2018-10-06_daily"
-    30) "AMZN_2018-10-06"
-    31) "AMZN_2018-10-06_options"
-    32) "NFLX_2018-10-06_pricing"
-    33) "TSLA_2018-10-06_stats"
-    34) "TSLA_2018-10-06_minute"
-    35) "SPY_2018-10-06_peers"
-    36) "AMZN_2018-10-06_dividends"
-    37) "TSLA_2018-10-06_dividends"
-    38) "NFLX_2018-10-06_company"
-    39) "NFLX_2018-10-06_news"
-    40) "SPY_2018-10-06_pricing"
-    41) "SPY_2018-10-06_daily"
-    42) "TSLA_2018-10-06_quote"
-    43) "AMZN_2018-10-06_news1"
-    44) "AMZN_2018-10-06_daily"
-    45) "TSLA_2018-10-06_peers"
-    46) "SPY_2018-10-06_minute"
-    47) "NFLX_2018-10-06_stats"
-    48) "NFLX_2018-10-06_news1"
 
 Publishing to Slack
 ===================
@@ -1532,6 +1536,38 @@ Linting and Other Tools
 
         ls -hlrt /opt/sa/tests/datasets/redis/redis-0-backup-*.rdb
 
+#.  Export the Kubernetes Redis Cluster's Database to the Local Redis Container
+
+    #.  stop the redis docker container:
+
+        ::
+
+            ./compose/stop.sh
+
+    #.  Archive the previous redis database
+
+        ::
+
+            cp /data/redis/data/dump.rdb /data/redis/data/archive.rdb
+
+    #.  Save the Redis database in the Cluster
+
+        ::
+
+            kubectl exec -it redis-master-0 redis-cli save
+
+    #.  Export the saved redis database file inside the pod to the default docker redis container's local file
+
+        kubectl cp redis-master-0:/bitnami/redis/data/dump.rdb /data/redis/data/dump.rdb
+
+    #.  Restart the stack
+
+        .. note:: Redis takes a few seconds to load all the data into memory so this can take a few seconds
+
+        ::
+
+            ./compose/start.sh
+
 Deploy Fork Feature Branch to Running Containers
 ================================================
 
@@ -1578,6 +1614,17 @@ Debug Fetching IEX Data
     source /opt/venv/bin/activate
     exp_date=$(/opt/sa/analysis_engine/scripts/print_next_expiration_date.py)
     fetch -t ${ticker} -g iex -n ${ticker}_${use_date} -e ${exp_date} -Z
+
+Failed Fetching Tradier Data
+----------------------------
+
+Please export a valid ``TD_TOKEN`` in your ``compose/envs/*.env`` docker compose files if you see the following errors trying to pull pricing data from Tradier:
+
+::
+
+    2019-01-09 00:16:47,148 - analysis_engine.td.fetch_api - INFO - failed to get put with response=<Response [401]> code=401 text=Invalid Access Token
+    2019-01-09 00:16:47,151 - analysis_engine.td.get_data - CRITICAL - ticker=TSLA-tdputs - ticker=TSLA field=10001 failed fetch_data with ex='date'
+    2019-01-09 00:16:47,151 - analysis_engine.work_tasks.get_new_pricing_data - CRITICAL - ticker=TSLA failed TD ticker=TSLA field=tdputs status=ERR err=ticker=TSLA-tdputs - ticker=TSLA field=10001 failed fetch_data with ex='date'
 
 License
 =======
