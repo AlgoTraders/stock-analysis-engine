@@ -1,0 +1,26 @@
+version: '2'
+
+services:
+
+  # Redis
+  redis:
+    container_name: "redis"
+    hostname: "redis"
+    image: redis:4.0.12-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - /data/redis/data:/data
+
+  # Minio
+  minio:
+    container_name: "minio"
+    hostname: "minio"
+    image: minio/minio:latest
+    env_file:
+      - ./envs/local.env
+    ports:
+      - "9000:9000"
+    volumes:
+      - /data/minio/data:/data
+    command: "server /data"

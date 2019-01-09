@@ -35,7 +35,7 @@ do
     # end-to-end integration testing:
     elif [[ "${i}" == "-a" ]]; then
         debug="1"
-        compose="integration.yml"
+        compose="redis-and-minio.yml"
     # end-to-end integration testing with notebook editing
     # over <repo base>/docker/notebooks:
     elif [[ "${i}" == "-j1" ]]; then
@@ -73,10 +73,13 @@ done
 anmt "-------------"
 containers=""
 if [[ "${compose}" == "dev.yml" ]]; then
+    inf "stopping dev"
+    containers="redis minio"
+elif [[ "${compose}" == "redis-and-minio.yml" ]]; then
     inf "stopping redis and minio"
     containers="redis minio"
 elif [[ "${compose}" == "integration.yml" ]]; then
-    inf "stopping integration stack: redis, minio, workers and jupyter"
+    inf "stopping integration stack: redis, minio, workers, backtester, dataset collection and jupyter"
     containers="ae-workers ae-jupyter ae-backtester ae-dataset-collection redis minio"
 elif [[ "${compose}" == "notebook-integration.yml" ]]; then
     inf "stopping end-to-end with notebook integration stack: redis, minio, workers and jupyter"
@@ -126,8 +129,10 @@ fi
 
 if [[ "${compose}" == "dev.yml" ]]; then
     good "stopped redis and minio"
+elif [[ "${compose}" == "redis-and-minio.yml" ]]; then
+    good "stopped redis and minio"
 elif [[ "${compose}" == "integration.yml" ]]; then
-    good "stopped end-to-end integration stack: redis, minio, workers and jupyter"
+    good "stopped integration stack: redis, minio, workers, backtester, dataset collection and jupyter"
 elif [[ "${compose}" == "bt/backtester.yml" ]]; then
     good "stopped backtester"
 elif [[ "${compose}" == "fetch/fetch.yml" ]]; then

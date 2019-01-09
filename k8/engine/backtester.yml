@@ -40,6 +40,8 @@ spec:
                 - enabled
       hostname: ae-backtester
       restartPolicy: Always
+      # imagePullSecrets:
+      # - name: ae.docker.creds
       containers:
       - image: jayjohnson/stock-analysis-engine:latest
         imagePullPolicy: Always

@@ -1,9 +1,9 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: sa-dataset-collector
+  name: ae-dataset-collector
   annotations:
-    description: The Stock Analysis Dataset Collector
+    description: The Stock Analysis Dataset Collector job for fetching the most recent pricing data and storing it in Redis
     runtime: python3
   labels:
     sa: engine
@@ -16,7 +16,7 @@ spec:
   template:
     metadata:
       labels:
-        app: sa-dataset-collector
+        app: ae-dataset-collector
         backend: enabled
         purpose: stock-analysis
         layer: backend
@@ -24,14 +24,20 @@ spec:
         cache: redis
         pubsub: publisher
     spec:
-      hostname: sa-dataset-collector
+      hostname: ae-dataset-collector
       restartPolicy: Never
+      # imagePullSecrets:
+      # - name: ae.docker.creds
       containers:
       - image: jayjohnson/stock-analysis-engine:latest
         imagePullPolicy: Always
-        name: sa-dataset-collector
+        name: ae-dataset-collector
         resources: {}
-        command: ["/bin/bash", "-c", "cd /opt/sa/ && . /opt/venv/bin/activate && /opt/sa/tools/start-dataset-collection.sh"]
+        command: [
+          "/bin/bash",
+          "-c",
+          "cd /opt/sa/ && . /opt/venv/bin/activate && /opt/sa/tools/start-dataset-collection.sh"
+        ]
         env:
         - name: POSTGRES_USER
           valueFrom:
@@ -51,15 +57,25 @@ spec:
         - name: S3_ACCESS_KEY
           valueFrom:
             secretKeyRef:
-              name: minio-s3-access
-              key: access_key
+              name: ae.k8.minio.s3
+              key: aws_access_key_id
         - name: S3_SECRET_KEY
           valueFrom:
             secretKeyRef:
-              name: minio-s3-access
-              key: secret_key
+              name: ae.k8.minio.s3
+              key: aws_secret_access_key
         - name: S3_ADDRESS
           value: minio-service:9000
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: ae.k8.minio.s3
+              key: aws_access_key_id
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ae.k8.minio.s3
+              key: aws_secret_access_key
         - name: S3_REGION_NAME
           value: us-east-1
         - name: WORKER_BROKER_URL
@@ -77,8 +93,8 @@ spec:
           value: daily
         - name: MINUTE_S3_BUCKET_NAME
           value: minute
-        - name: QUOTE_S3_BUCKET_NAME
-          value: quote
+        - name: TICK_S3_BUCKET_NAME
+          value: tick
         - name: STATS_S3_BUCKET_NAME
           value: stats
         - name: PEERS_S3_BUCKET_NAME
@@ -102,7 +118,7 @@ spec:
         - name: TICKER
           value: SPY
         - name: DEFAULT_TICKERS
-          value: SPY,TSLA,AMZN,NFLX
+          value: SPY,AMZN,TSLA
         # set to your Slack webhook url:
         - name: SLACK_WEBHOOK
           value: https://hooks.slack.com/services/YOUR_WEBHOOK_HERE
@@ -113,3 +129,25 @@ spec:
         # set to "1" to publish Celery task failures to Slack
         - name: PROD_SLACK_ALERTS
           value: "0"
+        # Tradier Account Config:
+        - name: TD_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: ae.k8.tradier
+              key: td_token
+        - name: TD_ENDPOINT_API
+          valueFrom:
+            secretKeyRef:
+              name: ae.k8.tradier
+              key: td_endpoint_api
+        - name: TD_ENDPOINT_DATA
+          valueFrom:
+            secretKeyRef:
+              name: ae.k8.tradier
+              key: td_endpoint_data
+        - name: TD_ENDPOINT_STREAM
+          valueFrom:
+            secretKeyRef:
+              name: ae.k8.tradier
+              key: td_endpoint_stream
+        # end Tradier
