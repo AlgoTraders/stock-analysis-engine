@@ -852,8 +852,20 @@ def run_backtest_and_plot_history(
 
     log.info('plotting history')
 
-    first_date = history_df['date'].iloc[0]
-    end_date = history_df['date'].iloc[-1]
+    use_xcol = 'date'
+    use_as_date_format = '%d\n%b'
+    xlabel = 'Dates vs {} values'.format(
+        trading_history_dict['algo_name'])
+    ylabel = 'Algo {}\nvalues'.format(
+        trading_history_dict['algo_name'])
+    df_filter = (history_df['close'] > 0.01)
+    first_date = history_df[df_filter]['date'].iloc[0]
+    end_date = history_df[df_filter]['date'].iloc[-1]
+    if config_dict['timeseries'] == 'minute':
+        use_xcol = 'minute'
+        use_as_date_format = '%d %H:%M:%S\n%b'
+        first_date = history_df[df_filter]['minute'].iloc[0]
+        end_date = history_df[df_filter]['minute'].iloc[-1]
     title = (
         'Trading History {} for Algo {}\n'
         'Backtest dates from {} to {}'.format(
@@ -861,16 +873,6 @@ def run_backtest_and_plot_history(
             trading_history_dict['algo_name'],
             first_date,
             end_date))
-    use_xcol = 'date'
-    use_as_date_format = '%d\n%b'
-    if config_dict['timeseries'] == 'minute':
-        use_xcol = 'minute'
-        use_as_date_format = '%d %H:%M:%S\n%b'
-    xlabel = 'Dates vs {} values'.format(
-        trading_history_dict['algo_name'])
-    ylabel = 'Algo {}\nvalues'.format(
-        trading_history_dict['algo_name'])
-    df_filter = (history_df['close'] > 0.01)
 
     # set default hloc columns:
     blue = None

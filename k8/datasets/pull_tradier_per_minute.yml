@@ -6,7 +6,7 @@ metadata:
     description: The Stock Analysis Dataset Collector for fetching Tradier pricing datasets every minute
     runtime: python3
   labels:
-    ae: engine
+    sa: engine
     purpose: stock-analysis
     layer: backend
     messaging: redis
@@ -26,8 +26,8 @@ spec:
     spec:
       hostname: ae-dataset-td-1
       restartPolicy: Never
-      imagePullSecrets:
-      - name: ae.docker.creds
+      # imagePullSecrets:
+      # - name: ae.docker.creds
       containers:
       - image: jayjohnson/stock-analysis-engine:latest
         imagePullPolicy: Always

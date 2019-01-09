@@ -72,12 +72,7 @@ do
     # end-to-end integration testing:
     elif [[ "${i}" == "-a" ]]; then
         debug="1"
-        compose="integration.yml"
-    # end-to-end integration testing with notebook editing
-    # over <repo base>/docker/notebooks:
-    elif [[ "${i}" == "-j1" ]]; then
-        debug="1"
-        compose="notebook-integration.yml"
+        compose="redis-and-minio.yml"
     # overriding notebooks
     elif [[ "${i}" == "-jo" ]]; then
         debug="1"
@@ -96,7 +91,7 @@ do
             pushd compose >> /dev/null
             down_dir="1"
         fi
-        anmt "starting with: /usr/local/bin/docker-compose -f ./${compose} up -d"
+        anmt "starting dataset collection with: /usr/local/bin/docker-compose -f ./${compose} start ae-dataset-collection"
         /usr/local/bin/docker-compose -f ./${compose} start ae-dataset-collection
         if [[ "${down_dir}" == "1" ]]; then
             popd >> /dev/null
@@ -108,6 +103,11 @@ do
     elif [[ "${i}" == "-j" ]]; then
         debug="1"
         compose="jupyter/jupyter.yml"
+    # end-to-end integration testing with notebook editing
+    # over <repo base>/docker/notebooks:
+    elif [[ "${i}" == "-j2" ]]; then
+        debug="1"
+        compose="notebook-integration.yml"
     elif [[ "${i}" == "-r" ]]; then
         debug="1"
         compose="registry/registry.yml"
@@ -119,9 +119,11 @@ done
 
 anmt "-------------"
 if [[ "${compose}" == "dev.yml" ]]; then
+    inf "starting dev"
+elif [[ "${compose}" == "redis-and-minio.yml" ]]; then
     inf "starting redis and minio"
 elif [[ "${compose}" == "integration.yml" ]]; then
-    inf "starting end-to-end integration stack: redis, minio, workers and jupyter"
+    inf "starting integration stack: redis, minio, workers, backtester, dataset collection and jupyter"
 elif [[ "${compose}" == "notebook-integration.yml" ]]; then
     inf "starting end-to-end with notebook integration stack: redis, minio, workers and jupyter"
 elif [[ "${compose}" == "automation-dataset-collection.yml" ]]; then
@@ -154,9 +156,11 @@ if [[ "${down_dir}" == "1" ]]; then
 fi
 
 if [[ "${compose}" == "dev.yml" ]]; then
-    good "started redis and minio"
+    good "started dev"
+elif [[ "${compose}" == "redis-and-minio.yml" ]]; then
+    good "started redis (listening on 0.0.0.0:6379) and minio (listening on 0.0.0.0:9000)"
 elif [[ "${compose}" == "integration.yml" ]]; then
-    good "started end-to-end integration stack: redis, minio, workers and jupyter"
+    good "started integration stack: redis, minio, workers, backtester, dataset collection and jupyter"
 elif [[ "${compose}" == "bt/backtester.yml" ]]; then
     good "started backtester"
 elif [[ "${compose}" == "fetch/fetch.yml" ]]; then

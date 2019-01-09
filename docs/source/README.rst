@@ -1,57 +1,68 @@
 Stock Analysis Engine
 =====================
 
-Build and tune investment algorithms with a distributed stack for running backtests and live-trading algorithms on publicly traded companies with automated datafeeds from: `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__, `Tradier <https://tradier.com/>`__ and `FinViz <https://finviz.com>`__ (includes: pricing, options, news, dividends, daily, intraday, screeners, statistics, financials, earnings, and more). Runs on Kubernetes and docker-compose. Pricing data is automatically compressed and there are included Kubernetes yaml files for showing how to fetch new pricing data as fast as per minute and backup all pricing assets to your own AWS S3 buckets (for a nightly backup).
+Build and tune investment algorithms with a distributed stack for running backtests using live pricing data on publicly traded companies with automated datafeeds from: `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__, `Tradier <https://tradier.com/>`__ and `FinViz <https://finviz.com>`__ (includes: pricing, options, news, dividends, daily, intraday, screeners, statistics, financials, earnings, and more).
 
 .. image:: https://i.imgur.com/pH368gy.png
 
-Clone and Start Redis and Minio
--------------------------------
+Fetch the Latest Pricing Data
+=============================
 
-#.  Clone to /opt/sa
+Supported fetch methods for getting pricing data:
+
+- Command line using ``fetch`` command
+- Docker-compose using ``./compose/start.sh -c``
+- Kubernetes `Fetch from IEX and Tradier job <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/k8/datasets/job.yml>`__ or `Fetch from only Trader job <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/k8/datasets/pull_tradier_per_minute.yml>`__
+
+Fetch using the Command Line
+----------------------------
+
+Here is a video showing how to fetch the latest pricing data for a ticker using the command line:
+
+.. raw:: html
+
+    <a href="https://asciinema.org/a/220460?autoplay=1" target="_blank"><img src="https://asciinema.org/a/220460.png"/></a>
+
+#.  Clone to ``/opt/sa``
 
     ::
 
         git clone https://github.com/AlgoTraders/stock-analysis-engine.git /opt/sa
         cd /opt/sa
 
-#.  Create Docker Mount Points and Start the Stack and Run the Pricing Data Collection job
+#.  Create Docker Mounts and Start Redis and Minio
 
-    This will pull the `~3.0 GB stock-analysis-engine docker image <https://hub.docker.com/r/jayjohnson/stock-analysis-engine>`__ and redis and minio alpine images.
+    This will pull `Redis <https://hub.docker.com/_/redis>`__ and `Minio <https://hub.docker.com/r/minio/minio>`__ docker images.
 
     ::
 
-        ./compose/start.sh
-
-Manually Fetching Stock Pricing Data
-====================================
-
-.. note:: Make sure to run through the `Getting Started before running fetch and algorithms <https://github.com/AlgoTraders/stock-analysis-engine#getting-started>`__
-
-This will pull pricing data from IEX (free for now) and Tradier (requires an `account and developer token <https://developer.tradier.com/getting_started>`__):
+        ./compose/start.sh -a
 
 #.  Fetch All Pricing Data
 
-    ::
+    #.  `Run through the Getting Started section <https://github.com/AlgoTraders/stock-analysis-engine#getting-started>`__
 
-        fetch -t SPY
-
-#.  Fetch from Just Tradier
-
-    #.  `Sign up for a free account <https://developer.tradier.com/user/sign_up>`__
-
-    #.  Set the **TD_TOKEN** environment variable to fetch Trading pricing data with:
-
+    #.  This will pull pricing data from IEX (free for now) and Tradier (requires an `account and developer token <https://developer.tradier.com/getting_started>`__):
         ::
 
-            export TD_TOKEN=YOUR_TRADIER_TOKEN
+            fetch -t SPY
 
-    #.  Fetch with **-g td**:
+        Alternatively, you can also fetch from just Tradier:
 
-        ::
+        - `Sign up for a free account <https://developer.tradier.com/user/sign_up>`__
 
-            fetch -t SPY -g td
-            # and fetch from just IEX with: fetch -t SPY -g iex
+        - Set the **TD_TOKEN** environment variable to fetch Trading pricing data with:
+            ::
+
+                export TD_TOKEN=YOUR_TRADIER_TOKEN
+
+        - Fetch with **-g td**:
+            ::
+
+                fetch -t SPY -g td
+                # and fetch from just IEX with: fetch -t SPY -g iex
+
+    .. note:: Yahoo `disabled the YQL finance API so fetching pricing data from yahoo is disabled by default <https://developer.yahoo.com/yql/>`__
 
 #.  View the Compressed Pricing Data in Redis
 
@@ -60,7 +71,61 @@ This will pull pricing data from IEX (free for now) and Tradier (requires an `ac
         redis-cli keys "SPY_*"
         redis-cli get "<key like SPY_2019-01-08_minute>"
 
-.. note:: Yahoo `disabled the YQL finance API so fetching pricing data from yahoo is disabled by default <https://developer.yahoo.com/yql/>`__
+Backups
+-------
+
+Pricing data is automatically compressed in redis and there is an `example Kubernetes job for backing up all stored pricing data to AWS S3 <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/k8/backups/backup-to-aws-job.yml>`__.
+
+Running the Full Stack Locally for Backtesting and Live Trading Analysis
+========================================================================
+
+While not required for backtesting, running the full stack is required for running algorithms during a live trading session. Here is a video on how to deploy the full stack locally using docker compose and the commands from the video.
+
+.. raw:: html
+
+    <a href="https://asciinema.org/a/220487?autoplay=1" target="_blank"><img src="https://asciinema.org/a/220487.png"/></a>
+
+#.  Start Workers, Backtester, Pricing Data Collection, Jupyter, Redis and Minio
+
+    Now start the rest of the stack with the command below. This will pull the `~3.0 GB stock-analysis-engine docker image <https://hub.docker.com/r/jayjohnson/stock-analysis-engine>`__ and start the workers, backtester, dataset collection and `Jupyter image <https://hub.docker.com/r/jayjohnson/stock-analysis-jupyter>`__. It will start `Redis <https://hub.docker.com/_/redis>`__ and `Minio <https://hub.docker.com/r/minio/minio>`__ if they are not running already.
+
+    ::
+
+        ./compose/start.sh
+
+    .. tip:: Mac OS X users just a note that `there is a known docker compose issue with network_mode: "host" <https://github.com/docker/for-mac/issues/1031`>`__ so you may have issues trying to connect to your services.
+
+#.  Check the Docker Containers
+
+    ::
+
+        docker ps -a
+
+#.  View for dataset collection logs
+
+    ::
+
+        logs-dataset-collection.sh
+
+#.  Wait for pricing engine logs to stop with ``ctrl+c``
+
+    ::
+
+        logs-workers.sh
+
+#.  Verify Pricing Data is in Redis
+
+    ::
+
+        redis-cli keys "*"
+
+#.  Optional - Automating `pricing data collection with the automation-dataset-collection.yml docker compose file <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/automation-dataset-collection.yml>`__:
+
+    .. note:: Depending on how fast you want to run intraday algorithms, you can use this docker compose job or the `Kubernetes job <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/k8/datasets/job.yml>`__ or the `Fetch from Only Tradier Kubernetes job <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/k8/datasets/pull_tradier_per_minute.yml>`__ to collect the most recent pricing information
+
+    ::
+
+        ./compose/start.sh -c
 
 Run a Custom Minute-by-Minute Intraday Algorithm Backtest and Plot the Trading History
 ======================================================================================
@@ -72,10 +137,16 @@ With pricing data in redis, you can start running backtests a few ways:
 - `Run with the command line backtest tool <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/run_backtest_and_plot_history.py>`__
 - `Advanced - building a standalone algorithm as a class for running trading analysis <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/mocks/example_algo_minute.py>`__
 
-Running an Algorithm with the Backtest Tool
--------------------------------------------
+Running an Algorithm with Live Intraday Pricing Data
+====================================================
 
-The command line tool uses an algorithm config to build multiple `Williams %R indicators <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/run_backtest_and_plot_history.py#L49>`__ into an algorithm with a **10,000.00 USD** starting balance. Once configured, the backtest iterates through each trading dataset and evaluates if it should buy or sell based off the pricing data. After it finishes, the tool will display a chart showing the algorithm's **balance** and the stock's **close price** per minute using matplotlib and seaborn.
+Here is a video showing how to run it:
+
+.. raw:: html
+
+    <a href="https://asciinema.org/a/220498?autoplay=1" target="_blank"><img src="https://asciinema.org/a/220498.png"/></a>
+
+The `backtest command line tool <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/run_backtest_and_plot_history.py>`__ uses an `algorithm config dictionary <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/tests/algo_configs/test_5_days_ahead.json>`__ to build multiple `Williams %R indicators <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/run_backtest_and_plot_history.py#L49>`__ into an algorithm with a **10,000.00 USD** starting balance. Once configured, the backtest iterates through each trading dataset and evaluates if it should buy or sell based off the pricing data. After it finishes, the tool will display a chart showing the algorithm's **balance** and the stock's **close price** per minute using matplotlib and seaborn.
 
 ::
 
@@ -266,41 +337,6 @@ Backtest a Custom Algorithm with a Dataset on AWS S3
     backtest_loc=s3://YOUR_BUCKET/TICKER-latest.json
     custom_algo_module=/opt/sa/analysis_engine/mocks/example_algo_minute.py
     sa -t TICKER -a ${S3_ADDRESS} -r localhost:6379 -b ${backtest_loc} -g ${custom_algo_module}
-
-Running the Full Stack Locally
-==============================
-
-While not required for backtesting, running the full stack is required for running algorithms during a live trading session. Here is how to deploy the full stack locally using docker compose.
-
-#.  Start the stack with the `integration.yml docker compose file (minio, redis, engine worker, backtester, jupyter) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/integration.yml>`__
-
-    .. note:: The containers are set up to run price point predictions using AI with Tensorflow and Keras. Including these in the container image is easier for deployment, but inflated the docker image size to over ``2.8 GB``. Please wait while the images download as it can take a few minutes depending on your internet speed.
-
-    ::
-
-        ./compose/start.sh
-
-    .. tip:: For Mac OS X users please note that `there is a known docker compose issue with network_mode: "host" <https://github.com/docker/for-mac/issues/1031`>`__
-
-#.  Start the dataset collection job with the `automation-dataset-collection.yml docker compose file <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/automation-dataset-collection.yml>`__:
-
-    .. note:: Depending on how fast you want to run intraday algorithms, you can use this tool to collect recent pricing information with a cron or `Kubernetes job <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/k8/datasets/job.yml>`__
-
-    ::
-
-        ./compose/start.sh -c
-
-    View for dataset collection logs:
-
-    ::
-
-        logs-dataset-collection.sh
-
-    Wait for pricing engine logs to stop with ``ctrl+c``
-
-    ::
-
-        logs-workers.sh
 
 Fetching New Pricing Tradier Every Minute with Kubernetes
 =========================================================
@@ -1646,6 +1682,19 @@ License
 Apache 2.0 - Please refer to the LICENSE_ for more details
 
 .. _License: https://github.com/AlgoTraders/stock-analysis-engine/blob/master/LICENSE
+
+FAQ
+===
+
+Can I live trade with my algorithms?
+------------------------------------
+
+Not yet. Please reach out for help on how to do this or if you have a platform you like.
+
+Can I publish algorithm trade notifications?
+--------------------------------------------
+
+Right now algorithms only support publishing to a private Slack channel for sharing with a group when an algorithm finds a buy/sell trade to execute. Reach out if you have a custom chat client app or service you think should be supported.
 
 Terms of Service
 ================
