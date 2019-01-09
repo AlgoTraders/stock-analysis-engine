@@ -1558,7 +1558,9 @@ Linting and Other Tools
 
     #.  Export the saved redis database file inside the pod to the default docker redis container's local file
 
-        kubectl cp redis-master-0:/bitnami/redis/data/dump.rdb /data/redis/data/dump.rdb
+        ::
+
+            kubectl cp redis-master-0:/bitnami/redis/data/dump.rdb /data/redis/data/dump.rdb
 
     #.  Restart the stack
 
