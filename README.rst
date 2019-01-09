@@ -19,9 +19,9 @@ Fetch using the Command Line
 
 Here is a video showing how to fetch the latest pricing data for a ticker using the command line:
 
-.. raw:: html
-
-    <a href="https://asciinema.org/a/220460?autoplay=1" target="_blank"><img src="https://asciinema.org/a/220460.png"/></a>
+.. image:: https://asciinema.org/a/220460.png
+    :target: https://asciinema.org/a/220460?autoplay=1
+    :alt: Fetch Pricing Data using the Command Line
 
 #.  Clone to ``/opt/sa``
 
@@ -83,7 +83,9 @@ While not required for backtesting, running the full stack is required for runni
 
 .. raw:: html
 
-    <a href="https://asciinema.org/a/220487?autoplay=1" target="_blank"><img src="https://asciinema.org/a/220487.png"/></a>
+.. image:: https://asciinema.org/a/220487.png
+    :target: https://asciinema.org/a/220487?autoplay=1
+    :alt: Running the Full Stack Locally for Backtesting and Live Trading Analysis
 
 #.  Start Workers, Backtester, Pricing Data Collection, Jupyter, Redis and Minio
 
@@ -144,7 +146,9 @@ Here is a video showing how to run it:
 
 .. raw:: html
 
-    <a href="https://asciinema.org/a/220498?autoplay=1" target="_blank"><img src="https://asciinema.org/a/220498.png"/></a>
+.. image:: https://asciinema.org/a/220498.png
+    :target: https://asciinema.org/a/220498?autoplay=1
+    :alt: Running an Algorithm with Live Intraday Pricing Data
 
 The `backtest command line tool <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/run_backtest_and_plot_history.py>`__ uses an `algorithm config dictionary <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/tests/algo_configs/test_5_days_ahead.json>`__ to build multiple `Williams %R indicators <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/run_backtest_and_plot_history.py#L49>`__ into an algorithm with a **10,000.00 USD** starting balance. Once configured, the backtest iterates through each trading dataset and evaluates if it should buy or sell based off the pricing data. After it finishes, the tool will display a chart showing the algorithm's **balance** and the stock's **close price** per minute using matplotlib and seaborn.
 
