@@ -4,17 +4,19 @@
 This will fetch data (pricing, financials, earnings, dividends, options,
 and more) from these sources:
 
-#.  Yahoo
-
 #.  IEX
+
+#.  Tradier
+
+#.  Yahoo - disabled as of 2019/01/03
 
 **Detailed example for getting new pricing data**
 
-::
+.. code-block:: python
 
     import datetime
-    from analysis_engine.api_requests
     import build_get_new_pricing_request
+    from analysis_engine.api_requests
     from analysis_engine.work_tasks.get_new_pricing_data
         import get_new_pricing_data
 
@@ -185,6 +187,9 @@ def get_new_pricing_data(
         fetch_mode = work_dict.get(
             'fetch_mode',
             ae_consts.FETCH_MODE_ALL)
+        td_token = work_dict.get(
+            'td_token',
+            td_consts.TD_TOKEN)
 
         # control flags to deal with feed issues:
         get_iex_data = True
@@ -215,6 +220,24 @@ def get_new_pricing_data(
                 '{} - unsupported fetch_mode={} value'.format(
                     label,
                     fetch_mode))
+
+        if get_td_data:
+            missing_td_token = [
+                'MISSING_TD_TOKEN',
+                'SETYOURTDTOKEN',
+                'SETYOURTRADIERTOKENHERE'
+            ]
+            if td_token in missing_td_token:
+                log.warn(
+                    '{} - please set a valid Tradier Account token ('
+                    'https://developer.tradier.com/user/sign_up'
+                    ') to fetch pricing data from Tradier. It must be '
+                    'set as an environment variable like: '
+                    'export TD_TOKEN=<token>'
+                    ''.format(
+                        label))
+                get_td_data = False
+        # sanity check - disable Tradier fetch if the token is not set
 
         """
         as of Thursday, Jan. 3, 2019:
