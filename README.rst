@@ -81,8 +81,6 @@ Running the Full Stack Locally for Backtesting and Live Trading Analysis
 
 While not required for backtesting, running the full stack is required for running algorithms during a live trading session. Here is a video on how to deploy the full stack locally using docker compose and the commands from the video.
 
-.. raw:: html
-
 .. image:: https://asciinema.org/a/220487.png
     :target: https://asciinema.org/a/220487?autoplay=1
     :alt: Running the Full Stack Locally for Backtesting and Live Trading Analysis
@@ -143,8 +141,6 @@ Running an Algorithm with Live Intraday Pricing Data
 ====================================================
 
 Here is a video showing how to run it:
-
-.. raw:: html
 
 .. image:: https://asciinema.org/a/220498.png
     :target: https://asciinema.org/a/220498?autoplay=1
