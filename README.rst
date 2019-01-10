@@ -93,7 +93,7 @@ While not required for backtesting, running the full stack is required for runni
 
         ./compose/start.sh
 
-    .. tip:: Mac OS X users just a note that `there is a known docker compose issue with network_mode: "host" <https://github.com/docker/for-mac/issues/1031`>`__ so you may have issues trying to connect to your services.
+    .. tip:: Mac OS X users just a note that `there is a known docker compose issue with network_mode: "host" <https://github.com/docker/for-mac/issues/1031>`__ so you may have issues trying to connect to your services.
 
 #.  Check the Docker Containers
 
