@@ -1049,23 +1049,21 @@ class BaseAlgo:
         self.iproc = self.get_indicator_processor()
         if self.iproc:
             if not hasattr(self.iproc, 'process'):
-                raise Exception(
-                    '{} - Please implement a process methond in the '
-                    'IndicatorProcessor - the current object={} '
-                    'is missing one. Please refer to the example: '
-                    'https://github.com/AlgoTraders/stock-analysis-engine'
-                    '/blob/master/analysis_engine/indica'
-                    'tors/indicator_processor.py'.format(
-                        self.name,
-                        self.iproc))
+                err = (
+                    f'{self.name} - Please implement a process() method '
+                    f'in the IndicatorProcessor - the current object='
+                    f'{self.iproc} '
+                    f'is missing one.')
+                log.critical(err)
+                raise Exception(err)
             self.iproc_label = self.iproc.get_label()
             self.num_indicators = self.iproc.get_num_indicators()
             self.min_buy_indicators = self.buy_rules.get(
                 'min_indicators',
-                None)
+                self.num_indicators)
             self.min_sell_indicators = self.sell_rules.get(
                 'min_indicators',
-                None)
+                self.num_indicators)
         # if indicator_processor exists
 
     # end of __init__
