@@ -2455,16 +2455,16 @@ class BaseAlgo:
         if config_dict:
             if not self.verbose:
                 self.verbose = config_dict.get('verbose', False)
+            if self.verbose:
                 for k in config_dict:
                     log.info(
-                        'setting algo member={} to config value={}'
-                        ''.format(
-                            k))
-                    self.__dict__[k] = config_dict[k]
-            else:
-                for k in config_dict:
-                    self.__dict__[k] = config_dict[k]
-        # end of loading config
+                        f'setting algo member={k} to '
+                        f'config value={config_dict[k]}')
+            # end of logging all config keys
+            for k in config_dict:
+                self.__dict__[k] = config_dict[k]
+            # end of assigning config keys to member variables
+        # end if config dict set
     # end of load_from_config
 
     def get_name(self):
