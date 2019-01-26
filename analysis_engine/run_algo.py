@@ -26,6 +26,7 @@ Run an Algo
 import os
 import datetime
 import json
+import pandas as pd
 import analysis_engine.consts as ae_consts
 import analysis_engine.algo as base_algo
 import analysis_engine.utils as ae_utils
@@ -717,6 +718,13 @@ def run_algo(
 
             extract_req['verbose_td'] = True
             """
+            convert_to_datetime = [
+                'date',
+                'created',
+                'ask_date',
+                'bid_date',
+                'trade_date'
+            ]
             td_calls_status, td_calls_df = \
                 td_extract_utils.extract_option_calls_dataset(
                     extract_req)
@@ -724,6 +732,20 @@ def run_algo(
                 if verbose:
                     log.warning(
                         'unable to extract tdcalls={}'.format(ticker))
+            else:
+                if ae_consts.is_df(
+                        df=td_calls_df):
+                    for c in convert_to_datetime:
+                        if c in td_calls_df:
+                            td_calls_df[c] = pd.to_datetime(
+                                td_calls_df[c],
+                                format=ae_consts.COMMON_TICK_DATE_FORMAT)
+                    if 'date' in td_calls_df:
+                        td_calls_df.sort_values(
+                            'date',
+                            ascending=True)
+            # end of converting dates
+
             td_puts_status, td_puts_df = \
                 td_extract_utils.extract_option_puts_dataset(
                     extract_req)
@@ -731,6 +753,19 @@ def run_algo(
                 if verbose:
                     log.warning(
                         'unable to extract tdputs={}'.format(ticker))
+            else:
+                if ae_consts.is_df(
+                        df=td_puts_df):
+                    for c in convert_to_datetime:
+                        if c in td_puts_df:
+                            td_puts_df[c] = pd.to_datetime(
+                                td_puts_df[c],
+                                format=ae_consts.COMMON_TICK_DATE_FORMAT)
+                    if 'date' in td_puts_df:
+                        td_puts_df.sort_values(
+                            'date',
+                            ascending=True)
+            # end of converting dates
         # td extracts
 
         # map extracted data to DEFAULT_SERIALIZED_DATASETS
@@ -773,12 +808,9 @@ def run_algo(
     status = ae_consts.NOT_RUN
     if len(algo_data_req) == 0:
         msg = (
-            '{} - nothing to test - no data found for tickers={} '
-            'between {} and {}'.format(
-                label,
-                use_tickers,
-                first_extract_date,
-                last_extract_date))
+            f'{label} - nothing to test - no data found for '
+            f'tickers={use_tickers} '
+            f'between {first_extract_date} and {last_extract_date}')
         log.info(msg)
         return build_result.build_result(
             status=ae_consts.EMPTY,
@@ -789,91 +821,80 @@ def run_algo(
     try:
         if verbose:
             log.info(
-                'handle_data START - {} from {} to {}'.format(
-                    percent_label,
-                    first_extract_date,
-                    last_extract_date))
+                f'handle_data START - {percent_label} from '
+                f'{first_extract_date} to {last_extract_date}')
         algo.handle_data(
             data=algo_data_req)
         if verbose:
             log.info(
-                'handle_data END - {} from {} to {}'.format(
-                    percent_label,
-                    first_extract_date,
-                    last_extract_date))
+                f'handle_data END - {percent_label} from '
+                f'{first_extract_date} to {last_extract_date}')
     except Exception as e:
+        a_name = algo.get_name()
+        a_debug_msg = algo.get_debug_msg()
+        if not a_debug_msg:
+            a_debug_msg = 'debug message not set'
+        a_config_dict = ae_consts.ppj(algo.config_dict)
         msg = (
-            '{} - algo={} encountered exception in handle_data '
-            'tickers={} from '
-            '{} to {} ex={}'.format(
-                percent_label,
-                algo.get_name(),
-                use_tickers,
-                first_extract_date,
-                last_extract_date,
-                e))
+            f'{percent_label} - algo={a_name} '
+            f'encountered exception in handle_data tickers={use_tickers} '
+            f'from {first_extract_date} to {last_extract_date} ex={e} '
+            f'and failed during operation: {a_debug_msg}')
         if raise_on_err:
             if algo:
-                log.error(
-                    'algo failure report: algo={} handle_data() '
-                    '{} and config={}'.format(
-                        algo.get_name(),
-                        algo.get_debug_msg(),
-                        ae_consts.ppj(algo.config_dict)))
                 try:
                     ind_obj = \
                         algo.get_indicator_process_last_indicator()
                     if ind_obj:
-
+                        ind_obj_path = ind_obj.get_path_to_module()
+                        ind_obj_config = ae_consts.ppj(
+                            ind_obj.get_config())
                         found_error_hint = False
                         if hasattr(ind_obj.use_df, 'to_json'):
                             if len(ind_obj.use_df.index) == 0:
                                 log.critical(
-                                    'indicator failure report for '
-                                    'last module: '
-                                    '{} indicator={} config={} dataset={} '
-                                    'name_of_dataset={}'.format(
-                                        ind_obj.get_path_to_module(),
-                                        ind_obj.get_name(),
-                                        ae_consts.ppj(ind_obj.get_config()),
-                                        ind_obj.use_df,
-                                        ind_obj.uses_data))
+                                    f'indicator failure report for '
+                                    f'last module: '
+                                    f'{ind_obj_path} '
+                                    f'indicator={ind_obj.get_name()} '
+                                    f'config={ind_obj_config} '
+                                    f'dataset={ind_obj.use_df.head(5)} '
+                                    f'name_of_dataset={ind_obj.uses_data}')
                                 log.critical(
-                                    '--------------------------------------'
-                                    '--------------------------------------')
+                                    f'--------------------------------------'
+                                    f'--------------------------------------')
                                 log.critical(
-                                    'Please check if this indicator: '
-                                    '{} '
-                                    'supports Empty Dataframes: {}'.format(
-                                        ind_obj.get_path_to_module(),
-                                        ind_obj.use_df))
+                                    f'Please check if this indicator: '
+                                    f'{ind_obj_path} '
+                                    f'supports Empty Dataframes')
                                 log.critical(
-                                    '--------------------------------------'
-                                    '--------------------------------------')
+                                    f'--------------------------------------'
+                                    f'--------------------------------------')
                                 found_error_hint = True
                         # indicator error hints
 
                         if not found_error_hint:
                             log.critical(
-                                'indicator failure report for last module: '
-                                '{} indicator={} config={} dataset={} '
-                                'name_of_dataset={}'.format(
-                                    ind_obj.get_path_to_module(),
-                                    ind_obj.get_name(),
-                                    ae_consts.ppj(ind_obj.get_config()),
-                                    ind_obj.use_df,
-                                    ind_obj.uses_data))
+                                f'indicator failure report for last module: '
+                                f'{ind_obj_path} '
+                                f'indicator={ind_obj.get_name()} '
+                                f'config={ind_obj_config} '
+                                f'dataset={ind_obj.use_df.head(5)} '
+                                f'name_of_dataset={ind_obj.uses_data}')
                 except Exception as f:
                     log.critical(
-                        'failed to pull indicator processor '
-                        'last indicator for debugging '
-                        'from ex={} with parsing ex={}'
-                        ''.format(
-                            e,
-                            f))
+                        f'failed to pull indicator processor '
+                        f'last indicator for debugging '
+                        f'from ex={e} with parsing ex={f}')
                 # end of ignoring non-supported ways of creating
                 # indicator processors
             log.error(msg)
+            log.error(
+                f'algo failure report: '
+                f'algo={a_name} handle_data() '
+                f'config={a_config_dict} ')
+            log.critical(
+                f'algo failed during operation: {a_debug_msg}')
             raise e
         else:
             log.error(msg)

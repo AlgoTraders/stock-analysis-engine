@@ -932,7 +932,7 @@ def run_custom_algo(
         use_log = 'publish'
 
         if (extract_config['redis_address'] and
-                extract_config['redis_db'] and
+                extract_config['redis_db'] >= 0 and
                 extract_config['redis_key']):
             redis_log = 'redis://{}@{}/{}'.format(
                 extract_config['redis_address'],
@@ -997,7 +997,7 @@ def run_custom_algo(
         use_log = 'publish'
 
         if (history_config['redis_address'] and
-                history_config['redis_db'] and
+                history_config['redis_db'] >= 0 and
                 history_config['redis_key']):
             redis_log = 'redis://{}@{}/{}'.format(
                 history_config['redis_address'],
@@ -1063,7 +1063,7 @@ def run_custom_algo(
         use_log = 'publish'
 
         if (report_config['redis_address'] and
-                report_config['redis_db'] and
+                report_config['redis_db'] >= 0 and
                 report_config['redis_key']):
             redis_log = 'redis://{}@{}/{}'.format(
                 report_config['redis_address'],

@@ -6,15 +6,6 @@ Supported Datasets:
 
 - ``SA_DATASET_TYPE_TRADING_HISTORY`` - trading history datasets
 
-**Supported environment variables**
-
-::
-
-    # to show debug, trace logging please export ``SHARED_LOG_CFG``
-    # to a debug logger json file. To turn on debugging for this
-    # library, you can export this variable to the repo's
-    # included file with the command:
-    export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
 """
 
 import os
@@ -33,6 +24,7 @@ def load_history_dataset(
         path_to_file=None,
         compress=None,
         encoding='utf-8',
+        convert_to_dict=False,
         redis_enabled=None,
         redis_key=None,
         redis_address=None,
@@ -69,6 +61,8 @@ def load_history_dataset(
         the contents of the ``path_to_file`` if necessary
         (default is ``True`` and uses ``zlib`` for compression)
     :param encoding: optional - string for data encoding
+    :param convert_to_dict: optional - boolean flag for decoding
+        as a dictionary during prepare
 
     **(Optional) Redis connectivity arguments**
 
@@ -191,6 +185,7 @@ def load_history_dataset(
                 s3_secure=s3_secure,
                 compress=compress,
                 encoding=redis_encoding,
+                convert_to_dict=convert_to_dict,
                 serialize_datasets=serialize_datasets)
     else:
         supported_type = False

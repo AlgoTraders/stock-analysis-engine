@@ -594,6 +594,7 @@ Table of Contents
    build_entry_put_spread_details
    build_exit_put_spread_details
    build_option_spread_details
+   build_regression_dnn
    algorithm_api
    show_dataset
    load_dataset

@@ -652,7 +652,7 @@ class BaseAlgo:
 
         self.verbose = ae_consts.ev(
             'AE_DEBUG',
-            '1') == '1'
+            '0') == '1'
 
         self.publish_to_slack = publish_to_slack
         self.publish_to_s3 = publish_to_s3
@@ -1583,10 +1583,6 @@ class BaseAlgo:
             'output_file', None)
         label = kwargs.get(
             'label', self.name)
-        convert_to_json = kwargs.get(
-            'convert_to_json', self.report_convert_to_json)
-        compress = kwargs.get(
-            'compress', self.report_compress)
         redis_enabled = kwargs.get(
             'redis_enabled', False)
         redis_address = kwargs.get(
@@ -1669,9 +1665,10 @@ class BaseAlgo:
             publish_status = publish.publish(
                 data=use_data,
                 label=label,
-                convert_to_json=convert_to_json,
+                df_compress=True,
+                compress=False,
+                convert_to_dict=False,
                 output_file=output_file,
-                compress=compress,
                 redis_enabled=redis_enabled,
                 redis_key=redis_key,
                 redis_address=redis_address,
@@ -1800,10 +1797,6 @@ class BaseAlgo:
             'output_file', None)
         label = kwargs.get(
             'label', self.name)
-        convert_to_json = kwargs.get(
-            'convert_to_json', self.history_convert_to_json)
-        compress = kwargs.get(
-            'compress', self.history_compress)
         redis_enabled = kwargs.get(
             'redis_enabled', False)
         redis_address = kwargs.get(
@@ -1933,9 +1926,10 @@ class BaseAlgo:
             publish_status = publish.publish(
                 data=use_data,
                 label=label,
-                convert_to_json=convert_to_json,
+                df_compress=True,
+                compress=False,
+                convert_to_dict=False,
                 output_file=output_file,
-                compress=compress,
                 redis_enabled=redis_enabled,
                 redis_key=redis_key,
                 redis_address=redis_address,
@@ -2108,10 +2102,6 @@ class BaseAlgo:
             'output_file', None)
         label = kwargs.get(
             'label', self.name)
-        convert_to_json = kwargs.get(
-            'convert_to_json', self.extract_convert_to_json)
-        compress = kwargs.get(
-            'compress', self.extract_compress)
         redis_enabled = kwargs.get(
             'redis_enabled', False)
         redis_address = kwargs.get(
@@ -2193,9 +2183,10 @@ class BaseAlgo:
             publish_status = publish.publish(
                 data=use_data,
                 label=label,
-                convert_to_json=convert_to_json,
+                df_compress=True,
+                compress=False,
+                convert_to_dict=False,
                 output_file=output_file,
-                compress=compress,
                 redis_enabled=redis_enabled,
                 redis_key=redis_key,
                 redis_address=redis_address,

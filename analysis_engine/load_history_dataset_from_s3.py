@@ -1,15 +1,5 @@
 """
 Helper for loading ``Trading History`` datasets from s3
-
-**Supported environment variables**
-
-::
-
-    # to show debug, trace logging please export ``SHARED_LOG_CFG``
-    # to a debug logger json file. To turn on debugging for this
-    # library, you can export this variable to the repo's
-    # included file with the command:
-    export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
 """
 
 import boto3
@@ -31,6 +21,7 @@ def load_history_dataset_from_s3(
         s3_secure,
         serialize_datasets=consts.DEFAULT_SERIALIZED_DATASETS,
         convert_as_json=True,
+        convert_to_dict=False,
         compress=False,
         encoding='utf-8'):
     """load_history_dataset_from_s3
@@ -42,6 +33,8 @@ def load_history_dataset_from_s3(
         deserialize in the dataset
     :param convert_as_json: optional - boolean flag for decoding
         as a dictionary
+    :param convert_to_dict: optional - boolean flag for decoding
+        as a dictionary during prepare
     :param compress: optional - boolean flag for decompressing
         the contents of the ``path_to_file`` if necessary
         (default is ``False`` and algorithms
@@ -121,6 +114,6 @@ def load_history_dataset_from_s3(
     return prepare_utils.prepare_history_dataset(
         data=data_from_file,
         compress=False,
-        convert_to_dict=False,
+        convert_to_dict=convert_to_dict,
         encoding=encoding)
 # end of load_history_dataset_from_s3

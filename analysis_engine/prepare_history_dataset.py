@@ -68,7 +68,16 @@ def prepare_history_dataset(
         log.debug('loading as dict')
     use_data = {}
     if convert_to_dict:
-        data_as_dict = json.loads(parsed_data)
+        try:
+            data_as_dict = json.loads(parsed_data)
+        except Exception as e:
+            if (
+                    'the JSON object must be str, bytes or '
+                    'bytearray, not') in str(e):
+                log.critical(
+                    f'failed decoding json for string - double '
+                    f'compression for history dataset found ex={e}')
+            data_as_dict = parsed_data
     else:
         data_as_dict = parsed_data
     if len(data_as_dict) == 0:
