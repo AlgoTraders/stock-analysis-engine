@@ -17,6 +17,7 @@ pylint
 pyEX==0.1.5
 recommonmark
 redis
+seaborn
 sphinx
 sphinx-autobuild
 sphinx_rtd_theme
