@@ -6,6 +6,7 @@ colorlog
 coverage
 flake8<=3.4.1
 future
+matplotlib
 mock
 numpy<=1.14
 pandas
