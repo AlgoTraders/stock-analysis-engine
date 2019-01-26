@@ -26,7 +26,12 @@ os.chdir(os.path.abspath(cur_path))
 
 requires_that_fail_on_rtd = [
     'awscli',
-    'ta-lib'
+    'h5py',
+    'keras',
+    'scikit-learn',
+    'tables',
+    'ta-lib',
+    'tensorflow'
 ]
 
 install_requires = []
@@ -63,7 +68,7 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.5.9',
+    version='1.5.10',
     description=(
         'Backtest 1000s of minute-by-minute '
         'trading algorithms with automated '
@@ -83,6 +88,7 @@ setup(
     url='https://github.com/AlgoTraders/stock-analysis-engine',
     packages=[
         'analysis_engine',
+        'analysis_engine.ai',
         'analysis_engine.iex',
         'analysis_engine.finviz',
         'analysis_engine.mocks',

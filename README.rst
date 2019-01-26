@@ -682,6 +682,8 @@ Running on Mac OS X
 
         brew install openssl pyenv-virtualenv redis freetype pkg-config gcc ta-lib
 
+    .. note:: Mac OS X users just a note ``keras``, ``tensorflow`` and ``h5py`` installs have not been debugged yet. Please let us know if you have issues setting up your environment. We likely have not hit the issue yet.
+
 #.  Create and Load Python 3 Virtual Environment
 
     ::

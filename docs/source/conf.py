@@ -40,6 +40,7 @@ sys.path.insert(0, PACKAGE_SOURCE_PATH_FROM_DOCS)
 
 source_code_dirs = [
     'analysis_engine/',
+    'analysis_engine/ai/',
     'analysis_engine/iex/',
     'analysis_engine/indicators/',
     'analysis_engine/finviz/',
@@ -62,7 +63,7 @@ for source_code_dir_name in source_code_dirs:
 # end for all source dirs
 
 project = 'Stock Analysis Engine'
-copyright = '2018, Jay Johnson'
+copyright = '2019, Jay Johnson'
 author = 'Jay Johnson'
 
 html_theme_options = {}
@@ -74,6 +75,21 @@ if on_rtd:
             return MagicMock()
 
     MOCK_MODULES = [
+        'h5py',
+        'pycurl',
+        'keras',
+        'keras.models',
+        'keras.layers',
+        'keras.wrappers.scikit_learn',
+        'tensorflow',
+        'tensorflow.aux-bin',
+        'tensorflow.contrib',
+        'tensorflow.core',
+        'tensorflow.examples',
+        'tensorflow.include',
+        'tensorflow.python',
+        'tensorflow.python.training',
+        'tensorflow.tools'
     ]
     sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
@@ -92,7 +108,7 @@ if on_rtd:
 # -- Project information -----------------------------------------------------
 
 project = 'Stock Analysis Engine'
-copyright = '2018, Jay Johnson'
+copyright = '2019, Jay Johnson'
 author = 'Jay Johnson'
 
 

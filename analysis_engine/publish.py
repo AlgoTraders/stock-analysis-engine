@@ -1,15 +1,5 @@
 """
 Dataset Publishing API
-
-**Supported environment variables**
-
-::
-
-    # to show debug, trace logging please export ``SHARED_LOG_CFG``
-    # to a debug logger json file. To turn on debugging for this
-    # library, you can export this variable to the repo's
-    # included file with the command:
-    export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
 """
 
 import json
@@ -160,20 +150,20 @@ def publish(
         if verbose:
             log.debug('done df to_json')
 
-    if compress:
-        if verbose:
-            log.debug('compress start')
-        use_data = zlib.compress(
-            use_data.encode(
-                redis_encoding), 9)
-        if verbose:
-            log.debug('compress end')
-
     already_compressed = False
     if df_compress:
         use_data = compress_data.compress_data(
             data=data)
         already_compressed = True
+    elif compress and not df_compress:
+        if verbose:
+            log.debug('compress start')
+        use_data = zlib.compress(
+            use_data.encode(
+                redis_encoding), 9)
+        already_compressed = True
+        if verbose:
+            log.debug('compress end')
 
     num_bytes = len(use_data)
     num_mb = ae_consts.get_mb(num_bytes)
