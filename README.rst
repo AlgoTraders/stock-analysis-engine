@@ -1723,3 +1723,4 @@ If you want to add a new Celery task add the file path to WORKER_TASKS at these 
 - compose/envs/local.env
 - compose/envs/.env
 - analysis_engine/work_tasks/consts.py
+
