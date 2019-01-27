@@ -68,11 +68,11 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.6.0',
+    version='1.6.1',
     description=(
         'Backtest 1000s of minute-by-minute '
-        'trading algorithms with automated '
-        'pricing data from: '
+        'trading algorithms. Automated '
+        'pricing data ingestion from: '
         'IEX (https://iextrading.com/developer/docs/), '
         'Tradier (https://tradier.com/) and '
         'FinViz. Datasets and trading '
@@ -112,6 +112,7 @@ setup(
         'analysis_engine/scripts/publish_ticker_aggregate_from_s3.py',
         'analysis_engine/scripts/run_backtest_and_plot_history.py',
         'analysis_engine/scripts/sa.py',
+        'analysis_engine/scripts/train_dnn_from_history.py',
         'tools/logs-dataset-collection.sh',
         'tools/logs-jupyter.sh',
         'tools/logs-workers.sh',

@@ -1,7 +1,7 @@
 Stock Analysis Engine
 =====================
 
-Build and tune investment algorithms with a distributed stack for running backtests using live pricing data on publicly traded companies with automated datafeeds from: `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__, `Tradier <https://tradier.com/>`__ and `FinViz <https://finviz.com>`__ (includes: pricing, options, news, dividends, daily, intraday, screeners, statistics, financials, earnings, and more).
+Build and tune investment algorithms for use with `artificial intelligence (deep neural networks) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Train-a-Deep-Neural-Network-For-Predicting-a-Stocks-Closing-Price.ipynb.ipynb>`__ with a distributed stack for running backtests using live pricing data on publicly traded companies with automated datafeeds from: `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__, `Tradier <https://tradier.com/>`__ and `FinViz <https://finviz.com>`__ (includes: pricing, options, news, dividends, daily, intraday, screeners, statistics, financials, earnings, and more).
 
 .. image:: https://i.imgur.com/pH368gy.png
 
@@ -132,6 +132,7 @@ Run a Custom Minute-by-Minute Intraday Algorithm Backtest and Plot the Trading H
 
 With pricing data in redis, you can start running backtests a few ways:
 
+- `Train a Deep Neural Network For Predicting a Stock's Closing Price in a Jupyter Notebook <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Train-a-Deep-Neural-Network-For-Predicting-a-Stocks-Closing-Price.ipynb.ipynb>`__
 - `Build, run and tune within a Jupyter Notebook and plot the balance vs the stock's closing price while running <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Run-a-Custom-Trading-Algorithm-Backtest-with-Minute-Timeseries-Pricing-Data.ipynb>`__
 - `Analyze and replay algorithm trading histories stored in s3 with this Jupyter Notebook <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Analyze%20Compressed%20Algorithm%20Trading%20Histories%20Stored%20in%20S3.ipynb>`__
 - `Run with the command line backtest tool <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/run_backtest_and_plot_history.py>`__
@@ -1723,3 +1724,4 @@ If you want to add a new Celery task add the file path to WORKER_TASKS at these 
 - compose/envs/local.env
 - compose/envs/.env
 - analysis_engine/work_tasks/consts.py
+
