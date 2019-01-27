@@ -34,7 +34,7 @@ RUN echo "installing redis-tools" \
   && echo "installing pip upgrades" \
   && pip install --upgrade -e . \
   && echo "installing pip fixes for 2018-10-06" \
-  && pip install --upgrade awscli boto3 botocore \
+  && pip install --upgrade awscli boto3 botocore spylunking \
   && echo "building docs" \
   && cd /opt/sa/docs \
   && ls -l \
