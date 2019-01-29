@@ -80,6 +80,7 @@ if on_rtd:
         'sklearn',
         'sklearn.base',
         'sklearn.cross_validation',
+        'sklearn.model_selection',
         'sklearn.pipeline',
         'sklearn.preprocessing',
         'keras',
