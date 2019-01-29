@@ -77,6 +77,11 @@ if on_rtd:
     MOCK_MODULES = [
         'h5py',
         'pycurl',
+        'sklearn',
+        'sklearn.base',
+        'sklearn.cross_validation',
+        'sklearn.pipeline',
+        'sklearn.preprocessing',
         'keras',
         'keras.models',
         'keras.layers',

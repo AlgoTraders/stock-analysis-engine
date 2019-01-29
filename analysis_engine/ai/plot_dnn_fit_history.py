@@ -1,7 +1,8 @@
 """
 Plot a deep neural network's history output after training
 
-Please check out this `blog post for backgroun <https://
+Please check out this `blog post for more information on
+how this works <https://
 machinelearningmastery.com/custom-metrics-deep-learning-keras-python/>`__
 """
 
