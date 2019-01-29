@@ -1,11 +1,13 @@
 """
-Plot a ``Trading History`` dataset using seaborn and matplotlib
+Plot a deep neural network's history output after training
+
+Please check out this `blog post for backgroun <https://
+machinelearningmastery.com/custom-metrics-deep-learning-keras-python/>`__
 """
 
 import datetime
 import matplotlib.pyplot as plt
 import analysis_engine.consts as ae_consts
-import analysis_engine.utils as ae_utils
 import analysis_engine.charts as ae_charts
 import analysis_engine.build_result as build_result
 import spylunking.log.setup_logging as log_utils
@@ -13,7 +15,7 @@ import spylunking.log.setup_logging as log_utils
 log = log_utils.build_colorized_logger(name=__name__)
 
 
-def plot_trading_history(
+def plot_dnn_fit_history(
         title,
         df,
         red,
@@ -28,9 +30,8 @@ def plot_trading_history(
         orange=None,
         orange_color=None,
         orange_label=None,
-        date_col='date',
-        xlabel='Date',
-        ylabel='Algo Values',
+        xlabel='Training Epochs',
+        ylabel='Error Values',
         linestyle='-',
         width=9.0,
         height=9.0,
@@ -46,9 +47,10 @@ def plot_trading_history(
         show_plot=True,
         dropna_for_all=False,
         verbose=False):
-    """plot_trading_history
+    """plot_dnn_fit_history
 
-    Plot columns up to 4 lines from the ``Trading History`` dataset
+    Plot a DNN's fit history using `Keras fit history object <https://ker
+    as.io/visualization/#training-history-visualization>`__
 
     :param title: title of the plot
     :param df: dataset which is ``pandas.DataFrame``
@@ -84,8 +86,6 @@ def plot_trading_history(
         ``df[orange]``  (default is ``ae_consts.PLOT_COLORS['orange']``)
     :param orange_label: optional - string for the label used
         to identify the ``orange`` line in the legend
-    :param date_col: string - date column name
-        (default is ``date``)
     :param xlabel: x-axis label
     :param ylabel: y-axis label
     :param linestyle: style of the plot line
@@ -126,9 +126,6 @@ def plot_trading_history(
 
     rec = {
         'ax1': None,
-        'ax2': None,
-        'ax3': None,
-        'ax4': None,
         'fig': None
     }
     result = build_result.build_result(
@@ -137,7 +134,8 @@ def plot_trading_history(
         rec=rec)
 
     if verbose:
-        log.info('plot_trading_history - start')
+        log.info(
+            f'plot_dnn_fit_history - start')
 
     use_red = red_color
     use_blue = blue_color
@@ -160,9 +158,7 @@ def plot_trading_history(
                 datetime.datetime.now().strftime(
                     ae_consts.COMMON_TICK_DATE_FORMAT)))
 
-    column_list = [
-        date_col
-    ]
+    column_list = []
     all_plots = []
     if red:
         column_list.append(red)
@@ -186,19 +182,6 @@ def plot_trading_history(
             'color': use_orange})
 
     use_df = df
-    if start_date:
-        start_date_value = datetime.datetime.strptime(
-            start_date,
-            ae_consts.COMMON_TICK_DATE_FORMAT)
-        use_df = df[(df[date_col] >= start_date_value)][column_list]
-    # end of filtering by start date
-
-    if verbose:
-        log.info(
-            'plot_history_df start_date={} df.index={} column_list={}'.format(
-                start_date,
-                len(use_df.index),
-                column_list))
 
     if hasattr(df_filter, 'to_json'):
         # Was seeing this warning below in Jupyter:
@@ -210,16 +193,9 @@ def plot_trading_history(
 
     if verbose:
         log.info(
-            'plot_history_df filter df.index={} column_list={}'.format(
-                start_date,
-                len(use_df.index),
-                column_list))
-
-    if dropna_for_all:
-        use_df = use_df.dropna(axis=0, how='any')
-        if verbose:
-            log.info('plot_history_df dropna_for_all')
-    # end of pre-plot dataframe scrubbing
+            f'plot_dnn_fit_history '
+            f'filter df.index={len(use_df.index)} '
+            f'column_list={column_list}')
 
     ae_charts.set_common_seaborn_fonts()
 
@@ -231,67 +207,32 @@ def plot_trading_history(
             width,
             height))
 
-    # Convert matplotlib date numbers to strings for dates to
-    # avoid dealing with weekend date gaps in plots
-    date_strings, date_labels = \
-        ae_utils.get_trade_open_xticks_from_date_col(
-            use_df[date_col])
-
-    """
-    hit the slice warning with this approach before
-    and one trying df[date_col] = df[date_col].dt.strftime
-
-    SettingWithCopyWarning
-    Try using .loc[row_indexer,col_indexer] = value instead
-
-    use_df[date_col].replace(
-        use_df[date_col].dt.strftime(
-            ae_consts.COMMON_TICK_DATE_FORMAT),
-        inplace=True)
-    trying this:
-    https://stackoverflow.com/questions/19738169/
-    convert-column-of-date-objects-in-pandas-dataframe-to-strings
-    """
-    use_df[date_col] = use_df[date_col].apply(lambda x: x.strftime(
-        ae_consts.COMMON_TICK_DATE_FORMAT))
-
-    all_axes = []
+    all_axes = [
+        ax
+    ]
     num_plots = len(all_plots)
     for idx, node in enumerate(all_plots):
         column_name = node['column']
         hex_color = node['color']
 
         use_ax = ax
-        if idx > 0:
-            use_ax = ax.twinx()
 
         if verbose:
             log.info(
-                'plot_history_df - {}/{} - {} in {} - ax={}'.format(
-                    (idx + 1),
-                    num_plots,
-                    column_name,
-                    hex_color,
-                    use_ax))
+                f'plot_dnn_fit_history - '
+                f'{idx + 1}/{num_plots} - '
+                f'{column_name} '
+                f'in '
+                f'{hex_color} - '
+                f'ax={use_ax}')
 
-        all_axes.append(use_ax)
         use_ax.plot(
-            use_df[date_col],
             use_df[column_name],
+            label=column_name,
             linestyle=linestyle,
             color=hex_color)
-        if idx > 0:
-            if scale_y:
-                use_ax.set_ylim(
-                    [0, use_ax.get_ylim()[1] * 3])
-            use_ax.yaxis.set_ticklabels([])
-            use_ax.yaxis.set_ticks([])
-            use_ax.xaxis.grid(False)
-            use_ax.yaxis.grid(False)
         # end if this is not the fist axis
 
-        use_ax.set_xticks(date_strings)
-        use_ax.set_xticklabels(date_labels, rotation=45, ha='right')
     # end of for all plots
 
     lines = []
@@ -332,8 +273,7 @@ def plot_trading_history(
 
     if verbose:
         log.info(
-            'legend lines={}'.format(
-                [l.get_label() for l in lines]))
+            f'legend lines={[l.get_label() for l in lines]}')
     # log what's going to be in the legend
 
     ax.legend(
@@ -370,4 +310,4 @@ def plot_trading_history(
         rec=rec)
 
     return result
-# end of plot_history_df
+# end of plot_dnn_fit_history

@@ -1286,31 +1286,22 @@ class BaseAlgo:
                 }
         """
 
-        log.info(
-            'process - ticker={} balance={} owned={} date={} '
-            'high={} low={} open={} close={} vol={} '
-            'comm={} '
-            'buy_str={} buy_risk={} '
-            'sell_str={} sell_risk={} '
-            'num_buys={} num_sells={} '
-            'id={}'.format(
-                self.ticker,
-                self.balance,
-                self.num_owned,
-                self.trade_date,
-                self.latest_high,
-                self.latest_low,
-                self.latest_open,
-                self.latest_close,
-                self.latest_volume,
-                self.commission,
-                self.buy_strength,
-                self.buy_risk,
-                self.sell_strength,
-                self.sell_risk,
-                len(self.buys),
-                len(self.sells),
-                algo_id))
+        use_date = self.trade_date
+        if self.latest_min:
+            use_date = self.latest_min
+
+        if self.verbose:
+            log.info(
+                f'process - ticker={self.ticker} balance={self.balance} '
+                f'owned={self.num_owned} date={use_date} '
+                f'high={self.latest_high} low={self.latest_low} '
+                f'open={self.latest_open} close={self.latest_close} '
+                f'vol={self.latest_volume} '
+                f'comm={self.commission} '
+                f'buy_str={self.buy_strength} buy_risk={self.buy_risk} '
+                f'sell_str={self.sell_strength} sell_risk={self.sell_risk} '
+                f'num_buys={len(self.buys)} num_sells={len(self.sells)} '
+                f'id={algo_id}')
 
         # flip these on to sell/buy
         # buys will not FILL if there's not enough funds to buy
@@ -1318,18 +1309,15 @@ class BaseAlgo:
         self.should_sell = False
         self.should_buy = False
 
-        log.info(
-            '{} - ready with process has df_daily '
-            'rows={} num_owned={} '
-            'indicator_buys={} min_buy={} '
-            'indicator_sells={} min_sell={}'.format(
-                self.name,
-                len(self.df_daily.index),
-                self.num_owned,
-                self.num_latest_buys,
-                self.min_buy_indicators,
-                self.num_latest_sells,
-                self.min_sell_indicators))
+        if self.verbose:
+            log.info(
+                f'{self.name} - ready with process has df_daily '
+                f'rows={len(self.df_daily.index)} '
+                f'num_owned={self.num_owned} '
+                f'indicator_buys={self.num_latest_buys} '
+                f'min_buy={self.min_buy_indicators} '
+                f'indicator_sells={self.num_latest_sells} '
+                f'min_sell={self.min_sell_indicators}')
 
         """
         Want to iterate over daily pricing data
@@ -1643,8 +1631,9 @@ class BaseAlgo:
                     'report build json - {} - tickers={}'.format(
                         self.name,
                         self.tickers))
-            use_data = json.dumps(output_record)
-            num_bytes = len(use_data)
+
+            use_data = output_record
+            num_bytes = len(str(use_data))
             num_mb = ae_consts.get_mb(num_bytes)
             log.info(
                 'report publish - START - '
@@ -1903,8 +1892,8 @@ class BaseAlgo:
                         s3_key))[0:1023]
             # end of if add metrics to key
 
-            use_data = json.dumps(output_record)
-            num_bytes = len(use_data)
+            use_data = output_record
+            num_bytes = len(str(use_data))
             num_mb = ae_consts.get_mb(num_bytes)
             log.info(
                 'history publish - START - '
@@ -2161,8 +2150,9 @@ class BaseAlgo:
                     'input build json - {} - tickers={}'.format(
                         self.name,
                         self.tickers))
-            use_data = json.dumps(output_record)
-            num_bytes = len(use_data)
+
+            use_data = output_record
+            num_bytes = len(str(use_data))
             num_mb = ae_consts.get_mb(num_bytes)
             log.info(
                 'input publish - START - '
@@ -2725,7 +2715,6 @@ class BaseAlgo:
                             None)
                     self.last_history_dict.update(
                         ind_configurables)
-
         except Exception as e:
             self.debug_msg = (
                 '{} - buy {}@{} - FAILED with ex={}'.format(
@@ -2904,7 +2893,6 @@ class BaseAlgo:
                             None)
                     self.last_history_dict.update(
                         ind_configurables)
-
         except Exception as e:
             self.debug_msg = (
                 '{} - sell {}@{} - FAILED with ex={}'.format(

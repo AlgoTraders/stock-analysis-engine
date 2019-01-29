@@ -68,7 +68,7 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.6.3',
+    version='1.6.4',
     description=(
         'Backtest 1000s of minute-by-minute '
         'trading algorithms. Automated '
@@ -112,6 +112,7 @@ setup(
         'analysis_engine/scripts/publish_ticker_aggregate_from_s3.py',
         'analysis_engine/scripts/run_backtest_and_plot_history.py',
         'analysis_engine/scripts/sa.py',
+        'analysis_engine/scripts/start_algo.py',
         'analysis_engine/scripts/train_dnn_from_history.py',
         'tools/logs-dataset-collection.sh',
         'tools/logs-jupyter.sh',
@@ -137,6 +138,9 @@ setup(
             (
                 'bt = run_backtest_and_plot_history'
                 ':start_backtest_with_plot_history'),
+            (
+                'ae = start_algo'
+                ':start_algo'),
         ],
     },
     classifiers=[

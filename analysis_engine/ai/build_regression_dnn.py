@@ -8,7 +8,7 @@ import keras.models as keras_models
 import keras.layers as keras_layers
 
 log = log_utils.build_colorized_logger(
-    name='build-reg-dnn')
+    name=__name__)
 
 
 def build_regression_dnn(
