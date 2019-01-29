@@ -357,7 +357,6 @@ def plot_trading_history(
         fontsize=footnote_fontsize)
     plt.tight_layout()
 
-    plt.show()
     if show_plot:
         plt.show()
     else:

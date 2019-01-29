@@ -7,10 +7,6 @@
   "balance": 100000,
   "ticker": "SPY",
   "verbose": true,
-  "verbose_processor": false,
-  "verbose_indicators": false,
-  "verbose_trading": false,
-  "inspect_datasets": false,
   "positions": {
     "SPY": {
       "shares": 10,
@@ -97,6 +93,18 @@
       "is_sell": false
     }
   ],
+  "verbose_processor": false,
+  "verbose_indicators": false,
+  "verbose_task": false,
+  "verbose_trading": false,
+  "verbose_spreads": false,
+  "verbose_calls": false,
+  "verbose_puts": false,
+  "verbose_load": false,
+  "verbose_extract": false,
+  "verbose_report": false,
+  "verbose_history": false,
+  "inspect_datasets": false,
   "slack": {
     "webhook": null
   }

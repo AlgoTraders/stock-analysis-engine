@@ -6,13 +6,6 @@ Debug redis calls with:
 ::
 
     export DEBUG_REDIS=1
-
-    # to show debug, trace logging please export ``SHARED_LOG_CFG``
-    # to a debug logger json file. To turn on debugging for this
-    # library, you can export this variable to the repo's
-    # included file with the command:
-    export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
-
 """
 
 import json

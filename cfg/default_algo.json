@@ -1,0 +1,43 @@
+{
+  "name": "algo-1",
+  "ticker": "SPY",
+  "algo_path": "/opt/sa/analysis_engine/algo.py",
+  "algo_version": 1,
+  "timeseries": "minute",
+  "balance": 10000,
+  "buy_shares": 10,
+  "verbose": false,
+  "positions": {},
+  "trade_horizon": 5,
+  "buy_rules": {
+    "min_indicators": 1
+  },
+  "sell_rules": {
+    "min_indicators": 1
+  },
+  "indicators": [
+    {
+      "name": "willr_-80_-20",
+      "module_path": "/opt/sa/analysis_engine/indicators/williamsr.py",
+      "category": "technical",
+      "type": "momentum",
+      "uses_data": "or_history",
+      "willr_value": 0,
+      "num_points": 10,
+      "buy_below": -80,
+      "sell_above": -20,
+      "is_buy": null,
+      "is_sell": null,
+      "verbose": false
+    }
+  ],
+  "verbose_processor": false,
+  "verbose_indicators": false,
+  "verbose_history": false,
+  "verbose_trading": false,
+  "verbose_load": false,
+  "verbose_extract": false,
+  "verbose_report": false,
+  "verbose_task": false,
+  "inspect_datasets": false
+}

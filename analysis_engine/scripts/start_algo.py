@@ -14,19 +14,19 @@ import spylunking.log.setup_logging as log_utils
 
 
 log = log_utils.build_colorized_logger(
-    name='start_algo',
+    name='ae',
     log_config_path=ae_consts.LOG_CONFIG_PATH)
 
 
-def start_distributed_algo():
-    """start_distributed_algo
+def start_algo():
+    """start_algo
 
     Run a derived algorithm with an algorithm config dictionary
 
     :param config_dict: algorithm config dictionary
     """
 
-    log.debug('start - sa')
+    log.debug('start - ae')
 
     parser = argparse.ArgumentParser(
         description=(
@@ -268,11 +268,12 @@ def start_distributed_algo():
     args = parser.parse_args()
 
     ticker = None
+    use_config_file = '/opt/sa/cfg/default_algo.json'
+    algo_mod_path = '/opt/sa/analysis_engine/algo.py'
     use_balance = 10000.0
     use_commission = 6.0
     use_start_date = None
     use_end_date = None
-    use_config_file = None
     debug = False
     verbose_algo = None
     verbose_processor = None
@@ -423,7 +424,6 @@ def start_distributed_algo():
             sys.exit(1)
         # end of testing for a valid date
     # end of args.end_date
-    algo_mod_path = None
     config_dict = None
     if args.run_algo_in_file:
         if not os.path.exists(args.run_algo_in_file):
@@ -434,20 +434,21 @@ def start_distributed_algo():
         algo_mod_path = args.run_algo_in_file
     if args.config_file:
         use_config_file = args.config_file
-        if not os.path.exists(use_config_file):
-            log.error(
-                'Failed: unable to find config file: -c {}'.format(
-                    use_config_file))
-            sys.exit(1)
-        config_dict = json.loads(open(use_config_file).read())
-        algo_mod_path = config_dict.get(
-            'algo_path',
-            algo_mod_path)
-        if not os.path.exists(algo_mod_path):
-            log.error(
-                'missing algorithm module file from config: {}'.format(
-                    algo_mod_path))
-            sys.exit(1)
+
+    if not os.path.exists(use_config_file):
+        log.error(
+            'Failed: unable to find config file: -c {}'.format(
+                use_config_file))
+        sys.exit(1)
+    config_dict = json.loads(open(use_config_file).read())
+    algo_mod_path = config_dict.get(
+        'algo_path',
+        algo_mod_path)
+    if not os.path.exists(algo_mod_path):
+        log.error(
+            'missing algorithm module file from config: {}'.format(
+                algo_mod_path))
+        sys.exit(1)
 
     """
     Finalize the algo config
@@ -833,6 +834,10 @@ def start_distributed_algo():
                 sys.exit(1)
         # end of running the custom algo handler
 
+    else:
+        log.error(
+            f'missing an algorithm mod path: {algo_mod_path}')
+        sys.exit(1)
     # end if running a custom algorithm module
 
     if algo_obj:
@@ -881,7 +886,6 @@ def start_distributed_algo():
         red = 'close'
         blue = 'balance'
 
-        debug = True
         if debug:
             for i, r in history_df.iterrows():
                 log.info('{} - {}'.format(
@@ -903,8 +907,8 @@ def start_distributed_algo():
             show_plot=True,
             dropna_for_all=True)
 
-# end of start_distributed_algo
+# end of start_algo
 
 
 if __name__ == '__main__':
-    start_distributed_algo()
+    start_algo()

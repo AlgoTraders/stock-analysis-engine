@@ -6,9 +6,9 @@
 Stock Analysis Engine
 =====================
 
-Build and tune investment algorithms for use with `artificial intelligence (deep neural networks) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Train-a-Deep-Neural-Network-For-Predicting-a-Stocks-Closing-Price.ipynb>`__ with a distributed stack for running backtests using live pricing data on publicly traded companies with automated datafeeds from: `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__, `Tradier <https://tradier.com/>`__ and `FinViz <https://finviz.com>`__ (includes: pricing, options, news, dividends, daily, intraday, screeners, statistics, financials, earnings, and more).
+Build and tune investment algorithms for use with `artificial intelligence (deep neural networks) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Comparing-3-Deep-Neural-Networks-Trained-to-Predict-a-Stocks-Closing-Price-Using-The-Analysis-Engine.ipynb>`__ with a distributed stack for running backtests using live pricing data on publicly traded companies with automated datafeeds from: `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__, `Tradier <https://tradier.com/>`__ and `FinViz <https://finviz.com>`__ (includes: pricing, options, news, dividends, daily, intraday, screeners, statistics, financials, earnings, and more).
 
-.. image:: https://i.imgur.com/pH368gy.png
+.. image:: https://i.imgur.com/tw2wJ6t.png
 
 Fetch the Latest Pricing Data
 =============================
@@ -137,7 +137,7 @@ Run a Custom Minute-by-Minute Intraday Algorithm Backtest and Plot the Trading H
 
 With pricing data in redis, you can start running backtests a few ways:
 
-- `Train a Deep Neural Network For Predicting a Stock's Closing Price in a Jupyter Notebook <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Train-a-Deep-Neural-Network-For-Predicting-a-Stocks-Closing-Price.ipynb>`__
+- `Comparing 3 Deep Neural Networks Trained to Predict a Stocks Closing Price in a Jupyter Notebook <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Comparing-3-Deep-Neural-Networks-Trained-to-Predict-a-Stocks-Closing-Price-Using-The-Analysis-Engine.ipynb>`__
 - `Build, run and tune within a Jupyter Notebook and plot the balance vs the stock's closing price while running <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Run-a-Custom-Trading-Algorithm-Backtest-with-Minute-Timeseries-Pricing-Data.ipynb>`__
 - `Analyze and replay algorithm trading histories stored in s3 with this Jupyter Notebook <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Analyze%20Compressed%20Algorithm%20Trading%20Histories%20Stored%20in%20S3.ipynb>`__
 - `Run with the command line backtest tool <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/run_backtest_and_plot_history.py>`__
@@ -167,6 +167,8 @@ View the Minute Algorithm's Trading History from a File
 =======================================================
 
 Once the **trading history** is saved to disk, you can open it back up and plot other columns within the dataset with:
+
+.. image:: https://i.imgur.com/pH368gy.png
 
 ::
 
@@ -213,6 +215,19 @@ Beyond running backtests, the included engine supports running many algorithms a
 .. note:: Backtests can use **ready-to-go** datasets out of S3, redis or a file
 
 The next section looks at how to build an `algorithm-ready datasets from cached pricing data in redis <https://github.com/AlgoTraders/stock-analysis-engine#extract-algorithm-ready-datasets>`__.
+
+Run a Local Backtest and Publish Algorithm Trading History to S3
+================================================================
+
+::
+
+    ae -t SPY -p s3://algohistory/algo_training_SPY.json
+
+Run distributed across the engine workers with ``-w``
+
+::
+
+    ae -w -t SPY -p s3://algohistory/algo_training_SPY.json
 
 Run a Local Backtest using an Algorithm Config and Extract an Algorithm-Ready Dataset
 =====================================================================================
@@ -595,7 +610,7 @@ Table of Contents
    build_entry_put_spread_details
    build_exit_put_spread_details
    build_option_spread_details
-   build_regression_dnn
+   build_dnn_from_trading_history
    algorithm_api
    show_dataset
    load_dataset
