@@ -3,7 +3,7 @@ AI - Building and Tuning Deep Neural Networks for Predicting Future Prices
 
 .. image:: https://i.imgur.com/tw2wJ6t.png
 
-The following notebooks, script and modules are guides for for building **KerasRegressor** models, deep neural networks (dnn), for trying to predict a stock's future closing price from a ``Trading History`` dataset. The ``Trading History`` dataset was created and automatically published to S3 after processing a trading algorithm's backtest of custom indicators analyzed intraday minute-by-minute pricing data stored in redis.
+The following notebooks, script and modules are guides for building **KerasRegressor** models, deep neural networks (dnn), for trying to predict a stock's future closing price from a ``Trading History`` dataset. The ``Trading History`` dataset was created and automatically published to S3 after processing a trading algorithm's backtest of custom indicators analyzed intraday minute-by-minute pricing data stored in redis.
 
 If you do not have a ``Trading History`` you can create one with:
 
