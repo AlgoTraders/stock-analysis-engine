@@ -3,7 +3,7 @@ AI - Building and Tuning Deep Neural Networks for Predicting Future Prices
 
 .. image:: https://i.imgur.com/tw2wJ6t.png
 
-The following notebooks, script and modules are guides for building **KerasRegressor** models, deep neural networks (dnn), for trying to predict a stock's future closing price from a ``Trading History`` dataset. The ``Trading History`` dataset was created and automatically published to S3 after processing a trading algorithm's backtest of custom indicators analyzed intraday minute-by-minute pricing data stored in redis.
+The following notebooks, script and modules are guides for building **KerasRegressor** models, deep neural networks (dnn), for trying to predict a stock's future closing price from a ``Trading History`` dataset. The tools use a ``Trading History`` dataset that was created and automatically published to S3 after processing a trading algorithm's backtest of custom indicators analyzed intraday minute-by-minute pricing data stored in redis.
 
 If you do not have a ``Trading History`` you can create one with:
 
@@ -26,8 +26,7 @@ Here are examples on training a dnn's using a ``Trading History`` from S3 (Minio
 AI - Building a Deep Neural Network Helper Module
 =================================================
 
-This function is used as a `Keras Scikit-Learn Builder Function <https://keras.io/scikit-learn-api/#wrappers-for-the-scikit-learn-api>`__ for creating a `Keras Sequential deep neural network model (dnn) <https://keras.io/models/sequential/>`__. This function is `passed in as the build_fn argument to create a KerasRegressor 
-(or KerasClassifier) <https://keras.io/scikit-learn-api/#arguments>`__.
+This function is used as a `Keras Scikit-Learn Builder Function <https://keras.io/scikit-learn-api/#wrappers-for-the-scikit-learn-api>`__ for creating a `Keras Sequential deep neural network model (dnn) <https://keras.io/models/sequential/>`__. This function is `passed in as the build_fn argument to create a KerasRegressor (or KerasClassifier) <https://keras.io/scikit-learn-api/#arguments>`__.
 
 .. automodule:: analysis_engine.ai.build_regression_dnn
    :members: build_regression_dnn
@@ -35,10 +34,14 @@ This function is used as a `Keras Scikit-Learn Builder Function <https://keras.i
 AI - Training Dataset Helper Modules
 ====================================
 
-These modules are included to help build new training datasets:
+These modules are included to help build new training datasets. It looks like read the docs does not support keras, sklearn or tensorflow for generating sphinx docs so here are links to the repository's source code:
+
+- `Build Train and Test Datasets using Scaler Normalization <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/ai/build_datasets_using_scalers.py>`__
 
 .. automodule:: analysis_engine.ai.build_datasets_using_scalers
    :members: build_datasets_using_scalers
+
+- `Build a Scaler Normalized Dataset from a pandas DataFrame <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/ai/build_datasets_using_scalers.py>`__
 
 .. automodule:: analysis_engine.ai.build_scaler_dataset_from_df
    :members: build_scaler_dataset_from_df
