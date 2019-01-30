@@ -25,6 +25,7 @@ import analysis_engine.ai.build_scaler_dataset_from_df as build_scaler_df
 import analysis_engine.ai.plot_dnn_fit_history as plot_fit_history
 import analysis_engine.plot_trading_history as plot_trading_history
 import spylunking.log.setup_logging as log_utils
+from copy import deepcopy
 
 # ensure reproducible results
 # machinelearningmastery.com/reproducible-results-neural-networks-keras/
@@ -32,6 +33,8 @@ np_random.seed(1)
 
 log = log_utils.build_colorized_logger(
     name='train-dnn-from-history')
+
+choices = ['close', 'high', 'low']
 
 
 def train_and_predict_from_history_in_s3():
@@ -64,11 +67,27 @@ def train_and_predict_from_history_in_s3():
         '-q',
         help=(
             'disable scaler normalization and '
-            'only use high + low + open to '
-            'predict the close'),
+            'only use 2 of close, high, or low with open to '
+            'predict the remainder of close, high, or low'),
         required=False,
         dest='disable_scaler',
         action='store_true')
+    parser.add_argument(
+        '-c',
+        help=(
+            'column(s) to predict'),
+        required=False,
+        dest='predict_features',
+        choices=choices,
+        nargs='*')
+    parser.add_argument(
+        '-n',
+        help=(
+            'number of DNNs to create'),
+        required=False,
+        dest='number_of_dnns',
+        default=1,
+        type=int)
     parser.add_argument(
         '-d',
         help=(
@@ -90,6 +109,8 @@ def train_and_predict_from_history_in_s3():
         f'algohistory')
     s3_key = (
         f'algo_training_SPY.json')
+    predict_features = ['close']
+    number_of_dnns = 1
 
     debug = False
 
@@ -101,6 +122,10 @@ def train_and_predict_from_history_in_s3():
         use_scalers = False
     if args.debug:
         debug = True
+    if len(args.predict_features):
+        predict_features = set(args.predict_features)  # remove any duplicates
+    if args.number_of_dnns != number_of_dnns:
+        number_of_dnns = args.number_of_dnns
 
     load_res = load_history.load_history_dataset(
         s3_enabled=True,
@@ -139,34 +164,6 @@ def train_and_predict_from_history_in_s3():
     df['minute'] = pd.to_datetime(
         df['minute'])
     ticker = df['ticker'].iloc[0]
-    df_filter = (df['close'] >= 0.1)
-    first_date = df[df_filter]['date'].iloc[0]
-    end_date = df[df_filter]['date'].iloc[-1]
-
-    if 'minute' in df:
-        found_valid_minute = df['minute'].iloc[0]
-        if found_valid_minute:
-            first_date = df[df_filter]['minute'].iloc[0]
-            end_date = df[df_filter]['minute'].iloc[-1]
-
-    num_rows = len(df.index)
-    log.info(
-        f'prepared training data from '
-        f'history {s3_bucket}@{s3_key} '
-        f'rows={num_rows} '
-        f'dates: {first_date} to {end_date}')
-
-    if debug:
-        for i, r in df.iterrows():
-            log.info(
-                f'{r["minute"]} - {r["close"]}')
-        # end of for loop
-
-        log.info(
-            f'columns: {df.columns.values}')
-        log.info(
-            f'rows: {len(df.index)}')
-    # end of debug
 
     dnn_config = {
         'layers': [
@@ -205,21 +202,94 @@ def train_and_predict_from_history_in_s3():
         ]
     }
 
-    predict_feature = 'close'
-    use_epochs = 10
-    use_batch_size = 10
-    use_test_size = 0.1
-    use_random_state = 1
-    use_seed = 7  # change this to random in prod
-    use_shuffle = False
-    model_verbose = True
-    fit_verbose = True
+    for predict_feature in predict_features:
+        for index in range(number_of_dnns):
+            log.info(f'Creating DNN-{index+1} for column:{predict_feature}')
+            create_column_dnn(
+                predict_feature=predict_feature,
+                ticker=ticker,
+                debug=debug,
+                use_scalers=use_scalers,
+                df=deepcopy(df),
+                dnn_config=deepcopy(dnn_config),
+                compile_config=compile_config,
+                s3_bucket=s3_bucket,
+                s3_key=s3_key)
+# end of train_and_predict_from_history_in_s3
 
-    """
-    for scaler-normalized datasets this will
+
+def create_column_dnn(
+    predict_feature='close',
+    ticker='',
+    debug=False,
+    use_epochs=10,
+    use_batch_size=10,
+    use_test_size=0.1,
+    use_random_state=1,
+    use_seed=7,
+    use_shuffle=False,
+    model_verbose=True,
+    fit_verbose=True,
+    use_scalers=True,
+    df=[],
+    dnn_config={},
+    compile_config={},
+    s3_bucket='',
+        s3_key=''):
+    """create_column_dnn
+
+    For scaler-normalized datasets this will
     compile numeric columns and ignore string/non-numeric
     columns as training and test feature columns
+
+    :param predict_feature: Column to create DNN with
+    :param ticker: Ticker being used
+    :param debug: Debug mode
+    :param use_epochs: Epochs times to use
+    :param use_batch_size: Batch size to use
+    :param use_test_size: Test size to use
+    :param use_random_state: Random state to train with
+    :param use_seed: Seed used to build scalar datasets
+    :param use_shuffle: To shuffle the regression estimator or not
+    :param model_verbose: To use a verbose Keras regression model or not
+    :param fit_verbose: To use a verbose fitting of the regression estimator
+    :param use_scalers: To build using scalars or not
+    :param df: Ticker dataset
+    :param dnn_config: Deep Neural Net keras model json to build the model
+    :param compile_config: Deep Neural Net dictionary of compile options
+    :param s3_bucket: S3 Bucket
+    :param s3_key: S3 Key
     """
+
+    df_filter = (df[f'{predict_feature}'] >= 0.1)
+    first_date = df[df_filter]['date'].iloc[0]
+    end_date = df[df_filter]['date'].iloc[-1]
+
+    if 'minute' in df:
+        found_valid_minute = df['minute'].iloc[0]
+        if found_valid_minute:
+            first_date = df[df_filter]['minute'].iloc[0]
+            end_date = df[df_filter]['minute'].iloc[-1]
+
+    num_rows = len(df.index)
+    log.info(
+        f'prepared training data from '
+        f'history {s3_bucket}@{s3_key} '
+        f'rows={num_rows} '
+        f'dates: {first_date} to {end_date}')
+
+    if debug:
+        for i, r in df.iterrows():
+            log.info(
+                f'{r["minute"]} - {r["{}".format(predict_feature)]}')
+        # end of for loop
+
+        log.info(
+            f'columns: {df.columns.values}')
+        log.info(
+            f'rows: {len(df.index)}')
+    # end of debug
+
     use_all_features = use_scalers
     all_features = []
     train_features = []
@@ -236,13 +306,12 @@ def train_and_predict_from_history_in_s3():
         dnn_config['layers'][-1]['activation'] = (
             'sigmoid')
     else:
-        train_features = [
-            'high',
-            'low',
-            'open'
-        ]
+        temp_choices = choices[:]
+        temp_choices.remove(predict_feature)
+        train_features = ['open']
+        train_features.extend(temp_choices)
         all_features = [
-            'close'
+            f'{predict_feature}'
         ] + train_features
 
     num_features = len(train_features)
@@ -381,13 +450,13 @@ def train_and_predict_from_history_in_s3():
 
     timeseries_df['predicted_close'] = price_predictions
     timeseries_df['error'] = (
-        timeseries_df['close'] -
-        timeseries_df['predicted_close'])
+        timeseries_df[f'{predict_feature}'] -
+        timeseries_df[f'predicted_{predict_feature}'])
 
     output_features = [
         'minute',
-        'close',
-        'predicted_close',
+        f'{predict_feature}',
+        f'predicted_{predict_feature}',
         'error'
     ]
 
@@ -397,7 +466,7 @@ def train_and_predict_from_history_in_s3():
         f'{timeseries_df["minute"].iloc[-1]}')
 
     log.info(
-        f'historical close with predicted close: '
+        f'historical {predict_feature} with predicted {predict_feature}: '
         f'{timeseries_df[output_features]}')
     log.info(
         date_str)
@@ -408,45 +477,48 @@ def train_and_predict_from_history_in_s3():
         timeseries_df['error'].sum() / len(timeseries_df.index))
 
     log.info(
-        f'Average historical close '
-        f'vs predicted close error: '
+        f'Average historical {predict_feature} '
+        f'vs predicted {predict_feature} error: '
         f'{average_error}')
 
     log.info(
-        f'plotting historical close vs predicted close from '
-        f'training with columns={num_features}')
+        f'plotting historical {predict_feature} vs predicted {predict_feature}'
+        f' from training with columns={num_features}')
 
-    ts_filter = (timeseries_df['close'] > 0.1)
-    latest_close = (
-        timeseries_df[ts_filter]['close'].iloc[-1])
-    latest_predicted_close = (
-        timeseries_df[ts_filter]['predicted_close'].iloc[-1])
+    ts_filter = (timeseries_df[f'{predict_feature}'] > 0.1)
+    latest_feature = (
+        timeseries_df[ts_filter][f'{predict_feature}'].iloc[-1])
+    latest_predicted_feature = (
+        timeseries_df[ts_filter][f'predicted_{predict_feature}'].iloc[-1])
 
     log.info(
-        f'{end_date} close={latest_close} '
+        f'{end_date} {predict_feature}={latest_feature} '
         f'with '
-        f'predicted_close={latest_predicted_close}')
+        f'predicted_{predict_feature}={latest_predicted_feature}')
 
     plot_trading_history.plot_trading_history(
         title=(
-            f'{ticker} - Historical Close vs Predicted Close\n'
+            f'{ticker} - Historical {predict_feature.title()} vs '
+            f'Predicted {predict_feature.title()}\n'
             f'Number of Training Features: {num_features}\n'
             f'{date_str}'),
         df=timeseries_df,
-        red='close',
-        blue='predicted_close',
+        red=f'{predict_feature}',
+        blue=f'predicted_{predict_feature}',
         green=None,
         orange=None,
         date_col='minute',
         date_format='%d %H:%M:%S\n%b',
         xlabel='minute',
-        ylabel='Historical Close vs Predicted Close',
+        ylabel=(
+            f'Historical {predict_feature.title()} vs '
+            f'Predicted {predict_feature.title()}'),
         df_filter=ts_filter,
         width=8.0,
         height=8.0,
         show_plot=True,
         dropna_for_all=False)
-# end of train_and_predict_from_history_in_s3
+# end of create_column_dnn
 
 
 if __name__ == '__main__':
