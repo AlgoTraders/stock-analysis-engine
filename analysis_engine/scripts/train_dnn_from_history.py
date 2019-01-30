@@ -448,7 +448,7 @@ def create_column_dnn(
     else:
         price_predictions = [ae_consts.to_f(x[0]) for x in predictions]
 
-    timeseries_df['predicted_close'] = price_predictions
+    timeseries_df[f'predicted_{predict_feature}'] = price_predictions
     timeseries_df['error'] = (
         timeseries_df[f'{predict_feature}'] -
         timeseries_df[f'predicted_{predict_feature}'])
