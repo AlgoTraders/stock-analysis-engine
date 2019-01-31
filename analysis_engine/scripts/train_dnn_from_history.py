@@ -122,7 +122,7 @@ def train_and_predict_from_history_in_s3():
         use_scalers = False
     if args.debug:
         debug = True
-    if len(args.predict_features):
+    if args.predict_features and len(args.predict_features):
         predict_features = set(args.predict_features)  # remove any duplicates
     if args.number_of_dnns != number_of_dnns:
         number_of_dnns = args.number_of_dnns
