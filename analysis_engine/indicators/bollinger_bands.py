@@ -16,7 +16,7 @@ Overlap
     export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
 """
 
-import analysis_engine.talib as talib
+import analysis_engine.ae_talib as ae_talib
 import analysis_engine.consts as ae_consts
 import analysis_engine.indicators.base_indicator as base_indicator
 
@@ -296,7 +296,7 @@ class IndicatorBollingerBands(base_indicator.BaseIndicator):
 
             (upperbands,
              middlebands,
-             lowerbands) = talib.BBANDS(
+             lowerbands) = ae_talib.BBANDS(
                  close=closes,
                  timeperiod=self.num_points,
                  nbdevup=self.upper_stdev,

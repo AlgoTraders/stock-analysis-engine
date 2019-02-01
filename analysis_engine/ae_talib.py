@@ -4,9 +4,9 @@ TA-Lib wrappers
 
 # for unittests, allow passing the mocks into the runtime if not found
 try:
-    import talib
+    import talib as ta
 except Exception:
-    import analysis_engine.mocks.mock_talib as talib
+    import analysis_engine.mocks.mock_talib as ta
 # end of loading talib or mocks
 import spylunking.log.setup_logging as log_utils
 
@@ -29,7 +29,7 @@ def BBANDS(
         verbose=False):
     """BBANDS
 
-    Wrapper for talib.BBANDS for running unittests
+    Wrapper for ta.BBANDS for running unittests
     on ci/cd tools that do not provide talib
 
     .. code-block:: python
@@ -60,7 +60,7 @@ def BBANDS(
     if verbose:
         log.info(
             'bbands - start')
-    return talib.BBANDS(
+    return ta.BBANDS(
         close,
         timeperiod=timeperiod,
         nbdevup=nbdevup,
@@ -75,7 +75,7 @@ def EMA(
         verbose=False):
     """EMA
 
-    Wrapper for talib.EMA for running unittests
+    Wrapper for ta.EMA for running unittests
     on ci/cd tools that do not provide talib
 
     .. code-block:: python
@@ -93,7 +93,7 @@ def EMA(
     if verbose:
         log.info(
             'ema - start')
-    return talib.EMA(
+    return ta.EMA(
         close,
         timeperiod=timeperiod)
 # end of EMA
@@ -105,7 +105,7 @@ def WMA(
         verbose=False):
     """WMA
 
-    Wrapper for talib.WMA for running unittests
+    Wrapper for ta.WMA for running unittests
     on ci/cd tools that do not provide talib
 
     .. code-block:: python
@@ -123,7 +123,7 @@ def WMA(
     if verbose:
         log.info(
             'ema - start')
-    return talib.WMA(
+    return ta.WMA(
         close,
         timeperiod=timeperiod)
 # end of WMA
@@ -144,7 +144,7 @@ def ADX(
         verbose=False):
     """ADX
 
-    Wrapper for talib.ADX for running unittests
+    Wrapper for ta.ADX for running unittests
     on ci/cd tools that do not provide talib
 
     .. code-block:: python
@@ -165,7 +165,7 @@ def ADX(
     if verbose:
         log.info(
             'adx - start')
-    return talib.ADX(
+    return ta.ADX(
         high,
         low,
         close,
@@ -181,7 +181,7 @@ def MACD(
         verbose=False):
     """MACD
 
-    Wrapper for talib.MACD for running unittests
+    Wrapper for ta.MACD for running unittests
     on ci/cd tools that do not provide talib
 
     .. code-block:: python
@@ -207,7 +207,7 @@ def MACD(
     if verbose:
         log.info(
             'macd - start')
-    return talib.MACD(
+    return ta.MACD(
         close,
         fastperiod=fast_period,
         slowperiod=slow_period,
@@ -224,7 +224,7 @@ def MFI(
         verbose=False):
     """MFI
 
-    Wrapper for talib.MFI for running unittests
+    Wrapper for ta.MFI for running unittests
     on ci/cd tools that do not provide talib
 
     .. code-block:: python
@@ -246,7 +246,7 @@ def MFI(
     if verbose:
         log.info(
             'mfi - start')
-    return talib.MFI(
+    return ta.MFI(
         high,
         low,
         close,
@@ -261,7 +261,7 @@ def MOM(
         verbose=False):
     """MOM
 
-    Wrapper for talib.MOM for running unittests
+    Wrapper for ta.MOM for running unittests
     on ci/cd tools that do not provide talib
 
     .. code-block:: python
@@ -280,7 +280,7 @@ def MOM(
     if verbose:
         log.info(
             'mom - start')
-    return talib.MOM(
+    return ta.MOM(
         close,
         timeperiod)
 # end of MOM
@@ -292,7 +292,7 @@ def ROC(
         verbose=False):
     """ROC
 
-    Wrapper for talib.ROC for running unittests
+    Wrapper for ta.ROC for running unittests
     on ci/cd tools that do not provide talib
 
     .. code-block:: python
@@ -309,7 +309,7 @@ def ROC(
     if verbose:
         log.info(
             'roc - start')
-    return talib.ROC(
+    return ta.ROC(
         close,
         timeperiod)
 # end of ROC
@@ -321,7 +321,7 @@ def RSI(
         verbose=False):
     """RSI
 
-    Wrapper for talib.RSI for running unittests
+    Wrapper for ta.RSI for running unittests
     on ci/cd tools that do not provide talib
 
     .. code-block:: python
@@ -338,7 +338,7 @@ def RSI(
     if verbose:
         log.info(
             'rsi - start')
-    return talib.RSI(
+    return ta.RSI(
         close,
         timeperiod)
 # end of RSI
@@ -356,7 +356,7 @@ def STOCH(
         verbose=False):
     """STOCH
 
-    Wrapper for talib.STOCH for running unittests
+    Wrapper for ta.STOCH for running unittests
     on ci/cd tools that do not provide talib
 
     .. code-block:: python
@@ -393,7 +393,7 @@ def STOCH(
     if verbose:
         log.info(
             'stoch - start')
-    return talib.STOCH(
+    return ta.STOCH(
         high=high,
         low=low,
         close=close,
@@ -415,7 +415,7 @@ def STOCHF(
         verbose=False):
     """STOCHF
 
-    Wrapper for talib.STOCHF for running unittests
+    Wrapper for ta.STOCHF for running unittests
     on ci/cd tools that do not provide talib
 
     .. code-block:: python
@@ -445,7 +445,7 @@ def STOCHF(
     if verbose:
         log.info(
             'stoch - start')
-    return talib.STOCHF(
+    return ta.STOCHF(
         high=high,
         low=low,
         close=close,
@@ -463,7 +463,7 @@ def WILLR(
         verbose=False):
     """WILLR
 
-    Wrapper for talib.WILLR for running unittests
+    Wrapper for ta.WILLR for running unittests
     on ci/cd tools that do not provide talib
 
     .. code-block:: python
@@ -484,7 +484,7 @@ def WILLR(
     if verbose:
         log.info(
             'willr - start')
-    return talib.WILLR(
+    return ta.WILLR(
         high,
         low,
         close,
@@ -507,7 +507,7 @@ def Chaikin(
         verbose=False):
     """Chaikin
 
-    Wrapper for talib.AD for running unittests
+    Wrapper for ta.AD for running unittests
     on ci/cd tools that do not provide talib
 
     .. code-block:: python
@@ -526,7 +526,7 @@ def Chaikin(
     if verbose:
         log.info(
             'chaikin - start')
-    return talib.AD(
+    return ta.AD(
         high,
         low,
         close,
@@ -544,7 +544,7 @@ def ChaikinADOSC(
         verbose=False):
     """ChaikinADOSC
 
-    Wrapper for talib.ADOSC for running unittests
+    Wrapper for ta.ADOSC for running unittests
     on ci/cd tools that do not provide talib
 
     .. code-block:: python
@@ -565,7 +565,7 @@ def ChaikinADOSC(
     if verbose:
         log.info(
             'chaikinadosc - start')
-    return talib.ADOSC(
+    return ta.ADOSC(
         high,
         low,
         close,
@@ -581,7 +581,7 @@ def OBV(
         verbose=False):
     """OBV
 
-    Wrapper for talib.OBV for running unittests
+    Wrapper for ta.OBV for running unittests
     on ci/cd tools that do not provide talib
 
     .. code-block:: python
@@ -598,7 +598,7 @@ def OBV(
     if verbose:
         log.info(
             'obv - start')
-    return talib.OBV(
+    return ta.OBV(
         value,
         volume)
 # end of OBV
@@ -619,7 +619,7 @@ def ATR(
         verbose=False):
     """ATR
 
-    Wrapper for talib.ATR for running unittests
+    Wrapper for ta.ATR for running unittests
     on ci/cd tools that do not provide talib
 
     .. code-block:: python
@@ -638,7 +638,7 @@ def ATR(
     if verbose:
         log.info(
             'atr - start')
-    return talib.ATR(
+    return ta.ATR(
         high,
         low,
         close,
@@ -654,7 +654,7 @@ def NATR(
         verbose=False):
     """NATR
 
-    Wrapper for talib.NATR for running unittests
+    Wrapper for ta.NATR for running unittests
     on ci/cd tools that do not provide talib
 
     .. code-block:: python
@@ -673,7 +673,7 @@ def NATR(
     if verbose:
         log.info(
             'natr - start')
-    return talib.NATR(
+    return ta.NATR(
         high,
         low,
         close,
@@ -688,7 +688,7 @@ def TRANGE(
         verbose=False):
     """TRANGE
 
-    Wrapper for talib.TRANGE for running unittests
+    Wrapper for ta.TRANGE for running unittests
     on ci/cd tools that do not provide talib
 
     .. code-block:: python
@@ -706,7 +706,7 @@ def TRANGE(
     if verbose:
         log.info(
             'trange - start')
-    return talib.TRANGE(
+    return ta.TRANGE(
         high,
         low,
         close)

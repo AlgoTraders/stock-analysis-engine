@@ -17,7 +17,7 @@ Momentum
 """
 
 import pandas as pd
-import analysis_engine.talib as talib
+import analysis_engine.ae_talib as ae_talib
 import analysis_engine.consts as ae_consts
 import analysis_engine.indicators.base_indicator as base_indicator
 
@@ -270,7 +270,7 @@ class IndicatorMFI(base_indicator.BaseIndicator):
             closes = self.use_df['close'].values
             volumes = pd.to_numeric(self.use_df['volume'])
 
-            self.mfi_value = ae_consts.to_f(talib.MFI(
+            self.mfi_value = ae_consts.to_f(ae_talib.MFI(
                 high=highs,
                 low=lows,
                 close=closes,

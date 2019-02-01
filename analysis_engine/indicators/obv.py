@@ -17,7 +17,7 @@ Volume
 """
 
 import pandas as pd
-import analysis_engine.talib as talib
+import analysis_engine.ae_talib as ae_talib
 import analysis_engine.consts as ae_consts
 import analysis_engine.indicators.base_indicator as base_indicator
 
@@ -267,7 +267,7 @@ class IndicatorOnBalanceVolume(base_indicator.BaseIndicator):
             closes = self.use_df['close'].values
             volumes = pd.to_numeric(self.use_df['volume'])
 
-            self.obv_value = ae_consts.to_f(talib.OBV(
+            self.obv_value = ae_consts.to_f(ae_talib.OBV(
                  value=closes,
                  volume=volumes).iloc[-1])
 

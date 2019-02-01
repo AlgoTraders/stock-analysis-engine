@@ -16,7 +16,7 @@ Momentum
     export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
 """
 
-import analysis_engine.talib as talib
+import analysis_engine.ae_talib as ae_talib
 import analysis_engine.consts as ae_consts
 import analysis_engine.indicators.base_indicator as base_indicator
 
@@ -251,7 +251,7 @@ class IndicatorWilliamsR(base_indicator.BaseIndicator):
             highs = self.use_df['high'].values
             lows = self.use_df['low'].values
             closes = self.use_df['close'].values
-            willr_values = talib.WILLR(
+            willr_values = ae_talib.WILLR(
                 highs,
                 lows,
                 closes,
