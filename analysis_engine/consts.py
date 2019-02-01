@@ -919,11 +919,11 @@ def get_status(
     elif status == ALGO_TRADE_INDICATOR_COUNTS:
         return 'ALGO_TRADE_INDICATOR_COUNTS'
     elif status == SA_DATASET_TYPE_ALGO_READY:
-        return 'SA_DATASET_TYPE_ALGO_READY'
+        return 'ALGO_READY'
     elif status == SA_DATASET_TYPE_TRADING_HISTORY:
-        return 'SA_DATASET_TYPE_TRADING_HISTORY'
+        return 'TRADING_HISTORY'
     elif status == SA_DATASET_TYPE_TRADING_REPORT:
-        return 'SA_DATASET_TYPE_TRADING_REPORT'
+        return 'TRADING_REPORT'
     else:
         return 'unsupported status={}'.format(
             status)
