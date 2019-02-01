@@ -12,6 +12,7 @@ import analysis_engine.consts as ae_consts
 import analysis_engine.charts as ae_charts
 import analysis_engine.build_result as build_result
 import spylunking.log.setup_logging as log_utils
+from analysis_engine.send_to_slack import post_plot
 
 log = log_utils.build_colorized_logger(name=__name__)
 
@@ -47,7 +48,8 @@ def plot_dnn_fit_history(
         scale_y=False,
         show_plot=True,
         dropna_for_all=False,
-        verbose=False):
+        verbose=False,
+        send_plots_to_slack=False):
     """plot_dnn_fit_history
 
     Plot a DNN's fit history using `Keras fit history object <https://ker
@@ -123,6 +125,7 @@ def plot_dnn_fit_history(
         the plot ``df`` (default is drop them for display purposes)
     :param verbose: optional - bool to show logs for debugging
         a dataset
+    :param send_plots_to_slack: optional - bool to send the dnn plot to slack
     """
 
     rec = {
@@ -297,6 +300,9 @@ def plot_dnn_fit_history(
         color=footnote_color,
         fontsize=footnote_fontsize)
     plt.tight_layout()
+
+    if send_plots_to_slack:
+        post_plot(plt, title=title)
 
     if show_plot:
         plt.show()
