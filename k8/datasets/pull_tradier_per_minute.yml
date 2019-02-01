@@ -124,8 +124,22 @@ spec:
           value: SPY,AMZN,TSLA
         # set to your Slack webhook url:
         - name: SLACK_WEBHOOK
-          value: https://hooks.slack.com/services/YOUR_WEBHOOK_HERE
-          # value: https://hooks.slack.com/services/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
+          valueFrom:
+            secretKeyRef:
+              name: ae.k8.slack
+              value: webhook
+          # set to your Slack OAuth Access Token or Bot User OAuth Access Token
+        - name: SLACK_ACCESS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: ae.k8.slack
+              value: access_token
+          # set comma separated Slack channels (without '#') to publish plots to
+        - name: SLACK_PUBLISH_PLOT_CHANNELS
+          valueFrom:
+            secretKeyRef:
+              name: ae.k8.slack
+              value: channels
         # set to "1" to enable publishing to slack when
         # each ticker's job completes
         - name: DATASET_COLLECTION_SLACK_ALERTS
