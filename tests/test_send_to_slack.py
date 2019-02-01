@@ -5,6 +5,7 @@ update prices
 
 import mock
 import os
+import matplotlib.pyplot as plt
 from types import SimpleNamespace
 from analysis_engine.mocks.base_test import BaseTestCase
 from analysis_engine.consts import SUCCESS
@@ -12,9 +13,10 @@ from analysis_engine.consts import FAILED
 from analysis_engine.send_to_slack import post_failure
 from analysis_engine.send_to_slack import post_message
 from analysis_engine.send_to_slack import post_success
+from analysis_engine.send_to_slack import post_plot
 
 
-def mock_request_success_result(url, data):
+def mock_request_success_result(url, data=None, params=None, files=None):
     """mock_request_success_result
 
     :param kwargs: keyword args dict
@@ -24,7 +26,7 @@ def mock_request_success_result(url, data):
 # end of mock_request_success_result
 
 
-def mock_request_failure_result(url, data):
+def mock_request_failure_result(url, data=None, params=None, files=None):
     """mock_request_failure_result
 
     :param kwargs: keyword args dict
@@ -38,12 +40,20 @@ class TestSendToSlack(BaseTestCase):
     """TestSendToSlack"""
 
     backupWebhook = None
+    backupAccessToken = None
+    backupChannels = None
 
     def setUp(self):
         """setUp"""
         if os.getenv('SLACK_WEBHOOK'):
             self.backupWebhook = os.getenv('SLACK_WEBHOOK')
         os.environ['SLACK_WEBHOOK'] = 'https://test.com'
+        if os.getenv('SLACK_ACCESS_TOKEN'):
+            self.backupWebhook = os.getenv('SLACK_ACCESS_TOKEN')
+        os.environ['SLACK_ACCESS_TOKEN'] = 'test_access_token'
+        if os.getenv('SLACK_PUBLISH_PLOT_CHANNELS'):
+            self.backupWebhook = os.getenv('SLACK_PUBLISH_PLOT_CHANNELS')
+        os.environ['SLACK_PUBLISH_PLOT_CHANNELS'] = 'general'
     # end of setUp
 
     def tearDown(self):
@@ -53,6 +63,18 @@ class TestSendToSlack(BaseTestCase):
             self.backupWebhook = None
         else:
             os.environ.pop('SLACK_WEBHOOK', None)
+
+        if self.backupAccessToken:
+            os.environ['SLACK_ACCESS_TOKEN'] = self.backupAccessToken
+            self.backupAccessToken = None
+        else:
+            os.environ.pop('SLACK_ACCESS_TOKEN', None)
+
+        if self.backupChannels:
+            os.environ['SLACK_PUBLISH_PLOT_CHANNELS'] = self.backupChannels
+            self.backupChannels = None
+        else:
+            os.environ.pop('SLACK_PUBLISH_PLOT_CHANNELS', None)
     # end of tearDown
 
     @mock.patch(
@@ -1404,5 +1426,23 @@ class TestSendToSlack(BaseTestCase):
                            full_width=True)
         self.assertTrue(res['status'] == FAILED)
     # end of test_post_message_send_to_slack_list_failure_all
+
+    @mock.patch(
+        'requests.post',
+        new=mock_request_success_result)
+    def test_post_plot_send_to_slack_success(self):
+        """test_post_plot_send_to_slack_success"""
+        res = post_plot(plt)
+        self.assertTrue(res['status'] == SUCCESS)
+    # end of test_post_plot_send_to_slack_success
+
+    @mock.patch(
+        'requests.post',
+        new=mock_request_failure_result)
+    def test_post_plot_send_to_slack_failure(self):
+        """test_post_plot_send_to_slack_failure"""
+        res = post_plot(plt)
+        self.assertTrue(res['status'] == FAILED)
+    # end of test_post_plot_send_to_slack_failure
 
 # end of TestSendToSlack

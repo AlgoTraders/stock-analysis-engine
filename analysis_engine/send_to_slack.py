@@ -315,7 +315,7 @@ def post_plot(plot,
     filename = f'{filename.split(".")[0]}.png'
     channels = [f'#{channel}' for channel in os.getenv(
         'SLACK_PUBLISH_PLOT_CHANNELS',
-        '#general').split(',')]
+        'general').split(',')]
     try:
         log.info(f'post_plot - temporarily saving plot: {filename}')
         plot.savefig(filename)
