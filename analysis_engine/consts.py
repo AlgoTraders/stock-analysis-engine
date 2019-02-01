@@ -117,6 +117,14 @@ Celery Environment Variables
     SLACK_WEBHOOK = ev(
         'SLACK_WEBHOOK',
         None)
+    SLACK_ACCESS_TOKEN = ev(
+        'SLACK_ACCESS_TOKEN',
+        None
+    )
+    SLACK_PUBLISH_PLOT_CHANNELS = ev(
+        'SLACK_PUBLISH_PLOT_CHANNELS',
+        None
+    )
     PROD_SLACK_ALERTS = ev(
         'PROD_SLACK_ALERTS',
         '0')
@@ -396,9 +404,9 @@ SA_DATASET_TYPE_ALGO_READY = 20000
 SA_DATASET_TYPE_TRADING_HISTORY = 20001
 SA_DATASET_TYPE_TRADING_REPORT = 20002
 
-PLOT_ACTION_SHOW = 20000
-PLOT_ACTION_SAVE_TO_S3 = 20001
-PLOT_ACTION_SAVE_AS_FILE = 20002
+PLOT_ACTION_SHOW = 21000
+PLOT_ACTION_SAVE_TO_S3 = 21001
+PLOT_ACTION_SAVE_AS_FILE = 21002
 
 FETCH_MODE_ALL = 30000
 FETCH_MODE_YHO = 30001
@@ -554,6 +562,14 @@ CACHE_DICT_VERSION = 1
 SLACK_WEBHOOK = ev(
     'SLACK_WEBHOOK',
     None)
+SLACK_ACCESS_TOKEN = ev(
+    'SLACK_ACCESS_TOKEN',
+    None
+)
+SLACK_PUBLISH_PLOT_CHANNELS = ev(
+    'SLACK_PUBLISH_PLOT_CHANNELS',
+    None
+)
 PROD_SLACK_ALERTS = ev(
     'PROD_SLACK_ALERTS',
     '0')
@@ -919,11 +935,11 @@ def get_status(
     elif status == ALGO_TRADE_INDICATOR_COUNTS:
         return 'ALGO_TRADE_INDICATOR_COUNTS'
     elif status == SA_DATASET_TYPE_ALGO_READY:
-        return 'SA_DATASET_TYPE_ALGO_READY'
+        return 'ALGO_READY'
     elif status == SA_DATASET_TYPE_TRADING_HISTORY:
-        return 'SA_DATASET_TYPE_TRADING_HISTORY'
+        return 'TRADING_HISTORY'
     elif status == SA_DATASET_TYPE_TRADING_REPORT:
-        return 'SA_DATASET_TYPE_TRADING_REPORT'
+        return 'TRADING_REPORT'
     else:
         return 'unsupported status={}'.format(
             status)
