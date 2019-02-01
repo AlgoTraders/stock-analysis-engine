@@ -9,6 +9,7 @@ import analysis_engine.utils as ae_utils
 import analysis_engine.charts as ae_charts
 import analysis_engine.build_result as build_result
 import spylunking.log.setup_logging as log_utils
+from analysis_engine.send_to_slack import post_plot
 
 log = log_utils.build_colorized_logger(name=__name__)
 
@@ -45,7 +46,8 @@ def plot_trading_history(
         scale_y=False,
         show_plot=True,
         dropna_for_all=False,
-        verbose=False):
+        verbose=False,
+        send_plots_to_slack=False):
     """plot_trading_history
 
     Plot columns up to 4 lines from the ``Trading History`` dataset
@@ -122,6 +124,7 @@ def plot_trading_history(
         the plot ``df`` (default is drop them for display purposes)
     :param verbose: optional - bool to show logs for debugging
         a dataset
+    :param send_plots_to_slack: optional - bool to send the dnn plot to slack
     """
 
     rec = {
@@ -356,6 +359,9 @@ def plot_trading_history(
         color=footnote_color,
         fontsize=footnote_fontsize)
     plt.tight_layout()
+
+    if send_plots_to_slack:
+        post_plot(plt, title=title)
 
     if show_plot:
         plt.show()

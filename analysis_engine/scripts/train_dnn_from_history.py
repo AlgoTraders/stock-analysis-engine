@@ -89,6 +89,13 @@ def train_and_predict_from_history_in_s3():
         default=1,
         type=int)
     parser.add_argument(
+        '-s',
+        help=(
+            'send plots to slack'),
+        required=False,
+        dest='send_plots_to_slack',
+        action='store_true')
+    parser.add_argument(
         '-d',
         help=(
             'debug'),
@@ -111,6 +118,7 @@ def train_and_predict_from_history_in_s3():
         f'algo_training_SPY.json')
     predict_features = ['close']
     number_of_dnns = 1
+    send_plots_to_slack = False
 
     debug = False
 
@@ -126,6 +134,8 @@ def train_and_predict_from_history_in_s3():
         predict_features = set(args.predict_features)  # remove any duplicates
     if args.number_of_dnns != number_of_dnns:
         number_of_dnns = args.number_of_dnns
+    if args.send_plots_to_slack:
+        send_plots_to_slack = args.send_plots_to_slack
 
     load_res = load_history.load_history_dataset(
         s3_enabled=True,
@@ -204,7 +214,7 @@ def train_and_predict_from_history_in_s3():
 
     for predict_feature in predict_features:
         for index in range(number_of_dnns):
-            log.info(f'Creating DNN-{index+1} for column:{predict_feature}')
+            log.info(f'Creating DNN-{index+1} for column: {predict_feature}')
             create_column_dnn(
                 predict_feature=predict_feature,
                 ticker=ticker,
@@ -214,7 +224,8 @@ def train_and_predict_from_history_in_s3():
                 dnn_config=deepcopy(dnn_config),
                 compile_config=compile_config,
                 s3_bucket=s3_bucket,
-                s3_key=s3_key)
+                s3_key=s3_key,
+                send_plots_to_slack=send_plots_to_slack)
 # end of train_and_predict_from_history_in_s3
 
 
@@ -235,7 +246,8 @@ def create_column_dnn(
     dnn_config={},
     compile_config={},
     s3_bucket='',
-        s3_key=''):
+    s3_key='',
+        send_plots_to_slack=False):
     """create_column_dnn
 
     For scaler-normalized datasets this will
@@ -415,7 +427,8 @@ def create_column_dnn(
         red='mean_squared_error',
         blue='mean_absolute_error',
         green='acc',
-        orange='cosine_proximity')
+        orange='cosine_proximity',
+        send_plots_to_slack=send_plots_to_slack)
 
     # on production use newly fetched pricing data
     # not the training data
@@ -517,7 +530,8 @@ def create_column_dnn(
         width=8.0,
         height=8.0,
         show_plot=True,
-        dropna_for_all=False)
+        dropna_for_all=False,
+        send_plots_to_slack=send_plots_to_slack)
 # end of create_column_dnn
 
 

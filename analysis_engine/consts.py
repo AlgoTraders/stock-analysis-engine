@@ -117,6 +117,14 @@ Celery Environment Variables
     SLACK_WEBHOOK = ev(
         'SLACK_WEBHOOK',
         None)
+    SLACK_ACCESS_TOKEN = ev(
+        'SLACK_ACCESS_TOKEN',
+        None
+    )
+    SLACK_PUBLISH_PLOT_CHANNELS = ev(
+        'SLACK_PUBLISH_PLOT_CHANNELS',
+        None
+    )
     PROD_SLACK_ALERTS = ev(
         'PROD_SLACK_ALERTS',
         '0')
@@ -554,6 +562,14 @@ CACHE_DICT_VERSION = 1
 SLACK_WEBHOOK = ev(
     'SLACK_WEBHOOK',
     None)
+SLACK_ACCESS_TOKEN = ev(
+    'SLACK_ACCESS_TOKEN',
+    None
+)
+SLACK_PUBLISH_PLOT_CHANNELS = ev(
+    'SLACK_PUBLISH_PLOT_CHANNELS',
+    None
+)
 PROD_SLACK_ALERTS = ev(
     'PROD_SLACK_ALERTS',
     '0')
