@@ -16,7 +16,7 @@ Volatility
     export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
 """
 
-import analysis_engine.talib as talib
+import analysis_engine.ae_talib as ae_talib
 import analysis_engine.consts as ae_consts
 import analysis_engine.indicators.base_indicator as base_indicator
 
@@ -267,7 +267,7 @@ class IndicatorNATR(base_indicator.BaseIndicator):
             lows = self.use_df['low'].values
             closes = self.use_df['close'].values
 
-            self.natr_value = ae_consts.to_f(talib.NATR(
+            self.natr_value = ae_consts.to_f(ae_talib.NATR(
                 high=highs,
                 low=lows,
                 close=closes,

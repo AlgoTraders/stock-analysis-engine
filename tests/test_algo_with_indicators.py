@@ -206,7 +206,7 @@ class TestAlgoWithIndicators(base_test.BaseTestCase):
     # end of setUp
 
     @mock.patch(
-        ('analysis_engine.talib.WILLR'),
+        ('analysis_engine.ae_talib.WILLR'),
         new=mock_talib.MockWILLRBuy)
     @mock.patch(
         ('analysis_engine.write_to_file.write_to_file'),
@@ -239,7 +239,7 @@ class TestAlgoWithIndicators(base_test.BaseTestCase):
     # end of test_run_daily_indicator_with_algo_config_buy
 
     @mock.patch(
-        ('analysis_engine.talib.WILLR'),
+        ('analysis_engine.ae_talib.WILLR'),
         new=mock_talib.MockWILLRSell)
     @mock.patch(
         ('analysis_engine.write_to_file.write_to_file'),
@@ -272,7 +272,7 @@ class TestAlgoWithIndicators(base_test.BaseTestCase):
     # end of test_run_daily_indicator_with_algo_config_sell
 
     @mock.patch(
-        ('analysis_engine.talib.WILLR'),
+        ('analysis_engine.ae_talib.WILLR'),
         new=mock_talib.MockWILLRIgnore)
     @mock.patch(
         ('analysis_engine.write_to_file.write_to_file'),

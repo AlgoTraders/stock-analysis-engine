@@ -16,7 +16,7 @@ Momentum
     export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
 """
 
-import analysis_engine.talib as talib
+import analysis_engine.ae_talib as ae_talib
 import analysis_engine.consts as ae_consts
 import analysis_engine.indicators.base_indicator as base_indicator
 
@@ -290,7 +290,7 @@ class IndicatorMACD(base_indicator.BaseIndicator):
 
             (self.macd_value,
              self.macd_signal,
-             self.macd_hist) = ae_consts.to_f(talib.MACD(
+             self.macd_hist) = ae_consts.to_f(ae_talib.MACD(
                 close=closes,
                 fast_period=self.fast_period,
                 slow_period=self.slow_period,
