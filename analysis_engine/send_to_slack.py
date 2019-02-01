@@ -286,3 +286,60 @@ def post_cb(
         jupyter=jupyter,
         full_width=full_width)
 # end of post_cb
+
+
+def post_plot(plot,
+              filename='tmp',
+              title=None):
+    """post_plot
+
+    Post a matlibplot plot to Slack
+
+    :param plot: matlibplot pyplot figure
+    :param filename: filename of plot
+    :param title: Title for slack plot postiing
+    """
+
+    result = {'status': ae_consts.FAILED}
+    if not os.getenv('SLACK_ACCESS_TOKEN', False):
+        log.info(
+            'post_plot - please add a SLACK_ACCESS_TOKEN environment '
+            'variable to publish plots')
+        return result
+    if not filename:
+        log.info(
+            'post_plot - no filename provided'
+        )
+        return result
+    url = 'https://slack.com/api/files.upload'
+    filename = f'{filename.split(".")[0]}.png'
+    channels = [f'#{channel}' for channel in os.getenv(
+        'SLACK_PUBLISH_PLOT_CHANNELS',
+        '#general').split(',')]
+    try:
+        log.info(f'post_plot - temporarily saving plot: {filename}')
+        plot.savefig(filename)
+        tmp_file = {
+            'file': (filename, open(filename, 'rb'), 'png')
+        }
+        payload = {
+            'channels':        channels,
+            'filename':        filename,
+            'title':           title if title else filename,
+            'token':           os.getenv('SLACK_ACCESS_TOKEN'),
+        }
+        log.info(f'post_plot - sending payload: {payload} to url: {url}')
+        r = requests.post(url,
+                          params=payload,
+                          files=tmp_file)
+        log.info(f'post_plot - removing temporarily saved plot: {filename}')
+        os.remove(filename)
+        if str(r.status_code) == "200":
+            log.info(f'post_plot - posted plot to slack channels: {channels}')
+            result['status'] = ae_consts.SUCCESS
+    except Exception as e:
+        log.info(f'post_plot - failed with Exception: {e}')
+        result['status'] = ae_consts.ERR
+        result['err'] = e
+    return result
+# end of post_plot
