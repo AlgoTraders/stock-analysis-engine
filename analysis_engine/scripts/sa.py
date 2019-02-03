@@ -106,7 +106,7 @@ def restore_missing_dataset_values_from_algo_ready_file(
         redis_password,
         redis_db=ae_consts.REDIS_DB,
         output_redis_db=None,
-        compress=False,
+        compress=True,
         encoding='utf-8',
         dataset_type=ae_consts.SA_DATASET_TYPE_ALGO_READY,
         serialize_datasets=ae_consts.DEFAULT_SERIALIZED_DATASETS,
@@ -125,7 +125,7 @@ def restore_missing_dataset_values_from_algo_ready_file(
     :param output_redis_db: optional - integer for different
         redis database (default is ``None``)
     :param compress: contents in algorithm-ready file are
-        compressed (default is ``False``)
+        compressed (default is ``True``)
     :param encoding: byte encoding of algorithm-ready file
         (default is ``utf-8``)
     :param dataset_type: optional - dataset type

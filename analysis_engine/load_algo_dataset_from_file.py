@@ -22,7 +22,7 @@ log = log_utils.build_colorized_logger(name=__name__)
 def load_algo_dataset_from_file(
         path_to_file,
         serialize_datasets=ae_consts.DEFAULT_SERIALIZED_DATASETS,
-        compress=False,
+        compress=True,
         encoding='utf-8'):
     """load_algo_dataset_from_file
 
@@ -35,13 +35,17 @@ def load_algo_dataset_from_file(
         deserialize in the dataset
     :param compress: optional - boolean flag for decompressing
         the contents of the ``path_to_file`` if necessary
-        (default is ``False`` and algorithms
+        (default is ``True`` and algorithms
         use ``zlib`` for compression)
     :param encoding: optional - string for data encoding
     """
-    log.debug('start')
+    log.info(
+        f'start: {path_to_file}')
     data_from_file = None
-    with open(path_to_file, 'r') as cur_file:
+    file_args = 'rb'
+    if not compress:
+        file_args = 'r'
+    with open(path_to_file, file_args) as cur_file:
         data_from_file = cur_file.read()
 
     if not data_from_file:

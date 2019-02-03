@@ -502,13 +502,12 @@ def run_algo(
                 end_date_val))
         raise Exception(msg)
 
-    log.debug(
-        '{} - days={} start={} end={} datatset={}'.format(
-            label,
-            total_dates,
-            use_start_date_str,
-            use_end_date_str,
-            datasets))
+    if verbose:
+        log.info(
+            f'{label} - days={total_dates} '
+            f'start={use_start_date_str} '
+            f'end={use_end_date_str} '
+            f'datatset={datasets}')
 
     for ticker in use_tickers:
         req = algo_utils.build_algo_request(
@@ -590,19 +589,18 @@ def run_algo(
             first_extract_date = extract_date
         last_extract_date = extract_date
         dataset_id = dataset_node_id
+        perc_progress = ae_consts.get_percent_done(
+            progress=cur_idx,
+            total=total_extract_requests)
         percent_label = (
-            '{} ticker={} date={} {} {}/{}'.format(
-                label,
-                extract_ticker,
-                extract_date,
-                ae_consts.get_percent_done(
-                    progress=cur_idx,
-                    total=total_extract_requests),
-                idx,
-                total_extract_requests))
-        log.debug(
-            '{} - extract - start'.format(
-                percent_label))
+            f'{label} '
+            f'ticker={extract_ticker} '
+            f'date={extract_date} '
+            f'{perc_progress} '
+            f'{idx}/{total_extract_requests}')
+        if verbose:
+            log.info(
+                f'{percent_label} - extract - start')
         if 'daily' in iex_datasets or extract_iex:
             iex_daily_status, iex_daily_df = \
                 iex_extract_utils.extract_daily_dataset(
@@ -798,9 +796,8 @@ def run_algo(
 
         if verbose:
             log.info(
-                'extract - {} dataset={}'.format(
-                    percent_label,
-                    len(algo_data_req[ticker])))
+                f'extract - {percent_label} '
+                f'dataset={len(algo_data_req[ticker])}')
         cur_idx += 1
     # end of for service_dict in extract_requests
 
