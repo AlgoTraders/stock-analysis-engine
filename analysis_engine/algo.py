@@ -955,6 +955,8 @@ class BaseAlgo:
         self.dsload_verbose = load_config.get(
             'verbose', False)
 
+        self.include_custom = {}
+
         self.load_from_external_source()
 
         if self.config_dict:
@@ -3376,18 +3378,15 @@ class BaseAlgo:
         """
 
         self.debug_msg = (
-            '{} handle - start'.format(
-                self.name))
+            f'{self.name} handle - start')
 
         if self.loaded_dataset:
             if self.verbose:
                 log.info(
-                    '{} handle - using existing dataset '
-                    'file={} s3={} redis={}'.format(
-                        self.name,
-                        self.dsload_output_file,
-                        self.dsload_s3_key,
-                        self.dsload_redis_key))
+                    f'{self.name} handle - using existing dataset '
+                    f'file={self.dsload_output_file} '
+                    f's3={self.dsload_s3_key} '
+                    f'redis={self.dsload_redis_key}')
             data = self.loaded_dataset
 
         data_for_tickers = self.get_supported_tickers_in_data(
@@ -3396,38 +3395,31 @@ class BaseAlgo:
         num_tickers = len(data_for_tickers)
         if num_tickers > 0:
             self.debug_msg = (
-                '{} handle - tickers={}'.format(
-                    self.name,
-                    json.dumps(data_for_tickers)))
+                f'{self.name} handle - '
+                f'tickers={json.dumps(data_for_tickers)}')
 
         for ticker in data_for_tickers:
             num_ticker_datasets = len(data[ticker])
             cur_idx = 1
             for idx, node in enumerate(data[ticker]):
+                node_date = node.get('date', 'missing-date')
                 track_label = self.build_progress_label(
                     progress=cur_idx,
                     total=num_ticker_datasets)
-                algo_id = 'ticker={} {}'.format(
-                    ticker,
-                    track_label)
+                algo_id = (
+                    f'ticker={ticker} {track_label}')
                 self.debug_msg = (
-                    '{} handle - {} - id={} ds={}'.format(
-                        self.name,
-                        algo_id,
-                        node['id'],
-                        node['date']))
+                    f'{self.name} handle - {algo_id} - '
+                    f'id={node["id"]} ds={node_date}')
 
                 valid_run = False
                 if self.run_this_date:
-                    if node['date'] == self.run_this_date:
+                    if node_date == self.run_this_date:
                         log.critical(
-                            '{} handle - starting at date={} '
-                            'with just this dataset: '.format(
-                                self.name,
-                                node['date']))
+                            f'{self.name} handle - starting at '
+                            f'date={node_date} with just this dataset: ')
                         log.info(
-                            '{}'.format(
-                                node['data']))
+                            f'{node["data"]}')
                         valid_run = True
                         self.verbose = True
                         self.verbose_trading = True
@@ -3453,6 +3445,8 @@ class BaseAlgo:
                     use_daily_timeseries = (
                         self.timeseries_value == ae_consts.ALGO_TIMESERIES_DAY)
 
+                    node['data']['custom'] = self.include_custom
+
                     if use_daily_timeseries:
                         self.handle_daily_dataset(
                             algo_id=algo_id,
@@ -3462,23 +3456,26 @@ class BaseAlgo:
                         self.handle_minute_dataset(
                             algo_id=algo_id,
                             ticker=ticker,
-                            node=node)
+                            node=node,
+                            start_row=node.get('start_row', 0))
                     # end of processing datasets for day vs minute
                 # if not debugging a specific dataset in the cache
 
                 if (self.show_balance and
                         (self.num_buys > 0 or self.num_sells > 0)):
                     self.debug_msg = (
-                        '{} handle - plot start balance'.format(
-                            self.name))
+                        f'{self.name} handle - plot start balance')
                     self.plot_trading_history_with_balance(
                         algo_id=algo_id,
                         ticker=ticker,
                         node=node)
                     self.debug_msg = (
-                        '{} handle - plot done balance'.format(
-                            self.name))
+                        f'{self.name} handle - plot done balance')
                 # if showing plots while the algo runs
+
+                if self.verbose:
+                    log.info(
+                        f'{self.name} done {node_date}')
 
                 cur_idx += 1
         # for all supported tickers
@@ -3487,9 +3484,7 @@ class BaseAlgo:
         self.last_handle_data = data
 
         self.debug_msg = (
-            '{} handle - end tickers={}'.format(
-                self.name,
-                num_tickers))
+            f'{self.name} handle - end tickers={num_tickers}')
 
     # end of handle_data
 
@@ -3621,7 +3616,8 @@ class BaseAlgo:
             self,
             algo_id,
             ticker,
-            node):
+            node,
+            start_row=0):
         """handle_minute_dataset
 
         handle running the algorithm with daily values
@@ -3633,50 +3629,47 @@ class BaseAlgo:
             during specific dates
         :param ticker: string - ticker
         :param node: dataset to process
+        :param start_row: start row default is ``0``
         """
         # parse the dataset node and set member variables
+        node_id = node.get('id', 'missing-id')
+        node_date = node.get('date', 'missing-date')
         self.debug_msg = (
-            '{} START - load dataset id={}'.format(
-                ticker,
-                node.get('id', 'missing-id')))
+            f'{ticker} START - load dataset id={node_id}')
         self.load_from_dataset(
             ds_data=node)
         self.debug_msg = (
-            '{} END - load dataset id={}'.format(
-                ticker,
-                node.get('id', 'missing-id')))
+            f'{ticker} END - load dataset id={node_id}')
 
         if not self.found_minute_data:
             if self.verbose:
                 log.error(
-                    'algo={} is missing minute data for day={}'.format(
-                        self.name,
-                        node.get('date', 'missing date in node={}'.format(
-                            node))))
+                    f'algo={self.name} is missing minute data for '
+                    f'day={node_date}')
             """
             Record the Trading History record
 
             analysis/review using: myalgo.get_result()
             """
             self.use_minute = (
-                '{} 16:00:00'.format(
-                    self.trade_date))
+                f'{self.trade_date} 16:00:00')
             self.debug_msg = (
-                '{} START - saving for missing minute history id={}'.format(
-                    ticker,
-                    node.get('id', 'missing-id')))
+                f'{ticker} START - saving for missing minute history '
+                f'id={node_id}')
             self.record_trade_history_for_dataset(
                 node=node)
             self.debug_msg = (
-                '{} END - for missing history id={}'.format(
-                    ticker,
-                    node.get('id', 'missing-id')))
+                f'{ticker} END - for missing history id={node_id}')
             return
 
-        self.starting_close = None
-
         num_rows = len(self.df_minute.index)
-        for minute_idx, row in self.df_minute.iterrows():
+        if num_rows == 0:
+            log.info(
+                f'no minute data on: {node_id}')
+            return
+        # if no minute data found
+
+        for minute_idx, row in self.df_minute[start_row:].iterrows():
 
             # map the latest values for the algo to use
             # as if the minute was the latest trading time
@@ -3704,10 +3697,9 @@ class BaseAlgo:
             track_label = self.build_progress_label(
                 progress=(minute_idx + 1),
                 total=num_rows)
-            minute_algo_id = '{} at minute {} - {}'.format(
-                algo_id,
-                self.latest_min,
-                track_label)
+            minute_algo_id = (
+                f'{algo_id} at minute '
+                f'{self.latest_min} - {track_label}')
 
             (self.num_owned,
              self.ticker_buys,
@@ -3723,10 +3715,8 @@ class BaseAlgo:
             self.latest_sells = []
             if self.iproc:
                 self.debug_msg = (
-                    '{} START - indicator processing '
-                    'daily [0-{}]'.format(
-                        ticker,
-                        (minute_idx + 1)))
+                    f'{ticker} START - indicator processing '
+                    f'daily [0-{minute_idx + 1}]')
 
                 # prune off the minutes that are not the latest
                 node['data']['minute'] = self.df_minute.iloc[0:(minute_idx+1)]
@@ -3742,8 +3732,7 @@ class BaseAlgo:
                     'sells',
                     [])
                 self.debug_msg = (
-                    '{} END - indicator processing'.format(
-                        ticker))
+                    f'{ticker} END - indicator processing')
             # end of indicator processing
 
             self.num_latest_buys = len(self.latest_buys)
@@ -3759,34 +3748,26 @@ class BaseAlgo:
             Call the Algorithm's process() method
             """
             self.debug_msg = (
-                '{} START - process id={}'.format(
-                    ticker,
-                    node.get('id', 'missing-id')))
+                f'{ticker} START - process id={node_id}')
             self.process(
                 algo_id=algo_id,
                 ticker=self.ticker,
                 dataset=node)
             self.debug_msg = (
-                '{} END - process id={}'.format(
-                    ticker,
-                    node.get('id', 'missing-id')))
+                f'{ticker} END - process id={node_id}')
 
             """
             Execute trades based off self.trade_strategy
             """
             self.debug_msg = (
-                '{} START - trade id={}'.format(
-                    ticker,
-                    node.get('id', 'missing-id')))
+                f'{ticker} START - trade id={node_id}')
             self.trade_off_indicator_buy_and_sell_signals(
                 ticker=ticker,
                 algo_id=algo_id,
                 reason_for_buy=self.buy_reason,
                 reason_for_sell=self.sell_reason)
             self.debug_msg = (
-                '{} END - trade id={}'.format(
-                    ticker,
-                    node.get('id', 'missing-id')))
+                f'{ticker} END - trade id={node_id}')
 
             """
             Record the Trading History record
@@ -3794,15 +3775,11 @@ class BaseAlgo:
             analysis/review using: myalgo.get_result()
             """
             self.debug_msg = (
-                '{} START - history id={}'.format(
-                    ticker,
-                    node.get('id', 'missing-id')))
+                f'{ticker} START - history id={node_id}')
             self.record_trade_history_for_dataset(
                 node=node)
             self.debug_msg = (
-                '{} END - history id={}'.format(
-                    ticker,
-                    node.get('id', 'missing-id')))
+                f'{ticker} END - history id={node_id}')
         # end for all rows in the minute dataset
     # end of handle_minute_dataset
 

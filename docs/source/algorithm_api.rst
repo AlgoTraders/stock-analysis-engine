@@ -5,6 +5,7 @@ Algorithm API Reference
    :maxdepth: 2
    :caption: Available algorithm modules, functions and objects
 
+   algo_runner
    example_algo_minute
    task_run_algo
    run_algo

@@ -161,6 +161,27 @@ The `backtest command line tool <https://github.com/AlgoTraders/stock-analysis-e
     # because each day has 390 rows to process
     bt -t SPY -f /tmp/history.json
 
+Run Backtests with the Algorithm Runner
+=======================================
+
+Here is how to run a backtest with the latest pricing data:
+
+.. code-block:: python
+
+    import analysis_engine.algo_runner as algo_runner
+    ticker = 'SPY'
+    runner = algo_runner.AlgoRunner(
+        ticker=ticker,
+        history_loc=f's3://algohistory/history_{ticker}',
+        algo_config='./cfg/default_algo.json')
+
+    # run the algorithm with the latest 200 minutes:
+    df = runner.run_latest()
+    print(df[['minute', 'close']].tail(5))
+
+    # start a full backtest with:
+    # runner.start()
+
 .. note:: The algorithm's **trading history** dataset provides many additional columns to review for tuning indicators and custom buy/sell rules. To reduce the time spent waiting on an algorithm to finish processing, you can save the entire trading history to disk with the ``-f <save_to_file>`` argument.
 
 View the Minute Algorithm's Trading History from a File
