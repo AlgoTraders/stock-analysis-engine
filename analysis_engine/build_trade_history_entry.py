@@ -343,6 +343,12 @@ def build_trade_history_entry(
         'original_balance': ae_consts.to_f(original_balance),
         'status': status,
         'algo_status': algo_status,
+        'buy_now': buy_triggered,
+        'buy_strength': buy_strength,
+        'buy_risk': buy_risk,
+        'sell_now': sell_triggered,
+        'sell_strength': sell_strength,
+        'sell_risk': sell_risk,
         'num_indicators_buy': num_indicators_buy,
         'num_indicators_sell': num_indicators_sell,
         'min_buy_indicators': min_buy_indicators,
@@ -434,12 +440,8 @@ def build_trade_history_entry(
             algo_status = ae_consts.ALGO_NOT_PROFITABLE
     else:
         history_dict['err'] = (
-            '{} ds_id={} missing balance={} and '
-            'original_balance={}'.format(
-                ticker,
-                ds_id,
-                balance,
-                original_balance))
+            f'{ticker} ds_id={ds_id} missing balance={balance} and '
+            f'original_balance={original_balance}')
         algo_status = ae_consts.ALGO_ERROR
     # if starting balance and original_balance exist
     # to determine algorithm trade profitability
@@ -451,19 +453,14 @@ def build_trade_history_entry(
     else:
         if close < 0.01:
             history_dict['err'] = (
-                '{} ds_id={} close={} must be greater '
-                'than 0.01'.format(
-                    ticker,
-                    ds_id,
-                    close))
+                f'{ticker} ds_id={ds_id} close={close} must be greater '
+                f'than 0.01')
             status = ae_consts.TRADE_ERROR
         elif algo_start_price < 0.01:
             history_dict['err'] = (
-                '{} ds_id={} algo_start_price={} must be greater '
-                'than 0.01'.format(
-                    ticker,
-                    ds_id,
-                    algo_start_price))
+                f'{ticker} ds_id={ds_id} '
+                f'algo_start_price={algo_start_price} must be greater '
+                f'than 0.01')
             status = ae_consts.TRADE_ERROR
         else:
             price_net_gain = close - algo_start_price
@@ -491,13 +488,10 @@ def build_trade_history_entry(
         use_date = date
 
     log.debug(
-        '{} ds_id={} {} algo={} trade={} history={}'.format(
-            ticker,
-            ds_id,
-            use_date,
-            ae_consts.get_status(status=history_dict['algo_status']),
-            ae_consts.get_status(status=history_dict['status']),
-            ae_consts.ppj(history_dict)))
+        f'{ticker} ds_id={ds_id} {use_date} '
+        f'algo={ae_consts.get_status(status=history_dict["algo_status"])} '
+        f'trade={ae_consts.get_status(status=history_dict["status"])} '
+        f'history={ae_consts.ppj(history_dict)}')
 
     return history_dict
 # end of build_trade_history_entry
