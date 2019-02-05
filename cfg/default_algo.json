@@ -17,7 +17,7 @@
   },
   "indicators": [
     {
-      "name": "willr",
+      "name": "wr_80_20",
       "module_path": "/opt/sa/analysis_engine/indicators/williamsr.py",
       "category": "technical",
       "type": "momentum",

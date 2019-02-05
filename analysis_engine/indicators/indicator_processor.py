@@ -75,8 +75,7 @@ class IndicatorProcessor:
             if config_file:
                 if not os.path.exists(config_file):
                     raise Exception(
-                        'Unable to find config_file: {}'.format(
-                            config_file))
+                        f'Unable to find config_file: {config_file}')
                 # end of if file does not exist on the disk
                 self.config_dict = json.loads(
                     open(config_file, 'r').read())
@@ -180,19 +179,16 @@ class IndicatorProcessor:
 
         if self.verbose:
             log.info(
-                '{} start - building indicators={}'.format(
-                    self.label,
-                    self.num_indicators))
+                f'{self.label} start - '
+                f'building indicators={self.num_indicators}')
 
         for idx, node in enumerate(config_dict['indicators']):
             percent_done = ae_consts.get_percent_done(
                 progress=(idx + 1),
                 total=self.num_indicators)
-            percent_label = 'ticker={} {} {}/{}'.format(
-                self.ticker,
-                percent_done,
-                (idx + 1),
-                self.num_indicators)
+            percent_label = (
+                f'ticker={self.ticker} {percent_done} '
+                f'{idx+1}/{self.num_indicators}')
             # this will throw on errors parsing to make
             # it easeir to debug
             # before starting the algo and waiting for an error
@@ -203,17 +199,14 @@ class IndicatorProcessor:
                 indicator_key_name = new_node['report']['name']
                 if self.verbose:
                     log.info(
-                        '{} - preparing indicator={} node={} {}'.format(
-                            self.label,
-                            indicator_key_name,
-                            new_node,
-                            percent_label))
+                        f'{self.label} - '
+                        f'preparing indicator={indicator_key_name} '
+                        f'node={new_node} {percent_label}')
                 else:
                     log.debug(
-                        '{} - preparing indicator={} {}'.format(
-                            self.label,
-                            indicator_key_name,
-                            percent_label))
+                        f'{self.label} - '
+                        f'preparing indicator={indicator_key_name} '
+                        f'{percent_label}')
                 self.ind_dict[indicator_key_name] = new_node
                 self.ind_dict[indicator_key_name]['obj'] = None
 
@@ -231,24 +224,20 @@ class IndicatorProcessor:
                         verbose=self.verbose_indicators)
 
                 log.debug(
-                    '{} - created indicator={} {}'.format(
-                        self.label,
-                        indicator_key_name,
-                        percent_label))
+                    f'{self.label} - '
+                    f'created indicator={indicator_key_name} '
+                    f'{percent_label}')
             else:
                 raise Exception(
-                    '{} - failed creating indicator {} node={}'.format(
-                        self.label,
-                        idx,
-                        node))
+                    f'{self.label} - '
+                    f'failed creating indicator {idx} node={node}')
         # end for all indicators in the config
 
         if self.verbose:
             log.info(
-                '{} done - built={} from indicators={}'.format(
-                    self.label,
-                    len(self.ind_dict),
-                    self.num_indicators))
+                f'{self.label} done - '
+                f'built={len(self.ind_dict)} '
+                f'from indicators={self.num_indicators}')
     # end of build_indicators_for_config
 
     def process(
@@ -281,18 +270,14 @@ class IndicatorProcessor:
             percent_done = ae_consts.get_percent_done(
                 progress=(idx + 1),
                 total=self.num_indicators)
-            percent_label = 'ticker={} {} {}/{}'.format(
-                self.ticker,
-                percent_done,
-                (idx + 1),
-                self.num_indicators)
+            percent_label = (
+                f'ticker={self.ticker} {percent_done} '
+                f'{idx+1}/{self.num_indicators}')
             ind_obj.reset_internals()
             if self.verbose:
                 log.info(
-                    '{} - {} start {}'.format(
-                        self.label,
-                        ind_obj.get_name(),
-                        percent_label))
+                    f'{self.label} - {ind_obj.get_name()} '
+                    f'start {percent_label}')
             # this will throw on errors to help with debugging
             self.last_ind_obj = ind_obj
             ind_obj.handle_subscribed_dataset(
@@ -302,11 +287,9 @@ class IndicatorProcessor:
             new_report = ind_obj.get_report()
             if self.verbose:
                 log.info(
-                    '{} - {} end {} report: {}'.format(
-                        self.label,
-                        ind_obj.get_name(),
-                        percent_label,
-                        ae_consts.ppj(new_report)))
+                    f'{self.label} - {ind_obj.get_name()} '
+                    f'end {percent_label} '
+                    f'report: {ae_consts.ppj(new_report)}')
             self.latest_report.update(new_report)
 
             is_buy_value = ind_obj.is_buy

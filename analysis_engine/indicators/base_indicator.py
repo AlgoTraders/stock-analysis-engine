@@ -327,14 +327,12 @@ class BaseIndicator:
 
         :param prefix_key:
         """
-        report_key = '{}_{}_{}'.format(
-            prefix_key,
-            key_type,
-            key)
+        report_key = (
+            f'{prefix_key}_{key}')
         if report_key in cur_report_dict:
-            report_key = '{}_{}'.format(
-                report_key,
-                str(uuid.uuid4()).replace('-', ''))
+            report_key = (
+                f'{report_key}_'
+                f'{str(uuid.uuid4()).replace("-", "")}')
         # end of building a key to prevent stomping data
 
         return report_key

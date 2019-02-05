@@ -17,7 +17,7 @@ def build_indicator_node(
     """build_indicator_node
 
     Parse a dictionary in the algorithm config ``indicators`` list
-    and return a dicationry
+    and return a dictionary
 
     Supported values found in:
     `analysis_engine/consts.py <https://
@@ -39,9 +39,8 @@ def build_indicator_node(
         None)
     if not name:
         raise Exception(
-            '{} - missing "name" in indicator dictionary={}'.format(
-                label,
-                node))
+            f'{label} missing "name" in '
+            f'indicator dictionary={node}')
     # end of name check
 
     ind_id = str(uuid.uuid4()).replace('-', '')
@@ -53,10 +52,9 @@ def build_indicator_node(
     if uses_dataset == ae_consts.INDICATOR_USES_DATA_UNSUPPORTED:
         uses_dataset = ae_consts.INDICATOR_USES_DATA_ANY
         log.debug(
-            '{} - unsupported indicator '
-            'uses_dataset={} defaulting to "daily"'.format(
-                label,
-                uses_dataset_str))
+            f'{label} - unsupported indicator '
+            f'uses_dataset={uses_dataset_str} defaulting '
+            f'to "daily"')
     # end of supported indicator dataset types
 
     ind_category_str = node.get(
@@ -67,10 +65,9 @@ def build_indicator_node(
     if ind_category == ae_consts.INDICATOR_CATEGORY_UNKNOWN:
         ind_category = ae_consts.INDICATOR_CATEGORY_MOMENTUM
         log.debug(
-            '{} - unsupported indicator '
-            'category={} defaulting to "momentum"'.format(
-                label,
-                ind_category))
+            f'{label} - unsupported indicator '
+            f'category={ind_category} defaulting '
+            f'to "momentum"')
     # end of supported indicator category
 
     ind_type_str = node.get(
@@ -81,28 +78,21 @@ def build_indicator_node(
     if ind_type == ae_consts.INDICATOR_TYPE_UNKNOWN:
         ind_type = ae_consts.INDICATOR_TYPE_TECHNICAL
         log.debug(
-            '{} - unsupported indicator '
-            'type={} defaulting to "technical"'.format(
-                label,
-                ind_type))
+            f'{label} - unsupported indicator '
+            f'type={ind_type} defaulting to "technical"')
     # end of supported indicator type
 
     # allow easier key discovery
     use_unique_id = node.get(
         'unique_id',
         False)
-    ind_name = '{}_{}_{}_{}'.format(
-        name,
-        ind_category,
-        ind_type,
-        uses_dataset)
+    ind_name = (
+        f'{name}')
     if use_unique_id:
-        ind_name = '{}_{}_{}_{}_{}'.format(
-            name,
-            ind_category,
-            ind_type,
-            uses_dataset,
-            ind_id)
+        ind_name = (
+            f'{name}_'
+            f'{uses_dataset}_'
+            f'{ind_id}')
 
     use_module_name = None
     use_path_to_module = None
@@ -113,9 +103,8 @@ def build_indicator_node(
         ae_consts.INDICATOR_BASE_MODULE_PATH)
     if not use_path_to_module:
         raise Exception(
-            'Failed building Indicator node with missing '
-            'module_path node={}'.format(
-                node))
+            f'Failed building Indicator node with missing '
+            f'module_path node={node}')
     use_module_name = node.get(
         'module_name',
         node.get(
