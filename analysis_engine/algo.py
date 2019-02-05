@@ -2709,14 +2709,10 @@ class BaseAlgo:
             if minute:
                 self.last_history_dict = self.get_trade_history_node()
                 if self.latest_ind_report:
-                    ind_configurables = copy.deepcopy(
-                        self.latest_ind_report)
-                    for ignore_key in self.ind_conf_ignore_keys:
-                        ind_configurables.pop(
-                            ignore_key,
-                            None)
-                    self.last_history_dict.update(
-                        ind_configurables)
+                    for k in self.latest_ind_report:
+                        if k not in self.ind_conf_ignore_keys:
+                            self.last_history_dict[k] = (
+                                self.latest_ind_report[k])
         except Exception as e:
             self.debug_msg = (
                 '{} - buy {}@{} - FAILED with ex={}'.format(
@@ -2887,14 +2883,10 @@ class BaseAlgo:
             if minute:
                 self.last_history_dict = self.get_trade_history_node()
                 if self.latest_ind_report:
-                    ind_configurables = copy.deepcopy(
-                        self.latest_ind_report)
-                    for ignore_key in self.ind_conf_ignore_keys:
-                        ind_configurables.pop(
-                            ignore_key,
-                            None)
-                    self.last_history_dict.update(
-                        ind_configurables)
+                    for k in self.latest_ind_report:
+                        if k not in self.ind_conf_ignore_keys:
+                            self.last_history_dict[k] = (
+                                self.latest_ind_report[k])
         except Exception as e:
             self.debug_msg = (
                 '{} - sell {}@{} - FAILED with ex={}'.format(
@@ -3296,14 +3288,10 @@ class BaseAlgo:
             self.last_history_dict = self.get_trade_history_node()
             if self.last_history_dict:
                 if self.latest_ind_report:
-                    ind_configurables = copy.deepcopy(
-                        self.latest_ind_report)
-                    for ignore_key in self.ind_conf_ignore_keys:
-                        ind_configurables.pop(
-                            ignore_key,
-                            None)
-                    self.last_history_dict.update(
-                        ind_configurables)
+                    for k in self.latest_ind_report:
+                        if k not in self.ind_conf_ignore_keys:
+                            self.last_history_dict[k] = (
+                                self.latest_ind_report[k])
                 self.order_history.append(self.last_history_dict)
         # end of if day timeseries
         elif (use_minute_timeseries and self.found_minute_data):
@@ -3311,14 +3299,10 @@ class BaseAlgo:
             self.last_history_dict = self.get_trade_history_node()
             if self.last_history_dict:
                 if self.latest_ind_report:
-                    ind_configurables = copy.deepcopy(
-                        self.latest_ind_report)
-                    for ignore_key in self.ind_conf_ignore_keys:
-                        ind_configurables.pop(
-                            ignore_key,
-                            None)
-                    self.last_history_dict.update(
-                        ind_configurables)
+                    for k in self.latest_ind_report:
+                        if k not in self.ind_conf_ignore_keys:
+                            self.last_history_dict[k] = (
+                                self.latest_ind_report[k])
                 self.order_history.append(self.last_history_dict)
         else:
             raise Exception(

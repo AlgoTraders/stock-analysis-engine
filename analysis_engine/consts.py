@@ -728,6 +728,7 @@ INDICATOR_IGNORED_CONIGURABLE_KEYS = [
     'category',
     'type',
     'uses_data',
+    'obj',
     'report'
 ]
 
