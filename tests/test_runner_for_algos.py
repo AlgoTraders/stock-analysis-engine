@@ -75,7 +75,7 @@ class TestRunnerForAlgos(base_test.BaseTestCase):
             'date_str': start_date,
             'start_row': -200
         }
-        df = runner.run_latest(
+        df = runner.latest(
             **req)
         self.assertEqual(
             len(df.index),

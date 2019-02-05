@@ -71,8 +71,33 @@ Here is a video showing how to fetch the latest pricing data for a ticker using 
         redis-cli keys "SPY_*"
         redis-cli get "<key like SPY_2019-01-08_minute>"
 
+Run Backtests with the Algorithm Runner API
+===========================================
+
+Run a backtest with the latest pricing data:
+
+.. code-block:: python
+
+    import analysis_engine.algo_runner as algo_runner
+    import analysis_engine.plot_trading_history as plot
+    runner = algo_runner.AlgoRunner('SPY')
+    # run the algorithm with the latest 200 minutes:
+    df = runner.latest()
+    print(df[['minute', 'close']].tail(5))
+    plot.plot_trading_history(
+        title=(
+            f'SPY - '
+            f'${df["close"].iloc[-1]} '
+            f'at: '
+            f'{df["minute"].iloc[-1]}'),
+        df=df)
+    # start a full backtest with:
+    # runner.start()
+
+Check out the `backtest_with_runner.py script <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/aws_backup.py>`__ for a command line example of using the `Algorithm Runner API <https://stock-analysis-engine.readthedocs.io/en/latest/algo_runner.html>`__ to run and plot from an `Algorithm backtest config file <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/cfg/default_algo.json>`__.
+
 Backups
--------
+=======
 
 Pricing data is automatically compressed in redis and there is an `example Kubernetes job for backing up all stored pricing data to AWS S3 <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/k8/backups/backup-to-aws-job.yml>`__.
 
@@ -157,27 +182,6 @@ The `backtest command line tool <https://github.com/AlgoTraders/stock-analysis-e
     bt -t SPY -f /tmp/history.json
 
 .. note:: The algorithm's **trading history** dataset provides many additional columns to review for tuning indicators and custom buy/sell rules. To reduce the time spent waiting on an algorithm to finish processing, you can save the entire trading history to disk with the ``-f <save_to_file>`` argument.
-
-Run Backtests with the Algorithm Runner
-=======================================
-
-Here is how to run a backtest with the latest pricing data:
-
-.. code-block:: python
-
-    import analysis_engine.algo_runner as algo_runner
-    ticker = 'SPY'
-    runner = algo_runner.AlgoRunner(
-        ticker=ticker,
-        history_loc=f's3://algohistory/history_{ticker}',
-        algo_config='./cfg/default_algo.json')
-
-    # run the algorithm with the latest 200 minutes:
-    df = runner.run_latest()
-    print(df[['minute', 'close']].tail(5))
-
-    # start a full backtest with:
-    # runner.start()
 
 View the Minute Algorithm's Trading History from a File
 =======================================================

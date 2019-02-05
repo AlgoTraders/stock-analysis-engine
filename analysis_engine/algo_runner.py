@@ -23,12 +23,46 @@ log = log_utils.build_colorized_logger(name=__name__)
 
 
 class AlgoRunner:
-    """AlgoRunner"""
+    """AlgoRunner
+
+    Run an algorithm backtest or with the latest
+    pricing data and publish the compressed
+    trading history to s3 which can be used
+    to train AI
+
+    **Full Backtest**
+
+    .. code-block:: python
+
+        import analysis_engine.algo_runner as algo_runner
+        runner = algo_runner.AlgoRunner(ticker)
+        runner.start()
+
+    **Run Algorithm with Latest Pricing Data**
+
+    .. code-block:: python
+
+        import analysis_engine.algo_runner as algo_runner
+        import analysis_engine.plot_trading_history as plot
+        ticker = 'SPY'
+        runner = algo_runner.AlgoRunner(ticker)
+        # run the algorithm with the latest 200 minutes:
+        df = runner.latest()
+        print(df[['minute', 'close']].tail(5))
+        plot.plot_trading_history(
+            title=(
+                f'{ticker} - '
+                f'${df["close"].iloc[-1]} '
+                f'at: '
+                f'{df["minute"].iloc[-1]}'),
+            df=df)
+
+    """
 
     def __init__(
             self,
             ticker,
-            algo_config,
+            algo_config=None,
             start_date=None,
             end_date=None,
             history_loc=None,
@@ -36,44 +70,17 @@ class AlgoRunner:
             run_on_engine=False,
             verbose_algo=False,
             verbose_processor=False,
-            verbose_indicators=False):
+            verbose_indicators=False,
+            **kwargs):
         """__init__
 
-        Run an algorithm backtest or with the latest
-        pricing data and publish the compressed
-        trading history to s3 which can be used
-        to train AI
-
-        **Full Backtest**
-
-        .. code-block:: python
-
-            import analysis_engine.algo_runner as algo_runner
-            ticker = 'SPY'
-            runner = algo_runner.AlgoRunner(
-                ticker=ticker,
-                history_loc=f's3://algohistory/history_{ticker}',
-                algo_config='./cfg/default_algo.json')
-
-            runner.start()
-
-        **Run Algorithm with Latest Pricing Data**
-
-        .. code-block:: python
-
-            import analysis_engine.algo_runner as algo_runner
-            ticker = 'SPY'
-            runner = algo_runner.AlgoRunner(
-                ticker=ticker,
-                history_loc=f's3://algohistory/history_{ticker}',
-                algo_config='./cfg/default_algo.json')
-            # run the algorithm with the latest 200 minutes:
-            df = runner.run_latest()
-            print(df[['minute', 'close']].tail(5))
+        constructor
 
         :param ticker: string ticker
-        :param algo_config: string path to file
+        :param algo_config: optional - string path to file
+            (default is ``./cfg/default_algo.json``)
         :param history_loc: optional - string trading history location
+            (default is ``s3://algohistory/trade_history_{ticker}``)
         :param predictions_loc: optional - string predictions location
         :param start_date: optional - string start date
         :param end_date: optional - string end date
@@ -89,16 +96,18 @@ class AlgoRunner:
         :param verbose_indicators: optional - bool flag for
             debugging the algo's indicators
             (default is ``False``)
+        :param kwargs: keyword args dictionary
         """
-
-        self.ticker = str(ticker).upper()
+        self.ticker = None
+        if ticker:
+            self.ticker = str(ticker).upper()
         self.start_date = start_date
         self.end_date = end_date
         self.start_day = None
         self.end_day = None
         self.run_on_engine = run_on_engine
         self.algo_history_loc = (
-            f's3://algohistory/train_history_{self.ticker}')
+            f's3://algohistory/trade_history_{self.ticker}')
         self.algo_predictions_loc = (
             f's3://predictions/{self.ticker}')
         if history_loc:
@@ -127,11 +136,18 @@ class AlgoRunner:
         self.config_dict = None
         self.use_config_file = algo_config
         if not self.use_config_file:
-            log.critical(
-                f'Failed: missing algo_config argument pointing to a '
-                f'config file')
-            return
-        self.config_dict = json.loads(open(self.use_config_file).read())
+            if os.path.exists('./cfg/default_algo.json'):
+                self.use_config_file = (
+                    './cfg/default_algo.json')
+            elif os.path.exists('/opt/sa/cfg/default_algo.json'):
+                self.use_config_file = (
+                    '/opt/sa/cfg/default_algo.json')
+            else:
+                log.critical(
+                    f'Failed: missing algo_config argument pointing to a '
+                    f'config file')
+                return
+        self.config_dict = json.loads(open(self.use_config_file, 'r').read())
         self.algo_mod_path = self.config_dict.get(
             'algo_path',
             ae_consts.ALGO_MODULE_PATH)
@@ -248,7 +264,11 @@ class AlgoRunner:
         self.verbose_indicators = verbose_indicators
 
         if self.config_dict:
-            self.config_dict['ticker'] = self.ticker
+            if self.ticker:
+                self.config_dict['ticker'] = self.ticker
+            else:
+                self.ticker = (
+                    str(self.config_dict['ticker']).upper())
             self.config_dict['balance'] = self.balance
             self.config_dict['commission'] = self.commission
 
@@ -761,7 +781,7 @@ class AlgoRunner:
             verbose=verbose)
     # end of publish_trading_history
 
-    def run_latest(
+    def latest(
             self,
             date_str=None,
             start_row=-200,
@@ -770,7 +790,7 @@ class AlgoRunner:
             extract_td=True,
             verbose=False,
             **kwargs):
-        """run_latest
+        """latest
 
         Run the algorithm with the latest pricing data. Also
         supports running a backtest for a historical date in
@@ -1167,6 +1187,6 @@ class AlgoRunner:
             f'rows={self.num_rows} - done')
 
         return self.get_history()
-    # end of run_latest
+    # end of latest
 
 # end of AlgoRunner

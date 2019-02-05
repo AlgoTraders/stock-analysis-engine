@@ -8,8 +8,8 @@ import analysis_engine.consts as ae_consts
 import analysis_engine.utils as ae_utils
 import analysis_engine.charts as ae_charts
 import analysis_engine.build_result as build_result
+import analysis_engine.send_to_slack as slack_utils
 import spylunking.log.setup_logging as log_utils
-from analysis_engine.send_to_slack import post_plot
 
 log = log_utils.build_colorized_logger(name=__name__)
 
@@ -17,7 +17,7 @@ log = log_utils.build_colorized_logger(name=__name__)
 def plot_trading_history(
         title,
         df,
-        red,
+        red=None,
         red_color=None,
         red_label=None,
         blue=None,
@@ -29,9 +29,9 @@ def plot_trading_history(
         orange=None,
         orange_color=None,
         orange_label=None,
-        date_col='date',
-        xlabel='Date',
-        ylabel='Algo Values',
+        date_col='minute',
+        xlabel='Minutes',
+        ylabel='Algo Trading History Values',
         linestyle='-',
         width=9.0,
         height=9.0,
@@ -58,6 +58,7 @@ def plot_trading_history(
         ``red_color`` (or default ``ae_consts.PLOT_COLORS[red]``)
         where the column is in the ``df`` and
         accessible with:``df[red]``
+        (default is ``high``)
     :param red_color: hex color code to plot the data in the
         ``df[red]``  (default is ``ae_consts.PLOT_COLORS['red']``)
     :param red_label: optional - string for the label used
@@ -66,6 +67,7 @@ def plot_trading_history(
         ``blue_color`` (or default ``ae_consts.PLOT_COLORS['blue']``)
         where the column is in the ``df`` and
         accessible with:``df[blue]``
+        (default is ``close``)
     :param blue_color: hex color code to plot the data in the
         ``df[blue]``  (default is ``ae_consts.PLOT_COLORS['blue']``)
     :param blue_label: optional - string for the label used
@@ -87,7 +89,7 @@ def plot_trading_history(
     :param orange_label: optional - string for the label used
         to identify the ``orange`` line in the legend
     :param date_col: string - date column name
-        (default is ``date``)
+        (default is ``minute``)
     :param xlabel: x-axis label
     :param ylabel: y-axis label
     :param linestyle: style of the plot line
@@ -158,25 +160,50 @@ def plot_trading_history(
 
     use_footnote = footnote_text
     if not use_footnote:
+        ft_date = (
+            datetime.datetime.now().strftime(
+                ae_consts.COMMON_TICK_DATE_FORMAT))
         use_footnote = (
-            'algotraders - {}'.format(
-                datetime.datetime.now().strftime(
-                    ae_consts.COMMON_TICK_DATE_FORMAT)))
+            f'algotraders - {ft_date}')
+
+    if date_col not in df:
+        log.error(
+            f'failed to find date_col={date_col} '
+            f'in df={df.columns.values}')
+        result = build_result.build_result(
+            status=ae_consts.ERR,
+            err=None,
+            rec=rec)
 
     column_list = [
         date_col
     ]
+
     all_plots = []
     if red:
         column_list.append(red)
         all_plots.append({
             'column': red,
             'color': use_red})
+    else:
+        if 'high' in df:
+            red = 'high'
+            column_list.append(red)
+            all_plots.append({
+                'column': 'high',
+                'color': use_red})
     if blue:
         column_list.append(blue)
         all_plots.append({
             'column': blue,
             'color': use_blue})
+    else:
+        if 'close' in df:
+            blue = 'close'
+            column_list.append(blue)
+            all_plots.append({
+                'column': 'close',
+                'color': use_blue})
     if green:
         column_list.append(green)
         all_plots.append({
@@ -260,6 +287,7 @@ def plot_trading_history(
 
     all_axes = []
     num_plots = len(all_plots)
+    first_ax = None
     for idx, node in enumerate(all_plots):
         column_name = node['column']
         hex_color = node['color']
@@ -267,15 +295,15 @@ def plot_trading_history(
         use_ax = ax
         if idx > 0:
             use_ax = ax.twinx()
+        else:
+            first_ax = ax
 
         if verbose:
             log.info(
-                'plot_history_df - {}/{} - {} in {} - ax={}'.format(
-                    (idx + 1),
-                    num_plots,
-                    column_name,
-                    hex_color,
-                    use_ax))
+                f'plot_history_df - '
+                f'{idx + 1}/{num_plots} - '
+                f'{column_name} in {hex_color} - '
+                f'ax={use_ax}')
 
         all_axes.append(use_ax)
         use_ax.plot(
@@ -292,10 +320,10 @@ def plot_trading_history(
             use_ax.xaxis.grid(False)
             use_ax.yaxis.grid(False)
         # end if this is not the fist axis
-
-        use_ax.set_xticks(date_strings)
-        use_ax.set_xticklabels(date_labels, rotation=45, ha='right')
     # end of for all plots
+
+    first_ax.set_xticks(date_strings)
+    first_ax.set_xticklabels(date_labels, rotation=45, ha='right')
 
     lines = []
     for idx, cur_ax in enumerate(all_axes):
@@ -335,8 +363,7 @@ def plot_trading_history(
 
     if verbose:
         log.info(
-            'legend lines={}'.format(
-                [l.get_label() for l in lines]))
+            f'legend lines={[l.get_label() for l in lines]}')
     # log what's going to be in the legend
 
     ax.legend(
@@ -361,7 +388,7 @@ def plot_trading_history(
     plt.tight_layout()
 
     if send_plots_to_slack:
-        post_plot(plt, title=title)
+        slack_utils.post_plot(plt, title=title)
 
     if show_plot:
         plt.show()

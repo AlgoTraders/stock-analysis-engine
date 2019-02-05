@@ -17,13 +17,13 @@
   },
   "indicators": [
     {
-      "name": "willr_-80_-20",
+      "name": "willr",
       "module_path": "/opt/sa/analysis_engine/indicators/williamsr.py",
       "category": "technical",
       "type": "momentum",
-      "uses_data": "or_history",
+      "uses_data": "minute",
       "willr_value": 0,
-      "num_points": 10,
+      "num_points": 20,
       "buy_below": -80,
       "sell_above": -20,
       "is_buy": null,
