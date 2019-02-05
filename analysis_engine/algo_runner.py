@@ -35,7 +35,7 @@ class AlgoRunner:
     .. code-block:: python
 
         import analysis_engine.algo_runner as algo_runner
-        runner = algo_runner.AlgoRunner(ticker)
+        runner = algo_runner.AlgoRunner('SPY')
         runner.start()
 
     **Run Algorithm with Latest Pricing Data**
@@ -51,10 +51,8 @@ class AlgoRunner:
         print(df[['minute', 'close']].tail(5))
         plot.plot_trading_history(
             title=(
-                f'{ticker} - '
-                f'${df["close"].iloc[-1]} '
-                f'at: '
-                f'{df["minute"].iloc[-1]}'),
+                f'{ticker} - ${df["close"].iloc[-1]} '
+                f'at: {df["minute"].iloc[-1]}'),
             df=df)
 
     """

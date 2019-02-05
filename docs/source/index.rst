@@ -57,15 +57,17 @@ Here is a video showing how to fetch the latest pricing data for a ticker using 
         - `Sign up for a free account <https://developer.tradier.com/user/sign_up>`__
 
         - Set the **TD_TOKEN** environment variable to fetch Trading pricing data with:
-            ::
 
-                export TD_TOKEN=YOUR_TRADIER_TOKEN
+          ::
+
+              export TD_TOKEN=YOUR_TRADIER_TOKEN
 
         - Fetch with **-g td**:
-            ::
 
-                fetch -t SPY -g td
-                # and fetch from just IEX with: fetch -t SPY -g iex
+          ::
+
+              fetch -t SPY -g td
+              # and fetch from just IEX with: fetch -t SPY -g iex
 
     .. note:: Yahoo `disabled the YQL finance API so fetching pricing data from yahoo is disabled by default <https://developer.yahoo.com/yql/>`__
 
@@ -91,9 +93,7 @@ Run a backtest with the latest pricing data:
     print(df[['minute', 'close']].tail(5))
     plot.plot_trading_history(
         title=(
-            f'SPY - '
-            f'${df["close"].iloc[-1]} '
-            f'at: '
+            f'SPY - ${df["close"].iloc[-1]} at: '
             f'{df["minute"].iloc[-1]}'),
         df=df)
     # start a full backtest with:
