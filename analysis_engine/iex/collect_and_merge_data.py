@@ -2,8 +2,9 @@
 Get Pricing using most of the pieces of example from:
 https://github.com/timkpaine/hedgedata/blob/master/scripts/fetch_data.py
 
-This will fetch various pricing, news and other data from
-`IEX <https://iextrading.com/developer/docs/>`__.
+This will fetch various pricing, financials, earnings,
+dividends, news and other data from
+`IEX <https://iexcloud.io/>`__.
 
 Data Attribution
 ================
@@ -11,15 +12,12 @@ Data Attribution
 IEX Real-Time Price
 ===================
 
-If you redistribute our API data:
-
 - Cite IEX using the following text and link:
-  "Data provided for free by [IEX](https://iextrading.com/developer)."
+  "Data provided by [IEX](https://iextrading.com/developer/docs/)."
 - Provide a link to
   https://iextrading.com/api-exhibit-a in your terms of service.
 - Additionally, if you display our TOPS price data,
   cite "IEX Real-Time Price" near the price.
-
 
 """
 

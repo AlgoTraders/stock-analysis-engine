@@ -1,10 +1,9 @@
 """
 Consts and helper functions
 
-Algorithm Environment Variables
--------------------------------
+**Algorithm Environment Variables**
 
-::
+.. code-block:: python
 
     ALGO_MODULE_PATH = ev(
         'ALGO_MODULE_PATH',
@@ -82,8 +81,7 @@ Algorithm Environment Variables
         'ALGO_REPORT_VERSION',
         '1')
 
-Stock and Analysis Environment Variables
-----------------------------------------
+**Stock and Analysis Environment Variables**
 
 ::
 
@@ -99,20 +97,17 @@ Stock and Analysis Environment Variables
     NEXT_EXP = opt_dates.option_expiration()
     NEXT_EXP_STR = NEXT_EXP.strftime('%Y-%m-%d')
 
-Logging Environment Variables
------------------------------
+**Logging Environment Variables**
 
-::
+.. code-block:: python
 
-    APP_NAME = 'pr'
     LOG_CONFIG_PATH = ev(
         'LOG_CONFIG_PATH',
         './analysis_engine/log/logging.json')
 
-Celery Environment Variables
-----------------------------
+**Slack Environment Variables**
 
-::
+.. code-block:: python
 
     SLACK_WEBHOOK = ev(
         'SLACK_WEBHOOK',
@@ -128,6 +123,11 @@ Celery Environment Variables
     PROD_SLACK_ALERTS = ev(
         'PROD_SLACK_ALERTS',
         '0')
+
+**Celery Environment Variables**
+
+.. code-block:: python
+
     SSL_OPTIONS = {}
     TRANSPORT_OPTIONS = {}
     WORKER_BROKER_URL = ev(
@@ -144,10 +144,9 @@ Celery Environment Variables
         ('analysis_engine.work_tasks.task_run_algo'))
     INCLUDE_TASKS = WORKER_TASKS.split(',')
 
-Supported S3 Environment Variables
-----------------------------------
+**Supported S3 Environment Variables**
 
-::
+.. code-block:: python
 
     ENABLED_S3_UPLOAD = ev(
         'ENABLED_S3_UPLOAD',
@@ -222,10 +221,9 @@ Supported S3 Environment Variables
         'OPTIONS_S3_BUCKET_NAME',
         'options')
 
-Supported Redis Environment Variables
--------------------------------------
+**Supported Redis Environment Variables**
 
-::
+.. code-block:: python
 
     ENABLED_REDIS_PUBLISH = ev(
         'ENABLED_REDIS_PUBLISH',

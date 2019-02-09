@@ -41,8 +41,8 @@ class TestIEXFetchData(BaseTestCase):
     """TestIEXFetchData"""
 
     @mock.patch(
-        ('pyEX.stocks.chartDF'),
-        new=mock_iex.chartDF)
+        ('analysis_engine.iex.helpers_for_iex_api.get_from_iex'),
+        new=mock_iex.mock_daily)
     def test_fetch_daily(self):
         """test_fetch_daily"""
         test_name = 'test_fetch_daily'
@@ -50,8 +50,6 @@ class TestIEXFetchData(BaseTestCase):
             label=test_name)
 
         work['ticker'] = test_name
-        work['timeframe'] = '{}_daily'.format(
-            test_name)
 
         res = fetch_data(
             work_dict=work)
@@ -60,14 +58,11 @@ class TestIEXFetchData(BaseTestCase):
         self.assertEqual(
             res['symbol'][0],
             work['ticker'])
-        self.assertEqual(
-            res['timeframe'][0],
-            work['timeframe'])
     # end of test_fetch_daily
 
     @mock.patch(
-        ('pyEX.stocks.chartDF'),
-        new=mock_iex.chartDF)
+        ('analysis_engine.iex.helpers_for_iex_api.get_from_iex'),
+        new=mock_iex.mock_minute)
     def test_fetch_minute(self):
         """test_fetch_minute"""
         test_name = 'test_fetch_minute'
@@ -75,8 +70,6 @@ class TestIEXFetchData(BaseTestCase):
             label=test_name)
 
         work['ticker'] = test_name
-        work['timeframe'] = '{}_minute'.format(
-            test_name)
 
         res = fetch_data(
             work_dict=work)
@@ -85,14 +78,11 @@ class TestIEXFetchData(BaseTestCase):
         self.assertEqual(
             res['symbol'][0],
             work['ticker'])
-        self.assertEqual(
-            res['timeframe'][0],
-            work['timeframe'])
     # end of test_fetch_minute
 
     @mock.patch(
-        ('pyEX.stocks.quoteDF'),
-        new=mock_iex.quoteDF)
+        ('analysis_engine.iex.helpers_for_iex_api.get_from_iex'),
+        new=mock_iex.mock_quote)
     def test_fetch_quote(self):
         """test_fetch_quote"""
         work = build_iex_fetch_quote_request(
@@ -109,12 +99,12 @@ class TestIEXFetchData(BaseTestCase):
             work['ticker'])
         self.assertEqual(
             res['testcase'][0],
-            'mock-quoteDF')
+            'mock-quote')
     # end of test_fetch_quote
 
     @mock.patch(
-        ('pyEX.stocks.stockStatsDF'),
-        new=mock_iex.stockStatsDF)
+        ('analysis_engine.iex.helpers_for_iex_api.get_from_iex'),
+        new=mock_iex.mock_stats)
     def test_fetch_stats(self):
         """test_fetch_stats"""
         test_name = 'test_fetch_stats'
@@ -133,8 +123,8 @@ class TestIEXFetchData(BaseTestCase):
     # end of test_fetch_stats
 
     @mock.patch(
-        ('pyEX.stocks.peersDF'),
-        new=mock_iex.peersDF)
+        ('analysis_engine.iex.helpers_for_iex_api.get_from_iex'),
+        new=mock_iex.mock_peers)
     def test_fetch_peers(self):
         """test_fetch_peers"""
         test_name = 'test_fetch_peers'
@@ -153,8 +143,8 @@ class TestIEXFetchData(BaseTestCase):
     # end of test_fetch_peers
 
     @mock.patch(
-        ('pyEX.stocks.newsDF'),
-        new=mock_iex.newsDF)
+        ('analysis_engine.iex.helpers_for_iex_api.get_from_iex'),
+        new=mock_iex.mock_news)
     def test_fetch_news(self):
         """test_fetch_news"""
         test_name = 'test_fetch_news'
@@ -173,8 +163,8 @@ class TestIEXFetchData(BaseTestCase):
     # end of test_fetch_news
 
     @mock.patch(
-        ('pyEX.stocks.financialsDF'),
-        new=mock_iex.financialsDF)
+        ('analysis_engine.iex.helpers_for_iex_api.get_from_iex'),
+        new=mock_iex.mock_financials)
     def test_fetch_financials(self):
         """test_fetch_financials"""
         test_name = 'test_fetch_financials'
@@ -193,8 +183,8 @@ class TestIEXFetchData(BaseTestCase):
     # end of test_fetch_financials
 
     @mock.patch(
-        ('pyEX.stocks.earningsDF'),
-        new=mock_iex.earningsDF)
+        ('analysis_engine.iex.helpers_for_iex_api.get_from_iex'),
+        new=mock_iex.mock_earnings)
     def test_fetch_earnings(self):
         """test_fetch_earnings"""
         test_name = 'test_fetch_earnings'
@@ -213,8 +203,8 @@ class TestIEXFetchData(BaseTestCase):
     # end of test_fetch_earnings
 
     @mock.patch(
-        ('pyEX.stocks.dividendsDF'),
-        new=mock_iex.dividendsDF)
+        ('analysis_engine.iex.helpers_for_iex_api.get_from_iex'),
+        new=mock_iex.mock_dividends)
     def test_fetch_dividends(self):
         """test_fetch_dividends"""
         test_name = 'test_fetch_dividends'
@@ -233,8 +223,8 @@ class TestIEXFetchData(BaseTestCase):
     # end of test_fetch_dividends
 
     @mock.patch(
-        ('pyEX.stocks.companyDF'),
-        new=mock_iex.companyDF)
+        ('analysis_engine.iex.helpers_for_iex_api.get_from_iex'),
+        new=mock_iex.mock_company)
     def test_fetch_company(self):
         """test_fetch_company"""
         test_name = 'test_fetch_company'

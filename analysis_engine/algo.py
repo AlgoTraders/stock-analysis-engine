@@ -1474,7 +1474,7 @@ class BaseAlgo:
                 s3_secret_key=self.dsload_s3_secret_key,
                 s3_region_name=self.dsload_s3_region_name,
                 s3_secure=self.dsload_s3_secure,
-                compress=self.dsload_compress,
+                compress=True,
                 encoding=self.dsload_redis_encoding)
             if self.loaded_dataset:
                 self.debug_msg = (

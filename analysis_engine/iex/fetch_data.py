@@ -1,8 +1,6 @@
 """
 Fetch data from
-`IEX <https://iextrading.com/developer/docs/>`__
-using
-`pyEX <https://github.com/timkpaine/pyEX>`__
+`IEX <https://iexcloud.io/>`__
 with the factory method ``fetch_data``
 """
 
@@ -67,10 +65,8 @@ def fetch_data(
         use_fetch_name = str(fetch_type).lower()
 
     log.debug(
-        'name={} type={} args={}'.format(
-            use_fetch_name,
-            fetch_type,
-            work_dict))
+        f'name={use_fetch_name} '
+        f'type={fetch_type} args={work_dict}')
 
     if (
             use_fetch_name == 'daily' or
@@ -124,13 +120,11 @@ def fetch_data(
             work_dict=work_dict)
     else:
         log.error(
-            'label={} - unsupported fetch_data('
-            'work_dict={}, '
-            'fetch_type={}'
-            ')'.format(
-                work_dict.get('label', None),
-                work_dict,
-                fetch_type))
+            f'label={work_dict.get("label", None)} - '
+            f'unsupported fetch_data('
+            f'work_dict={work_dict}, '
+            f'fetch_type={fetch_type}'
+            f')')
         raise NotImplemented
     # end of supported fetchers
 # end of fetch_data

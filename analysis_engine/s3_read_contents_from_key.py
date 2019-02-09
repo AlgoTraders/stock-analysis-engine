@@ -30,27 +30,23 @@ def s3_read_contents_from_key(
     """
 
     log.debug(
-        'getting s3.Object({}, {})'.format(
-            s3_bucket_name,
-            s3_key))
+        f'getting s3.Object({s3_bucket_name}, {s3_key})')
     s3_obj = s3.Object(s3_bucket_name, s3_key)
 
     raw_contents = None
     if compress:
         log.debug(
-            'zlib.decompress('
-            's3_obj.get()["Body"].read()'
-            '.decode({})'
-            ''.format(
-                encoding))
+            f'zlib.decompress('
+            f's3_obj.get()["Body"].read()'
+            f'.decode({encoding})')
         raw_contents = zlib.decompress(
             s3_obj.get()['Body'].read()).decode(
                 encoding)
     else:
         log.debug(
-            's3_obj.get()["Body"].read().decode({})'.format(
-                encoding))
-        raw_contents = s3_obj.get()['Body'].read().decode(encoding)
+            f's3_obj.get()["Body"].read().decode({encoding})')
+        s3_contents = s3_obj.get()['Body'].read()
+        raw_contents = s3_contents.decode(encoding)
     # if compressed or not
 
     data = None
@@ -58,5 +54,6 @@ def s3_read_contents_from_key(
         data = json.loads(raw_contents)
     else:
         data = raw_contents
+    # if convert to json or not
     return data
 # end of s3_read_contents_from_key

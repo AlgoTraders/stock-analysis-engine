@@ -1,7 +1,7 @@
 Stock Analysis Engine
 =====================
 
-Build and tune investment algorithms for use with `artificial intelligence (deep neural networks) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Comparing-3-Deep-Neural-Networks-Trained-to-Predict-a-Stocks-Closing-Price-Using-The-Analysis-Engine.ipynb>`__ with a distributed stack for running backtests using live pricing data on publicly traded companies with automated datafeeds from: `IEX Real-Time Price <https://iextrading.com/developer/docs/>`__, `Tradier <https://tradier.com/>`__ and `FinViz <https://finviz.com>`__ (includes: pricing, options, news, dividends, daily, intraday, screeners, statistics, financials, earnings, and more).
+Build and tune investment algorithms for use with `artificial intelligence (deep neural networks) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Comparing-3-Deep-Neural-Networks-Trained-to-Predict-a-Stocks-Closing-Price-Using-The-Analysis-Engine.ipynb>`__ with a distributed stack for running backtests using live pricing data on publicly traded companies with automated datafeeds from: `IEX Real-Time Price <https://iexcloud.io/>`__, `Tradier <https://tradier.com/>`__ and `FinViz <https://finviz.com>`__ (includes: pricing, options, news, dividends, daily, intraday, screeners, statistics, financials, earnings, and more).
 
 .. image:: https://i.imgur.com/tw2wJ6t.png
 
@@ -42,14 +42,21 @@ Here is a video showing how to fetch the latest pricing data for a ticker using 
 
     #.  `Run through the Getting Started section <https://github.com/AlgoTraders/stock-analysis-engine#getting-started>`__
 
-    #.  This will pull pricing data from IEX (free for now) and Tradier (requires an `account and developer token <https://developer.tradier.com/getting_started>`__):
+    #.  Fetch pricing data from `IEX (requires an account) <https://iexcloud.io/cloud-login#/register/>`__ and `Tradier (requires an account) <https://developer.tradier.com/getting_started>`__):
+
+        - Set the **IEX_TOKEN** environment variable to fetch Trading pricing data with:
+
+        ::
+
+            export IEX_TOKEN=YOUR_IEX_TOKEN
+
+        - Fetch with:
+
         ::
 
             fetch -t SPY
 
-        Alternatively, you can also fetch from just Tradier:
-
-        - `Sign up for a free account <https://developer.tradier.com/user/sign_up>`__
+    #.  Fetch pricing data from `IEX (requires an account) <https://iexcloud.io/cloud-login#/register/>`__ and `Tradier (requires an account) <https://developer.tradier.com/getting_started>`__):
 
         - Set the **TD_TOKEN** environment variable to fetch Trading pricing data with:
 
@@ -1752,9 +1759,9 @@ IEX Real-Time Price
 
 If you redistribute our API data:
 
-- Cite IEX using the following text and link: "Data provided for free by `IEX <https://iextrading.com/developer>`__."
-- Provide a link to https://iextrading.com/api-exhibit-a in your terms of service.
-- Additionally, if you display our TOPS price data, cite "`IEX Real-Time Price <https://iextrading.com/developer>`__" near the price.
+- you must provide a link to `IEX's Terms of Use <https://iextrading.com/api-exhibit-a>`__ or otherwise obtain consent from such person to the terms of use substantially in the form of the above;
+- you must cite IEX as the source in accordance with the instructions available on https://iextrading.com/developer/docs/#attribution;
+- additionally, if you display our TOPS price data, cite "`IEX Real-Time Price <https://iextrading.com/developer>`__" near the price.
 
 Adding Celery Tasks
 ===================
