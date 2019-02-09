@@ -1,15 +1,5 @@
 """
 Helper for loading datasets from s3
-
-**Supported environment variables**
-
-::
-
-    # to show debug, trace logging please export ``SHARED_LOG_CFG``
-    # to a debug logger json file. To turn on debugging for this
-    # library, you can export this variable to the repo's
-    # included file with the command:
-    export SHARED_LOG_CFG=/opt/sa/analysis_engine/log/debug-logging.json
 """
 
 import boto3
@@ -66,10 +56,7 @@ def load_algo_dataset_from_s3(
         (default is ``False``)
     """
     log.info(
-        'start s3={}:{}/{}'.format(
-            s3_address,
-            s3_bucket,
-            s3_key))
+        f'start s3={s3_address}:{s3_bucket}/{s3_key}')
 
     data_from_file = None
 
@@ -94,30 +81,27 @@ def load_algo_dataset_from_s3(
             s3_bucket_name=s3_bucket,
             s3_key=s3_key,
             encoding=encoding,
-            convert_as_json=not compress)
+            convert_as_json=not compress,
+            compress=compress)
     except Exception as e:
         if (
                 'An error occurred (NoSuchBucket) '
                 'when calling the GetObject operation') in str(e):
             msg = (
-                'missing s3_bucket={} in s3_address={}'.format(
-                    s3_address,
-                    s3_bucket))
+                f'missing s3_bucket={s3_address} in s3_address={s3_bucket}')
             log.error(msg)
             raise Exception(msg)
         else:
             raise Exception(e)
 
     if not data_from_file:
-        log.error('missing data from s3={}:{}/{}'.format(
-            s3_address,
-            s3_bucket,
-            s3_key))
+        log.error(
+            'missing data from s3={s3_address}:{s3_bucket}/{s3_key}')
         return None
 
     return prepare_utils.prepare_dict_for_algo(
         data=data_from_file,
-        compress=compress,
+        compress=False,
         convert_to_dict=True,
         encoding=encoding)
 # end of load_algo_dataset_from_s3

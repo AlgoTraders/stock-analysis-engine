@@ -238,3 +238,25 @@ def epoch_to_dt(
 
     return converted_time
 # end of epoch_to_dt
+
+
+def get_days_between_dates(
+        from_historical_date,
+        last_close_to_use=None):
+    """get_days_between_dates
+
+    :param from_historical_date: historical date in time to start walking
+                                 forward until the last close datetime
+    :param last_close_to_use: starting date in time (left leg of window)
+    """
+    use_last_close = last_close_to_use
+    if not use_last_close:
+        use_last_close = last_close()
+
+    dates = []
+    while from_historical_date < last_close_to_use:
+        dates.append(from_historical_date)
+        from_historical_date += datetime.timedelta(
+            days=1)
+    return dates
+# end of get_days_between_dates

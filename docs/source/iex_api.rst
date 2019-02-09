@@ -1,14 +1,27 @@
 IEX API
 =======
 
-Get Data from IEX
-=================
+IEX - Account Set Up
+====================
+
+#.  `Register for an Account <https://iexcloud.io/cloud-login/#/register>`__
+
+#.  Set ``IEX_TOKEN`` the Environment Variable
+
+    ::
+
+        export IEX_TOKEN=PUBLISHABLE_TOKEN
+
+IEX - Get Data
+==============
+
+Use this function to pull data from IEX with a shared API for supported fetch routines over the IEX HTTP Rest API.
 
 .. automodule:: analysis_engine.iex.get_data
    :members: get_data_from_iex
 
-Fetch Data from IEX
-===================
+IEX - Fetch Data
+================
 
 This is a helper for the parent method:
 
@@ -17,8 +30,20 @@ This is a helper for the parent method:
 .. automodule:: analysis_engine.iex.fetch_data
    :members: fetch_data
 
-Fetch Common Utilities
-======================
+IEX - HTTP Fetch Functions
+==========================
+
+.. automodule:: analysis_engine.iex.helpers_for_iex_api
+   :members: get_from_iex,handle_get_from_iex,get_from_iex_cloud,get_from_iex_v1,convert_datetime_columns
+
+IEX - Build Auth URL Using Publishable Token
+============================================
+
+.. automodule:: analysis_engine.iex.build_auth_url
+   :members: build_auth_url
+
+IEX - Fetch Common Utilities
+============================
 
 .. automodule:: analysis_engine.iex.fetch_api
    :members: fetch_daily,fetch_minute,fetch_quote,fetch_stats,fetch_stats,fetch_news,fetch_financials,fetch_earnings,fetch_dividends,fetch_company

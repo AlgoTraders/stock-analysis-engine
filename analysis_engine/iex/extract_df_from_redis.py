@@ -91,9 +91,7 @@ def extract_minute_dataset(
     # end of support for the get dataset dictionary
 
     log.debug(
-        '{} - {} - start'.format(
-            label,
-            df_str))
+        f'{label} - {df_str} - start')
 
     return extract_utils.perform_extract(
         df_type=df_type,

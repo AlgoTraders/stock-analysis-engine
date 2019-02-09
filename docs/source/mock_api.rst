@@ -50,7 +50,7 @@ Mock IEX Utilities
 These are testing utilities for mocking IEX functionality without having internet connectivity to fetch data from IEX.
 
 .. automodule:: analysis_engine.mocks.mock_iex
-   :members: chartDF,stockStatsDF,peersDF,newsDF,financialsDF,earningsDF,dividendsDF,companyDF
+   :members: mock_minute,mock_quote,mock_stats,mock_peers,mock_news,mock_financials,mock_earnings,mock_dividends,mock_company
 
 Mock TA Lib
 ===========

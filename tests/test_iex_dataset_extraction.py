@@ -118,11 +118,9 @@ class TestIEXDatasetExtraction(BaseTestCase):
             self.debug_df(df=df)
         else:
             log.critical(
-                '{} is missing in redis '
-                'for ticker={} status={}'.format(
-                    label,
-                    work['ticker'],
-                    get_status(status=status)))
+                f'{label} is missing in redis '
+                f'for ticker={work["ticker"]} '
+                f'status={get_status(status=status)}')
     # end of test_integration_extract_minute_dataset
 
     def test_integration_extract_quote_dataset(self):

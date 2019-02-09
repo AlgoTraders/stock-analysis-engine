@@ -165,3 +165,36 @@ spec:
         # set to "1" to publish Celery task failures to Slack
         - name: PROD_SLACK_ALERTS
           value: "0"
+        # IEX Account Config
+        - name: IEX_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: ae.k8.iex
+              key: pub_token
+        - name: IEX_API_VERSION
+          valueFrom:
+            secretKeyRef:
+              name: ae.k8.iex
+              key: version
+        # Tradier Account Config:
+        - name: TD_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: ae.k8.tradier
+              key: td_token
+        - name: TD_ENDPOINT_API
+          valueFrom:
+            secretKeyRef:
+              name: ae.k8.tradier
+              key: td_endpoint_api
+        - name: TD_ENDPOINT_DATA
+          valueFrom:
+            secretKeyRef:
+              name: ae.k8.tradier
+              key: td_endpoint_data
+        - name: TD_ENDPOINT_STREAM
+          valueFrom:
+            secretKeyRef:
+              name: ae.k8.tradier
+              key: td_endpoint_stream
+        # end Tradier

@@ -1053,7 +1053,7 @@ class TestBaseAlgo(base_test.BaseTestCase):
         self.assertEqual(
             algo.tickers,
             [self.ticker])
-        output_file = '/opt/ae/tests/datasets/algo/{}.json'.format(
+        output_file = '/opt/sa/tests/datasets/algo/{}.json'.format(
             test_name)
         redis_enabled = False
         redis_key = '{}'.format(
@@ -1061,7 +1061,7 @@ class TestBaseAlgo(base_test.BaseTestCase):
         s3_enabled = False
         s3_key = '{}.json'.format(
             test_name)
-        compress = False
+        compress = True
         slack_enabled = False
         slack_code_block = True
         slack_full_width = False
@@ -1125,7 +1125,7 @@ class TestBaseAlgo(base_test.BaseTestCase):
         self.assertEqual(
             algo.tickers,
             [self.ticker])
-        output_file = '/opt/ae/tests/datasets/algo/{}.json'.format(
+        output_file = './tests/datasets/algo/{}.json'.format(
             test_name)
         redis_enabled = True
         redis_key = '{}'.format(
@@ -1133,7 +1133,7 @@ class TestBaseAlgo(base_test.BaseTestCase):
         s3_enabled = True
         s3_key = '{}.json'.format(
             test_name)
-        compress = False
+        compress = True
         slack_enabled = True
         slack_code_block = True
         slack_full_width = False
@@ -1197,7 +1197,7 @@ class TestBaseAlgo(base_test.BaseTestCase):
         self.assertEqual(
             algo.tickers,
             [self.ticker])
-        output_file = '/opt/ae/tests/datasets/algo/{}.json'.format(
+        output_file = './tests/datasets/algo/{}.json'.format(
             test_name)
         redis_enabled = True
         redis_key = '{}'.format(
@@ -1205,7 +1205,7 @@ class TestBaseAlgo(base_test.BaseTestCase):
         s3_enabled = True
         s3_key = '{}.json'.format(
             test_name)
-        compress = False
+        compress = True
         slack_enabled = True
         slack_code_block = True
         slack_full_width = False
@@ -1272,7 +1272,7 @@ class TestBaseAlgo(base_test.BaseTestCase):
         self.assertEqual(
             algo.tickers,
             [self.ticker])
-        output_file = '/opt/ae/tests/datasets/algo/{}.json'.format(
+        output_file = './tests/datasets/algo/{}.json'.format(
             test_name)
         redis_enabled = True
         redis_key = '{}'.format(
@@ -1280,7 +1280,7 @@ class TestBaseAlgo(base_test.BaseTestCase):
         s3_enabled = True
         s3_key = '{}.json'.format(
             test_name)
-        compress = False
+        compress = True
         slack_enabled = True
         slack_code_block = True
         slack_full_width = False
@@ -1310,15 +1310,16 @@ class TestBaseAlgo(base_test.BaseTestCase):
             db=publish_input_req['redis_db'],
             key=publish_input_req['redis_key'],
             serializer=publish_input_req['redis_serializer'],
-            encoding=publish_input_req['redis_encoding'])
+            encoding=publish_input_req['redis_encoding'],
+            decompress_df=True)
         self.assertEqual(
             ae_consts.get_status(status=redis_res['status']),
             'SUCCESS')
-        print('found data size={} in redis_key={}'.format(
-            len(redis_res['rec']['data']),
-            publish_input_req['redis_key']))
+        print(
+            f'found data size={len(redis_res["rec"]["data"])} in '
+            f'redis_key={publish_input_req["redis_key"]}')
         self.assertTrue(
-            len(redis_res['rec']['data']) > 10)
+            len(redis_res['rec']['data']) >= 1)
     # end of test_integration_algo_publish_input_dataset_to_redis
 
     def test_integration_algo_publish_input_dataset_to_file(self):
@@ -1353,7 +1354,7 @@ class TestBaseAlgo(base_test.BaseTestCase):
             algo.tickers,
             [self.ticker])
         test_should_create_this_file = (
-            '/opt/ae/tests/datasets/algo/{}-{}.json'.format(
+            './tests/datasets/algo/{}-{}.json'.format(
                 test_name,
                 str(uuid.uuid4())))
         redis_enabled = True
@@ -1362,7 +1363,7 @@ class TestBaseAlgo(base_test.BaseTestCase):
         s3_enabled = True
         s3_key = '{}.json'.format(
             test_name)
-        compress = False
+        compress = True
         slack_enabled = True
         slack_code_block = True
         slack_full_width = False
@@ -1407,7 +1408,7 @@ class TestBaseAlgo(base_test.BaseTestCase):
 
         load_config_req = None
         latest_file = (
-            '/opt/ae/tests/datasets/algo/{}-{}.json'.format(
+            './tests/datasets/algo/{}-{}.json'.format(
                 test_name,
                 str(uuid.uuid4())))
         if len(files) == 0:
@@ -1429,7 +1430,7 @@ class TestBaseAlgo(base_test.BaseTestCase):
                 label=test_name,
                 output_file=latest_file,
                 convert_to_json=True,
-                compress=False,
+                compress=True,
                 redis_enabled=False,
                 s3_enabled=False,
                 slack_enabled=False,
@@ -1500,7 +1501,7 @@ class TestBaseAlgo(base_test.BaseTestCase):
             [self.ticker])
         unique_id = str(uuid.uuid4())
         test_should_create_this_file = (
-            '/opt/ae/tests/datasets/algo/{}-{}.json'.format(
+            './tests/datasets/algo/{}-{}.json'.format(
                 test_name,
                 unique_id))
         redis_enabled = True
@@ -1511,7 +1512,7 @@ class TestBaseAlgo(base_test.BaseTestCase):
         s3_key = '{}-{}.json'.format(
             test_name,
             unique_id)
-        compress = False
+        compress = True
         slack_enabled = True
         slack_code_block = True
         slack_full_width = False
@@ -1608,7 +1609,7 @@ class TestBaseAlgo(base_test.BaseTestCase):
             [self.ticker])
         unique_id = str(uuid.uuid4())
         test_should_create_this_file = (
-            '/opt/ae/tests/datasets/algo/{}-{}.json'.format(
+            './tests/datasets/algo/{}-{}.json'.format(
                 test_name,
                 unique_id))
         redis_enabled = True
@@ -1616,10 +1617,8 @@ class TestBaseAlgo(base_test.BaseTestCase):
             test_name,
             unique_id)
         s3_enabled = True
-        s3_key = '{}-{}.json'.format(
-            test_name,
-            unique_id)
-        compress = False
+        s3_key = f'{test_name}-{unique_id}.json'
+        compress = True
         slack_enabled = True
         slack_code_block = True
         slack_full_width = False
@@ -1628,7 +1627,6 @@ class TestBaseAlgo(base_test.BaseTestCase):
         unittest_bucket = 'unittest-algo'
         publish_input_req = build_publish_request.build_publish_request(
             label=test_name,
-            convert_to_json=True,
             output_file=test_should_create_this_file,
             compress=compress,
             redis_enabled=redis_enabled,
@@ -1643,7 +1641,6 @@ class TestBaseAlgo(base_test.BaseTestCase):
             verbose=verbose)
         load_config_req = build_publish_request.build_publish_request(
             label=test_name,
-            convert_to_json=True,
             output_file=test_should_create_this_file,
             compress=compress,
             redis_enabled=redis_enabled,
@@ -1714,7 +1711,7 @@ class TestBaseAlgo(base_test.BaseTestCase):
             [self.ticker])
         unique_id = str(uuid.uuid4())
         test_should_create_this_file = (
-            '/opt/ae/tests/datasets/algo/{}-{}.json'.format(
+            './tests/datasets/algo/{}-{}.json'.format(
                 test_name,
                 unique_id))
         redis_enabled = True
@@ -1725,7 +1722,7 @@ class TestBaseAlgo(base_test.BaseTestCase):
         s3_key = '{}-{}.json'.format(
             test_name,
             unique_id)
-        compress = False
+        compress = True
         slack_enabled = True
         slack_code_block = True
         slack_full_width = False

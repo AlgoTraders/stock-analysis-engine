@@ -13,7 +13,6 @@ import pandas as pd
 import analysis_engine.consts as ae_consts
 import analysis_engine.utils as ae_utils
 import analysis_engine.iex.consts as iex_consts
-import analysis_engine.iex.utils as iex_utils
 import analysis_engine.td.consts as td_consts
 import analysis_engine.options_dates as opt_dates
 
@@ -50,63 +49,49 @@ def get_ds_dict(
 
     use_base_key = base_key
     if not use_base_key:
-        use_base_key = '{}_{}'.format(
-            ticker,
-            ae_utils.get_last_close_str(
-                fmt=ae_consts.COMMON_DATE_FORMAT))
+        last_str = ae_utils.get_last_close_str(
+            fmt=ae_consts.COMMON_DATE_FORMAT)
+        use_base_key = f'{ticker}_{last_str}'
 
     date_str = ae_utils.utc_date_str(
         fmt=ae_consts.COMMON_DATE_FORMAT)
     now_str = ae_utils.utc_now_str(
         fmt=ae_consts.COMMON_TICK_DATE_FORMAT)
 
-    daily_redis_key = '{}_{}'.format(
-        use_base_key,
-        ae_consts.DAILY_S3_BUCKET_NAME)
-    minute_redis_key = '{}_{}'.format(
-        use_base_key,
-        ae_consts.MINUTE_S3_BUCKET_NAME)
-    quote_redis_key = '{}_{}'.format(
-        use_base_key,
-        ae_consts.QUOTE_S3_BUCKET_NAME)
-    stats_redis_key = '{}_{}'.format(
-        use_base_key,
-        ae_consts.STATS_S3_BUCKET_NAME)
-    peers_redis_key = '{}_{}'.format(
-        use_base_key,
-        ae_consts.PEERS_S3_BUCKET_NAME)
-    news_iex_redis_key = '{}_{}1'.format(
-        use_base_key,
-        ae_consts.NEWS_S3_BUCKET_NAME)
-    financials_redis_key = '{}_{}'.format(
-        use_base_key,
-        ae_consts.FINANCIALS_S3_BUCKET_NAME)
-    earnings_redis_key = '{}_{}'.format(
-        use_base_key,
-        ae_consts.EARNINGS_S3_BUCKET_NAME)
-    dividends_redis_key = '{}_{}'.format(
-        use_base_key,
-        ae_consts.DIVIDENDS_S3_BUCKET_NAME)
-    company_redis_key = '{}_{}'.format(
-        use_base_key,
-        ae_consts.COMPANY_S3_BUCKET_NAME)
-    options_yahoo_redis_key = '{}_{}'.format(
-        use_base_key,
-        ae_consts.OPTIONS_S3_BUCKET_NAME)
-    call_options_yahoo_redis_key = '{}_calls'.format(
-        use_base_key)
-    put_options_yahoo_redis_key = '{}_puts'.format(
-        use_base_key)
-    pricing_yahoo_redis_key = '{}_{}'.format(
-        use_base_key,
-        ae_consts.PRICING_S3_BUCKET_NAME)
-    news_yahoo_redis_key = '{}_{}'.format(
-        use_base_key,
-        ae_consts.NEWS_S3_BUCKET_NAME)
-    call_options_td_redis_key = '{}_tdcalls'.format(
-        use_base_key)
-    put_options_td_redis_key = '{}_tdputs'.format(
-        use_base_key)
+    daily_redis_key = (
+        f'{use_base_key}_{ae_consts.DAILY_S3_BUCKET_NAME}')
+    minute_redis_key = (
+        f'{use_base_key}_{ae_consts.MINUTE_S3_BUCKET_NAME}')
+    quote_redis_key = (
+        f'{use_base_key}_{ae_consts.QUOTE_S3_BUCKET_NAME}')
+    stats_redis_key = (
+        f'{use_base_key}_{ae_consts.STATS_S3_BUCKET_NAME}')
+    peers_redis_key = (
+        f'{use_base_key}_{ae_consts.PEERS_S3_BUCKET_NAME}')
+    news_iex_redis_key = (
+        f'{use_base_key}_{ae_consts.NEWS_S3_BUCKET_NAME}1')
+    financials_redis_key = (
+        f'{use_base_key}_{ae_consts.FINANCIALS_S3_BUCKET_NAME}')
+    earnings_redis_key = (
+        f'{use_base_key}_{ae_consts.EARNINGS_S3_BUCKET_NAME}')
+    dividends_redis_key = (
+        f'{use_base_key}_{ae_consts.DIVIDENDS_S3_BUCKET_NAME}')
+    company_redis_key = (
+        f'{use_base_key}_{ae_consts.COMPANY_S3_BUCKET_NAME}')
+    options_yahoo_redis_key = (
+        f'{use_base_key}_{ae_consts.OPTIONS_S3_BUCKET_NAME}')
+    call_options_yahoo_redis_key = (
+        f'{use_base_key}_calls')
+    put_options_yahoo_redis_key = (
+        f'{use_base_key}_puts')
+    pricing_yahoo_redis_key = (
+        f'{use_base_key}_{ae_consts.PRICING_S3_BUCKET_NAME}')
+    news_yahoo_redis_key = (
+        f'{use_base_key}_{ae_consts.NEWS_S3_BUCKET_NAME}')
+    call_options_td_redis_key = (
+        f'{use_base_key}_tdcalls')
+    put_options_td_redis_key = (
+        f'{use_base_key}_tdputs')
 
     ds_cache_dict = {
         'daily': daily_redis_key,
@@ -377,6 +362,7 @@ def build_publish_pricing_request(
         's3_bucket': s3_bucket_name,
         's3_key': s3_key,
         'redis_key': redis_key,
+        'df_compress': True,
         'data': use_data
     }
 
@@ -574,7 +560,9 @@ def build_iex_fetch_daily_request(
         label=None):
     """build_iex_fetch_daily_request
 
-    Fetch daily data from IEX
+    Fetch `daily
+    data <https://iexcloud.io/docs/api/#historical-prices>`__
+    from IEX
 
     :param label: log label to use
     """
@@ -612,7 +600,8 @@ def build_iex_fetch_minute_request(
         label=None):
     """build_iex_fetch_minute_request
 
-    Fetch `minute data <https://iextrading.com/developer/docs/#chart>`__
+    Fetch `minute
+    data <https://iexcloud.io/docs/api/#historical-prices>`__
     from IEX
 
     :param label: log label to use
@@ -633,8 +622,6 @@ def build_iex_fetch_minute_request(
         'fd_type': iex_consts.DATAFEED_MINUTE,
         'ticker': ticker,
         'timeframe': '1d',
-        'from': iex_utils.last_month().strftime(
-            '%Y-%m-%d %H:%M:%S'),
         'last_close': None,
         's3_bucket': s3_bucket_name,
         's3_key': s3_key,
@@ -654,7 +641,8 @@ def build_iex_fetch_quote_request(
         label=None):
     """build_iex_fetch_quote_request
 
-    Fetch `quote data <https://iextrading.com/developer/docs/#quote>`__
+    Fetch `quote
+    data <https://iexcloud.io/docs/api/#quote>`__
     from IEX
 
     :param label: log label to use
@@ -692,7 +680,9 @@ def build_iex_fetch_stats_request(
         label=None):
     """build_iex_fetch_stats_request
 
-    Fetch statistic data from IEX
+    Fetch `stats
+    data <https://iexcloud.io/docs/api/#key-stats>`__
+    from IEX
 
     :param label: log label to use
     """
@@ -711,8 +701,6 @@ def build_iex_fetch_stats_request(
         'ft_type': iex_consts.FETCH_STATS,
         'fd_type': iex_consts.DATAFEED_STATS,
         'ticker': ticker,
-        'from': iex_utils.last_month().strftime(
-            '%Y-%m-%d %H:%M:%S'),
         's3_bucket': s3_bucket_name,
         's3_key': s3_key,
         'redis_key': redis_key,
@@ -731,7 +719,9 @@ def build_iex_fetch_peers_request(
         label=None):
     """build_iex_fetch_peers_request
 
-    Fetch peer data from IEX
+    Fetch `peers
+    data <https://iexcloud.io/docs/api/#peers>`__
+    from IEX
 
     :param label: log label to use
     """
@@ -751,8 +741,6 @@ def build_iex_fetch_peers_request(
         'fd_type': iex_consts.DATAFEED_PEERS,
         'ticker': ticker,
         'timeframe': '1d',
-        'from': iex_utils.last_month().strftime(
-            '%Y-%m-%d %H:%M:%S'),
         's3_bucket': s3_bucket_name,
         's3_key': s3_key,
         'redis_key': redis_key,
@@ -771,7 +759,9 @@ def build_iex_fetch_news_request(
         label=None):
     """build_iex_fetch_news_request
 
-    Fetch news data from IEX
+    Fetch `news
+    data <https://iexcloud.io/docs/api/#news>`__
+    from IEX
 
     :param label: log label to use
     """
@@ -791,8 +781,6 @@ def build_iex_fetch_news_request(
         'fd_type': iex_consts.DATAFEED_NEWS,
         'ticker': ticker,
         'timeframe': '1d',
-        'from': iex_utils.last_month().strftime(
-            '%Y-%m-%d %H:%M:%S'),
         's3_bucket': s3_bucket_name,
         's3_key': s3_key,
         'redis_key': redis_key,
@@ -811,7 +799,9 @@ def build_iex_fetch_financials_request(
         label=None):
     """build_iex_fetch_financials_request
 
-    Fetch financial data from IEX
+    Fetch `financials
+    data <https://iexcloud.io/docs/api/#financials>`__
+    from IEX
 
     :param label: log label to use
     """
@@ -831,8 +821,6 @@ def build_iex_fetch_financials_request(
         'fd_type': iex_consts.DATAFEED_FINANCIALS,
         'ticker': ticker,
         'timeframe': '1d',
-        'from': iex_utils.last_month().strftime(
-            '%Y-%m-%d %H:%M:%S'),
         's3_bucket': s3_bucket_name,
         's3_key': s3_key,
         'redis_key': redis_key,
@@ -851,7 +839,9 @@ def build_iex_fetch_earnings_request(
         label=None):
     """build_iex_fetch_earnings_request
 
-    Fetch earnings data from IEX
+    Fetch `earnings
+    data <https://iexcloud.io/docs/api/#earnings>`__
+    from IEX
 
     :param label: log label to use
     """
@@ -871,8 +861,6 @@ def build_iex_fetch_earnings_request(
         'fd_type': iex_consts.DATAFEED_EARNINGS,
         'ticker': ticker,
         'timeframe': '1d',
-        'from': iex_utils.last_month().strftime(
-            '%Y-%m-%d %H:%M:%S'),
         's3_bucket': s3_bucket_name,
         's3_key': s3_key,
         'redis_key': redis_key,
@@ -891,7 +879,9 @@ def build_iex_fetch_dividends_request(
         label=None):
     """build_iex_fetch_dividends_request
 
-    Fetch dividend data from IEX
+    Fetch `dividends
+    data <https://iexcloud.io/docs/api/#dividends>`__
+    from IEX
 
     :param label: log label to use
     """
@@ -911,8 +901,6 @@ def build_iex_fetch_dividends_request(
         'fd_type': iex_consts.DATAFEED_DIVIDENDS,
         'ticker': ticker,
         'timeframe': '2y',
-        'from': iex_utils.last_month().strftime(
-            '%Y-%m-%d %H:%M:%S'),
         's3_bucket': s3_bucket_name,
         's3_key': s3_key,
         'redis_key': redis_key,
@@ -931,7 +919,9 @@ def build_iex_fetch_company_request(
         label=None):
     """build_iex_fetch_company_request
 
-    Fetch company data from IEX
+    Fetch `company
+    data <https://iexcloud.io/docs/api/#company>`__
+    from IEX
 
     :param label: log label to use
     """
@@ -951,8 +941,6 @@ def build_iex_fetch_company_request(
         'fd_type': iex_consts.DATAFEED_COMPANY,
         'ticker': ticker,
         'timeframe': '1d',
-        'from': iex_utils.last_month().strftime(
-            '%Y-%m-%d %H:%M:%S'),
         's3_bucket': s3_bucket_name,
         's3_key': s3_key,
         'redis_key': redis_key,

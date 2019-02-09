@@ -68,13 +68,13 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.6.22',
+    version='1.7.0',
     description=(
         'Backtest 1000s of minute-by-minute '
         'trading algorithms. Automated '
         'pricing data ingestion from: '
-        'IEX (https://iextrading.com/developer/docs/), '
-        'Tradier (https://tradier.com/) and '
+        'IEX (https://iexcloud.io), '
+        'Tradier (https://tradier.com) and '
         'FinViz. Datasets and trading '
         'performance automatically compressed and published '
         'to S3 for building AI training datasets '

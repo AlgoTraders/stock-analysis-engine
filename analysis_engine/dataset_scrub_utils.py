@@ -87,42 +87,28 @@ def debug_msg(
     if ae_consts.ev('DEBUG_FETCH', '0') == '1':
         if 'START' in msg:
             log.info(
-                '{} - {} -------------------------'
-                '------------------------------------'.format(
-                    label,
-                    dft_msg))
+                f'{label} - {dft_msg} '
+                f'-------------------------'
+                f'------------------------------------')
         msg = msg_format.format(
             df,
             date_str),
         if hasattr(df, 'empty'):
             log.info(
-                '{} - {} - {} found df={} '
-                'columns={}'.format(
-                    label,
-                    dft_msg,
-                    msg,
-                    df,
-                    df.columns.values))
+                f'{label} - {dft_msg} - {msg} found df={df} '
+                f'columns={df.columns.values}')
         else:
             log.info(
-                '{} - {} - {} not df={}'.format(
-                    label,
-                    dft_msg,
-                    msg,
-                    df))
+                f'{label} - {dft_msg} - {msg} found df={df}')
 
         if 'END' in msg:
             log.info(
-                '{} - {} -------------------------'
-                '------------------------------------'.format(
-                    label,
-                    dft_msg))
+                f'{label} - {dft_msg} '
+                f'-------------------------'
+                f'------------------------------------')
     else:
         log.info(
-            '{} - {} - {}'.format(
-                label,
-                dft_msg,
-                msg))
+            f'{label} - {dft_msg} - {msg}')
     # end of debug pre-scrub logging
 
 # end of debug_msg
@@ -131,8 +117,8 @@ def debug_msg(
 def build_dates_from_df_col(
         df,
         use_date_str,
-        src_col='label',
-        src_date_format=ae_consts.IEX_MINUTE_DATE_FORMAT,
+        src_col='minute',
+        src_date_format=ae_consts.COMMON_TICK_DATE_FORMAT,
         output_date_format=ae_consts.COMMON_TICK_DATE_FORMAT):
     """build_dates_from_df_col
 
@@ -148,18 +134,19 @@ def build_dates_from_df_col(
     :param df: source ``pandas.DataFrame``
     """
     new_dates = []
-    for idx, i in enumerate(df['label']):
+    for idx, i in enumerate(df[src_col]):
         org_new_str = ''
         if ':' not in i:
-            org_new_str = '{} {}:00:00 {}'.format(
-                use_date_str,
-                i.split(' ')[0],
-                i.split(' ')[1])
+            split_arr = i.split(' ')
+            org_new_str = (
+                f'{use_date_str} '
+                f'{split_arr[0]}'
+                f':00:00 '
+                f'{split_arr[1]}')
         else:
-            org_new_str = '{} {}:00 {}'.format(
-                use_date_str,
-                i.split(' ')[0],
-                i.split(' ')[1])
+            org_new_str = (
+                f'{use_date_str} '
+                f'{i}:00')
         new_date_val = datetime.datetime.strptime(
             org_new_str,
             src_date_format)
@@ -216,10 +203,7 @@ def ingress_scrub_dataset(
 
     if not hasattr(df, 'empty'):
         log.info(
-            '{} - {} no dataset_id={}'.format(
-                label,
-                datafeed_type,
-                ds_id))
+            f'{label} - {datafeed_type} no dataset_id={ds_id}')
         return None
 
     out_df = df
@@ -245,8 +229,7 @@ def ingress_scrub_dataset(
     debug_msg(
         label=label,
         datafeed_type=datafeed_type,
-        msg_format='START - {}'.format(
-            use_msg_format),
+        msg_format=f'START - {use_msg_format}',
         date_str=use_date_str,
         df=df)
 
@@ -256,19 +239,17 @@ def ingress_scrub_dataset(
                 new_dates = []
                 if 'label' in df:
                     for idx, i in enumerate(out_df['label']):
+                        split_arr = i.split(' ')
                         new_str = ''
                         if ',' not in i:
                             # Oct 3
-                            new_str = '{}-{}-{}'.format(
-                                year_str,
-                                i.split(' ')[0],
-                                i.split(' ')[1])
+                            new_str = (
+                                f'{year_str}-{split_arr[0]}-{split_arr[1]}')
                         else:
                             # Aug 29, 18
-                            new_str = '20{}-{}-{}'.format(
-                                i.split(' ')[2],
-                                i.split(' ')[0],
-                                i.split(' ')[1]).replace(',', '')
+                            new_str = (
+                                f'20{split_arr[2]}-{split_arr[0]}-'
+                                f'{split_arr[1].replace(",", "")}')
                         new_dates.append(new_str)
                     # end for all rows
                     out_df['date'] = pd.to_datetime(
@@ -315,155 +296,49 @@ def ingress_scrub_dataset(
                         unit='ns')
                 # end if label is in df
             elif datafeed_type == iex_consts.DATAFEED_STATS:
-                log.info(
-                    '{} - {} - no scrub_mode={} '
-                    'support'.format(
-                        label,
-                        datafeed_type,
-                        scrub_mode))
-                if 'label' in df:
-                    out_df['date'] = pd.to_datetime(
-                        df['label'],
-                        format=daily_date_format)
+                log.debug('{label} - {datafeed_type} - no scrub_mode')
             elif datafeed_type == iex_consts.DATAFEED_PEERS:
-                log.info(
-                    '{} - {} - no scrub_mode={} '
-                    'support'.format(
-                        label,
-                        datafeed_type,
-                        scrub_mode))
-                if 'label' in df:
-                    out_df['date'] = pd.to_datetime(
-                        df['label'],
-                        format=daily_date_format)
+                log.debug('{label} - {datafeed_type} - no scrub_mode')
             elif datafeed_type == iex_consts.DATAFEED_NEWS:
-                log.info(
-                    '{} - {} - no scrub_mode={} '
-                    'support'.format(
-                        label,
-                        datafeed_type,
-                        scrub_mode))
-                if 'label' in df:
-                    out_df['date'] = pd.to_datetime(
-                        df['label'],
-                        format=daily_date_format)
+                log.debug('{label} - {datafeed_type} - no scrub_mode')
             elif datafeed_type == iex_consts.DATAFEED_FINANCIALS:
-                log.info(
-                    '{} - {} - no scrub_mode={} '
-                    'support'.format(
-                        label,
-                        datafeed_type,
-                        scrub_mode))
-                if 'label' in df:
-                    out_df['date'] = pd.to_datetime(
-                        df['label'],
-                        format=daily_date_format)
+                log.debug('{label} - {datafeed_type} - no scrub_mode')
             elif datafeed_type == iex_consts.DATAFEED_EARNINGS:
-                log.info(
-                    '{} - {} - no scrub_mode={} '
-                    'support'.format(
-                        label,
-                        datafeed_type,
-                        scrub_mode))
-                if 'label' in df:
-                    out_df['date'] = pd.to_datetime(
-                        df['label'],
-                        format=daily_date_format)
+                log.debug('{label} - {datafeed_type} - no scrub_mode')
             elif datafeed_type == iex_consts.DATAFEED_DIVIDENDS:
-                log.info(
-                    '{} - {} - no scrub_mode={} '
-                    'support'.format(
-                        label,
-                        datafeed_type,
-                        scrub_mode))
-                if 'label' in df:
-                    out_df['date'] = pd.to_datetime(
-                        df['label'],
-                        format=daily_date_format)
+                log.debug('{label} - {datafeed_type} - no scrub_mode')
             elif datafeed_type == iex_consts.DATAFEED_COMPANY:
-                log.info(
-                    '{} - {} - no scrub_mode={} '
-                    'support'.format(
-                        label,
-                        datafeed_type,
-                        scrub_mode))
-                if 'label' in df:
-                    out_df['date'] = pd.to_datetime(
-                        df['label'],
-                        format=daily_date_format)
+                log.debug('{label} - {datafeed_type} - no scrub_mode')
             elif datafeed_type == yahoo_consts.DATAFEED_PRICING_YAHOO:
-                log.info(
-                    '{} - {} - no scrub_mode={} '
-                    'support'.format(
-                        label,
-                        datafeed_type,
-                        scrub_mode))
                 if 'date' in df:
                     out_df['date'] = pd.to_datetime(
                         df['date'],
                         format=daily_date_format)
             elif datafeed_type == yahoo_consts.DATAFEED_OPTIONS_YAHOO:
-                log.info(
-                    '{} - {} - no scrub_mode={} '
-                    'support'.format(
-                        label,
-                        datafeed_type,
-                        scrub_mode))
                 if 'date' in df:
                     out_df['date'] = pd.to_datetime(
                         df['date'],
                         format=daily_date_format)
             elif datafeed_type == yahoo_consts.DATAFEED_NEWS_YAHOO:
-                log.info(
-                    '{} - {} - no scrub_mode={} '
-                    'support'.format(
-                        label,
-                        datafeed_type,
-                        scrub_mode))
                 if 'date' in df:
                     out_df['date'] = pd.to_datetime(
                         df['date'],
                         format=daily_date_format)
             elif datafeed_type == td_consts.DATAFEED_TD_CALLS:
-                log.debug(
-                    '{} - {} - no scrub_mode={} '
-                    'support'.format(
-                        label,
-                        datafeed_type,
-                        scrub_mode))
+                log.debug('{label} - {datafeed_type} - no scrub_mode')
             elif datafeed_type == td_consts.DATAFEED_TD_PUTS:
-                log.debug(
-                    '{} - {} - no scrub_mode={} '
-                    'support'.format(
-                        label,
-                        datafeed_type,
-                        scrub_mode))
+                log.debug('{label} - {datafeed_type} - no scrub_mode')
             else:
-                log.info(
-                    '{} - {} - no scrub_mode={} '
-                    'support'.format(
-                        label,
-                        datafeed_type,
-                        scrub_mode))
-                if 'label' in df:
-                    out_df['date'] = pd.to_datetime(
-                        df['label'],
-                        format=daily_date_format)
+                log.debug('{label} - {datafeed_type} - no scrub_mode')
             # if/else
         else:
             log.info(
-                '{} - {} - no scrub_mode'.format(
-                    label,
-                    datafeed_type))
+                f'{label} - {datafeed_type} - '
+                f'missing support in ingress_scrub_dataset')
     except Exception as e:
         log.critical(
-            '{} - {} sort={} - '
-            'failed with ex={} data={}'.format(
-                label,
-                datafeed_type,
-                scrub_mode,
-                e,
-                df))
+            f'{label} - {datafeed_type} sort={scrub_mode} - '
+            f'failed with ex={e} data={df}')
         out_df = None
     # end of try/ex
 
@@ -521,10 +396,7 @@ def extract_scrub_dataset(
 
     if not hasattr(df, 'empty'):
         log.info(
-            '{} - {} no dataset_id={}'.format(
-                label,
-                datafeed_type,
-                ds_id))
+            f'{label} - {datafeed_type} no dataset_id={ds_id}')
         return None
 
     return df

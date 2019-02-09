@@ -1,11 +1,24 @@
 """
-Common and constants
+**IEX Cloud Environment Variables**
 
-Supported environment variables:
+.. code-block:: python
 
-::
-
-    export DEFAULT_FETCH_DATASETS="daily,minute,quote,stats,
+    IEX_API_VERSION = os.getenv(
+        'IEX_API_VERSION',
+        'beta')
+    IEX_URL_BASE = os.getenv(
+        'IEX_URL',
+        f'https://cloud.iexapis.com/{IEX_API_VERSION}')
+    IEX_URL_BASE_V1 = os.getenv(
+        'IEX_URL_V1',
+        'https://api.iextrading.com/1.0/')
+    IEX_TOKEN = os.getenv(
+        'IEX_TOKEN',
+        None)
+    IEX_PROXIES = os.getenv(
+        'IEX_PROXIES',
+        None)
+    DEFAULT_FETCH_DATASETS="daily,minute,quote,stats,
     peers,news,financials,earnings,dividends,company"
 
 """
@@ -59,6 +72,58 @@ FUNDAMENTAL_DATASETS = [
     FETCH_DIVIDENDS,
     FETCH_STATS
 ]
+
+IEX_DATE_FORMAT = '%Y-%m-%d'
+IEX_TICK_FORMAT = '%Y-%m-%d %H:%M:%S'
+IEX_FETCH_MINUTE_FORMAT = '%H:%M'
+
+# IEX Cloud Environment Variables
+IEX_API_VERSION = os.getenv(
+    'IEX_API_VERSION',
+    'beta')
+IEX_URL_BASE = os.getenv(
+    'IEX_URL',
+    f'https://cloud.iexapis.com/{IEX_API_VERSION}')
+IEX_URL_BASE_V1 = os.getenv(
+    'IEX_URL_V1',
+    'https://api.iextrading.com/1.0/')
+IEX_TOKEN = os.getenv(
+    'IEX_TOKEN',
+    None)
+IEX_PROXIES = os.getenv(
+    'IEX_PROXIES',
+    None)
+IEX_DATE_FIELDS = [
+    'date',
+    'EPSReportDate',
+    'fiscalEndDate',
+    'exDate',
+    'declaredDate',
+    'paymentDate',
+    'recordDate',
+    'reportDate',
+    'datetime',
+    'expectedDate',
+    'latestTime',
+    'DailyListTimestamp',
+    'RecordUpdateTime']
+IEX_TIME_FIELDS = [
+    'closeTime',
+    'close.time',
+    'delayedPriceTime',
+    'extendedPriceTime',
+    'iexLastUpdated',
+    'latestTime',
+    'openTime',
+    'open.time'
+    'processedTime',
+    'time',
+    'timestamp',
+    'lastUpdated']
+IEX_EPOCH_FIELDS = [
+    'datetime'
+]
+IEX_SECOND_FIELDS = []
 
 ENV_FETCH_DATASETS = os.getenv(
     'DEFAULT_FETCH_DATASETS_IEX',

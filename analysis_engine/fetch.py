@@ -81,7 +81,7 @@ def fetch(
     :param fetch_mode: data sources - default is ``all`` (both IEX
         and Yahoo), ``iex`` for only IEX, ``yahoo`` for only Yahoo.
     :param iex_datasets: list of strings for gathering specific `IEX
-        datasets <https://iextrading.com/developer/docs/#stocks>`__
+        datasets <https://iexcloud.io/>`__
         which are set as consts: ``analysis_engine.iex.consts.FETCH_*``.
 
     **(Optional) Redis connectivity arguments**

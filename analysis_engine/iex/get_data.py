@@ -1,10 +1,11 @@
 """
-Parse data from IEX
+Common Fetch for any supported Get from IEX using HTTP
 
 Supported environment variables:
 
 ::
 
+    # debug the fetch routines with:
     export DEBUG_IEX_DATA=1
 
 """
@@ -26,17 +27,15 @@ def get_data_from_iex(
         work_dict):
     """get_data_from_iex
 
-    Get pricing from iex
+    Get data from IEX - this requires an account
 
     :param work_dict: request dictionary
     """
     label = 'get_data_from_iex'
 
-    log.info(
-        'task - {} - start '
-        'work_dict={}'.format(
-            label,
-            work_dict))
+    log.debug(
+        f'task - {label} - start '
+        f'work_dict={work_dict}')
 
     rec = {
         'data': None,
@@ -54,22 +53,12 @@ def get_data_from_iex(
 
     try:
 
-        ticker = work_dict.get(
-            'ticker',
-            ae_consts.TICKER)
-        field = work_dict.get(
-            'field',
-            'daily')
-        ft_type = work_dict.get(
-            'ft_type',
-            None)
+        ticker = work_dict.get('ticker', ae_consts.TICKER)
+        field = work_dict.get('field', 'daily')
+        ft_type = work_dict.get('ft_type', None)
         ft_str = str(ft_type).lower()
-        label = work_dict.get(
-            'label',
-            label)
-        orient = work_dict.get(
-            'orient',
-            'records')
+        label = work_dict.get('label', label)
+        orient = work_dict.get('orient', 'records')
 
         iex_req = None
         if ft_type == iex_consts.FETCH_DAILY or ft_str == 'daily':
@@ -114,14 +103,12 @@ def get_data_from_iex(
                 label=label)
         else:
             log.error(
-                '{} - unsupported ft_type={} ft_str={} ticker={}'.format(
-                    label,
-                    ft_type,
-                    ft_str,
-                    ticker))
+                f'{label} - unsupported ft_type={ft_type} '
+                f'ft_str={ft_str} ticker={ticker}')
             raise NotImplemented
         # if supported fetch request type
 
+        ticker = iex_req['ticker']
         clone_keys = [
             'ticker',
             's3_address',
@@ -134,20 +121,14 @@ def get_data_from_iex(
         ]
 
         for k in clone_keys:
-            iex_req[k] = work_dict.get(
-                k,
-                '{}-missing-in-{}'.format(
-                    k,
-                    label))
+            iex_req[k] = work_dict.get(k, f'{k}-missing-in-{label}')
         # end of cloning keys
 
         if not iex_req:
             err = (
-                '{} - ticker={} did not build an IEX request '
-                'for work={}'.format(
-                    label,
-                    iex_req['ticker'],
-                    work_dict))
+                f'{label} - ticker={ticker} '
+                f'did not build an IEX request '
+                f'for work={work_dict}')
             log.error(err)
             res = build_result.build_result(
                 status=ae_consts.ERR,
@@ -156,12 +137,9 @@ def get_data_from_iex(
             return res
         else:
             log.info(
-                '{} - ticker={} field={} '
-                'orient={} fetch'.format(
-                    label,
-                    iex_req['ticker'],
-                    field,
-                    orient))
+                f'{label} - ticker={ticker} '
+                f'field={field} '
+                f'orient={orient} fetch')
         # if invalid iex request
 
         df = None
@@ -180,27 +158,18 @@ def get_data_from_iex(
                 '%Y-%m-%d %H:%M:%S')
         except Exception as f:
             log.error(
-                '{} - ticker={} field={} failed fetch_data '
-                'with ex={}'.format(
-                    label,
-                    iex_req['ticker'],
-                    ft_type,
-                    f))
+                f'{label} - ticker={ticker} field={ft_type} '
+                f'failed fetch_data '
+                f'with ex={f}')
         # end of try/ex
 
         if ae_consts.ev('DEBUG_IEX_DATA', '0') == '1':
             log.info(
-                '{} ticker={} field={} data={} to_json'.format(
-                    label,
-                    iex_req['ticker'],
-                    field,
-                    rec['data']))
+                f'{label} ticker={ticker} '
+                f'field={field} data={rec["data"]} to_json')
         else:
             log.info(
-                '{} ticker={} field={} to_json'.format(
-                    label,
-                    iex_req['ticker'],
-                    field))
+                f'{label} ticker={ticker} field={field} to_json')
         # end of if/else found data
 
         upload_and_cache_req = copy.deepcopy(iex_req)
@@ -231,27 +200,22 @@ def get_data_from_iex(
                 'status',
                 ae_consts.NOT_SET)
             log.info(
-                '{} publish update status={} data={}'.format(
-                    label,
-                    ae_consts.get_status(status=update_status),
-                    update_res))
+                f'{label} publish update '
+                f'status={ae_consts.get_status(status=update_status)} '
+                f'data={update_res}')
         except Exception as f:
             err = (
-                '{} - failed to upload iex data={} to '
-                'to s3_key={} and redis_key={}'.format(
-                    label,
-                    upload_and_cache_req,
-                    upload_and_cache_req['s3_key'],
-                    upload_and_cache_req['redis_key']))
+                f'{label} - failed to upload iex '
+                f'data={upload_and_cache_req} to '
+                f'to s3_key={upload_and_cache_req["s3_key"]} '
+                f'and redis_key={upload_and_cache_req["redis_key"]}')
             log.error(err)
         # end of try/ex to upload and cache
 
         if not rec['data']:
             log.info(
-                '{} - ticker={} no IEX data field={} to publish'.format(
-                    label,
-                    iex_req['ticker'],
-                    field))
+                f'{label} - ticker={ticker} no IEX data '
+                f'field={field} to publish')
         # end of if/else
 
         res = build_result.build_result(
@@ -263,19 +227,16 @@ def get_data_from_iex(
         res = build_result.build_result(
             status=ae_consts.ERR,
             err=(
-                'failed - get_data_from_iex '
-                'dict={} with ex={}').format(
-                    work_dict,
-                    e),
+                f'failed - get_data_from_iex '
+                f'dict={work_dict} with ex={e}'),
             rec=rec)
     # end of try/ex
 
     log.info(
-        'task - get_data_from_iex done - '
-        '{} - status={} err={}'.format(
-            label,
-            ae_consts.get_status(res['status']),
-            res['err']))
+        f'task - get_data_from_iex done - '
+        f'{label} - '
+        f'status={ae_consts.get_status(res["status"])} '
+        f'err={res["err"]}')
 
     return res
 # end of get_data_from_iex

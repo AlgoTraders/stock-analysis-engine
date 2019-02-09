@@ -186,11 +186,7 @@ def perform_extract(
     extract_df = extract_res['rec']['data']
 
     log.debug(
-        '{} - {} ds_id={} extract scrub={}'.format(
-            label,
-            df_str,
-            ds_id,
-            scrub_mode))
+        f'{label} - {df_str} ds_id={ds_id} extract scrub={scrub_mode}')
 
     scrubbed_df = scrub_utils.extract_scrub_dataset(
         label=label,

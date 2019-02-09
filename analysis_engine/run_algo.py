@@ -179,7 +179,7 @@ def run_algo(
     **(Optional) Data sources, datafeeds and datasets to gather**
 
     :param iex_datasets: list of strings for gathering specific `IEX
-        datasets <https://iextrading.com/developer/docs/#stocks>`__
+        datasets <https://iexcloud.io/>`__
         which are set as consts: ``analysis_engine.iex.consts.FETCH_*``.
 
     **(Optional) Redis connectivity arguments**

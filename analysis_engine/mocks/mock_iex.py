@@ -1,189 +1,261 @@
 """
-Mocking pyEX data fetch api calls
+Mocking data fetch api calls
 """
 
-import pandas as pd
+import datetime
 
 
-def chartDF(
-        symbol,
-        timeframe,
-        date):
-    """chartDF
+def mock_daily(
+        url,
+        token=None,
+        version=None):
+    """mock_daily
 
-    Code for: `mock pyEX chartDF <https://github.com/timkpaine/pyEX/b
-    lob/7cc6d56f7cfb950ed3098ac1191fb204fbf22790/pyEX/stocks.py#L171>`__
+    mock minute history for a chart
 
-    :param symbol: ticker symbol
-    :param timeframe: timeframe argument
-    :param date: date value
+    :param url: IEX resource url
+    :param token: optional - string token for your user's
+        account
+    :param version: optional - version string
     """
 
     val = {
-        'symbol': [symbol],
-        'timeframe': [timeframe],
-        'date': [date],
-        'testcase': ['mock-chartDF']
+        'url': url,
+        'version': version,
+        'symbol': url.split('/')[2],
+        'timeframe': '3m',
+        'date': datetime.datetime.now().strftime('%Y-%m-%d'),
+        'testcase': 'mock-daily'
     }
-    df = pd.DataFrame(
-        val)
-    return df
-# end of chartDF
+    return [val]
+# end of mock_daily
 
 
-def quoteDF(
-        symbol):
-    """quoteDF
+def mock_minute(
+        url,
+        token=None,
+        version=None):
+    """mock_minute
 
-    Code for: `mock pyEX quoteDF <https://github.com/timkpaine/pyEX/blob/7
-    cc6d56f7cfb950ed3098ac1191fb204fbf22790/pyEX/stocks.py#L681>`__
+    mock minute history for a chart
 
-    :param symbol: ticker symbol
+    :param url: IEX resource url
+    :param token: optional - string token for your user's
+        account
+    :param version: optional - version string
+    """
+
+    now = datetime.datetime.now()
+    val = {
+        'url': url,
+        'version': version,
+        'symbol': url.split('/')[2],
+        'timeframe': '1d',
+        'date': now.strftime('%Y-%m-%d'),
+        'minute': now.strftime('%H:%M'),
+        'testcase': 'mock-minute'
+
+    }
+    return [val]
+# end of mock_minute
+
+
+def mock_quote(
+        url,
+        token=None,
+        version=None):
+    """mock_quote
+
+    mock quote
+
+    :param url: IEX resource url
+    :param token: optional - string token for your user's
+        account
+    :param version: optional - version string
     """
 
     val = {
-        'symbol': [symbol],
-        'testcase': ['mock-quoteDF']
+        'url': url,
+        'version': version,
+        'symbol': url.split('/')[2],
+        'testcase': 'mock-quote'
     }
-    df = pd.DataFrame(
-        val)
-    return df
-# end of quoteDF
+    return val
+# end of mock_quote
 
 
-def stockStatsDF(
-        symbol):
-    """stockStatsDF
+def mock_stats(
+        url,
+        token=None,
+        version=None):
+    """mock_stats
 
-    mock pyEX stockStatsDF
+    mock stats
 
-    :param symbol: ticker symbol
+    :param url: IEX resource url
+    :param token: optional - string token for your user's
+        account
+    :param version: optional - version string
     """
 
     val = {
-        'symbol': [symbol],
-        'testcase': ['mock-stockStatsDF']
+        'url': url,
+        'version': version,
+        'symbol': url.split('/')[2],
+        'testcase': 'mock-stats'
     }
-    df = pd.DataFrame(
-        val)
-    return df
-# end of stockStatsDF
+    return val
+# end of mock_stats
 
 
-def peersDF(
-        symbol):
-    """peersDF
+def mock_peers(
+        url,
+        token=None,
+        version=None):
+    """mock_peers
 
-    mock pyEX peersDF
+    mock peers
 
-    :param symbol: ticker symbol
+    :param url: IEX resource url
+    :param token: optional - string token for your user's
+        account
+    :param version: optional - version string
     """
 
     val = {
-        'symbol': [symbol],
-        'testcase': ['mock-peersDF']
+        'url': url,
+        'version': version,
+        'symbol': url.split('/')[2],
+        'testcase': 'mock-peers'
     }
-    df = pd.DataFrame(
-        val)
-    return df
-# end of peersDF
+    return [val]
+# end of mock_peers
 
 
-def newsDF(
-        symbol,
-        count):
-    """newsDF
+def mock_news(
+        url,
+        token=None,
+        version=None):
+    """mock_news
 
-    mock pyEX newsDF
+    mock news
 
-    :param symbol: ticker symbol
-    :param count: number of new items
+    :param url: IEX resource url
+    :param token: optional - string token for your user's
+        account
+    :param version: optional - version string
+    """
+    now = datetime.datetime.now()
+    epoch = datetime.datetime.utcfromtimestamp(0)
+    now_ms = (now - epoch).total_seconds() * 1000.0
+
+    val = {
+        'url': url,
+        'version': version,
+        'datetime': now_ms,
+        'symbol': url.split('/')[2],
+        'count': 5,
+        'testcase': 'mock-news'
+    }
+    return [val]
+# end of mock_news
+
+
+def mock_financials(
+        url,
+        token=None,
+        version=None):
+    """mock_financials
+
+    mock financials
+
+    :param url: IEX resource url
+    :param token: optional - string token for your user's
+        account
+    :param version: optional - version string
     """
 
     val = {
-        'symbol': [symbol],
-        'count': [count],
-        'testcase': ['mock-newsDF']
+        'url': url,
+        'version': version,
+        'symbol': url.split('/')[2],
+        'testcase': 'mock-financials'
     }
-    df = pd.DataFrame(
-        val)
-    return df
-# end of newsDF
+    return {
+        'financials': [val]
+    }
+# end of mock_financials
 
 
-def financialsDF(
-        symbol):
-    """financialsDF
+def mock_earnings(
+        url,
+        token=None,
+        version=None):
+    """mock_earnings
 
-    mock pyEX financialsDF
+    mock earnings
 
-    :param symbol: ticker symbol
+    :param url: IEX resource url
+    :param token: optional - string token for your user's
+        account
+    :param version: optional - version string
     """
 
     val = {
-        'symbol': [symbol],
-        'testcase': ['mock-financialsDF']
+        'url': url,
+        'version': version,
+        'symbol': url.split('/')[2],
+        'testcase': 'mock-earnings'
     }
-    df = pd.DataFrame(
-        val)
-    return df
-# end of financialsDF
+    return {
+        'earnings': [val]
+    }
+# end of mock_earnings
 
 
-def earningsDF(
-        symbol):
-    """earningsDF
+def mock_dividends(
+        url,
+        token=None,
+        version=None):
+    """mock_dividends
 
-    mock pyEX earningsDF
+    mock dividends
 
-    :param symbol: ticker symbol
+    :param url: IEX resource url
+    :param token: optional - string token for your user's
+        account
+    :param version: optional - version string
     """
 
     val = {
-        'symbol': [symbol],
-        'testcase': ['mock-earningsDF']
+        'url': url,
+        'version': version,
+        'symbol': url.split('/')[2],
+        'testcase': 'mock-dividends'
     }
-    df = pd.DataFrame(
-        val)
-    return df
-# end of earningsDF
+    return [val]
+# end of mock_dividends
 
 
-def dividendsDF(
-        symbol,
-        **kwargs):
-    """dividendsDF
+def mock_company(
+        url,
+        token=None,
+        version=None):
+    """mock_company
 
-    mock pyEX dividendsDF
+    mock company
 
-    :param symbol: ticker symbol
-    :param kwargs: keyword arguments dictionary
+    :param url: IEX resource url
+    :param token: optional - string token for your user's
+        account
+    :param version: optional - version string
     """
 
     val = {
-        'symbol': [symbol],
-        'testcase': ['mock-dividendsDF']
+        'url': url,
+        'version': version,
+        'symbol': url.split('/')[2],
+        'testcase': 'mock-company'
     }
-    df = pd.DataFrame(
-        val)
-    return df
-# end of dividendsDF
-
-
-def companyDF(
-        symbol):
-    """companyDF
-
-    mock pyEX companyDF
-
-    :param symbol: ticker symbol
-    """
-
-    val = {
-        'symbol': [symbol],
-        'testcase': ['mock-companyDF']
-    }
-    df = pd.DataFrame(
-        val)
-    return df
-# end of companyDF
+    return val
+# end of mock_company

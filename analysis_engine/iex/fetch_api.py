@@ -1,19 +1,13 @@
 """
-Fetch API calls wrapping pyEX
-
-Supported environment variables:
-
-::
-
-    # verbose logging in this module
-    export DEBUG_FETCH=1
-
+Fetch API calls for pulling IEX Cloud Data from
+a valid IEX account
 """
 
-import pyEX.stocks as pyex_stocks
+import pandas as pd
+import analysis_engine.utils as ae_utils
+import analysis_engine.dataset_scrub_utils as dataset_utils
 import analysis_engine.iex.consts as iex_consts
-import analysis_engine.iex.utils as fetch_utils
-import analysis_engine.dataset_scrub_utils as scrub_utils
+import analysis_engine.iex.helpers_for_iex_api as iex_helpers
 import spylunking.log.setup_logging as log_utils
 
 log = log_utils.build_colorized_logger(name=__name__)
@@ -27,47 +21,55 @@ def fetch_daily(
     Fetch the IEX daily data for a ticker and
     return it as a ``pandas.DataFrame``.
 
+    https://iexcloud.io/docs/api/#historical-prices
+
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    datafeed_type = iex_consts.DATAFEED_DAILY
-    ticker = work_dict.get(
-        'ticker',
-        None)
-    label = work_dict.get(
-        'label',
-        None)
-    use_date = work_dict.get(
-        'use_date',
-        None)
+    ticker = work_dict.get('ticker', None)
+    label = work_dict.get('label', None)
 
-    log.info(
-        '{} - daily - scrub_mode={} args={} '
-        'ticker={}'.format(
-            label,
-            scrub_mode,
-            work_dict,
-            ticker))
+    use_url = (
+        f'/stock/{ticker}/chart/1m')
 
-    res = pyex_stocks.chartDF(
-        symbol=ticker,
-        timeframe=work_dict.get(
-            'timeframe',
-            '1d'),
-        date=work_dict.get(
-            'date',
-            None))
+    log.debug(
+        f'{label} - daily - url={use_url} '
+        f'args={work_dict} '
+        f'ticker={ticker}')
 
-    scrubbed_df = scrub_utils.ingress_scrub_dataset(
-        label=label,
-        scrub_mode=scrub_mode,
-        datafeed_type=datafeed_type,
-        msg_format='df={} date_str={}',
-        ds_id=ticker,
-        date_str=use_date,
-        df=res)
+    resp_json = iex_helpers.get_from_iex(
+        url=use_url,
+        token=iex_consts.IEX_TOKEN)
 
-    return scrubbed_df
+    df = pd.DataFrame(resp_json)
+
+    iex_helpers.convert_datetime_columns(
+        df=df)
+
+    cols_to_drop = [
+        'uHigh',
+        'uLow',
+        'uOpen',
+        'uClose',
+        'uVolume'
+    ]
+
+    remove_these = None
+    for c in df:
+        if c in cols_to_drop:
+            if not remove_these:
+                remove_these = []
+            remove_these.append(c)
+
+    if remove_these:
+        df = df.drop(columns=remove_these)
+
+    df.set_index(
+        [
+            'date'
+        ]).sort_values(by=['date'], ascending=True)
+
+    return df
 # end of fetch_daily
 
 
@@ -79,19 +81,14 @@ def fetch_minute(
     Fetch the IEX minute intraday data for a ticker and
     return it as a ``pandas.DataFrame``.
 
+    https://iexcloud.io/docs/api/#historical-prices
+
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    datafeed_type = iex_consts.DATAFEED_MINUTE
-    ticker = work_dict.get(
-        'ticker',
-        None)
-    label = work_dict.get(
-        'label',
-        None)
-    use_date = work_dict.get(
-        'use_date',
-        None)
+    ticker = work_dict.get('ticker', None)
+    label = work_dict.get('label', None)
+    use_date = work_dict.get('use_date', None)
 
     from_historical_date = None
     last_close_to_use = None
@@ -100,39 +97,49 @@ def fetch_minute(
     if 'from_historical_date' in work_dict:
         from_historical_date = work_dict['from_historical_date']
         last_close_to_use = work_dict['last_close_to_use']
-        dates = fetch_utils.get_days_between_dates(
+        dates = ae_utils.get_days_between_dates(
             from_historical_date=work_dict['from_historical_date'],
             last_close_to_use=last_close_to_use)
 
-    log.info(
-        '{} - minute - args={} ticker={} '
-        'fhdate={} last_close={} dates={}'.format(
-            label,
-            work_dict,
-            ticker,
-            from_historical_date,
-            last_close_to_use,
-            dates))
+    use_url = (
+        f'/stock/{ticker}/chart/1d')
 
-    res = pyex_stocks.chartDF(
-        symbol=ticker,
-        timeframe=work_dict.get(
-            'timeframe',
-            '1m'),
-        date=work_dict.get(
+    if use_date:
+        use_url = (
+            f'/stock/{ticker}/chart/date/{use_date}')
+
+    log.debug(
+        f'{label} - minute - url={use_url} '
+        f'args={work_dict} ticker={ticker} '
+        f'fhdate={from_historical_date} '
+        f'last_close={last_close_to_use} '
+        f'dates={dates}')
+
+    resp_json = iex_helpers.get_from_iex(
+        url=use_url,
+        token=iex_consts.IEX_TOKEN)
+
+    df = pd.DataFrame(resp_json)
+
+    iex_helpers.convert_datetime_columns(
+        df=df)
+
+    if not use_date:
+        use_date = df['date'].iloc[-1].strftime('%Y-%m-%d')
+
+    new_minutes = dataset_utils.build_dates_from_df_col(
+        src_col='minute',
+        use_date_str=use_date,
+        df=df)
+    df['minute'] = pd.to_datetime(
+        new_minutes,
+        format=iex_consts.IEX_TICK_FORMAT)
+    df.set_index(
+        [
             'date',
-            None))
-
-    scrubbed_df = scrub_utils.ingress_scrub_dataset(
-        label=label,
-        scrub_mode=scrub_mode,
-        datafeed_type=datafeed_type,
-        msg_format='df={} date_str={}',
-        ds_id=ticker,
-        date_str=use_date,
-        df=res)
-
-    return scrubbed_df
+            'minute'
+        ])
+    return df
 # end of fetch_minute
 
 
@@ -144,39 +151,43 @@ def fetch_quote(
     Fetch the IEX quote data for a ticker and
     return as a ``pandas.DataFrame``.
 
+    https://iexcloud.io/docs/api/#quote
+
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    datafeed_type = iex_consts.DATAFEED_QUOTE
-    ticker = work_dict.get(
-        'ticker',
-        None)
-    label = work_dict.get(
-        'label',
-        None)
-    use_date = work_dict.get(
-        'use_date',
-        None)
+    ticker = work_dict.get('ticker', None)
+    label = work_dict.get('label', None)
 
-    log.info(
-        '{} - quote - args={} ticker={}'.format(
-            label,
-            work_dict,
-            ticker))
+    use_url = (
+        f'/stock/{ticker}/quote')
 
-    res = pyex_stocks.quoteDF(
-        symbol=ticker)
+    log.debug(
+        f'{label} - quote - url={use_url} '
+        f'args={work_dict} ticker={ticker}')
 
-    scrubbed_df = scrub_utils.ingress_scrub_dataset(
-        label=label,
-        scrub_mode=scrub_mode,
-        datafeed_type=datafeed_type,
-        msg_format='df={} date_str={}',
-        ds_id=ticker,
-        date_str=use_date,
-        df=res)
+    resp_json = iex_helpers.get_from_iex(
+        url=use_url,
+        token=iex_consts.IEX_TOKEN)
 
-    return scrubbed_df
+    df = pd.DataFrame([resp_json])
+
+    iex_helpers.convert_datetime_columns(
+        df=df)
+
+    cols_to_drop = []
+    remove_these = None
+    if len(cols_to_drop) > 0:
+        for c in df:
+            if c in cols_to_drop:
+                if not remove_these:
+                    remove_these = []
+                remove_these.append(c)
+
+    if remove_these:
+        df = df.drop(columns=remove_these)
+
+    return df
 # end of fetch_quote
 
 
@@ -188,39 +199,43 @@ def fetch_stats(
     Fetch the IEX statistics data for a ticker and
     return it as a ``pandas.DataFrame``.
 
+    https://iexcloud.io/docs/api/#key-stats
+
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    datafeed_type = iex_consts.DATAFEED_STATS
-    ticker = work_dict.get(
-        'ticker',
-        None)
-    label = work_dict.get(
-        'label',
-        None)
-    use_date = work_dict.get(
-        'use_date',
-        None)
+    ticker = work_dict.get('ticker', None)
+    label = work_dict.get('label', None)
 
-    log.info(
-        '{} - stats - args={} ticker={}'.format(
-            label,
-            work_dict,
-            ticker))
+    use_url = (
+        f'/stock/{ticker}/stats')
 
-    res = pyex_stocks.stockStatsDF(
-        symbol=ticker)
+    log.debug(
+        f'{label} - stats - url={use_url} '
+        f'args={work_dict} ticker={ticker}')
 
-    scrubbed_df = scrub_utils.ingress_scrub_dataset(
-        label=label,
-        scrub_mode=scrub_mode,
-        datafeed_type=datafeed_type,
-        msg_format='df={} date_str={}',
-        ds_id=ticker,
-        date_str=use_date,
-        df=res)
+    resp_json = iex_helpers.get_from_iex(
+        url=use_url,
+        token=iex_consts.IEX_TOKEN)
 
-    return scrubbed_df
+    df = pd.DataFrame([resp_json])
+
+    iex_helpers.convert_datetime_columns(
+        df=df)
+
+    cols_to_drop = []
+    remove_these = None
+    if len(cols_to_drop) > 0:
+        for c in df:
+            if c in cols_to_drop:
+                if not remove_these:
+                    remove_these = []
+                remove_these.append(c)
+
+    if remove_these:
+        df = df.drop(columns=remove_these)
+
+    return df
 # end of fetch_stats
 
 
@@ -232,39 +247,43 @@ def fetch_peers(
     Fetch the IEX peers data for a ticker and
     return it as a ``pandas.DataFrame``.
 
+    https://iexcloud.io/docs/api/#peers
+
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    datafeed_type = iex_consts.DATAFEED_PEERS
-    ticker = work_dict.get(
-        'ticker',
-        None)
-    label = work_dict.get(
-        'label',
-        None)
-    use_date = work_dict.get(
-        'use_date',
-        None)
+    ticker = work_dict.get('ticker', None)
+    label = work_dict.get('label', None)
 
-    log.info(
-        '{} - peers - args={} ticker={}'.format(
-            label,
-            work_dict,
-            ticker))
+    use_url = (
+        f'/stock/{ticker}/relevant')
 
-    res = pyex_stocks.peersDF(
-        symbol=ticker)
+    log.debug(
+        f'{label} - peers - url={use_url} '
+        f'args={work_dict} ticker={ticker}')
 
-    scrubbed_df = scrub_utils.ingress_scrub_dataset(
-        label=label,
-        scrub_mode=scrub_mode,
-        datafeed_type=datafeed_type,
-        msg_format='df={} date_str={}',
-        ds_id=ticker,
-        date_str=use_date,
-        df=res)
+    resp_json = iex_helpers.get_from_iex(
+        url=use_url,
+        token=iex_consts.IEX_TOKEN)
 
-    return scrubbed_df
+    df = pd.DataFrame(resp_json)
+
+    iex_helpers.convert_datetime_columns(
+        df=df)
+
+    cols_to_drop = []
+    remove_these = None
+    if len(cols_to_drop) > 0:
+        for c in df:
+            if c in cols_to_drop:
+                if not remove_these:
+                    remove_these = []
+                remove_these.append(c)
+
+    if remove_these:
+        df = df.drop(columns=remove_these)
+
+    return df
 # end of fetch_peers
 
 
@@ -276,40 +295,45 @@ def fetch_news(
     Fetch the IEX news data for a ticker and
     return it as a ``pandas.DataFrame``.
 
+    https://iexcloud.io/docs/api/#news
+
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    datafeed_type = iex_consts.DATAFEED_NEWS
-    ticker = work_dict.get(
-        'ticker',
-        None)
-    label = work_dict.get(
-        'label',
-        None)
-    use_date = work_dict.get(
-        'use_date',
-        None)
+    ticker = work_dict.get('ticker', None)
+    label = work_dict.get('label', None)
+    num_news = int(work_dict.get('num_news', 5))
 
-    log.info(
-        '{} - news - args={} ticker={}'.format(
-            label,
-            work_dict,
-            ticker))
+    use_url = (
+        f'/stock/{ticker}/news/last/{num_news}')
 
-    res = pyex_stocks.newsDF(
-        symbol=ticker,
-        count=50)
+    log.debug(
+        f'{label} - news - url={use_url} '
+        f'args={work_dict} ticker={ticker}')
 
-    scrubbed_df = scrub_utils.ingress_scrub_dataset(
-        label=label,
-        scrub_mode=scrub_mode,
-        datafeed_type=datafeed_type,
-        msg_format='df={} date_str={}',
-        ds_id=ticker,
-        date_str=use_date,
-        df=res)
+    resp_json = iex_helpers.get_from_iex(
+        url=use_url,
+        token=iex_consts.IEX_TOKEN)
 
-    return scrubbed_df
+    df = pd.DataFrame(resp_json)
+    df['datetime'] = pd.to_datetime(
+        df['datetime'],
+        unit='ms',
+        errors='coerce')
+
+    cols_to_drop = []
+    remove_these = None
+    if len(cols_to_drop) > 0:
+        for c in df:
+            if c in cols_to_drop:
+                if not remove_these:
+                    remove_these = []
+                remove_these.append(c)
+
+    if remove_these:
+        df = df.drop(columns=remove_these)
+
+    return df
 # end of fetch_news
 
 
@@ -321,39 +345,43 @@ def fetch_financials(
     Fetch the IEX financial data for a ticker and
     return it as a ``pandas.DataFrame``.
 
+    https://iexcloud.io/docs/api/#financials
+
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    datafeed_type = iex_consts.DATAFEED_FINANCIALS
-    ticker = work_dict.get(
-        'ticker',
-        None)
-    label = work_dict.get(
-        'label',
-        None)
-    use_date = work_dict.get(
-        'use_date',
-        None)
+    ticker = work_dict.get('ticker', None)
+    label = work_dict.get('label', None)
 
-    log.info(
-        '{} - financials - args={} ticker={}'.format(
-            label,
-            work_dict,
-            ticker))
+    use_url = (
+        f'/stock/{ticker}/financials')
 
-    res = pyex_stocks.financialsDF(
-        symbol=ticker)
+    log.debug(
+        f'{label} - fins - url={use_url} '
+        f'args={work_dict} ticker={ticker}')
 
-    scrubbed_df = scrub_utils.ingress_scrub_dataset(
-        label=label,
-        scrub_mode=scrub_mode,
-        datafeed_type=datafeed_type,
-        msg_format='df={} date_str={}',
-        ds_id=ticker,
-        date_str=use_date,
-        df=res)
+    resp_json = iex_helpers.get_from_iex(
+        url=use_url,
+        token=iex_consts.IEX_TOKEN)
 
-    return scrubbed_df
+    df = pd.DataFrame(resp_json.get('financials', []))
+
+    iex_helpers.convert_datetime_columns(
+        df=df)
+
+    cols_to_drop = []
+    remove_these = None
+    if len(cols_to_drop) > 0:
+        for c in df:
+            if c in cols_to_drop:
+                if not remove_these:
+                    remove_these = []
+                remove_these.append(c)
+
+    if remove_these:
+        df = df.drop(columns=remove_these)
+
+    return df
 # end of fetch_financials
 
 
@@ -365,39 +393,43 @@ def fetch_earnings(
     Fetch the IEX earnings data for a ticker and
     return it as a ``pandas.DataFrame``.
 
+    https://iexcloud.io/docs/api/#earnings
+
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    datafeed_type = iex_consts.DATAFEED_EARNINGS
-    ticker = work_dict.get(
-        'ticker',
-        None)
-    label = work_dict.get(
-        'label',
-        None)
-    use_date = work_dict.get(
-        'use_date',
-        None)
+    ticker = work_dict.get('ticker', None)
+    label = work_dict.get('label', None)
 
-    log.info(
-        '{} - earnings - args={} ticker={}'.format(
-            label,
-            work_dict,
-            ticker))
+    use_url = (
+        f'/stock/{ticker}/earnings')
 
-    res = pyex_stocks.earningsDF(
-        symbol=ticker)
+    log.debug(
+        f'{label} - earns - url={use_url} '
+        f'args={work_dict} ticker={ticker}')
 
-    scrubbed_df = scrub_utils.ingress_scrub_dataset(
-        label=label,
-        scrub_mode=scrub_mode,
-        datafeed_type=datafeed_type,
-        msg_format='df={} date_str={}',
-        ds_id=ticker,
-        date_str=use_date,
-        df=res)
+    resp_json = iex_helpers.get_from_iex(
+        url=use_url,
+        token=iex_consts.IEX_TOKEN)
 
-    return scrubbed_df
+    df = pd.DataFrame(resp_json.get('earnings', []))
+
+    iex_helpers.convert_datetime_columns(
+        df=df)
+
+    cols_to_drop = []
+    remove_these = None
+    if len(cols_to_drop) > 0:
+        for c in df:
+            if c in cols_to_drop:
+                if not remove_these:
+                    remove_these = []
+                remove_these.append(c)
+
+    if remove_these:
+        df = df.drop(columns=remove_these)
+
+    return df
 # end of fetch_earnings
 
 
@@ -409,45 +441,44 @@ def fetch_dividends(
     Fetch the IEX dividends data for a ticker and
     return it as a ``pandas.DataFrame``.
 
+    https://iexcloud.io/docs/api/#dividends
+
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    datafeed_type = iex_consts.DATAFEED_DIVIDENDS
-    ticker = work_dict.get(
-        'ticker',
-        None)
-    label = work_dict.get(
-        'label',
-        None)
-    timeframe = work_dict.get(
-        'timeframe',
-        '2y')
-    use_date = work_dict.get(
-        'use_date',
-        None)
+    ticker = work_dict.get('ticker', None)
+    label = work_dict.get('label', None)
+    timeframe = work_dict.get('timeframe', '3m')
 
-    log.info(
-        '{} - dividends - args={} ticker={} '
-        'timeframe={}'.format(
-            label,
-            work_dict,
-            ticker,
-            timeframe))
+    use_url = (
+        f'/stock/{ticker}/dividends/{timeframe}')
 
-    res = pyex_stocks.dividendsDF(
-        symbol=ticker,
-        timeframe=timeframe)
+    log.debug(
+        f'{label} - divs - url={use_url} '
+        f'args={work_dict} ticker={ticker}')
 
-    scrubbed_df = scrub_utils.ingress_scrub_dataset(
-        label=label,
-        scrub_mode=scrub_mode,
-        datafeed_type=datafeed_type,
-        msg_format='df={} date_str={}',
-        ds_id=ticker,
-        date_str=use_date,
-        df=res)
+    resp_json = iex_helpers.get_from_iex(
+        url=use_url,
+        token=iex_consts.IEX_TOKEN)
 
-    return scrubbed_df
+    df = pd.DataFrame(resp_json)
+
+    iex_helpers.convert_datetime_columns(
+        df=df)
+
+    cols_to_drop = []
+    remove_these = None
+    if len(cols_to_drop) > 0:
+        for c in df:
+            if c in cols_to_drop:
+                if not remove_these:
+                    remove_these = []
+                remove_these.append(c)
+
+    if remove_these:
+        df = df.drop(columns=remove_these)
+
+    return df
 # end of fetch_dividends
 
 
@@ -459,38 +490,41 @@ def fetch_company(
     Fetch the IEX company data for a ticker and
     return it as a ``pandas.DataFrame``.
 
+    https://iexcloud.io/docs/api/#company
+
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    datafeed_type = iex_consts.DATAFEED_COMPANY
-    ticker = work_dict.get(
-        'ticker',
-        None)
-    label = work_dict.get(
-        'label',
-        None)
-    use_date = work_dict.get(
-        'use_date',
-        None)
+    ticker = work_dict.get('ticker', None)
+    label = work_dict.get('label', None)
 
-    log.info(
-        '{} - company - args={} ticker={}'.format(
-            label,
-            label,
-            work_dict,
-            ticker))
+    use_url = (
+        f'/stock/{ticker}/company')
 
-    res = pyex_stocks.companyDF(
-        symbol=ticker)
+    log.debug(
+        f'{label} - comp - url={use_url} '
+        f'args={work_dict} ticker={ticker}')
 
-    scrubbed_df = scrub_utils.ingress_scrub_dataset(
-        label=label,
-        scrub_mode=scrub_mode,
-        datafeed_type=datafeed_type,
-        msg_format='df={} date_str={}',
-        ds_id=ticker,
-        date_str=use_date,
-        df=res)
+    resp_json = iex_helpers.get_from_iex(
+        url=use_url,
+        token=iex_consts.IEX_TOKEN)
 
-    return scrubbed_df
+    df = pd.DataFrame([resp_json])
+
+    iex_helpers.convert_datetime_columns(
+        df=df)
+
+    cols_to_drop = []
+    remove_these = None
+    if len(cols_to_drop) > 0:
+        for c in df:
+            if c in cols_to_drop:
+                if not remove_these:
+                    remove_these = []
+                remove_these.append(c)
+
+    if remove_these:
+        df = df.drop(columns=remove_these)
+
+    return df
 # end of fetch_company
