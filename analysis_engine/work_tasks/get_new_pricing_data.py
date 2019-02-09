@@ -45,12 +45,12 @@ and more) from these sources:
             print(' - {}'.format(k))
 
 .. warning:: When fetching pricing data from sources like IEX,
-             Please ensure the returned values are
-             not serialized pandas Dataframes to prevent
-             issues with celery task results. Instead
-             it is preferred to returned a ``df.to_json()``
-             before sending the results into the
-             results backend.
+    Please ensure the returned values are
+    not serialized pandas Dataframes to prevent
+    issues with celery task results. Instead
+    it is preferred to returned a ``df.to_json()``
+    before sending the results into the
+    results backend.
 
 .. tip:: This task uses the `analysis_engine.work_tasks.
     custom_task.CustomTask class <https://github.com/A
@@ -187,6 +187,9 @@ def get_new_pricing_data(
         fetch_mode = work_dict.get(
             'fetch_mode',
             ae_consts.FETCH_MODE_ALL)
+        iex_token = work_dict.get(
+            'iex_token',
+            iex_consts.IEX_TOKEN)
         td_token = work_dict.get(
             'td_token',
             td_consts.TD_TOKEN)
@@ -221,6 +224,17 @@ def get_new_pricing_data(
                     label,
                     fetch_mode))
 
+        if get_iex_data:
+            if not iex_token:
+                log.warn(
+                    f'{label} - '
+                    f'please set a valid IEX Cloud Account token ('
+                    f'https://iexcloud.io/cloud-login/#/register'
+                    f') to fetch data from IEX Cloud. It must be '
+                    f'set as an environment variable like: '
+                    f'export IEX_TOKEN=<token>')
+                get_iex_data = False
+
         if get_td_data:
             missing_td_token = [
                 'MISSING_TD_TOKEN',
@@ -229,13 +243,12 @@ def get_new_pricing_data(
             ]
             if td_token in missing_td_token:
                 log.warn(
-                    '{} - please set a valid Tradier Account token ('
-                    'https://developer.tradier.com/user/sign_up'
-                    ') to fetch pricing data from Tradier. It must be '
-                    'set as an environment variable like: '
-                    'export TD_TOKEN=<token>'
-                    ''.format(
-                        label))
+                    f'{label} - '
+                    f'please set a valid Tradier Account token ('
+                    f'https://developer.tradier.com/user/sign_up'
+                    f') to fetch pricing data from Tradier. It must be '
+                    f'set as an environment variable like: '
+                    f'export TD_TOKEN=<token>')
                 get_td_data = False
         # sanity check - disable Tradier fetch if the token is not set
 
