@@ -49,13 +49,13 @@ Here is a video showing how to fetch the latest pricing data for a ticker using 
 
     #.  Fetch pricing data from `IEX (requires an account) <https://iexcloud.io/cloud-login#/register/>`__ and `Tradier (requires an account) <https://developer.tradier.com/getting_started>`__):
 
-        - Set the **IEX_TOKEN** environment variable to fetch Trading pricing data with:
+        - Set the **IEX_TOKEN** environment variable to fetch from the IEX datafeeds:
 
         ::
 
             export IEX_TOKEN=YOUR_IEX_TOKEN
 
-        - Set the **TD_TOKEN** environment variable to fetch Trading pricing data with:
+        - Set the **TD_TOKEN** environment variable to fetch from the Tradier datafeeds:
 
           ::
 
