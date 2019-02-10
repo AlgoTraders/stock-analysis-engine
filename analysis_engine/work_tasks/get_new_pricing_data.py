@@ -168,7 +168,7 @@ def get_new_pricing_data(
         exp_date = work_dict.get(
             'exp_date',
             None)
-        cur_date = datetime.datetime.utcnow()
+        cur_date = ae_utils.last_close()
         cur_strike = work_dict.get(
             'strike',
             None)
@@ -234,7 +234,7 @@ def get_new_pricing_data(
                     f'set as an environment variable like: '
                     f'export IEX_TOKEN=<token>')
                 get_iex_data = False
-
+        # sanity check - disable IEX fetch if the token is not set
         if get_td_data:
             missing_td_token = [
                 'MISSING_TD_TOKEN',
