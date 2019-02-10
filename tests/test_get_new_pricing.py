@@ -4,6 +4,7 @@ update prices
 """
 
 import mock
+import analysis_engine.consts as ae_consts
 import analysis_engine.mocks.mock_pinance
 import analysis_engine.mocks.mock_iex
 from analysis_engine.mocks.base_test import BaseTestCase
@@ -138,7 +139,7 @@ class TestGetNewPricing(BaseTestCase):
         res = run_get_new_pricing_data(
             work)
         self.assertTrue(
-            res['status'] == ERR)
+            res['status'] == ae_consts.MISSING_TOKEN)
     # end of test_err_get_new_pricing
 
     @mock.patch(
