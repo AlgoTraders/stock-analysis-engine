@@ -101,7 +101,7 @@ def get_from_iex_cloud(
     """get_from_iex_cloud
 
     Get data from IEX Cloud API (v2)
-    https://cloud.iexapis.com
+    https://iexcloud.io
 
     :param url: IEX resource url
     :param token: optional - string token for your user's
@@ -132,8 +132,8 @@ def handle_get_from_iex(
     v2 or v1 api depending on if the ``token``
     argument is set:
 
-    - `IEX Cloud (v2) <https://cloud.iexapis.com/>`__
-    - `IEX Trading API (v1) <https://cloud.iexapis.com/>`__
+    - `IEX Cloud (v2) <https://iexcloud.io>`__
+    - `IEX Trading API (v1) <https://iextrading.com/developer/docs/>`__
 
     :param url: IEX resource url
     :param token: optional - string token for your user's
