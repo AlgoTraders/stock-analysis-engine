@@ -1,4 +1,4 @@
-Stock Analysis Engine
+
 =====================
 
 Build and tune investment algorithms for use with `artificial intelligence (deep neural networks) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Comparing-3-Deep-Neural-Networks-Trained-to-Predict-a-Stocks-Closing-Price-Using-The-Analysis-Engine.ipynb>`__ with a distributed stack for running backtests using live pricing data on publicly traded companies with automated datafeeds from: `IEX Real-Time Price <https://iexcloud.io/>`__, `Tradier <https://tradier.com/>`__ and `FinViz <https://finviz.com>`__ (includes: pricing, options, news, dividends, daily, intraday, screeners, statistics, financials, earnings, and more).
@@ -52,9 +52,9 @@ Here is a video showing how to fetch the latest pricing data for a ticker using 
 
         - Set the **TD_TOKEN** environment variable to fetch from the Tradier datafeeds:
 
-          ::
+        ::
 
-              export TD_TOKEN=YOUR_TRADIER_TOKEN
+            export TD_TOKEN=YOUR_TRADIER_TOKEN
 
         - Fetch with:
 
@@ -64,11 +64,11 @@ Here is a video showing how to fetch the latest pricing data for a ticker using 
 
         - Fetch only from **IEX** with **-g iex**:
 
-          ::
+        ::
 
-              fetch -t SPY -g iex
-              # and fetch from just Tradier with:
-              # fetch -t SPY -g td
+            fetch -t SPY -g iex
+            # and fetch from just Tradier with:
+            # fetch -t SPY -g td
 
     .. note:: Yahoo `disabled the YQL finance API so fetching pricing data from yahoo is disabled by default <https://developer.yahoo.com/yql/>`__
 
