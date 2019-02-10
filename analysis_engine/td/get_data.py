@@ -32,7 +32,7 @@ def get_data_from_td(
     """
     label = 'get_data_from_td'
 
-    log.info(
+    log.debug(
         'task - {} - start '
         'work_dict={}'.format(
             label,
@@ -123,7 +123,7 @@ def get_data_from_td(
                 rec=rec)
             return res
         else:
-            log.info(
+            log.debug(
                 '{} - ticker={} field={} '
                 'orient={} fetch'.format(
                     label,
@@ -147,6 +147,13 @@ def get_data_from_td(
                     orient=orient)
                 rec['updated'] = datetime.datetime.utcnow().strftime(
                     '%Y-%m-%d %H:%M:%S')
+            elif status_df == ae_consts.EMPTY:
+                res = build_result.build_result(
+                    status=ae_consts.ERR,
+                    err=(
+                        f'did not fetch any data'),
+                    rec=rec)
+                return res
             else:
                 err = (
                     '{} - ticker={} td_fetch_data.fetch_data field={} '
@@ -178,14 +185,14 @@ def get_data_from_td(
         # end of try/ex
 
         if ae_consts.ev('DEBUG_TD_DATA', '0') == '1':
-            log.info(
+            log.debug(
                 '{} ticker={} field={} data={} to_json'.format(
                     label,
                     td_req['ticker'],
                     field,
                     rec['data']))
         else:
-            log.info(
+            log.debug(
                 '{} ticker={} field={} to_json'.format(
                     label,
                     td_req['ticker'],
@@ -219,7 +226,7 @@ def get_data_from_td(
             update_status = update_res.get(
                 'status',
                 ae_consts.NOT_SET)
-            log.info(
+            log.debug(
                 '{} publish update status={} data={}'.format(
                     label,
                     ae_consts.get_status(status=update_status),
@@ -236,7 +243,7 @@ def get_data_from_td(
         # end of try/ex to upload and cache
 
         if not rec['data']:
-            log.info(
+            log.debug(
                 '{} - ticker={} no Tradier data field={} to publish'.format(
                     label,
                     td_req['ticker'],
@@ -259,7 +266,7 @@ def get_data_from_td(
             rec=rec)
     # end of try/ex
 
-    log.info(
+    log.debug(
         'task - get_data_from_td done - '
         '{} - status={} err={}'.format(
             label,

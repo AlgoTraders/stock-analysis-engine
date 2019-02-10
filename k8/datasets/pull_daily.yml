@@ -1,13 +1,13 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: ae-dataset-td-1
+  name: ae-dataset-daily
   annotations:
-    description: The Stock Analysis Dataset Collector for fetching Tradier pricing datasets every minute
+    description: The Stock Analysis Dataset Collector for fetching from IEX Cloud and Tradier datasets every day
     runtime: python3
   labels:
     sa: engine
-    purpose: stock-analysis
+    purpose: collect-daily
     layer: backend
     messaging: redis
     cache: redis
@@ -16,7 +16,7 @@ spec:
   template:
     metadata:
       labels:
-        app: ae-dataset-td-1
+        app: ae-dataset-daily
         backend: enabled
         purpose: stock-analysis
         layer: backend
@@ -24,14 +24,14 @@ spec:
         cache: redis
         pubsub: publisher
     spec:
-      hostname: ae-dataset-td-1
+      hostname: ae-dataset-daily
       restartPolicy: Never
       # imagePullSecrets:
       # - name: ae.docker.creds
       containers:
       - image: jayjohnson/stock-analysis-engine:latest
         imagePullPolicy: Always
-        name: ae-dataset-td-1
+        name: ae-dataset-daily
         resources: {}
         command: [
           "/bin/bash",
@@ -40,7 +40,7 @@ spec:
         ]
         env:
         - name: DATASET_SOURCES
-          value: td
+          value: daily
         - name: POSTGRES_USER
           valueFrom:
             secretKeyRef:

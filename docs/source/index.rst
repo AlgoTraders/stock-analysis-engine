@@ -6,7 +6,7 @@
 Stock Analysis Engine
 =====================
 
-Build and tune investment algorithms for use with `artificial intelligence (deep neural networks) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Comparing-3-Deep-Neural-Networks-Trained-to-Predict-a-Stocks-Closing-Price-Using-The-Analysis-Engine.ipynb>`__ with a distributed stack for running backtests using live pricing data on publicly traded companies with automated datafeeds from: `IEX Real-Time Price <https://iexcloud.io/>`__, `Tradier <https://tradier.com/>`__ and `FinViz <https://finviz.com>`__ (includes: pricing, options, news, dividends, daily, intraday, screeners, statistics, financials, earnings, and more).
+Build and tune investment algorithms for use with `artificial intelligence (deep neural networks) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Comparing-3-Deep-Neural-Networks-Trained-to-Predict-a-Stocks-Closing-Price-Using-The-Analysis-Engine.ipynb>`__ with a distributed stack for running backtests using live pricing data on publicly traded companies with automated datafeeds from: `IEX Cloud <https://iexcloud.io/>`__, `Tradier <https://tradier.com/>`__ and `FinViz <https://finviz.com>`__ (includes: pricing, options, news, dividends, daily, intraday, screeners, statistics, financials, earnings, and more).
 
 .. image:: https://i.imgur.com/tw2wJ6t.png
 
@@ -17,7 +17,7 @@ Supported fetch methods for getting pricing data:
 
 - Command line using ``fetch`` command
 - Docker-compose using ``./compose/start.sh -c``
-- Kubernetes `Fetch from IEX and Tradier job <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/k8/datasets/job.yml>`__ or `Fetch from only Trader job <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/k8/datasets/pull_tradier_per_minute.yml>`__
+- Kubernetes jobs: `Fetch Intraday <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/k8/datasets/pull_intraday_per_minute.yml>`__, `Fetch Daily <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/k8/datasets/pull_daily.yml>`__, `Fetch Weekly <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/k8/datasets/pull_weekly.yml>`__, or `Fetch from only Tradier <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/k8/datasets/pull_tradier_per_minute.yml>`__
 
 Fetch using the Command Line
 ----------------------------
@@ -47,9 +47,9 @@ Here is a video showing how to fetch the latest pricing data for a ticker using 
 
     #.  `Run through the Getting Started section <https://github.com/AlgoTraders/stock-analysis-engine#getting-started>`__
 
-    #.  Fetch pricing data from `IEX (requires an account) <https://iexcloud.io/cloud-login#/register/>`__ and `Tradier (requires an account) <https://developer.tradier.com/getting_started>`__):
+    #.  Fetch pricing data from `IEX Cloud (requires an account and uses on-demand usage pricing) <https://iexcloud.io/cloud-login#/register/>`__ and `Tradier (requires an account) <https://developer.tradier.com/getting_started>`__):
 
-        - Set the **IEX_TOKEN** environment variable to fetch from the IEX datafeeds:
+        - Set the **IEX_TOKEN** environment variable to fetch from the IEX Cloud datafeeds:
 
         ::
 

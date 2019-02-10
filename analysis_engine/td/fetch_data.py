@@ -76,7 +76,7 @@ def fetch_data(
             work_dict=work_dict)
 
         if status_df == ae_consts.SUCCESS:
-            log.info(
+            log.debug(
                 'call - merge df')
             work_copy = copy.deepcopy(
                 work_dict)
@@ -97,7 +97,7 @@ def fetch_data(
                 td_extract.extract_option_calls_dataset(
                     work_dict=work_copy)
             if ext_status == ae_consts.SUCCESS and len(ext_df.index) > 0:
-                log.info(
+                log.debug(
                     'call - merging fetch={} with ext={}'.format(
                         len(fetch_df.index),
                         len(ext_df.index)))
@@ -172,7 +172,7 @@ def fetch_data(
                         'strike'
                     ],
                     ascending=True)
-                log.info(
+                log.debug(
                     'call - merged={}'.format(
                         len(df.index)))
             else:
@@ -183,12 +183,13 @@ def fetch_data(
                     ],
                     ascending=True)
         else:
-            df = fetch_df.sort_values(
-                    by=[
-                        'date',
-                        'strike'
-                    ],
-                    ascending=True)
+            if 'date' in df and 'strike' in df:
+                df = fetch_df.sort_values(
+                        by=[
+                            'date',
+                            'strike'
+                        ],
+                        ascending=True)
         # if able to merge fetch + last for today
     elif (
             use_fetch_name == 'tdputs' or
@@ -196,7 +197,7 @@ def fetch_data(
         status_df, fetch_df = td_fetch.fetch_puts(
             work_dict=work_dict)
         if status_df == ae_consts.SUCCESS:
-            log.info(
+            log.debug(
                 'put - merge df')
             work_copy = copy.deepcopy(
                 work_dict)
@@ -217,7 +218,7 @@ def fetch_data(
                 td_extract.extract_option_puts_dataset(
                     work_dict=work_copy)
             if ext_status == ae_consts.SUCCESS and len(ext_df.index) > 0:
-                log.info(
+                log.debug(
                     'put - merging fetch={} with ext={}'.format(
                         len(fetch_df.index),
                         len(ext_df.index)))
@@ -289,7 +290,7 @@ def fetch_data(
                         'strike'
                     ],
                     ascending=True)
-                log.info(
+                log.debug(
                     'put - merged={}'.format(
                         len(df.index)))
             else:
@@ -300,12 +301,13 @@ def fetch_data(
                     ],
                     ascending=True)
         else:
-            df = fetch_df.sort_values(
-                    by=[
-                        'date',
-                        'strike'
-                    ],
-                    ascending=True)
+            if 'date' in df and 'strike' in df:
+                df = fetch_df.sort_values(
+                        by=[
+                            'date',
+                            'strike'
+                        ],
+                        ascending=True)
         # if able to merge fetch + last for today
     else:
         log.error(

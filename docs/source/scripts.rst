@@ -1,8 +1,8 @@
 Scripts
 =======
 
-Collect New Pricing Datasets
-============================
+Fetch Pricing Datasets from IEX Cloud and Tradier
+=================================================
 
 .. automodule:: analysis_engine.scripts.fetch_new_stock_datasets
    :members: fetch_new_stock_datasets

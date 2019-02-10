@@ -2,11 +2,12 @@
 
 """
 
-Fetch new pricing datasets for a single or multiple tickers at once or
-pull screeners from FinViz.
+Fetch new pricing datasets for a one or many tickers at once or
+pull screeners from IEX Cloud (https://iexcloud.io),
+Tradier (https://tradier.com/) and FinViz (https://finviz.com/)
 
-1) Fetch pricing data or FinViz screeners results
-2) Publish pricing data to redis and minio
+1) Fetch pricing data
+2) Publish pricing data to Redis and Minio
 
 """
 
@@ -55,26 +56,134 @@ def start_screener_analysis(
         'label',
         'screener')
     log.info(
-        '{} - start screener analysis'.format(
-            label))
+        f'{label} - start screener analysis')
     req['celery_disabled'] = True
     analysis_res = screener_utils.run_screener_analysis(
         work_dict=req)
     log.info(
-        '{} - done screener analysis result={}'.format(
-            label,
-            analysis_res))
+        f'{label} - done screener analysis result={analysis_res}')
 # end of start_screener_analysis
 
 
 def fetch_new_stock_datasets():
     """fetch_new_stock_datasets
 
-    Collect all datasets for the ticker **SPY**:
+    Collect datasets for a ticker from IEX Cloud or Tradier
+
+    .. warning: IEX Cloud charges per request. Here are example
+        commands to help you monitor your usage while handling
+        first time users and automation (intraday, daily, and weekly
+        options are supported).
+
+    **Setup**
 
     ::
 
-        fetch_new_stock_datasets.py -t SPY
+        export IEX_TOKEN=YOUR_IEX_CLOUD_TOKEN
+        export TD_TOKEN=YOUR_TRADIER_TOKEN
+
+    **Pull Data for a Ticker from IEX and Tradier**
+
+    ::
+
+        fetch -t TICKER
+
+    **Pull from All Supported IEX Feeds**
+
+    ::
+
+        fetch -t TICKER -g iex-all
+
+    **Pull from All Supported Tradier Feeds**
+
+    ::
+
+        fetch -t TICKER -g td
+
+    **Intraday IEX and Tradier Feeds (only minute and news to reduce costs)**
+
+    ::
+
+        fetch -t TICKER -g intra
+        # or manually:
+        # fetch -t TICKER -g td,iex_min,iex_news
+
+    **Daily IEX Feeds (daily and news)**
+
+    ::
+
+        fetch -t TICKER -g daily
+        # or manually:
+        # fetch -t TICKER -g iex_day,iex_news
+
+    **Weekly IEX Feeds (company, financials, earnings, dividends, and peers)**
+
+    ::
+
+        fetch -t TICKER -g weekly
+        # or manually:
+        # fetch -t TICKER -g iex_fin,iex_earn,iex_div,iex_peers,iex_news,
+        # iex_comp
+
+    **IEX Minute**
+
+    ::
+
+        fetch -t TICKER -g iex_min
+
+    **IEX News**
+
+    ::
+
+        fetch -t TICKER -g iex_news
+
+    **IEX Daily**
+
+    ::
+
+        fetch -t TICKER -g iex_day
+
+    **IEX Stats**
+
+    ::
+
+        fetch -t TICKER -g iex_stats
+
+    **IEX Peers**
+
+    ::
+
+        fetch -t TICKER -g iex_peers
+
+    **IEX Financials**
+
+    ::
+
+        fetch -t TICKER -g iex_fin
+
+    **IEX Earnings**
+
+    ::
+
+        fetch -t TICKER -g iex_earn
+
+    **IEX Dividends**
+
+    ::
+
+        fetch -t TICKER -g iex_div
+
+    **IEX Quote**
+
+    ::
+
+        fetch -t TICKER -g iex_quote
+
+    **IEX Company**
+
+    ::
+
+        fetch -t TICKER -g iex_comp
 
     .. note:: This requires the following services are listening on:
 
@@ -102,9 +211,34 @@ def fetch_new_stock_datasets():
         '-g',
         help=(
             'optional - fetch mode: '
-            'all = fetch from all data sources (default), '
-            'td = fetch from just Tradier sources, '
-            'iex = fetch from just IEX sources'),
+            'initial = default fetch from initial data feeds '
+            '(IEX and Tradier), '
+            'intra = fetch intraday from IEX and Tradier, '
+            'daily = fetch daily from IEX, '
+            'weekly = fetch weekly from IEX, '
+            'all = fetch from all data feeds, '
+            'td = fetch from Tradier feeds only, '
+            'iex = fetch from IEX Cloud feeds only, '
+            'iex_min = fetch IEX Cloud intraday per-minute feed '
+            'https://iexcloud.io/docs/api/#historical-prices '
+            'iex_day = fetch IEX Cloud daily feed '
+            'https://iexcloud.io/docs/api/#historical-prices '
+            'iex_quote = fetch IEX Cloud quotes feed '
+            'https://iexcloud.io/docs/api/#quote '
+            'iex_stats = fetch IEX Cloud key stats feed '
+            'https://iexcloud.io/docs/api/#key-stats '
+            'iex_peers = fetch from just IEX Cloud peers feed '
+            'https://iexcloud.io/docs/api/#peers '
+            'iex_news = fetch IEX Cloud news feed '
+            'https://iexcloud.io/docs/api/#news '
+            'iex_fin = fetch IEX Cloud financials feed'
+            'https://iexcloud.io/docs/api/#financials '
+            'iex_earn = fetch from just IEX Cloud earnings feeed '
+            'https://iexcloud.io/docs/api/#earnings '
+            'iex_div = fetch from just IEX Cloud dividends feed'
+            'https://iexcloud.io/docs/api/#dividends '
+            'iex_comp = fetch from just IEX Cloud company feed '
+            'https://iexcloud.io/docs/api/#company'),
         required=False,
         dest='fetch_mode')
     parser.add_argument(
@@ -281,7 +415,7 @@ def fetch_new_stock_datasets():
     run_offline = True
     ticker = ae_consts.TICKER
     ticker_id = ae_consts.TICKER_ID
-    fetch_mode = 'all'
+    fetch_mode = 'initial'
     exp_date_str = ae_consts.NEXT_EXP_STR
     ssl_options = ae_consts.SSL_OPTIONS
     transport_options = ae_consts.TRANSPORT_OPTIONS
@@ -428,43 +562,58 @@ def fetch_new_stock_datasets():
 
         path_to_tasks = 'analysis_engine.work_tasks'
         task_name = (
-            '{}.get_new_pricing_data.get_new_pricing_data'.format(
-                path_to_tasks))
+            f'{path_to_tasks}'
+            f'.get_new_pricing_data.get_new_pricing_data')
         task_res = None
         if ae_consts.is_celery_disabled() or run_offline:
             work['celery_disabled'] = True
             log.debug(
-                'starting without celery work={} offline={}'.format(
-                    ae_consts.ppj(work),
-                    run_offline))
+                f'starting without celery '
+                f'work={ae_consts.ppj(work)} '
+                f'offline={run_offline}')
             task_res = task_pricing.get_new_pricing_data(
                 work)
+            status_str = ae_consts.get_status(status=task_res['status'])
 
+            cur_date = ae_utils.get_last_close_str()
+            redis_arr = work["redis_address"].split(':')
+            include_results = ''
             if debug:
-                log.info(
-                    'done - result={} '
-                    'task={} status={} '
-                    'err={} label={}'.format(
-                        ae_consts.ppj(task_res),
-                        task_name,
-                        ae_consts.get_status(status=task_res['status']),
-                        task_res['err'],
-                        work['label']))
+                include_results = task_res['rec']
+            if task_res['status'] == ae_consts.SUCCESS:
+                if task_res['rec']['num_success'] == 0:
+                    log.error(
+                        f'failed fetching ticker={work["ticker"]} '
+                        f'from {fetch_mode} - please check the '
+                        f'environment variables')
+                else:
+                    log.info(
+                        f'done fetching ticker={work["ticker"]} '
+                        f'mode={fetch_mode} '
+                        f'status={status_str} '
+                        f'err={task_res["err"]} {include_results}')
+                    print(
+                        f'View keys in redis with:\n'
+                        f'redis-cli -h {redis_arr[0]} '
+                        f'keys '
+                        f'"{work["ticker"]}_{cur_date}*"')
+            elif task_res['status'] == ae_consts.MISSING_TOKEN:
+                print(
+                    f'Set an IEX or Tradier token: '
+                    f'\n'
+                    f'  export IEX_TOKEN=YOUR_IEX_TOKEN\n'
+                    f'  export TD_TOKEN=YOUR_TD_TOKEN\n')
             else:
-                log.info(
-                    'done - result '
-                    'task={} status={} '
-                    'err={} label={}'.format(
-                        task_name,
-                        ae_consts.get_status(status=task_res['status']),
-                        task_res['err'],
-                        work['label']))
+                log.error(
+                    f'done fetching ticker={work["ticker"]} '
+                    f'mode={fetch_mode} '
+                    f'status={status_str} '
+                    f'err={task_res["err"]}')
             # if/else debug
         else:
-            log.info(
-                'connecting to broker={} backend={}'.format(
-                    broker_url,
-                    backend_url))
+            log.debug(
+                f'connecting to broker={broker_url} '
+                f'backend={backend_url}')
 
             # Get the Celery app
             app = get_celery_app.get_celery_app(
@@ -476,17 +625,13 @@ def fetch_new_stock_datasets():
                 transport_options=transport_options,
                 include_tasks=include_tasks)
 
-            log.info(
-                'calling task={} - work={}'.format(
-                    task_name,
-                    ae_consts.ppj(work)))
+            log.debug(
+                f'calling task={task_name} - work={ae_consts.ppj(work)}')
             job_id = app.send_task(
                 task_name,
                 (work,))
-            log.info(
-                'calling task={} - success job_id={}'.format(
-                    task_name,
-                    job_id))
+            log.debug(
+                f'task={task_name} - job_id={job_id}')
         # end of if/else
     # end of supported modes
 # end of fetch_new_stock_datasets
