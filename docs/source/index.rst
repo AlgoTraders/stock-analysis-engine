@@ -55,26 +55,25 @@ Here is a video showing how to fetch the latest pricing data for a ticker using 
 
             export IEX_TOKEN=YOUR_IEX_TOKEN
 
-        - Fetch with:
-
-        ::
-
-            fetch -t SPY
-
-    #.  Fetch pricing data from `IEX (requires an account) <https://iexcloud.io/cloud-login#/register/>`__ and `Tradier (requires an account) <https://developer.tradier.com/getting_started>`__):
-
         - Set the **TD_TOKEN** environment variable to fetch Trading pricing data with:
 
           ::
 
               export TD_TOKEN=YOUR_TRADIER_TOKEN
 
-        - Fetch with **-g td**:
+        - Fetch with:
+
+        ::
+
+            fetch -t SPY
+
+        - Fetch only from **IEX** with **-g iex**:
 
           ::
 
-              fetch -t SPY -g td
-              # and fetch from just IEX with: fetch -t SPY -g iex
+              fetch -t SPY -g iex
+              # and fetch from just Tradier with:
+              # fetch -t SPY -g td
 
     .. note:: Yahoo `disabled the YQL finance API so fetching pricing data from yahoo is disabled by default <https://developer.yahoo.com/yql/>`__
 
