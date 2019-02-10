@@ -47,7 +47,7 @@ if [[ -e /opt/sa/analysis_engine/scripts/print_last_close_date.py ]]; then
     use_date=$(echo ${use_date_str} | awk '{print $1}')
 fi
 
-dataset_sources="all"
+dataset_sources="initial"
 if [[ "${DATASET_SOURCES}" != "" ]]; then
     dataset_sources="${DATASET_SOURCES}"
 fi

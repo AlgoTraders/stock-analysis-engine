@@ -47,7 +47,7 @@ def fetch_calls(
         'exp_date',
         None)
 
-    log.info(
+    log.debug(
         '{} - call - args={} ticker={}'
         ''.format(
             label,
@@ -68,12 +68,16 @@ def fetch_calls(
     )
 
     if res.status_code != requests.codes.OK:
-        log.info(
-            'failed to get call with response={} '
-            'code={} text={}'.format(
-                res,
-                res.status_code,
-                res.text))
+        if res.status_code in [401, 403]:
+            log.critical(
+                f'Please check the TD_TOKEN is correct '
+                f'received {res.status_code} during '
+                f'fetch for: calls')
+        else:
+            log.info(
+                f'failed to get call with response={res} '
+                f'code={res.status_code} '
+                f'text={res.text}')
         return ae_consts.EMPTY, pd.DataFrame([{}])
     records = json.loads(res.text)
     org_records = records.get(
@@ -199,7 +203,7 @@ def fetch_puts(
         'exp_date',
         None)
 
-    log.info(
+    log.debug(
         '{} - puts - args={} ticker={} '
         ''.format(
             label,
@@ -219,12 +223,16 @@ def fetch_puts(
     )
 
     if res.status_code != requests.codes.OK:
-        log.info(
-            'failed to get put with response={} '
-            'code={} text={}'.format(
-                res,
-                res.status_code,
-                res.text))
+        if res.status_code in [401, 403]:
+            log.critical(
+                f'Please check the TD_TOKEN is correct '
+                f'received {res.status_code} during '
+                f'fetch for: puts')
+        else:
+            log.info(
+                f'failed to get put with response={res} '
+                f'code={res.status_code} '
+                f'text={res.text}')
         return ae_consts.EMPTY, pd.DataFrame([{}])
     records = json.loads(res.text)
     org_records = records.get(

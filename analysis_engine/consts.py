@@ -313,6 +313,7 @@ SLACK_FAILED = 42
 ALGO_TIMESERIES_DAY = 43  # evaluate trade performance on daily-units
 ALGO_TIMESERIES_MINUTE = 44  # evaluate trade performance on minute-units
 ALGO_TRADE_INDICATOR_COUNTS = 45  # trade off num indicators said buy/sell
+MISSING_TOKEN = 46
 
 INDICATOR_CATEGORY_MOMENTUM = 60
 INDICATOR_CATEGORY_OVERLAP = 61
@@ -410,6 +411,10 @@ FETCH_MODE_ALL = 30000
 FETCH_MODE_YHO = 30001
 FETCH_MODE_IEX = 30002
 FETCH_MODE_TD = 30003
+FETCH_MODE_INTRADAY = 30004
+FETCH_MODE_DAILY = 30005
+FETCH_MODE_WEEKLY = 30006
+FETCH_MODE_INITIAL = 30007
 
 # version of python
 IS_PY2 = sys.version[0] == '2'
@@ -550,6 +555,32 @@ IEX_DATASETS_DEFAULT = [
     'financials',
     'earnings',
     'dividends',
+    'company'
+]
+IEX_INTRADAY_DATASETS = [
+    'minute',
+    'news'
+]
+IEX_DAILY_DATASETS = [
+    'daily',
+    'news'
+]
+IEX_WEEKLY_DATASETS = [
+    'financials',
+    'earnings',
+    'dividends',
+    'peers',
+    'news',
+    'company'
+]
+# Financial + Earnings are expensive
+# so disabled for new users just
+# getting started
+IEX_INITIAL_DATASETS = [
+    'daily',
+    'minute',
+    'stats',
+    'news',
     'company'
 ]
 
@@ -939,6 +970,8 @@ def get_status(
         return 'TRADING_HISTORY'
     elif status == SA_DATASET_TYPE_TRADING_REPORT:
         return 'TRADING_REPORT'
+    elif status == MISSING_TOKEN:
+        return 'MISSING_TOKEN'
     else:
         return 'unsupported status={}'.format(
             status)

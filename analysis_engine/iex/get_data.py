@@ -136,7 +136,7 @@ def get_data_from_iex(
                 rec=rec)
             return res
         else:
-            log.info(
+            log.debug(
                 f'{label} - ticker={ticker} '
                 f'field={field} '
                 f'orient={orient} fetch')
@@ -164,11 +164,11 @@ def get_data_from_iex(
         # end of try/ex
 
         if ae_consts.ev('DEBUG_IEX_DATA', '0') == '1':
-            log.info(
+            log.debug(
                 f'{label} ticker={ticker} '
                 f'field={field} data={rec["data"]} to_json')
         else:
-            log.info(
+            log.debug(
                 f'{label} ticker={ticker} field={field} to_json')
         # end of if/else found data
 
@@ -199,7 +199,7 @@ def get_data_from_iex(
             update_status = update_res.get(
                 'status',
                 ae_consts.NOT_SET)
-            log.info(
+            log.debug(
                 f'{label} publish update '
                 f'status={ae_consts.get_status(status=update_status)} '
                 f'data={update_res}')
@@ -213,7 +213,7 @@ def get_data_from_iex(
         # end of try/ex to upload and cache
 
         if not rec['data']:
-            log.info(
+            log.debug(
                 f'{label} - ticker={ticker} no IEX data '
                 f'field={field} to publish')
         # end of if/else
@@ -232,7 +232,7 @@ def get_data_from_iex(
             rec=rec)
     # end of try/ex
 
-    log.info(
+    log.debug(
         f'task - get_data_from_iex done - '
         f'{label} - '
         f'status={ae_consts.get_status(res["status"])} '

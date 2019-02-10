@@ -75,7 +75,7 @@ def publish_pricing_update(
 
     label = 'publish_pricing'
 
-    log.info(
+    log.debug(
         'task - {} - start'.format(
             label))
 
@@ -174,7 +174,7 @@ def publish_pricing_update(
                 endpoint_url = 'https://{}'.format(
                     service_address)
 
-            log.info(
+            log.debug(
                 '{} building s3 endpoint_url={} '
                 'region={}'.format(
                     label,
@@ -192,19 +192,19 @@ def publish_pricing_update(
             )
 
             try:
-                log.info(
+                log.debug(
                     '{} checking bucket={} exists'.format(
                         label,
                         s3_bucket_name))
                 if s3.Bucket(s3_bucket_name) not in s3.buckets.all():
-                    log.info(
+                    log.debug(
                         '{} creating bucket={}'.format(
                             label,
                             s3_bucket_name))
                     s3.create_bucket(
                         Bucket=s3_bucket_name)
             except Exception as e:
-                log.info(
+                log.debug(
                     '{} failed creating bucket={} '
                     'with ex={}'.format(
                         label,
@@ -213,7 +213,7 @@ def publish_pricing_update(
             # end of try/ex for creating bucket
 
             try:
-                log.info(
+                log.debug(
                     '{} uploading to s3={}/{} '
                     'updated={}'.format(
                         label,
@@ -233,7 +233,7 @@ def publish_pricing_update(
                         e))
             # end of try/ex for creating bucket
         else:
-            log.info(
+            log.debug(
                 '{} SKIP S3 upload bucket={} '
                 'key={}'.format(
                     label,
@@ -259,7 +259,7 @@ def publish_pricing_update(
                 redis_expire = work_dict.get(
                     'redis_expire',
                     ae_consts.REDIS_EXPIRE)
-            log.info(
+            log.debug(
                 'redis enabled address={}@{} '
                 'key={}'.format(
                     redis_address,
@@ -288,7 +288,7 @@ def publish_pricing_update(
             # end of checking that redis_address is valid
 
             try:
-                log.info(
+                log.debug(
                     '{} publishing redis={}:{} '
                     'db={} key={} '
                     'updated={} expire={}'.format(
@@ -333,7 +333,7 @@ def publish_pricing_update(
                     nx=False,
                     xx=False)
 
-                log.info(
+                log.debug(
                     '{} redis_set status={} err={}'.format(
                         label,
                         ae_consts.get_status(redis_set_res['status']),
@@ -348,7 +348,7 @@ def publish_pricing_update(
                         e))
             # end of try/ex for creating bucket
         else:
-            log.info(
+            log.debug(
                 '{} SKIP REDIS publish '
                 'key={}'.format(
                     label,
@@ -375,7 +375,7 @@ def publish_pricing_update(
                 res['err']))
     # end of try/ex
 
-    log.info(
+    log.debug(
         'task - publish_pricing_update done - '
         '{} - status={}'.format(
             label,
@@ -400,7 +400,7 @@ def run_publish_pricing_update(
         'label',
         '')
 
-    log.info(
+    log.debug(
         'run_publish_pricing_update - {} - start'.format(
             label))
 
@@ -426,7 +426,7 @@ def run_publish_pricing_update(
                     response_details = ae_consts.ppj(response)
                 except Exception:
                     response_details = response
-                log.info(
+                log.debug(
                     '{} task result={}'.format(
                         label,
                         response_details))
@@ -451,7 +451,7 @@ def run_publish_pricing_update(
 
     if response:
         if ae_consts.ev('DEBUG_RESULTS', '0') == '1':
-            log.info(
+            log.debug(
                 'run_publish_pricing_update - {} - done '
                 'status={} err={} rec={}'.format(
                     label,
@@ -459,14 +459,14 @@ def run_publish_pricing_update(
                     response['err'],
                     response['rec']))
         else:
-            log.info(
+            log.debug(
                 'run_publish_pricing_update - {} - done '
                 'status={} err={}'.format(
                     label,
                     ae_consts.get_status(response['status']),
                     response['err']))
     else:
-        log.info(
+        log.debug(
             'run_publish_pricing_update - {} - done '
             'no response'.format(
                 label))

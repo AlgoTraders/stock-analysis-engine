@@ -202,7 +202,7 @@ def ingress_scrub_dataset(
     """
 
     if not hasattr(df, 'empty'):
-        log.info(
+        log.debug(
             f'{label} - {datafeed_type} no dataset_id={ds_id}')
         return None
 
@@ -210,10 +210,6 @@ def ingress_scrub_dataset(
 
     daily_date_format = '%I:%M %p'
     minute_date_format = '%I:%M %p'
-
-    use_msg_format = msg_format
-    if not msg_format:
-        use_msg_format = 'df={} date_str={}'
 
     use_date_str = date_str
     last_close_date = ae_utils.last_close()
@@ -226,12 +222,18 @@ def ingress_scrub_dataset(
     daily_date_format = ae_consts.IEX_DAILY_DATE_FORMAT
     minute_date_format = ae_consts.IEX_MINUTE_DATE_FORMAT
 
+    """
+    use_msg_format = msg_format
+    if not msg_format:
+        use_msg_format = 'df={} date_str={}'
+
     debug_msg(
         label=label,
         datafeed_type=datafeed_type,
         msg_format=f'START - {use_msg_format}',
         date_str=use_date_str,
         df=df)
+    """
 
     try:
         if scrub_mode == 'sort-by-date':
@@ -332,7 +334,7 @@ def ingress_scrub_dataset(
                 log.debug('{label} - {datafeed_type} - no scrub_mode')
             # if/else
         else:
-            log.info(
+            log.debug(
                 f'{label} - {datafeed_type} - '
                 f'missing support in ingress_scrub_dataset')
     except Exception as e:
@@ -342,12 +344,14 @@ def ingress_scrub_dataset(
         out_df = None
     # end of try/ex
 
+    """
     debug_msg(
         label=label,
         datafeed_type=datafeed_type,
         msg_format='END - df={} date_str={}',
         date_str=use_date_str,
         df=out_df)
+    """
 
     return out_df
 # end of ingress_scrub_dataset
