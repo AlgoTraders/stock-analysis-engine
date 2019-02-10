@@ -70,7 +70,7 @@ def fetch_new_stock_datasets():
 
     Collect datasets for a ticker from IEX Cloud or Tradier
 
-    .. warning: IEX Cloud charges per requests. Here are example
+    .. warning: IEX Cloud charges per request. Here are example
         commands to help you monitor your usage while handling
         first time users and automation (intraday, daily, and weekly
         options are supported).
