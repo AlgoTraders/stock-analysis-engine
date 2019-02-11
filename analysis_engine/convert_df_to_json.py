@@ -20,10 +20,7 @@ def convert_json_to_df(
     :param sorted_by_key: key to sort on
     :param in_ascending: ascending order (True by default)
     """
-    log.info(
-        'start sort={} asc={}'.format(
-            sorted_by_key,
-            in_ascending))
+    log.info(f'start sort={sorted_by_key} asc={in_ascending}')
     new_df = pd.read_json(
         data_json).sort_values(
             by=sorted_by_key,

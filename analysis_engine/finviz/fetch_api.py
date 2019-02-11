@@ -75,21 +75,15 @@ def fetch_tickers_from_screener(
 
     try:
 
-        log.info(
-            '{} fetching url={}'.format(
-                label,
-                url))
+        log.info(f'{label} fetching url={url}')
 
         response = requests.get(url)
 
         if response.status_code != requests.codes.ok:
             err = (
-                '{} finviz returned non-ok HTTP (200) '
-                'status_code={} with text={} for url={}'.format(
-                    label,
-                    response.status_code,
-                    response.text,
-                    url))
+                f'{label} finviz returned non-ok HTTP (200) '
+                f'status_code={response.status_code} with '
+                f'text={response.text} for url={url}')
             log.error(err)
             return req_utils.build_result(
                 status=ERR,
@@ -102,11 +96,7 @@ def fetch_tickers_from_screener(
             features='html.parser')
         selected = soup.select(soup_selector)
 
-        log.debug(
-            '{} found={} url={}'.format(
-                label,
-                len(selected),
-                url))
+        log.debug(f'{label} found={len(selected)} url={url}')
 
         ticker_list = []
         rows = []
@@ -137,10 +127,7 @@ def fetch_tickers_from_screener(
                 # end of filtering bad sections around table
 
                 if len(new_row) >= num_columns:
-                    log.debug(
-                        '{} adding ticker={}'.format(
-                            label,
-                            new_row['ticker']))
+                    log.debug(f'{label} adding ticker={new_row["ticker"]}')
                     rows.append(new_row)
                     new_row = {}
                     col_idx = 0
@@ -149,24 +136,15 @@ def fetch_tickers_from_screener(
         # end of walking through all matched html data on the screener
 
         log.debug(
-            '{} done convert url={} to tickers={} '
-            'rows={}'.format(
-                label,
-                url,
-                ticker_list,
-                len(rows)))
+            f'{label} done convert url={url} to tickers={ticker_list} '
+            f'rows={len(rows)}')
 
         df = pd.DataFrame(
             rows)
 
         log.info(
-            '{} fetch done - df={} from url={} with tickers={} '
-            'rows={}'.format(
-                label,
-                len(df.index),
-                url,
-                ticker_list,
-                len(rows)))
+            f'{label} fetch done - df={len(df.index)} from url={url} '
+            f'with tickers={ticker_list} rows={len(rows)}')
 
         rec['tickers'] = ticker_list
         rec['data'] = df
@@ -180,11 +158,7 @@ def fetch_tickers_from_screener(
         rec['tickers'] = []
         rec['data'] = None
         err = (
-            '{} failed converting screen url={} to list '
-            'with ex={}'.format(
-                label,
-                url,
-                e))
+            f'{label} failed converting screen url={url} to list with ex={e}')
         log.error(err)
         res = req_utils.build_result(
             status=EX,

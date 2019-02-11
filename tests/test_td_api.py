@@ -44,13 +44,9 @@ class TestTDAPI(base_test.BaseTestCase):
         :param df: ``pandas.DataFrame`` from a fetch
         """
         print('-----------------------------------')
-        print(
-            'dataframe: {}'.format(
-                df))
+        print(f'dataframe: {df}')
         print('')
-        print(
-            'dataframe columns:\n{}'.format(
-                df.columns.values))
+        print(f'dataframe columns:\n{df.columns.values}')
         print('-----------------------------------')
     # end of debug_df
 
@@ -96,11 +92,9 @@ class TestTDAPI(base_test.BaseTestCase):
             self.debug_df(df=df)
         else:
             log.critical(
-                '{} is missing in redis '
-                'for ticker={} status={}'.format(
-                    label,
-                    work['ticker'],
-                    ae_consts.get_status(status=status)))
+                f'{label} is missing in redis '
+                f'for ticker={work["ticker"]} '
+                f'status={ae_consts.get_status(status=status)}')
     # end of test_integration_fetch_calls_dataset
 
     def test_integration_fetch_puts_dataset(self):
@@ -123,11 +117,9 @@ class TestTDAPI(base_test.BaseTestCase):
             self.debug_df(df=df)
         else:
             log.critical(
-                '{} is missing in redis '
-                'for ticker={} status={}'.format(
-                    label,
-                    work['ticker'],
-                    ae_consts.get_status(status=status)))
+                f'{label} is missing in redis '
+                f'for ticker={work["ticker"]} '
+                f'status={ae_consts.get_status(status=status)}')
     # end of test_integration_fetch_puts_dataset
 
 # end of TestTDAPI

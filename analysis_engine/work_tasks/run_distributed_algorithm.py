@@ -81,15 +81,9 @@ def run_distributed_algorithm(
 
     # please be careful logging prod passwords:
     if debug:
-        log.info(
-            'task - {} - start '
-            'algo_req={}'.format(
-                label,
-                algo_req))
+        log.info(f'task - {label} - start algo_req={algo_req}')
     elif verbose:
-        log.info(
-            'task - {} - start '.format(
-                label))
+        log.info(f'task - {label} - start ')
     # end of start log
 
     rec = {}
@@ -181,17 +175,14 @@ def run_distributed_algorithm(
 
     if not found_algo_module:
         err = (
-            '{} - unable to find custom algorithm module={} '
-            'module_path={}'.format(
-                label,
-                custom_algo_module,
-                algo_module_path))
+            f'{label} - unable to find custom algorithm '
+            f'module={custom_algo_module} module_path={algo_module_path}')
         if algo_module_path:
             err = (
-                '{} - analysis_engine.work_tasks.run_distributed_algorithm '
-                'was unable '
-                'to find custom algorithm module={} with provided path to \n '
-                'file: {} \n'
+                f'{label} - analysis_engine.'
+                'work_tasks.run_distributed_algorithm was unable '
+                f'to find custom algorithm module={custom_algo_module} with '
+                f'provided path to \n file: {algo_module_path} \n'
                 '\n'
                 'Please confirm '
                 'that the class inherits from the BaseAlgo class like:\n'
@@ -202,10 +193,7 @@ def run_distributed_algorithm(
                 'If it is then please file an issue on github:\n '
                 'https://github.com/AlgoTraders/stock-analysis-engine/'
                 'issues/new \n\nFor now this error results in a shutdown'
-                '\n'.format(
-                    label,
-                    custom_algo_module,
-                    algo_module_path))
+                '\n')
         # if algo_module_path set
 
         log.error(err)
@@ -245,17 +233,12 @@ def run_distributed_algorithm(
         if use_custom_algo:
             if verbose:
                 log.info(
-                    'inspecting {} for class {}'.format(
-                        custom_algo_module,
-                        module_name))
+                    f'inspecting {custom_algo_module} for class {module_name}')
             use_class_member_object = None
             for member in inspect.getmembers(custom_algo_module):
                 if module_name in str(member):
                     if verbose:
-                        log.info(
-                            'start {} with {}'.format(
-                                name,
-                                member[1]))
+                        log.info(f'start {name} with {member[1]}')
                     use_class_member_object = member
                     break
             # end of looking over the class definition but did not find it
@@ -270,14 +253,10 @@ def run_distributed_algorithm(
                         **algo_req)
             else:
                 err = (
-                    '{} - did not find a derived '
+                    f'{label} - did not find a derived '
                     'analysis_engine.algo.BaseAlgo '
-                    'class in the module file={} '
-                    'for ticker={} algo_name={}'.format(
-                        label,
-                        algo_module_path,
-                        ticker,
-                        name))
+                    f'class in the module file={algo_module_path} '
+                    f'for ticker={ticker} algo_name={name}')
                 log.error(err)
                 res = build_result.build_result(
                     status=ae_consts.ERR,
@@ -298,17 +277,11 @@ def run_distributed_algorithm(
 
         if new_algo_object:
             # heads up - logging this might have passwords in the algo_req
-            # log.debug(
-            #     '{} algorithm request: {}'.format(
-            #         name,
-            #         algo_req))
+            # log.debug(f'{name} algorithm request: {algo_req}')
             if verbose:
                 log.info(
-                    '{} - run START ticker={} from {} to {}'.format(
-                        name,
-                        ticker,
-                        use_start_date,
-                        use_end_date))
+                    f'{name} - run START ticker={ticker} '
+                    f'from {use_start_date} to {use_end_date}')
             if algo_req.get('backtest', False):
                 algo_res = run_algo.run_algo(
                     algo=new_algo_object,
@@ -322,40 +295,24 @@ def run_distributed_algorithm(
 
             if verbose:
                 log.info(
-                    '{} - run DONE ticker={} from {} to {}'.format(
-                        name,
-                        ticker,
-                        use_start_date,
-                        use_end_date))
+                    f'{name} - run DONE ticker={ticker} '
+                    f'from {use_start_date} to {use_end_date}')
             if debug:
                 if custom_algo_module:
                     log.info(
-                        '{} - done run_algo custom_algo_module={} '
-                        'module_name={} '
-                        'ticker={} from {} to {}'.format(
-                            name,
-                            custom_algo_module,
-                            module_name,
-                            ticker,
-                            use_start_date,
-                            use_end_date))
+                        f'{name} - done run_algo '
+                        f'custom_algo_module={custom_algo_module} '
+                        f'module_name={module_name} ticker={ticker} '
+                        f'from {use_start_date} to {use_end_date}')
                 else:
                     log.info(
-                        '{} - done run_algo BaseAlgo ticker={} from {} '
-                        'to {}'.format(
-                            name,
-                            ticker,
-                            use_start_date,
-                            use_end_date))
+                        f'{name} - done run_algo BaseAlgo ticker={ticker} '
+                        f'from {use_start_date} to {use_end_date}')
         else:
             err = (
-                '{} - missing a derived analysis_engine.algo.BaseAlgo '
-                'class in the module file={} for '
-                'ticker={} algo_name={}'.format(
-                    label,
-                    algo_module_path,
-                    ticker,
-                    name))
+                f'{label} - missing a derived analysis_engine.algo.BaseAlgo '
+                f'class in the module file={algo_module_path} for '
+                f'ticker={ticker} algo_name={name}')
             log.error(err)
             res = build_result.build_result(
                 status=ae_consts.ERR,
@@ -372,19 +329,13 @@ def run_distributed_algorithm(
 
         if not created_algo_object:
             err = (
-                '{} - failed creating algorithm object - '
-                'ticker={} status={} error={}'
-                'algo name={} custom_algo_module={} module_name={} '
-                'from {} to {}'.format(
-                    label,
-                    ticker,
-                    ae_consts.get_status(status=algo_res['status']),
-                    algo_res['err'],
-                    name,
-                    custom_algo_module,
-                    module_name,
-                    use_start_date,
-                    use_end_date))
+                f'{label} - failed creating algorithm object - '
+                f'ticker={ticker} '
+                f'status={ae_consts.get_status(status=algo_res["status"])} '
+                f'error={algo_res["err"]} algo name={name} '
+                f'custom_algo_module={custom_algo_module} '
+                f'module_name={module_name} '
+                f'from {use_start_date} to {use_end_date}')
             res = build_result.build_result(
                 status=ae_consts.ERR,
                 err=err,
@@ -407,47 +358,39 @@ def run_distributed_algorithm(
             if (extract_config['redis_address'] and
                     extract_config['redis_db'] and
                     extract_config['redis_key']):
-                redis_log = 'redis://{}@{}/{}'.format(
-                    extract_config['redis_address'],
-                    extract_config['redis_db'],
-                    extract_config['redis_key'])
-                use_log += ' {}'.format(
-                    redis_log)
+                redis_log = (
+                    f'redis://{extract_config["redis_address"]}'
+                    f'@{extract_config["redis_db"]}'
+                    f'/{extract_config["redis_key"]}')
+                use_log += f' {redis_log}'
             else:
                 extract_config['redis_enabled'] = False
             if (extract_config['s3_address'] and
                     extract_config['s3_bucket'] and
                     extract_config['s3_key']):
-                s3_log = 's3://{}/{}/{}'.format(
-                    extract_config['s3_address'],
-                    extract_config['s3_bucket'],
-                    extract_config['s3_key'])
-                use_log += ' {}'.format(
-                    s3_log)
+                s3_log = (
+                    f's3://{extract_config["s3_address"]}'
+                    f'/{extract_config["s3_bucket"]}'
+                    f'/{extract_config["s3_key"]}')
+                use_log += f' {s3_log}'
             else:
                 extract_config['s3_enabled'] = False
             if extract_config['output_file']:
-                file_log = 'file:{}'.format(
-                    extract_config['output_file'])
-                use_log += ' {}'.format(
-                    file_log)
+                file_log = f'file:{extract_config["output_file"]}'
+                use_log += f' {file_log}'
 
             if verbose:
                 log.info(
-                    '{} - publish - start ticker={} algorithm-ready {}'
-                    ''.format(
-                        name,
-                        ticker,
-                        use_log))
+                    f'{name} - publish - start ticker={ticker} '
+                    f'algorithm-ready {use_log}')
 
             publish_status = created_algo_object.publish_input_dataset(
                 **extract_config)
             if publish_status != ae_consts.SUCCESS:
                 msg = (
-                    'failed to publish algorithm-ready datasets '
-                    'with status {} attempted to {}'.format(
-                        ae_consts.get_status(status=publish_status),
-                        use_log))
+                    'failed to publish algorithm-ready datasets with '
+                    f'status {ae_consts.get_status(status=publish_status)} '
+                    f'attempted to {use_log}')
                 log.error(msg)
                 res = build_result.build_result(
                     status=ae_consts.ERR,
@@ -464,11 +407,8 @@ def run_distributed_algorithm(
 
             if verbose:
                 log.info(
-                    '{} - publish - done ticker={} algorithm-ready {}'
-                    ''.format(
-                        name,
-                        ticker,
-                        use_log))
+                    f'{name} - publish - done ticker={ticker} '
+                    f'algorithm-ready {use_log}')
         # if publish the algorithm-ready dataset
 
         if should_publish_history_dataset or dataset_publish_history:
@@ -480,44 +420,36 @@ def run_distributed_algorithm(
             if (history_config['redis_address'] and
                     history_config['redis_db'] and
                     history_config['redis_key']):
-                redis_log = 'redis://{}@{}/{}'.format(
-                    history_config['redis_address'],
-                    history_config['redis_db'],
-                    history_config['redis_key'])
-                use_log += ' {}'.format(
-                    redis_log)
+                redis_log = (
+                    f'redis://{history_config["redis_address"]}'
+                    f'@{history_config["redis_db"]}'
+                    f'/{history_config["redis_key"]}')
+                use_log += f' {redis_log}'
             if (history_config['s3_address'] and
                     history_config['s3_bucket'] and
                     history_config['s3_key']):
-                s3_log = 's3://{}/{}/{}'.format(
-                    history_config['s3_address'],
-                    history_config['s3_bucket'],
-                    history_config['s3_key'])
-                use_log += ' {}'.format(
-                    s3_log)
+                s3_log = (
+                    f's3://{history_config["s3_address"]}'
+                    f'/{history_config["s3_bucket"]}'
+                    f'/{history_config["s3_key"]}')
+                use_log += f' {s3_log}'
             if history_config['output_file']:
-                file_log = 'file:{}'.format(
-                    history_config['output_file'])
-                use_log += ' {}'.format(
-                    file_log)
+                file_log = f'file:{history_config["output_file"]}'
+                use_log += f' {file_log}'
 
             if verbose:
                 log.info(
-                    '{} - publish - start ticker={} trading history {}'
-                    ''.format(
-                        name,
-                        ticker,
-                        use_log))
+                    f'{name} - publish - start ticker={ticker} trading '
+                    f'history {use_log}')
 
             publish_status = \
                 created_algo_object.publish_trade_history_dataset(
                     **history_config)
             if publish_status != ae_consts.SUCCESS:
                 msg = (
-                    'failed to publish trading history datasets '
-                    'with status {} attempted to {}'.format(
-                        ae_consts.get_status(status=publish_status),
-                        use_log))
+                    'failed to publish trading history datasets with '
+                    f'status {ae_consts.get_status(status=publish_status)} '
+                    f'attempted to {use_log}')
                 log.error(msg)
                 res = build_result.build_result(
                     status=ae_consts.ERR,
@@ -534,11 +466,8 @@ def run_distributed_algorithm(
 
             if verbose:
                 log.info(
-                    '{} - publish - done ticker={} trading history {}'
-                    ''.format(
-                        name,
-                        ticker,
-                        use_log))
+                    f'{name} - publish - done ticker={ticker} trading '
+                    f'history {use_log}')
         # if publish an trading history dataset
 
         if should_publish_report_dataset or dataset_publish_report:
@@ -550,43 +479,36 @@ def run_distributed_algorithm(
             if (report_config['redis_address'] and
                     report_config['redis_db'] and
                     report_config['redis_key']):
-                redis_log = 'redis://{}@{}/{}'.format(
-                    report_config['redis_address'],
-                    report_config['redis_db'],
-                    report_config['redis_key'])
-                use_log += ' {}'.format(
-                    redis_log)
+                redis_log = (
+                    f'redis://{report_config["redis_address"]}'
+                    f'@{report_config["redis_db"]}'
+                    f'/{report_config["redis_key"]}')
+                use_log += f' {redis_log}'
             if (report_config['s3_address'] and
                     report_config['s3_bucket'] and
                     report_config['s3_key']):
-                s3_log = 's3://{}/{}/{}'.format(
-                    report_config['s3_address'],
-                    report_config['s3_bucket'],
-                    report_config['s3_key'])
-                use_log += ' {}'.format(
-                    s3_log)
+                s3_log = (
+                    f's3://{report_config["s3_address"]}'
+                    f'/{report_config["s3_bucket"]}'
+                    f'/{report_config["s3_key"]}')
+                use_log += f' {s3_log}'
             if report_config['output_file']:
-                file_log = ' file:{}'.format(
-                    report_config['output_file'])
-                use_log += ' {}'.format(
-                    file_log)
+                file_log = f' file:{report_config["output_file"]}'
+                use_log += f' {file_log}'
 
             if verbose:
                 log.info(
-                    '{} - publishing ticker={} trading performance report {}'
-                    ''.format(
-                        name,
-                        ticker,
-                        use_log))
+                    f'{name} - publishing ticker={ticker} trading performance '
+                    f'report {use_log}')
 
             publish_status = created_algo_object.publish_report_dataset(
                 **report_config)
             if publish_status != ae_consts.SUCCESS:
                 msg = (
-                    'failed to publish trading performance report datasets '
-                    'with status {} attempted to {}'.format(
-                        ae_consts.get_status(status=publish_status),
-                        use_log))
+                    'failed to publish trading performance '
+                    'report datasets with '
+                    f'status {ae_consts.get_status(status=publish_status)} '
+                    f'attempted to {use_log}')
                 log.error(msg)
                 res = build_result.build_result(
                     status=ae_consts.ERR,
@@ -603,21 +525,14 @@ def run_distributed_algorithm(
 
             if verbose:
                 log.info(
-                    '{} - publish - done ticker={} trading '
-                    'performance report {}'.format(
-                        name,
-                        ticker,
-                        use_log))
+                    f'{name} - publish - done ticker={ticker} trading '
+                    f'performance report {use_log}')
         # if publish an trading performance report dataset
 
         if verbose:
             log.info(
-                '{} - done publishing datasets for ticker={} '
-                'from {} to {}'.format(
-                    name,
-                    ticker,
-                    use_start_date,
-                    use_end_date))
+                f'{name} - done publishing datasets for ticker={ticker} '
+                f'from {use_start_date} to {use_end_date}')
 
         rec['history_config'] = history_config
         rec['report_config'] = report_config
@@ -632,25 +547,18 @@ def run_distributed_algorithm(
             status=ae_consts.ERR,
             err=(
                 'failed - run_distributed_algorithm '
-                'dict={} with ex={}').format(
-                    algo_req,
-                    e),
+                f'dict={algo_req} with ex={e}'),
             rec=rec)
         if raise_on_err:
             raise e
         else:
-            log.error(
-                '{} - {}'.format(
-                    label,
-                    res['err']))
+            log.error(f'{label} - {res["err"]}')
     # end of try/ex
 
     if verbose:
         log.info(
             'task - run_distributed_algorithm done - '
-            '{} - status={}'.format(
-                label,
-                ae_consts.get_status(res['status'])))
+            f'{label} - status={ae_consts.get_status(res["status"])}')
 
     task_result = {
         'status': res['status'],

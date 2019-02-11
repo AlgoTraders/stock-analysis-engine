@@ -81,11 +81,7 @@ def prepare_pricing_dataset(
 
     label = 'prepare'
 
-    log.info(
-        'task - {} - start '
-        'work_dict={}'.format(
-            label,
-            work_dict))
+    log.info(f'task - {label} - start work_dict={work_dict}')
 
     initial_data = None
 
@@ -178,9 +174,7 @@ def prepare_pricing_dataset(
                 '%Y_%m_%d_%H_%M_%S'))
         prepared_s3_key = work_dict.get(
             'prepared_s3_key',
-            '{}_{}.csv'.format(
-                ticker,
-                updated))
+            f'{ticker}_{updated}.csv')
         prepared_s3_bucket = work_dict.get(
             'prepared_s3_bucket',
             'prepared')
@@ -191,17 +185,11 @@ def prepare_pricing_dataset(
             'ignore_columns',
             None)
         log.info(
-            '{} redis enabled address={}@{} '
-            'key={} prepare_s3={}:{} prepare_redis={} '
-            'ignore_columns={}'.format(
-                label,
-                redis_address,
-                redis_db,
-                redis_key,
-                prepared_s3_bucket,
-                prepared_s3_key,
-                prepared_redis_key,
-                ignore_columns))
+            f'{label} redis enabled address={redis_address}@{redis_db} '
+            f'key={redis_key} '
+            f'prepare_s3={prepared_s3_bucket}:{prepared_s3_key} '
+            f'prepare_redis={prepared_redis_key} '
+            f'ignore_columns={ignore_columns}')
         redis_host = redis_address.split(':')[0]
         redis_port = redis_address.split(':')[1]
 
@@ -222,16 +210,9 @@ def prepare_pricing_dataset(
 
         try:
             log.info(
-                '{} connecting redis={}:{} '
-                'db={} key={} '
-                'updated={} expire={}'.format(
-                    label,
-                    redis_host,
-                    redis_port,
-                    redis_db,
-                    redis_key,
-                    updated,
-                    redis_expire))
+                f'{label} connecting redis={redis_host}:{redis_port} '
+                f'db={redis_db} key={redis_key} '
+                f'updated={updated} expire={redis_expire}')
             rc = redis.Redis(
                 host=redis_host,
                 port=redis_port,
@@ -239,13 +220,9 @@ def prepare_pricing_dataset(
                 db=redis_db)
         except Exception as e:
             err = (
-                '{} failed - redis connection to address={}@{} '
-                'key={} ex={}'.format(
-                    label,
-                    redis_address,
-                    redis_key,
-                    redis_db,
-                    e))
+                f'{label} failed - redis connection to '
+                f'address={redis_address}@{redis_port} '
+                f'db={redis_db} key={redis_key} ex={e}')
             res = build_result.build_result(
                 status=ae_consts.ERR,
                 err=err,
@@ -259,11 +236,9 @@ def prepare_pricing_dataset(
             key=redis_key)
 
         log.info(
-            '{} get redis key={} status={} err={}'.format(
-                label,
-                redis_key,
-                ae_consts.get_status(initial_data_res['status']),
-                initial_data_res['err']))
+            f'{label} get redis key={redis_key} '
+            f'status={ae_consts.get_status(initial_data_res["status"])} '
+            f'err={initial_data_res["err"]}')
 
         initial_data = initial_data_res['rec'].get(
             'data',
@@ -272,13 +247,9 @@ def prepare_pricing_dataset(
         if enable_s3 and not initial_data:
 
             log.info(
-                '{} failed to find redis_key={} trying s3 '
-                'from s3_key={} s3_bucket={} s3_address={}'.format(
-                    label,
-                    redis_key,
-                    s3_key,
-                    s3_bucket_name,
-                    s3_address))
+                f'{label} failed to find redis_key={redis_key} trying s3 from '
+                f's3_key={s3_key} s3_bucket={s3_bucket_name} '
+                f's3_address={s3_address}')
 
             get_from_s3_req = \
                 api_requests.build_publish_from_s3_to_redis_request()
@@ -292,16 +263,9 @@ def prepare_pricing_dataset(
             get_from_s3_req['s3_key'] = s3_key
             get_from_s3_req['s3_bucket'] = s3_bucket_name
             get_from_s3_req['redis_key'] = redis_key
-            get_from_s3_req['label'] = (
-                '{}-run_publish_from_s3_to_redis'.format(
-                    label))
+            get_from_s3_req['label'] = f'{label}-run_publish_from_s3_to_redis'
 
-            log.info(
-                '{} load from s3={} to '
-                'redis={}'.format(
-                    label,
-                    s3_key,
-                    redis_key))
+            log.info(f'{label} load from s3={s3_key} to redis={redis_key}')
 
             try:
                 # run in synchronous mode:
@@ -312,36 +276,26 @@ def prepare_pricing_dataset(
                         'status',
                         ae_consts.ERR) == ae_consts.SUCCESS:
                     log.info(
-                        '{} loaded s3={}:{} '
-                        'to redis={} retrying'.format(
-                            label,
-                            s3_bucket_name,
-                            s3_key,
-                            redis_key))
+                        f'{label} loaded s3={s3_bucket_name}:{s3_key} '
+                        f'to redis={redis_key} retrying')
                     initial_data_res = redis_get.get_data_from_redis_key(
                         label=label,
                         client=rc,
                         key=redis_key)
 
                     log.info(
-                        '{} get redis try=2 key={} status={} err={}'.format(
-                            label,
-                            redis_key,
-                            ae_consts.get_status(initial_data_res['status']),
-                            initial_data_res['err']))
+                        f'{label} get redis try=2 key={redis_key} status='
+                        f'{ae_consts.get_status(initial_data_res["status"])} '
+                        f'err={initial_data_res["err"]}')
 
                     initial_data = initial_data_res['rec'].get(
                         'data',
                         None)
                 else:
                     err = (
-                        '{} ERR failed loading from bucket={} '
-                        's3_key={} to redis_key={} with res={}'.format(
-                            label,
-                            s3_bucket_name,
-                            s3_key,
-                            redis_key,
-                            task_res))
+                        f'{label} ERR failed loading from '
+                        f'bucket={s3_bucket_name} s3_key={s3_key} to '
+                        f'redis_key={redis_key} with res={task_res}')
                     log.error(err)
                     res = build_result.build_result(
                         status=ae_consts.ERR,
@@ -350,15 +304,10 @@ def prepare_pricing_dataset(
                     return res
             except Exception as e:
                 err = (
-                    '{} extract from s3 and publish to redis failed loading '
-                    'data from bucket={} in '
-                    's3_key={} with publish to redis_key={} '
-                    'with ex={}'.format(
-                        label,
-                        s3_bucket_name,
-                        s3_key,
-                        redis_key,
-                        e))
+                    f'{label} extract from s3 and publish to redis failed '
+                    f'loading data from bucket={s3_bucket_name} in '
+                    f's3_key={s3_key} with publish to redis_key={redis_key} '
+                    f'with ex={e}')
                 log.error(err)
                 res = build_result.build_result(
                     status=ae_consts.ERR,
@@ -370,12 +319,9 @@ def prepare_pricing_dataset(
 
         if not initial_data:
             err = (
-                '{} did not find any data to prepare in redis_key={} or '
-                's3_key={} in bucket={}'.format(
-                    label,
-                    redis_key,
-                    s3_key,
-                    s3_bucket_name))
+                f'{label} did not find any data to prepare in '
+                f'redis_key={redis_key} or s3_key={s3_key} in '
+                f'bucket={s3_bucket_name}')
             log.error(err)
             res = build_result.build_result(
                 status=ae_consts.ERR,
@@ -388,13 +334,9 @@ def prepare_pricing_dataset(
         initial_size_str = None
         if initial_data_num_chars < ae_consts.PREPARE_DATA_MIN_SIZE:
             err = (
-                '{} not enough data={} in redis_key={} or '
-                's3_key={} in bucket={}'.format(
-                    label,
-                    initial_data_num_chars,
-                    redis_key,
-                    s3_key,
-                    s3_bucket_name))
+                f'{label} not enough data={initial_data_num_chars} in '
+                f'redis_key={redis_key} or s3_key={s3_key} in '
+                f'bucket={s3_bucket_name}')
             log.error(err)
             res = build_result.build_result(
                 status=ae_consts.ERR,
@@ -406,16 +348,12 @@ def prepare_pricing_dataset(
             initial_size_str = ae_consts.to_f(initial_size_value)
             if ae_consts.ev('DEBUG_PREPARE', '0') == '1':
                 log.info(
-                    '{} initial - redis_key={} data={}'.format(
-                        label,
-                        redis_key,
-                        str(initial_data)))
+                    f'{label} initial - redis_key={redis_key} '
+                    f'data={str(initial_data)}')
             else:
                 log.info(
-                    '{} initial - redis_key={} data size={} MB'.format(
-                        label,
-                        redis_key,
-                        initial_size_str))
+                    f'{label} initial - redis_key={redis_key} data '
+                    f'size={initial_size_str} MB')
         # end of trying to get initial_data
 
         rec['initial_data'] = initial_data
@@ -426,29 +364,19 @@ def prepare_pricing_dataset(
         try:
             if ae_consts.ev('DEBUG_PREPARE', '0') == '1':
                 log.info(
-                    '{} data={} - flatten - {} MB from '
-                    'redis_key={}'.format(
-                        label,
-                        ae_consts.ppj(initial_data),
-                        initial_size_str,
-                        redis_key))
+                    f'{label} data={ae_consts.ppj(initial_data)} - flatten - '
+                    f'{initial_size_str} MB from redis_key={redis_key}')
             else:
                 log.info(
-                    '{} flatten - {} MB from '
-                    'redis_key={}'.format(
-                        label,
-                        initial_size_str,
-                        redis_key))
+                    f'{label} flatten - {initial_size_str} MB from '
+                    f'redis_key={redis_key}')
             prepare_data = dict_to_csv.flatten_dict(
                 data=initial_data)
         except Exception as e:
             prepare_data = None
             err = (
-                '{} flatten - convert to csv failed with ex={} '
-                'redis_key={}'.format(
-                    label,
-                    e,
-                    redis_key))
+                f'{label} flatten - convert to csv failed with ex={e} '
+                f'redis_key={redis_key}')
             log.error(err)
             res = build_result.build_result(
                 status=ae_consts.ERR,
@@ -459,12 +387,9 @@ def prepare_pricing_dataset(
 
         if not prepare_data:
             err = (
-                '{} flatten - did not return any data from redis_key={} '
-                'or s3_key={} in bucket={}'.format(
-                    label,
-                    redis_key,
-                    s3_key,
-                    s3_bucket_name))
+                f'{label} flatten - did not return any data from '
+                f'redis_key={redis_key} or s3_key={s3_key} in '
+                f'bucket={s3_bucket_name}')
             log.error(err)
             res = build_result.build_result(
                 status=ae_consts.ERR,
@@ -478,11 +403,8 @@ def prepare_pricing_dataset(
 
         if prepare_data_num_chars < ae_consts.PREPARE_DATA_MIN_SIZE:
             err = (
-                '{} prepare - there is not enough data={} in redis_key={}'
-                ''.format(
-                    label,
-                    prepare_data_num_chars,
-                    redis_key))
+                f'{label} prepare - there is not enough '
+                f'data={prepare_data_num_chars} in redis_key={redis_key}')
             log.error(err)
             res = build_result.build_result(
                 status=ae_consts.ERR,
@@ -494,16 +416,12 @@ def prepare_pricing_dataset(
             prepare_size_str = ae_consts.to_f(prepare_size_value)
             if ae_consts.ev('DEBUG_PREPARE', '0') == '1':
                 log.info(
-                    '{} data={} - prepare - redis_key={}'.format(
-                        label,
-                        redis_key,
-                        ae_consts.ppj(prepare_data)))
+                    f'{label} data={redis_key} - prepare - '
+                    f'redis_key={ae_consts.ppj(prepare_data)}')
             else:
                 log.info(
-                    '{} prepare - redis_key={} data size={} MB'.format(
-                        label,
-                        redis_key,
-                        prepare_size_str))
+                    f'{label} prepare - redis_key={redis_key} data '
+                    f'size={prepare_size_str} MB')
         # end of trying to the size of the prepared data
 
         rec['prepared_data'] = prepare_data
@@ -521,21 +439,14 @@ def prepare_pricing_dataset(
             status=ae_consts.ERR,
             err=(
                 'failed - prepare_pricing_dataset '
-                'dict={} with ex={}').format(
-                    work_dict,
-                    e),
+                f'dict={work_dict} with ex={e}'),
             rec=rec)
-        log.error(
-            '{} - {}'.format(
-                label,
-                res['err']))
+        log.error(f'{label} - {res["err"]}')
     # end of try/ex
 
     log.info(
         'task - prepare_pricing_dataset done - '
-        '{} - status={}'.format(
-            label,
-            ae_consts.get_status(res['status'])))
+        f'{label} - status={ae_consts.get_status(res["status"])}')
 
     return get_task_results.get_task_results(
         work_dict=work_dict,
@@ -556,9 +467,7 @@ def run_prepare_pricing_dataset(
         'label',
         '')
 
-    log.info(
-        'run_prepare_pricing_dataset - {} - start'.format(
-            label))
+    log.info(f'run_prepare_pricing_dataset - {label} - start')
 
     response = build_result.build_result(
         status=ae_consts.NOT_RUN,
@@ -582,16 +491,11 @@ def run_prepare_pricing_dataset(
                     response_details = ae_consts.ppj(response)
                 except Exception:
                     response_details = response
-                log.info(
-                    '{} task result={}'.format(
-                        label,
-                        response_details))
+                log.info(f'{label} task result={response_details}')
         else:
             log.error(
-                '{} celery was disabled but the task={} '
-                'did not return anything'.format(
-                    label,
-                    response))
+                f'{label} celery was disabled but the task={response} '
+                'did not return anything')
         # end of if response
     else:
         task_res = prepare_pricing_dataset.delay(
@@ -608,24 +512,18 @@ def run_prepare_pricing_dataset(
     if response:
         if ae_consts.ev('DEBUG_RESULTS', '0') == '1':
             log.info(
-                'run_prepare_pricing_dataset - {} - done '
-                'status={} err={} rec={}'.format(
-                    label,
-                    ae_consts.get_status(response['status']),
-                    response['err'],
-                    response['rec']))
+                f'run_prepare_pricing_dataset - {label} - done '
+                f'status={ae_consts.get_status(response["status"])} '
+                f'err={response["err"]} rec={response["rec"]}')
         else:
             log.info(
-                'run_prepare_pricing_dataset - {} - done '
-                'status={} err={}'.format(
-                    label,
-                    ae_consts.get_status(response['status']),
-                    response['err']))
+                f'run_prepare_pricing_dataset - {label} - done '
+                f'status={ae_consts.get_status(response["status"])} '
+                f'err={response["err"]}')
     else:
         log.info(
-            'run_prepare_pricing_dataset - {} - done '
-            'no response'.format(
-                label))
+            f'run_prepare_pricing_dataset - {label} - done '
+            'no response')
     # end of if/else response
 
     return response

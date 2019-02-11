@@ -44,7 +44,7 @@ def extract_option_calls_dataset(
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    label = '{}'.format(work_dict.get('label', 'extract'))
+    label = f'{work_dict.get("label", "extract")}'
     ds_id = work_dict.get('ticker')
     df_type = td_consts.DATAFEED_TD_CALLS
     df_str = td_consts.get_datafeed_str_td(df_type=df_type)
@@ -69,11 +69,8 @@ def extract_option_calls_dataset(
 
     if verbose:
         log.info(
-            '{} - {} - start - redis_key={} s3_key={}'.format(
-                label,
-                df_str,
-                redis_key,
-                s3_key))
+            f'{label} - {df_str} - start - redis_key={redis_key} '
+            f's3_key={s3_key}')
 
     if not redis_host and not redis_port:
         redis_host = ae_consts.REDIS_ADDRESS.split(':')[0]
@@ -95,11 +92,8 @@ def extract_option_calls_dataset(
         status = redis_rec['status']
         if verbose:
             log.info(
-                '{} - {} redis get data key={} status={}'.format(
-                    label,
-                    df_str,
-                    redis_key,
-                    ae_consts.get_status(status=status)))
+                f'{label} - {df_str} redis get data key={redis_key} '
+                f'status={ae_consts.get_status(status=status)}')
 
         if status == ae_consts.SUCCESS:
             calls_json = None
@@ -108,10 +102,7 @@ def extract_option_calls_dataset(
             else:
                 calls_json = redis_rec['rec']['data']
             if verbose:
-                log.info(
-                    '{} - {} redis convert calls to df'.format(
-                        label,
-                        df_str))
+                log.info(f'{label} - {df_str} redis convert calls to df')
             exp_date_str = None
             try:
                 calls_df = pd.read_json(
@@ -122,9 +113,7 @@ def extract_option_calls_dataset(
                 if 'date' not in calls_df:
                     log.debug(
                         'failed to find date column in TD calls '
-                        'df={}'.format(
-                            calls_df,
-                            len(calls_df.index)))
+                        f'df={calls_df} from lens={len(calls_df.index)}')
                     return ae_consts.SUCCESS, None
                 calls_df.sort_values(
                         by=[
@@ -157,54 +146,32 @@ def extract_option_calls_dataset(
 
             except Exception as f:
                 log.error(
-                    '{} - {} redis_key={} '
-                    'no calls df found or ex={}'.format(
-                        label,
-                        df_str,
-                        redis_key,
-                        f))
+                    f'{label} - {df_str} redis_key={redis_key} '
+                    f'no calls df found or ex={f}')
                 return ae_consts.EMPTY, None
             # end of try/ex to convert to df
             if verbose:
                 log.info(
-                    '{} - {} redis_key={} calls={} exp_date={}'.format(
-                        label,
-                        df_str,
-                        redis_key,
-                        len(calls_df.index),
-                        exp_date_str))
+                    f'{label} - {df_str} redis_key={redis_key} '
+                    f'calls={len(calls_df.index)} exp_date={exp_date_str}')
         else:
             if verbose:
                 log.info(
-                    '{} - {} did not find valid redis option calls '
-                    'in redis_key={} status={}'.format(
-                        label,
-                        df_str,
-                        redis_key,
-                        ae_consts.get_status(status=status)))
+                    f'{label} - {df_str} did not find valid redis '
+                    f'option calls in redis_key={redis_key} '
+                    f'status={ae_consts.get_status(status=status)}')
 
     except Exception as e:
         log.debug(
-            '{} - {} - ds_id={} failed getting option calls from '
-            'redis={}:{}@{} key={} ex={}'.format(
-                label,
-                df_str,
-                ds_id,
-                redis_host,
-                redis_port,
-                redis_db,
-                redis_key,
-                e))
+            f'{label} - {df_str} - ds_id={ds_id} failed getting option '
+            f'calls from redis={redis_host}:{redis_port}@{redis_db} '
+            f'key={redis_key} ex={e}')
         return ae_consts.ERR, None
     # end of try/ex extract from redis
 
     if verbose:
         log.info(
-            '{} - {} ds_id={} extract scrub={}'.format(
-                label,
-                df_str,
-                ds_id,
-                scrub_mode))
+            f'{label} - {df_str} ds_id={ds_id} extract scrub={scrub_mode}')
 
     scrubbed_df = scrub_utils.extract_scrub_dataset(
         label=label,
@@ -231,7 +198,7 @@ def extract_option_puts_dataset(
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    label = '{}'.format(work_dict.get('label', 'extract'))
+    label = f'{work_dict.get("label", "extract")}'
     ds_id = work_dict.get('ticker')
     df_type = td_consts.DATAFEED_TD_PUTS
     df_str = td_consts.get_datafeed_str_td(df_type=df_type)
@@ -256,11 +223,8 @@ def extract_option_puts_dataset(
 
     if verbose:
         log.info(
-            '{} - {} - start - redis_key={} s3_key={}'.format(
-                label,
-                df_str,
-                redis_key,
-                s3_key))
+            f'{label} - {df_str} - start - redis_key={redis_key} '
+            f's3_key={s3_key}')
 
     if not redis_host and not redis_port:
         redis_host = ae_consts.REDIS_ADDRESS.split(':')[0]
@@ -282,11 +246,8 @@ def extract_option_puts_dataset(
         status = redis_rec['status']
         if verbose:
             log.info(
-                '{} - {} redis get data key={} status={}'.format(
-                    label,
-                    df_str,
-                    redis_key,
-                    ae_consts.get_status(status=status)))
+                f'{label} - {df_str} redis get data key={redis_key} '
+                f'status={ae_consts.get_status(status=status)}')
 
         if status == ae_consts.SUCCESS:
             puts_json = None
@@ -295,10 +256,7 @@ def extract_option_puts_dataset(
             else:
                 puts_json = redis_rec['rec']['data']
             if verbose:
-                log.info(
-                    '{} - {} redis convert puts to df'.format(
-                        label,
-                        df_str))
+                log.info(f'{label} - {df_str} redis convert puts to df')
             try:
                 puts_df = pd.read_json(
                     puts_json,
@@ -308,9 +266,7 @@ def extract_option_puts_dataset(
                 if 'date' not in puts_df:
                     log.debug(
                         'failed to find date column in TD puts '
-                        'df={} len={}'.format(
-                            puts_df,
-                            len(puts_df.index)))
+                        f'df={puts_df} len={len(puts_df.index)}')
                     return ae_consts.SUCCESS, None
                 puts_df.sort_values(
                         by=[
@@ -343,53 +299,32 @@ def extract_option_puts_dataset(
 
             except Exception as f:
                 log.debug(
-                    '{} - {} redis_key={} '
-                    'no puts df found'.format(
-                        label,
-                        df_str,
-                        redis_key))
+                    f'{label} - {df_str} redis_key={redis_key} '
+                    'no puts df found')
                 return ae_consts.EMPTY, None
             # end of try/ex to convert to df
             if verbose:
                 log.info(
-                    '{} - {} redis_key={} puts={} exp_date={}'.format(
-                        label,
-                        df_str,
-                        redis_key,
-                        len(puts_df.index),
-                        exp_date_str))
+                    f'{label} - {df_str} redis_key={redis_key} '
+                    f'puts={len(puts_df.index)} exp_date={exp_date_str}')
         else:
             if verbose:
                 log.info(
-                    '{} - {} did not find valid redis option puts '
-                    'in redis_key={} status={}'.format(
-                        label,
-                        df_str,
-                        redis_key,
-                        ae_consts.get_status(status=status)))
+                    f'{label} - {df_str} did not find valid redis '
+                    f'option puts in redis_key={redis_key} '
+                    f'status={ae_consts.get_status(status=status)}')
 
     except Exception as e:
         log.debug(
-            '{} - {} - ds_id={} failed getting option puts from '
-            'redis={}:{}@{} key={} ex={}'.format(
-                label,
-                df_str,
-                ds_id,
-                redis_host,
-                redis_port,
-                redis_db,
-                redis_key,
-                e))
+            f'{label} - {df_str} - ds_id={ds_id} failed getting option '
+            f'puts from redis={redis_host}:{redis_port}@{redis_db} '
+            f'key={redis_key} ex={e}')
         return ae_consts.ERR, None
     # end of try/ex extract from redis
 
     if verbose:
         log.info(
-            '{} - {} ds_id={} extract scrub={}'.format(
-                label,
-                df_str,
-                ds_id,
-                scrub_mode))
+            f'{label} - {df_str} ds_id={ds_id} extract scrub={scrub_mode}')
 
     scrubbed_df = scrub_utils.extract_scrub_dataset(
         label=label,

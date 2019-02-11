@@ -37,11 +37,11 @@ class CustomTask(celery.Task):
         if not args:
             return
         if len(args) > 0:
-            self.log_label = 'label=[{}]'.format(args[0].get(
+            self.log_label = f'''label=[{args[0].get(
                 'label',
                 args[0].get(
                     'name',
-                    self.name)))
+                    self.name))}]'''
         else:
             return
     # end of build_log_label_from_args
@@ -70,18 +70,10 @@ class CustomTask(celery.Task):
 
         if ae_consts.ev('DEBUG_TASK', '0') == '1':
             log.info(
-                'on_success {} - retval={} task_id={} '
-                'args={} kwargs={}'.format(
-                    self.log_label,
-                    retval,
-                    task_id,
-                    args,
-                    kwargs))
+                f'on_success {self.log_label} - retval={retval} '
+                f'task_id={task_id} args={args} kwargs={kwargs}')
         else:
-            log.info(
-                'on_success {} - task_id={}'.format(
-                    self.log_label,
-                    task_id))
+            log.info(f'on_success {self.log_label} - task_id={task_id}')
     # end of on_success
 
     def on_failure(
@@ -113,21 +105,13 @@ class CustomTask(celery.Task):
         use_exc = str(exc)
         if ae_consts.ev('DEBUG_TASK', '0') == '1':
             log.error(
-                'on_failure {} - exc={} '
-                'args={} kwargs={}'.format(
-                    self.log_label,
-                    use_exc,
-                    args,
-                    kwargs))
+                f'on_failure {self.log_label} - exc={use_exc} '
+                f'args={args} kwargs={kwargs}')
         else:
-            log.error(
-                'on_failure {} - exc={} '.format(
-                    self.log_label,
-                    use_exc))
+            log.error(f'on_failure {self.log_label} - exc={use_exc}')
         if ae_consts.ev('PROD_SLACK_ALERTS', '0') == '1':
-            slack_utils.post_failure(['on_failure {}'.format(
-                self.log_label),
-                    'exc={}'.format(use_exc)])
+            slack_utils.post_failure([f'on_failure {self.log_label}',
+                                      f'exc={use_exc}'])
     # end of on_failure
 
 # end of CustomTask

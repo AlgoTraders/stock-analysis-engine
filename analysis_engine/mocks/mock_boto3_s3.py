@@ -31,14 +31,8 @@ def mock_s3_read_contents_from_key_ev(
         None)
 
     log.info(
-        'returning mock s3={}:{} contents={} encoding={} '
-        'json={} env_key={}'.format(
-            s3_bucket_name,
-            s3_key,
-            str_contents,
-            encoding,
-            convert_as_json,
-            env_key))
+        f'returning mock s3={s3_bucket_name}:{s3_key} contents={str_contents} '
+        f'encoding={encoding} json={convert_as_json} env_key={env_key}')
 
     if not str_contents:
         return str_contents
@@ -64,9 +58,7 @@ def mock_publish_from_s3_to_redis(
         None)
     log.info(
         'mock_publish_from_s3_to_redis - '
-        'setting key={} value={}'.format(
-            redis_key,
-            str_dict))
+        f'setting key={redis_key} value={str_dict}')
     data = None
     if str_dict:
         os.environ[redis_key] = str_dict
@@ -103,9 +95,7 @@ def mock_publish_from_s3_to_redis_err(
         None)
     log.info(
         'mock_publish_from_s3_to_redis_err - '
-        'setting key={} value={}'.format(
-            redis_key,
-            str_dict))
+        f'setting key={redis_key} value={str_dict}')
     data = None
     if str_dict:
         os.environ[redis_key] = str_dict
@@ -165,10 +155,8 @@ class MockBotoS3Bucket:
         """
 
         log.debug(
-            'mock - MockBotoS3Bucket.put_object(Key={}, '
-            'Body={})'.format(
-                Key,
-                Body))
+            f'mock - MockBotoS3Bucket.put_object(Key={Key}, '
+            f'Body={Body})')
 
         self.keys.append(Key)
         self.datas.append(Body)
@@ -195,9 +183,7 @@ class MockBotoS3AllBuckets:
         """
         if bucket_name not in self.buckets:
             log.info(
-                'adding bucket={} total={}'.format(
-                    bucket_name,
-                    len(self.buckets) + 1))
+                f'adding bucket={bucket_name} total={len(self.buckets) + 1)}')
             self.buckets[bucket_name] = MockBotoS3Bucket(
                 name=bucket_name)
 
@@ -254,8 +240,7 @@ class MockBotoS3:
         :param name: name of new bucket
         """
         log.info(
-            'MockBotoS3.Bucket({})'.format(
-                name))
+            f'MockBotoS3.Bucket({name})')
         return self.buckets.add(
             bucket_name=name)
     # end of Bucket
@@ -268,8 +253,7 @@ class MockBotoS3:
         :param bucket_name: name of the new bucket
         """
         log.info(
-            'mock - MockBotoS3.create_bucket(Bucket={})'.format(
-                Bucket))
+            f'mock - MockBotoS3.create_bucket(Bucket={Bucket})')
         return self.buckets.add(
             bucket_name=Bucket)
     # end of create_bucket

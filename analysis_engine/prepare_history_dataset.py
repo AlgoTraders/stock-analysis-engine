@@ -127,8 +127,7 @@ def prepare_history_dataset(
 
         if num_records:
             if verbose:
-                log.info('found records={}'.format(
-                    num_records))
+                log.info(f'found records={num_records}')
             history_df = pd.DataFrame(all_records)
             for dc in convert_these_date_keys:
                 if dc in history_df:
@@ -138,8 +137,8 @@ def prepare_history_dataset(
             # end of converting all date columns
             use_data[ticker] = history_df
         else:
-            log.error('did not find any records={} in history dataset'.format(
-                num_records))
+            log.error(
+                f'did not find any records={num_records} in history dataset')
     # end for all tickers in the dataset
 
     return use_data

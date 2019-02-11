@@ -78,10 +78,7 @@ def build_df_from_redis(
     log_id = label if label else 'build-df'
 
     try:
-        log.debug(
-            '{} calling get redis key={}'.format(
-                log_id,
-                key))
+        log.debug(f'{log_id} calling get redis key={key}')
 
         use_host = host
         use_port = port
@@ -93,11 +90,7 @@ def build_df_from_redis(
         use_client = client
         if not use_client:
             log.debug(
-                '{} connecting to redis={}:{}@{}'.format(
-                    log_id,
-                    use_host,
-                    use_port,
-                    db))
+                f'{log_id} connecting to redis={use_host}:{use_port}@{db}')
             use_client = redis.Redis(
                 host=use_host,
                 port=use_port,
@@ -125,24 +118,17 @@ def build_df_from_redis(
             if data:
                 if ae_consts.ev('DEBUG_REDIS', '0') == '1':
                     log.info(
-                        '{} - found key={} data={}'.format(
-                            log_id,
-                            key,
-                            ae_consts.ppj(data)))
+                        f'{log_id} - found key={key} '
+                        f'data={ae_consts.ppj(data)}')
                 else:
                     log.debug(
-                        '{} - loading df from key={}'.format(
-                            log_id,
-                            key))
+                        f'{log_id} - loading df from key={key}')
                     df = pd.read_json(
                         data,
                         orient='records')
                     valid_df = True
             else:
-                log.debug(
-                    '{} key={} no data'.format(
-                        log_id,
-                        key))
+                log.debug(f'{log_id} key={key} no data')
             # if data
 
             rec['data'] = df
@@ -154,10 +140,7 @@ def build_df_from_redis(
                 rec=rec)
             return res
         else:
-            log.debug(
-                '{} no data key={}'.format(
-                    log_id,
-                    key))
+            log.debug(f'{log_id} no data key={key}')
             res = build_result.build_result(
                 status=ae_consts.SUCCESS,
                 err=None,
@@ -165,12 +148,8 @@ def build_df_from_redis(
             return res
     except Exception as e:
         err = (
-            '{} failed - build_df_from_redis data={} '
-            'key={} ex={}'.format(
-                log_id,
-                (data == '0'),
-                key,
-                e))
+            f'{log_id} failed - build_df_from_redis data={data == "0"} '
+            f'key={key} ex={e}')
         log.error(err)
         res = build_result.build_result(
             status=ae_consts.ERR,

@@ -101,9 +101,9 @@ class ExampleMinuteAlgo(base_algo.BaseAlgo):
 
         :param kwargs: keyword arguments
         """
-        log.info('base - {}'.format(kwargs.get('name', 'no-name-set')))
+        log.info(f'base - {kwargs.get("name", "no-name-set")}')
         super().__init__(**kwargs)
-        log.info('ready - {}'.format(self.name))
+        log.info(f'ready - {self.name}')
     # end of __init__
 
     def process(
@@ -170,23 +170,13 @@ class ExampleMinuteAlgo(base_algo.BaseAlgo):
         """
         num_minute_rows = len(self.df_minute.index)
         label = (
-            'process - {} - ticker={}'.format(
-                self.name,
-                ticker))
+            f'process - {self.name} - ticker={ticker}')
         log.info(
-            '{} - start - '
-            'date={} minute={} close={} '
-            'high={} low={} open={} volume={} '
-            'intraday rows={}'.format(
-                label,
-                self.backtest_date,
-                self.latest_min,
-                self.latest_close,
-                self.latest_high,
-                self.latest_low,
-                self.latest_open,
-                self.latest_volume,
-                num_minute_rows))
+            f'{label} - start - '
+            f'date={self.backtest_date} minute={self.latest_min} '
+            f'close={self.latest_close} high={self.latest_high} '
+            f'low={self.latest_low} open={self.latest_open} '
+            f'volume={self.latest_volume} intraday rows={num_minute_rows}')
 
         # walk through today's intraday records:
         # Provided by IEX
@@ -200,43 +190,23 @@ class ExampleMinuteAlgo(base_algo.BaseAlgo):
                 # want to debug rows on stdout?
                 # print(row)
                 log.info(
-                    '{} - ANALYZE - '
-                    'date={} at {} '
-                    'close={} high={} low={} open={} volume={} '
-                    '- {}'.format(
-                        label,
-                        self.backtest_date,
-                        row['date'].strftime('%H:%M:%S'),
-                        row['close'],
-                        row['high'],
-                        row['low'],
-                        row['open'],
-                        row['volume'],
-                        percent_label))
+                    f'{label} - ANALYZE - '
+                    f'date={self.backtest_date} at '
+                    f'{row["date"].strftime("%H:%M:%S")} close={row["close"]} '
+                    f'high={row["high"]} low={row["low"]} open={row["open"]} '
+                    f'volume={row["volume"]} - {percent_label}')
                 num_done += 1
         # end for all rows in the dataset
 
         log.info(
-            '{} - done - '
-            'date={} minute={} '
-            'balance={} previous_balance={} '
-            'shares={} buys={} sells={} '
-            'close={} high={} low={} open={} volume={} '
-            'intraday rows={}'.format(
-                label,
-                self.backtest_date,
-                self.latest_min,
-                self.balance,
-                self.prev_bal,
-                self.num_owned,
-                self.num_buys,
-                self.num_sells,
-                self.latest_close,
-                self.latest_high,
-                self.latest_low,
-                self.latest_open,
-                self.latest_volume,
-                num_minute_rows))
+            f'{label} - done - '
+            f'date={self.backtest_date} minute={self.latest_min} '
+            f'balance={self.balance} previous_balance={self.prev_bal} '
+            f'shares={self.num_owned} buys={self.num_buys} '
+            f'sells={self.num_sells} close={self.latest_close} '
+            f'high={self.latest_high} low={self.latest_low} '
+            f'open={self.latest_open} volume={self.latest_volume} '
+            f'intraday rows={num_minute_rows}')
 
     # end of process
 

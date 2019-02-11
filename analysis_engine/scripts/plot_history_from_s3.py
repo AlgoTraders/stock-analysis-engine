@@ -101,12 +101,8 @@ def plot_history_from_s3():
         ])
     ticker = tickers[0]
 
-    log.info(
-        'found algo: {}'.format(
-            algo_name))
-    log.info(
-        'config: {}'.format(
-            consts.ppj(algo_config)))
+    log.info(f'found algo: {algo_name}')
+    log.info(f'config: {consts.ppj(algo_config)}')
 
     history_df = load_res[ticker]
     history_df['date'] = pd.to_datetime(
@@ -120,11 +116,8 @@ def plot_history_from_s3():
     first_date = history_df['date'].iloc[0]
     end_date = history_df['date'].iloc[-1]
     title = (
-        'Trading History {}\n'
-        'Backtest dates from {} to {}'.format(
-            ticker,
-            first_date,
-            end_date))
+        f'Trading History {ticker}\n'
+        f'Backtest dates from {first_date} to {end_date}')
     use_xcol = 'date'
     use_as_date_format = '%d\n%b'
     use_minute = False
@@ -150,9 +143,7 @@ def plot_history_from_s3():
 
     if debug:
         for i, r in history_df.iterrows():
-            log.info('{} - {}'.format(
-                r['minute'],
-                r['close']))
+            log.info(f'{r["minute"]} - {r["close"]}')
     # end of debug
 
     show_plot = True

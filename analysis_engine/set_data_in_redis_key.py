@@ -67,11 +67,8 @@ def set_data_in_redis_key(
 
     try:
         log.debug(
-            '{} serializer={} encoding={} for key={}'.format(
-                log_id,
-                serializer,
-                encoding,
-                key))
+            f'{log_id} serializer={serializer} encoding={encoding} '
+            f'for key={key}')
         if already_compressed:
             encoded_data = data
         else:
@@ -81,12 +78,8 @@ def set_data_in_redis_key(
             else:
                 encoded_data = None
                 err = (
-                    '{} unsupported serializer={} '
-                    'encoding={} key={}'.format(
-                        log_id,
-                        serializer,
-                        encoding,
-                        key))
+                    f'{log_id} unsupported serializer={serializer} '
+                    f'encoding={encoding} key={key}')
                 log.error(err)
                 res = build_result.build_result(
                     status=ae_consts.ERR,
@@ -97,21 +90,12 @@ def set_data_in_redis_key(
 
         if encoded_data:
             if ae_consts.ev('DEBUG_REDIS', '0') == '1':
-                log.debug(
-                    '{} set - key={} data={}'.format(
-                        log_id,
-                        key,
-                        encoded_data))
+                log.debug(f'{log_id} set - key={key} data={encoded_data}')
 
             use_client = client
             if not use_client:
                 log.debug(
-                    '{} set key={} new client={}:{}@{}'.format(
-                        log_id,
-                        key,
-                        host,
-                        port,
-                        db))
+                    f'{log_id} set key={key} new client={host}:{port}@{db}')
                 use_client = redis.Redis(
                     host=host,
                     port=port,
@@ -119,9 +103,7 @@ def set_data_in_redis_key(
                     db=db)
             else:
                 log.debug(
-                    '{} set key={} client'.format(
-                        log_id,
-                        key))
+                    f'{log_id} set key={key} client')
             # create Redis client if not set
 
             use_client.set(
@@ -138,9 +120,7 @@ def set_data_in_redis_key(
             return res
         else:
             err = (
-                '{} no data for key={}'.format(
-                    log_id,
-                    key))
+                f'{log_id} no data for key={key}')
             log.error(err)
             res = build_result.build_result(
                 status=ae_consts.ERR,
@@ -150,13 +130,9 @@ def set_data_in_redis_key(
         # end of if have data to set
     except Exception as e:
         err = (
-            '{} failed - redis set from data={} encoded_data={} '
-            'key={} ex={}'.format(
-                log_id,
-                str(data)[0:200],
-                str(encoded_data)[0:200],
-                key,
-                e))
+            f'{log_id} failed - redis set from data={str(data)[0:200]} '
+            f'encoded_data={str(encoded_data)[0:200]} '
+            f'key={key} ex={e}')
         log.error(err)
         res = build_result.build_result(
             status=ae_consts.ERR,

@@ -72,22 +72,15 @@ def get_data_from_redis_key(
         use_client = client
         if not use_client:
             log.debug(
-                '{} get key={} new client={}:{}@{}'.format(
-                    log_id,
-                    key,
-                    host,
-                    port,
-                    db))
+                f'{log_id} - get key={key} new '
+                f'client={host}:{port}@{db}')
             use_client = redis.Redis(
                 host=host,
                 port=port,
                 password=password,
                 db=db)
         else:
-            log.debug(
-                '{} get key={} client'.format(
-                    log_id,
-                    key))
+            log.debug(f'{log_id} - get key={key} client')
         # create Redis client if not set
 
         # https://redis-py.readthedocs.io/en/latest/index.html#redis.StrictRedis.get  # noqa
@@ -113,32 +106,21 @@ def get_data_from_redis_key(
                             'incorrect header check') in str(f):
                         data = None
                         log.critical(
-                            'unable to decompress_df in redis_key={} '
-                            'ex={}'.format(
-                                key,
-                                f))
+                            f'unable to decompress_df in redis_key={key} '
+                            f'ex={f}')
                     else:
                         log.error(
-                            'failed decompress_df in redis_key={} '
-                            'ex={}'.format(
-                                key,
-                                f))
+                            f'failed decompress_df in redis_key={key} '
+                            f'ex={f}')
                         raise f
             # allow decompression failure to fallback to previous method
 
             if not data:
-                log.debug(
-                    '{} decoding key={} encoding={}'.format(
-                        log_id,
-                        key,
-                        encoding))
+                log.debug(f'{log_id} - decoding key={key} encoding={encoding}')
                 decoded_data = raw_data.decode(encoding)
 
                 log.debug(
-                    '{} deserial key={} serializer={}'.format(
-                        log_id,
-                        key,
-                        serializer))
+                    f'{log_id} - deserial key={key} serializer={serializer}')
 
                 if serializer == 'json':
                     data = json.loads(decoded_data)
@@ -150,15 +132,10 @@ def get_data_from_redis_key(
                 if data:
                     if ae_consts.ev('DEBUG_REDIS', '0') == '1':
                         log.info(
-                            '{} - found key={} data={}'.format(
-                                log_id,
-                                key,
-                                ae_consts.ppj(data)))
+                            f'{log_id} - found key={key} '
+                            f'data={ae_consts.ppj(data)}')
                     else:
-                        log.debug(
-                            '{} - found key={}'.format(
-                                log_id,
-                                key))
+                        log.debug(f'{log_id} - found key={key}')
             # log snippet - if data
 
             rec['data'] = data
@@ -168,23 +145,15 @@ def get_data_from_redis_key(
                 err=None,
                 rec=rec)
         else:
-            log.debug(
-                '{} no data key={}'.format(
-                    log_id,
-                    key))
+            log.debug(f'{log_id} - no data key={key}')
             return build_result.build_result(
                 status=ae_consts.SUCCESS,
                 err=None,
                 rec=rec)
     except Exception as e:
         err = (
-            '{} failed - redis get from decoded={} data={} '
-            'key={} ex={}'.format(
-                log_id,
-                decoded_data,
-                data,
-                key,
-                e))
+            f'{log_id} failed - redis get from decoded={decoded_data} '
+            f'data={data} key={key} ex={e}')
         log.error(err)
         res = build_result.build_result(
             status=ae_consts.ERR,

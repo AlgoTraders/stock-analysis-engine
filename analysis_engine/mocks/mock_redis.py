@@ -82,18 +82,12 @@ class MockRedis:
 
         log.info(
             'mock - MockRedis.set('
-            'name={}, '
-            'value={}, '
-            'ex={}, '
-            'px={}, '
-            'nx={}, '
-            'xx={})'.format(
-                name,
-                value,
-                ex,
-                px,
-                nx,
-                xx))
+            f'name={name}, '
+            f'value={value}, '
+            f'ex={ex}, '
+            f'px={px}, '
+            f'nx={nx}, '
+            f'xx={xx})')
         self.cache_dict[name] = value
         self.keys.append(name)
     # end of set
@@ -110,9 +104,8 @@ class MockRedis:
         if not name:
             err = (
                 'mock - MockRedis.get('
-                'name={}'
-                ') - missing a name'.format(
-                    name))
+                f'name={name}'
+                ') - missing a name')
             log.error(err)
             raise Exception(err)
         value_in_dict = self.cache_dict.get(
@@ -124,10 +117,7 @@ class MockRedis:
                 None)
             log.info(
                 'mock - MockRedis.get('
-                'name={}) '
-                'env={}'.format(
-                    name,
-                    value_in_env))
+                f'name={name}) env={value_in_env}')
             if value_in_env:
                 return value_in_env.encode('utf-8')
             else:
@@ -135,10 +125,7 @@ class MockRedis:
         else:
             log.info(
                 'mock - MockRedis.get('
-                'name={}) '
-                'cached_value={}'.format(
-                    name,
-                    value_in_dict))
+                f'name={name}) cached_value={value_in_dict}')
             return value_in_dict
         # end of get data from dict vs in the env
     # end of get

@@ -66,8 +66,7 @@ def get_task_results(
                 None)
         log_id = 'get_task_results'
         if label:
-            log_id = '{} - get_task_results'.format(
-                label)
+            log_id = f'{label} - get_task_results'
 
         result_details = record
         if record:
@@ -81,37 +80,16 @@ def get_task_results(
         if work_dict:
             work_details = ae_consts.ppj(work_dict)
 
-        if status == ae_consts.SUCCESS:
+        if status == ae_consts.SUCCESS or not cel_disabled:
             log.info(
-                '{} celery_disabled={} '
-                'status={} err={} work_dict={} result={}'.format(
-                    log_id,
-                    cel_disabled,
-                    status_details,
-                    err,
-                    work_details,
-                    result_details))
+                f'{log_id} - celery_disabled={cel_disabled} '
+                f'status={status_details} err={err} work_dict={work_details} '
+                f'result={result_details}')
         else:
-            if cel_disabled:
-                log.error(
-                    '{} celery_disabled={} '
-                    'status={} err={} work_dict={} result={}'.format(
-                        log_id,
-                        cel_disabled,
-                        status_details,
-                        err,
-                        work_details,
-                        result_details))
-            else:
-                log.info(
-                    '{} celery_disabled={} '
-                    'status={} err={} work_dict={} result={}'.format(
-                        log_id,
-                        cel_disabled,
-                        status_details,
-                        err,
-                        work_details,
-                        result_details))
+            log.error(
+                f'{log_id} - celery_disabled={cel_disabled} '
+                f'status={status_details} err={err} work_dict={work_details} '
+                f'result={result_details}')
     # end of if debugging the task results
 
     return send_results_back

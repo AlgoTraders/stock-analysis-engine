@@ -185,11 +185,9 @@ class BaseAlgo:
             ticker=ticker,
             balance=1000.00,
             commission=6.00,
-            name='test-{}'.format(ticker))
+            name=f'test-{ticker}')
         date = '2018-11-05'
-        dataset_id = '{}_{}'.format(
-            ticker,
-            date)
+        dataset_id = f'{ticker}_{date}'
         # mock the data pipeline in redis:
         data = {
             ticker: [
@@ -689,43 +687,36 @@ class BaseAlgo:
         # parse optional input args
         self.save_as_key = use_key
         if not self.save_as_key:
-            self.save_as_key = '{}-{}'.format(
-                self.name.replace(' ', ''),
-                ae_utils.utc_now_str(fmt='%Y-%m-%d-%H-%M-%S.%f'))
+            self.save_as_key = (
+                f'{self.name.replace(" ", "")}-'
+                f'{ae_utils.utc_now_str(fmt="%Y-%m-%d-%H-%M-%S.%f")}')
         self.output_file_dir = '/opt/sa/tests/datasets/algo'
         if not output_dir:
             self.output_file_dir = output_dir
 
         # set up default keys
-        self.default_output_file = '{}/{}.json'.format(
-            self.output_file_dir,
-            self.save_as_key)
-        self.default_s3_key = '{}.json'.format(
-            self.save_as_key)
-        self.default_redis_key = '{}'.format(
-            self.save_as_key)
+        self.default_output_file = (
+            f'{self.output_file_dir}/{self.save_as_key}.json')
+        self.default_s3_key = f'{self.save_as_key}.json'
+        self.default_redis_key = f'{self.save_as_key}'
 
-        self.default_load_output_file = '{}/ready-{}.json'.format(
-            self.output_file_dir,
-            self.save_as_key)
-        self.default_history_output_file = '{}/history-{}.json'.format(
-            self.output_file_dir,
-            self.save_as_key)
-        self.default_report_output_file = '{}/report-{}.json'.format(
-            self.output_file_dir,
-            self.save_as_key)
-        self.default_extract_output_file = '{}/extract-{}.json'.format(
-            self.output_file_dir,
-            self.save_as_key)
+        self.default_load_output_file = (
+            f'{self.output_file_dir}/ready-{self.save_as_key}.json')
+        self.default_history_output_file = (
+            f'{self.output_file_dir}/history-{self.save_as_key}.json')
+        self.default_report_output_file = (
+            f'{self.output_file_dir}/report-{self.save_as_key}.json')
+        self.default_extract_output_file = (
+            f'{self.output_file_dir}/extract-{self.save_as_key}.json')
 
-        self.default_load_redis_key = 'algo:ready:{}'.format(
-            self.default_redis_key)
-        self.default_history_redis_key = 'algo:history:{}'.format(
-            self.default_redis_key)
-        self.default_report_redis_key = 'algo:output:{}'.format(
-            self.default_redis_key)
-        self.default_extract_redis_key = 'algo:extract:{}'.format(
-            self.default_redis_key)
+        self.default_load_redis_key = (
+            f'algo:ready:{self.default_redis_key}')
+        self.default_history_redis_key = (
+            f'algo:history:{self.default_redis_key}')
+        self.default_report_redis_key = (
+            f'algo:output:{self.default_redis_key}')
+        self.default_extract_redis_key = (
+            f'algo:extract:{self.default_redis_key}')
 
         if not load_config:
             load_config = build_publish_request.build_publish_request()
@@ -1106,14 +1097,8 @@ class BaseAlgo:
                         'EMPTY minute dataset')
                 return
             for i, row in self.df_minute.iterrows():
-                log.info(
-                    'minute={} date={} close={}'.format(
-                        i,
-                        row['date'],
-                        row['close']))
-            log.info(
-                'minute df len={}'.format(
-                    len(self.df_minute.index)))
+                log.info(f'minute={i} date={row["date"]} close={row["close"]}')
+            log.info(f'minute df len={len(self.df_minute.index)}')
         elif self.timeseries == 'day':
             if len(self.df_daily.index) == 0:
                 log.error(
@@ -1125,13 +1110,8 @@ class BaseAlgo:
             if hasattr(self.daily, 'to_json'):
                 for i, row in self.df_daily.iterrows():
                     log.info(
-                        'day={} date={} close={}'.format(
-                            i,
-                            row['date'],
-                            row['close']))
-                log.info(
-                    'day df len={}'.format(
-                        len(self.daily.index)))
+                        f'day={i} date={row["date"]} close={row["close"]}')
+                log.info(f'day df len={len(self.daily.index)}')
     # end of view_date_dataset_records
 
     def get_indicator_processor(
@@ -1148,9 +1128,8 @@ class BaseAlgo:
         if existing_processor:
             if self.verbose:
                 log.info(
-                    '{} - loading existing processor={}'.format(
-                        self.name,
-                        existing_processor.get_name()))
+                    f'{self.name} - loading existing '
+                    f'processor={existing_processor.get_name()}')
             self.iproc = existing_processor
         else:
             if self.iproc:
@@ -1159,14 +1138,12 @@ class BaseAlgo:
             if not self.config_dict:
                 if self.verbose:
                     log.info(
-                        '{} - is missing an algorithm config_dict '
-                        'please add one to run indicators'.format(
-                            self.name))
+                        f'{self.name} - is missing an algorithm config_dict '
+                        'please add one to run indicators')
             else:
                 self.iproc = ind_processor.IndicatorProcessor(
                     config_dict=self.config_dict,
-                    label='{}-prc'.format(
-                        self.name),
+                    label=f'{self.name}-prc',
                     verbose=self.verbose_processor)
         # if use new or existing
 
@@ -1203,26 +1180,19 @@ class BaseAlgo:
         """
         log.info('--------------')
         log.info(
-            'process(algo_id={}, ticker={}, '
-            'data:'.format(
-                algo_id,
-                ticker))
+            f'process(algo_id={algo_id}, ticker={ticker}, '
+            'data:')
         for k in dataset:
-            log.info(
-                'main keys={}'.format(
-                    k))
+            log.info(f'main keys={k}')
         for k in dataset['data']:
             if hasattr(dataset['data'][k], 'to_json'):
                 log.info(
-                    'data key={} contains a pandas.DataFrame with '
-                    'rows={}'.format(
-                        k,
-                        len(dataset['data'][k].index)))
+                    f'data key={k} contains a pandas.DataFrame with '
+                    f'rows={len(dataset["data"][k].index)}')
             else:
                 log.info(
-                    'data key={} contains a pandas.DataFrame with '
-                    'rows=0'.format(
-                       k))
+                    f'data key={k} contains a pandas.DataFrame with '
+                    'rows=0')
     # end of inspect_dataset
 
     def process(
@@ -1371,15 +1341,11 @@ class BaseAlgo:
             if self.verbose_trading or self.verbose:
                 log.critical(
                     'TRADE - SELLDECISION - '
-                    '{} '
-                    'trade_off_num={} '
-                    'num_sells={} > min_sells={} '
-                    'should_sell={}'.format(
-                        algo_id,
-                        self.trade_off_num_indicators,
-                        self.num_latest_sells,
-                        self.min_sell_indicators,
-                        self.should_sell))
+                    f'{algo_id} '
+                    f'trade_off_num={self.trade_off_num_indicators} '
+                    f'num_sells={self.num_latest_sells} > '
+                    f'min_sells={self.min_sell_indicators} '
+                    f'should_sell={self.should_sell}')
 
             self.create_sell_order(
                 ticker=ticker,
@@ -1398,15 +1364,11 @@ class BaseAlgo:
             if self.verbose_trading or self.verbose:
                 log.critical(
                     'TRADE - BUYDECISION - '
-                    '{} '
-                    'trade_off_num={} '
-                    'num_buys={} > min_buys={} '
-                    'should_buy={}'.format(
-                        algo_id,
-                        self.trade_off_num_indicators,
-                        self.num_latest_buys,
-                        self.min_buy_indicators,
-                        self.should_buy))
+                    f'{algo_id} '
+                    f'trade_off_num={self.trade_off_num_indicators} '
+                    f'num_buys={self.num_latest_buys} > '
+                    f'min_buys={self.min_buy_indicators} '
+                    f'should_buy={self.should_buy}')
             self.create_buy_order(
                 ticker=ticker,
                 shares=self.buy_shares,
@@ -1459,10 +1421,8 @@ class BaseAlgo:
                 self.dsload_s3_enabled and
                 not self.loaded_dataset):
             self.debug_msg = (
-                'external load START - s3={}:{}/{}'.format(
-                    self.dsload_s3_address,
-                    self.dsload_s3_bucket,
-                    self.dsload_s3_key))
+                f'external load START - s3={self.dsload_s3_address}:'
+                f'{self.dsload_s3_bucket}/{self.dsload_s3_key}')
             if self.verbose:
                 log.info(self.debug_msg)
             self.loaded_dataset = load_dataset.load_dataset(
@@ -1478,26 +1438,20 @@ class BaseAlgo:
                 encoding=self.dsload_redis_encoding)
             if self.loaded_dataset:
                 self.debug_msg = (
-                    'external load SUCCESS - s3={}:{}/{}'.format(
-                        self.dsload_s3_address,
-                        self.dsload_s3_bucket,
-                        self.dsload_s3_key))
+                    f'external load SUCCESS - s3={self.dsload_s3_address}:'
+                    f'{self.dsload_s3_bucket}/{self.dsload_s3_key}')
             else:
                 self.debug_msg = (
-                    'external load FAILED - s3={}:{}/{}'.format(
-                        self.dsload_s3_address,
-                        self.dsload_s3_bucket,
-                        self.dsload_s3_key))
+                    f'external load FAILED - s3={self.dsload_s3_address}:'
+                    f'{self.dsload_s3_bucket}/{self.dsload_s3_key}')
                 log.error(self.debug_msg)
                 raise Exception(self.debug_msg)
         elif (self.dsload_redis_key and
                 self.dsload_redis_enabled and
                 not self.loaded_dataset):
             self.debug_msg = (
-                'external load START - redis={}:{}/{}'.format(
-                    self.dsload_redis_address,
-                    self.dsload_redis_db,
-                    self.dsload_redis_key))
+                f'external load START - redis={self.dsload_redis_address}:'
+                f'{self.dsload_redis_db}/{self.dsload_redis_key}')
             log.debug(self.debug_msg)
             self.loaded_dataset = load_dataset.load_dataset(
                 redis_enabled=self.dsload_redis_enabled,
@@ -1512,24 +1466,21 @@ class BaseAlgo:
                 encoding=self.dsload_redis_encoding)
             if self.loaded_dataset:
                 self.debug_msg = (
-                    'external load SUCCESS - redis={}:{}/{}'.format(
-                        self.dsload_redis_address,
-                        self.dsload_redis_db,
-                        self.dsload_redis_key))
+                    'external load SUCCESS - '
+                    f'redis={self.dsload_redis_address}:'
+                    f'{self.dsload_redis_db}/{self.dsload_redis_key}')
             else:
                 self.debug_msg = (
-                    'external load FAILED - redis={}:{}/{}'.format(
-                        self.dsload_redis_address,
-                        self.dsload_redis_db,
-                        self.dsload_redis_key))
+                    'external load FAILED - '
+                    f'redis={self.dsload_redis_address}:'
+                    f'{self.dsload_redis_db}/{self.dsload_redis_key}')
                 log.error(self.debug_msg)
                 raise Exception(self.debug_msg)
         elif (self.dsload_output_file and
                 not self.loaded_dataset):
             if os.path.exists(self.dsload_output_file):
                 self.debug_msg = (
-                    'external load START - file={}'.format(
-                        self.dsload_output_file))
+                    f'external load START - file={self.dsload_output_file}')
                 log.debug(self.debug_msg)
                 self.loaded_dataset = load_dataset.load_dataset(
                     path_to_file=self.dsload_output_file,
@@ -1537,18 +1488,18 @@ class BaseAlgo:
                     encoding=self.extract_redis_encoding)
                 if self.loaded_dataset:
                     self.debug_msg = (
-                        'external load SUCCESS - file={}'.format(
-                            self.dsload_output_file))
+                        'external load SUCCESS - '
+                        f'file={self.dsload_output_file}')
                 else:
                     self.debug_msg = (
-                        'external load FAILED - file={}'.format(
-                            self.dsload_output_file))
+                        'external load FAILED - '
+                        f'file={self.dsload_output_file}')
                     log.error(self.debug_msg)
                     raise Exception(self.debug_msg)
             else:
                 self.debug_msg = (
-                    'external load - did not find file={}'.format(
-                        self.dsload_output_file))
+                    'external load - did not find '
+                    f'file={self.dsload_output_file}')
                 log.error(self.debug_msg)
                 raise Exception(self.debug_msg)
         # end of if supported external loader
@@ -1620,9 +1571,7 @@ class BaseAlgo:
             if self.verbose:
                 log.info(
                     'report publish - disabled - '
-                    '{} - tickers={}'.format(
-                        self.name,
-                        self.tickers))
+                    f'{self.name} - tickers={self.tickers}')
             return status
 
         output_record = self.create_report_dataset()
@@ -1630,29 +1579,19 @@ class BaseAlgo:
         if output_file or s3_enabled or redis_enabled or slack_enabled:
             if self.verbose:
                 log.info(
-                    'report build json - {} - tickers={}'.format(
-                        self.name,
-                        self.tickers))
+                    f'report build json - {self.name} - '
+                    f'tickers={self.tickers}')
 
             use_data = output_record
             num_bytes = len(str(use_data))
             num_mb = ae_consts.get_mb(num_bytes)
             log.info(
                 'report publish - START - '
-                '{} - tickers={} '
-                'file={} size={}MB '
-                's3={} s3_key={} '
-                'redis={} redis_key={} '
-                'slack={}'.format(
-                    self.name,
-                    self.tickers,
-                    output_file,
-                    num_mb,
-                    s3_enabled,
-                    s3_key,
-                    redis_enabled,
-                    redis_key,
-                    slack_enabled))
+                f'{self.name} - tickers={self.tickers} '
+                f'file={output_file} size={num_mb}MB '
+                f's3={s3_enabled} s3_key={s3_key} '
+                f'redis={redis_enabled} redis_key={redis_key} '
+                f'slack={slack_enabled}')
             publish_status = publish.publish(
                 data=use_data,
                 label=label,
@@ -1684,27 +1623,18 @@ class BaseAlgo:
             status = publish_status
 
             log.info(
-                'report publish - END - {} '
-                '{} - tickers={} '
-                'file={} s3={} redis={} size={}MB'.format(
-                    ae_consts.get_status(status=status),
-                    self.name,
-                    self.tickers,
-                    output_file,
-                    s3_key,
-                    redis_key,
-                    num_mb))
+                'report publish - END - '
+                f'{ae_consts.get_status(status=status)} '
+                f'{self.name} - tickers={self.tickers} '
+                f'file={output_file} s3={s3_key} '
+                f'redis={redis_key} size={num_mb}MB')
         else:
             if self.verbose:
                 log.info(
-                    '{} - report not publishing for output_file={} '
-                    's3_enabled={} redis_enabled={} '
-                    'slack_enabled={}'.format(
-                        self.name,
-                        output_file,
-                        s3_enabled,
-                        redis_enabled,
-                        slack_enabled))
+                    f'{self.name} - report not publishing for '
+                    f'output_file={output_file} s3_enabled={s3_enabled} '
+                    f'redis_enabled={redis_enabled} '
+                    f'slack_enabled={slack_enabled}')
         # end of handling for publish
 
         return status
@@ -1733,9 +1663,7 @@ class BaseAlgo:
         num_tickers = len(data_for_tickers)
         if num_tickers > 0:
             self.debug_msg = (
-                '{} handle - tickers={}'.format(
-                    self.name,
-                    json.dumps(data_for_tickers)))
+                f'{self.name} handle - tickers={json.dumps(data_for_tickers)}')
 
         output_record = {}
         for ticker in data_for_tickers:
@@ -1747,15 +1675,10 @@ class BaseAlgo:
                 track_label = self.build_progress_label(
                     progress=cur_idx,
                     total=num_ticker_datasets)
-                algo_id = 'ticker={} {}'.format(
-                    ticker,
-                    track_label)
+                algo_id = f'ticker={ticker} {track_label}'
                 if self.verbose:
                     log.info(
-                        '{} report - {} - ds={}'.format(
-                            self.name,
-                            algo_id,
-                            node['date']))
+                        f'{self.name} report - {algo_id} - ds={node["date"]}')
 
                     new_node = {
                         'id': node['id'],
@@ -1836,9 +1759,7 @@ class BaseAlgo:
         if not self.publish_history:
             log.info(
                 'history publish - disabled - '
-                '{} - tickers={}'.format(
-                    self.name,
-                    self.tickers))
+                f'{self.name} - tickers={self.tickers}')
             return status
         # end of screening for returning early
 
@@ -1847,9 +1768,8 @@ class BaseAlgo:
         if output_file or s3_enabled or redis_enabled or slack_enabled:
             if self.verbose:
                 log.info(
-                    'history build json - {} - tickers={}'.format(
-                        self.name,
-                        self.tickers))
+                    f'history build json - {self.name} - '
+                    f'tickers={self.tickers}')
 
             # for mass trade history publishing, make it
             # easy to find the best-of runs
@@ -1871,27 +1791,17 @@ class BaseAlgo:
                 # what-is-the-maximum-length-of-a-filename-in-s3
                 # 1024 characters
                 s3_key = (
-                    '{}_netgain_{}_netvalue_'
-                    '{}_'
-                    '{}_startbalance_{}_endbalance_'
-                    '{}_shares_{}_close_'
-                    '{}_buys_{}_sells_'
-                    '{}_minbuyinds_{}_minsellinds_'
-                    '{}_seconds_'
-                    '{}'.format(
-                        ae_consts.to_f(self.net_gain),
-                        ae_consts.to_f(self.net_value),
-                        status_str,
-                        ae_consts.to_f(self.starting_balance),
-                        ae_consts.to_f(self.balance),
-                        self.num_owned,
-                        ae_consts.to_f(self.latest_close),
-                        self.num_buys,
-                        self.num_sells,
-                        self.min_buy_indicators,
-                        self.min_sell_indicators,
-                        seconds,
-                        s3_key))[0:1023]
+                    f'{ae_consts.to_f(self.net_gain)}_netgain_'
+                    f'{ae_consts.to_f(self.net_value)}_netvalue_'
+                    f'{status_str}_'
+                    f'{ae_consts.to_f(self.starting_balance)}_startbalance_'
+                    f'{ae_consts.to_f(self.balance)}_endbalance_'
+                    f'{self.num_owned}_shares_'
+                    f'{ae_consts.to_f(self.latest_close)}_close_'
+                    f'{self.num_buys}_buys_{self.num_sells}_sells_'
+                    f'{self.min_buy_indicators}_minbuyinds_'
+                    f'{self.min_sell_indicators}_minsellinds_'
+                    f'{seconds}_seconds_{s3_key}')[0:1023]
             # end of if add metrics to key
 
             use_data = output_record
@@ -1899,21 +1809,11 @@ class BaseAlgo:
             num_mb = ae_consts.get_mb(num_bytes)
             log.info(
                 'history publish - START - '
-                '{} - ticker={} '
-                'file={} size={}MB '
-                's3={}/{} s3_key={} '
-                'redis={} redis_key={} '
-                'slack={}'.format(
-                    self.name,
-                    self.tickers[0],
-                    output_file,
-                    num_mb,
-                    s3_address,
-                    s3_bucket,
-                    s3_key,
-                    redis_enabled,
-                    redis_key,
-                    slack_enabled))
+                f'{self.name} - ticker={self.tickers[0]} '
+                f'file={output_file} size={num_mb}MB '
+                f's3={s3_address}/{s3_bucket} s3_key={s3_key} '
+                f'redis={redis_enabled} redis_key={redis_key} '
+                f'slack={slack_enabled}')
             publish_status = publish.publish(
                 data=use_data,
                 label=label,
@@ -1945,27 +1845,18 @@ class BaseAlgo:
             status = publish_status
 
             log.info(
-                'history publish - END - {} '
-                '{} - tickers={} '
-                'file={} s3={} redis={} size={}MB'.format(
-                    ae_consts.get_status(status=status),
-                    self.name,
-                    self.tickers,
-                    output_file,
-                    s3_key,
-                    redis_key,
-                    num_mb))
+                'history publish - END - '
+                f'{ae_consts.get_status(status=status)} '
+                f'{self.name} - tickers={self.tickers} '
+                f'file={output_file} s3={s3_key} redis={redis_key} '
+                f'size={num_mb}MB')
         else:
             if self.verbose:
                 log.info(
-                    '{} - history not publishing for output_file={} '
-                    's3_enabled={} redis_enabled={} '
-                    'slack_enabled={}'.format(
-                        self.name,
-                        output_file,
-                        s3_enabled,
-                        redis_enabled,
-                        slack_enabled))
+                    f'{self.name} - history not publishing for '
+                    f'output_file={output_file} s3_enabled={s3_enabled} '
+                    f'redis_enabled={redis_enabled} '
+                    f'slack_enabled={slack_enabled}')
         # end of handling for publish
 
         return status
@@ -1994,9 +1885,7 @@ class BaseAlgo:
         num_tickers = len(data_for_tickers)
         if num_tickers > 0:
             self.debug_msg = (
-                '{} handle - tickers={}'.format(
-                    self.name,
-                    json.dumps(data_for_tickers)))
+                f'{self.name} handle - tickers={json.dumps(data_for_tickers)}')
 
         history_by_ticker = {}
         for ticker in data_for_tickers:
@@ -2023,19 +1912,14 @@ class BaseAlgo:
                 track_label = self.build_progress_label(
                     progress=cur_idx,
                     total=num_ticker_datasets)
-                algo_id = 'ticker={} {}'.format(
-                    ticker,
-                    track_label)
+                algo_id = f'ticker={ticker} {track_label}'
                 if self.verbose:
                     log.info(
-                        '{} history - {} - ds={}'.format(
-                            self.name,
-                            algo_id,
+                        f'''{self.name} history - {algo_id} - ds={node.get(
+                            'minute',
                             node.get(
-                                'minute',
-                                node.get(
-                                    'date',
-                                    'no-date-set'))))
+                                'date',
+                                'no-date-set'))}''')
 
                 output_record[ticker].append(node)
                 cur_idx += 1
@@ -2139,9 +2023,7 @@ class BaseAlgo:
         if not self.publish_input:
             log.info(
                 'input publish - disabled - '
-                '{} - tickers={}'.format(
-                    self.name,
-                    self.tickers))
+                f'{self.name} - tickers={self.tickers}')
             return status
 
         output_record = self.create_algorithm_ready_dataset()
@@ -2149,29 +2031,16 @@ class BaseAlgo:
         if output_file or s3_enabled or redis_enabled or slack_enabled:
             if self.verbose:
                 log.info(
-                    'input build json - {} - tickers={}'.format(
-                        self.name,
-                        self.tickers))
+                    f'input build json - {self.name} - tickers={self.tickers}')
 
             use_data = output_record
             num_bytes = len(str(use_data))
             num_mb = ae_consts.get_mb(num_bytes)
             log.info(
-                'input publish - START - '
-                '{} - tickers={} '
-                'file={} size={}MB '
-                's3={} s3_key={} '
-                'redis={} redis_key={} '
-                'slack={}'.format(
-                    self.name,
-                    self.tickers,
-                    output_file,
-                    num_mb,
-                    s3_enabled,
-                    s3_key,
-                    redis_enabled,
-                    redis_key,
-                    slack_enabled))
+                f'input publish - START - {self.name} - '
+                f'tickers={self.tickers} file={output_file} size={num_mb}MB '
+                f's3={s3_enabled} s3_key={s3_key} redis={redis_enabled} '
+                f'redis_key={redis_key} slack={slack_enabled}')
             publish_status = publish.publish(
                 data=use_data,
                 label=label,
@@ -2203,16 +2072,9 @@ class BaseAlgo:
             status = publish_status
 
             log.info(
-                'input publish - END - {} '
-                '{} - tickers={} '
-                'file={} s3={} redis={} size={}MB'.format(
-                    ae_consts.get_status(status=status),
-                    self.name,
-                    self.tickers,
-                    output_file,
-                    s3_key,
-                    redis_key,
-                    num_mb))
+                f'input publish - END - {ae_consts.get_status(status=status)} '
+                f'{self.name} - tickers={self.tickers} file={output_file} '
+                f's3={s3_key} redis={redis_key} size={num_mb}MB')
         # end of handling for publish
 
         return status
@@ -2238,9 +2100,7 @@ class BaseAlgo:
         num_tickers = len(data_for_tickers)
         if num_tickers > 0:
             self.debug_msg = (
-                '{} handle - tickers={}'.format(
-                    self.name,
-                    json.dumps(data_for_tickers)))
+                f'{self.name} handle - tickers={json.dumps(data_for_tickers)}')
 
         output_record = {}
         for ticker in data_for_tickers:
@@ -2252,15 +2112,10 @@ class BaseAlgo:
                 track_label = self.build_progress_label(
                     progress=cur_idx,
                     total=num_ticker_datasets)
-                algo_id = 'ticker={} {}'.format(
-                    ticker,
-                    track_label)
+                algo_id = f'ticker={ticker} {track_label}'
                 if self.verbose:
                     log.info(
-                        '{} convert - {} - ds={}'.format(
-                            self.name,
-                            algo_id,
-                            node['date']))
+                        f'{self.name} convert - {algo_id} - ds={node["date"]}')
 
                 new_node = {
                     'id': node['id'],
@@ -2270,9 +2125,8 @@ class BaseAlgo:
 
                 # parse the dataset node and set member variables
                 self.debug_msg = (
-                    '{} START - convert load dataset id={}'.format(
-                        ticker,
-                        node.get('id', 'missing-id')))
+                    f'{ticker} START - convert load dataset '
+                    f'id={node.get("id", "missing-id")}')
                 self.load_from_dataset(
                     ds_data=node)
                 for ds_key in node['data']:
@@ -2281,9 +2135,7 @@ class BaseAlgo:
                     if ds_key not in new_node['data']:
                         new_node['data'][ds_key] = empty_ds
                     self.debug_msg = (
-                        'convert node={} ds_key={}'.format(
-                            node,
-                            ds_key))
+                        f'convert node={node} ds_key={ds_key}')
                     if hasattr(data_val, 'to_json'):
                         new_node['data'][ds_key] = data_val.to_json(
                             orient='records',
@@ -2297,9 +2149,8 @@ class BaseAlgo:
                     # if/else
                 # for all dataset values in data
                 self.debug_msg = (
-                    '{} END - convert load dataset id={}'.format(
-                        ticker,
-                        node.get('id', 'missing-id')))
+                    f'{ticker} END - convert load dataset '
+                    f'id={node.get("id", "missing-id")}')
 
                 output_record[ticker].append(new_node)
                 cur_idx += 1
@@ -2595,12 +2446,9 @@ class BaseAlgo:
         if required_amount_for_a_buy > self.balance:
             if self.verbose_trading:
                 log.info(
-                    '{} - buy - not enough funds={} < required={} with '
-                    'shares={}'.format(
-                        self.name,
-                        self.balance,
-                        required_amount_for_a_buy,
-                        self.num_owned))
+                    f'{self.name} - buy - not enough funds={self.balance} < '
+                    f'required={required_amount_for_a_buy} with '
+                    f'shares={self.num_owned}')
             return
 
         dataset_date = row['date']
@@ -2610,12 +2458,8 @@ class BaseAlgo:
 
         if self.verbose_trading:
             log.info(
-                '{} - buy start {} {}@{} - shares={}'.format(
-                    self.name,
-                    use_date,
-                    ticker,
-                    close,
-                    shares))
+                f'{self.name} - buy start {use_date} {ticker}@{close} - '
+                f'shares={shares}')
 
         new_buy = None
 
@@ -2637,9 +2481,7 @@ class BaseAlgo:
                 commission=self.commission,
                 date=dataset_date,
                 minute=minute,
-                use_key='{}_{}'.format(
-                    ticker,
-                    dataset_date),
+                use_key=f'{ticker}_{dataset_date}',
                 details=order_details,
                 is_live_trading=is_live_trading,
                 reason=reason)
@@ -2670,31 +2512,18 @@ class BaseAlgo:
                 self.balance = new_buy['balance']
                 if self.verbose_trading:
                     log.info(
-                        '{} - buy end {} {}@{} {} shares={} cost={} bal={} '
-                        'prev_shares={} prev_bal={}'.format(
-                            self.name,
-                            use_date,
-                            ticker,
-                            close,
-                            ae_consts.get_status(status=new_buy['status']),
-                            new_buy['shares'],
-                            new_buy['buy_price'],
-                            self.balance,
-                            prev_shares,
-                            prev_bal))
+                        f'{self.name} - buy end {use_date} {ticker}@{close} '
+                        f'{ae_consts.get_status(status=new_buy["status"])} '
+                        f'shares={new_buy["shares"]} '
+                        f'cost={new_buy["buy_price"]} bal={self.balance} '
+                        f'prev_shares={prev_shares} prev_bal={prev_bal}')
             else:
                 if self.verbose_trading:
                     log.info(
-                        '{} - buy fail {} {}@{} {} shares={} cost={} '
-                        'bal={} '.format(
-                            self.name,
-                            use_date,
-                            ticker,
-                            close,
-                            ae_consts.get_status(status=new_buy['status']),
-                            num_owned,
-                            new_buy['buy_price'],
-                            self.balance))
+                        f'{self.name} - buy fail {use_date} {ticker}@{close} '
+                        f'{ae_consts.get_status(status=new_buy["status"])} '
+                        f'shares={num_owned} cost={new_buy["buy_price"]} '
+                        f'bal={self.balance} ')
             # end of if trade worked or not
 
             # update the buys
@@ -2715,11 +2544,7 @@ class BaseAlgo:
                                 self.latest_ind_report[k])
         except Exception as e:
             self.debug_msg = (
-                '{} - buy {}@{} - FAILED with ex={}'.format(
-                    self.name,
-                    ticker,
-                    close,
-                    e))
+                f'{self.name} - buy {ticker}@{close} - FAILED with ex={e}')
             log.error(self.debug_msg)
             if self.raise_on_err:
                 raise e
@@ -2771,12 +2596,9 @@ class BaseAlgo:
         if required_amount_for_a_sell > self.balance:
             if self.verbose_trading:
                 log.info(
-                    '{} - sell - not enough funds={} < required={} with '
-                    'shareds={}'.format(
-                        self.name,
-                        self.balance,
-                        required_amount_for_a_sell,
-                        self.num_owned))
+                    f'{self.name} - sell - not enough funds={self.balance} < '
+                    f'required={required_amount_for_a_sell} with '
+                    f'shareds={self.num_owned}')
             return
 
         dataset_date = row['date']
@@ -2786,11 +2608,7 @@ class BaseAlgo:
 
         if self.verbose_trading:
             log.info(
-                '{} - sell start {} {}@{}'.format(
-                    self.name,
-                    use_date,
-                    ticker,
-                    close))
+                f'{self.name} - sell start {use_date} {ticker}@{close}')
 
         new_sell = None
         order_details = row
@@ -2811,9 +2629,7 @@ class BaseAlgo:
                 commission=self.commission,
                 date=dataset_date,
                 minute=minute,
-                use_key='{}_{}'.format(
-                    ticker,
-                    dataset_date),
+                use_key=f'{ticker}_{dataset_date}',
                 details=order_details,
                 is_live_trading=is_live_trading,
                 reason=reason)
@@ -2844,31 +2660,18 @@ class BaseAlgo:
                 self.balance = new_sell['balance']
                 if self.verbose_trading:
                     log.info(
-                        '{} - sell end {} {}@{} {} shares={} cost={} bal={} '
-                        'prev_shares={} prev_bal={}'.format(
-                            self.name,
-                            use_date,
-                            ticker,
-                            close,
-                            ae_consts.get_status(status=new_sell['status']),
-                            num_owned,
-                            new_sell['sell_price'],
-                            self.balance,
-                            prev_shares,
-                            prev_bal))
+                        f'{self.name} - sell end {use_date} {ticker}@{close} '
+                        f'{ae_consts.get_status(status=new_sell["status"])} '
+                        f'shares={num_owned} cost={new_sell["sell_price"]} '
+                        f'bal={self.balance} prev_shares={prev_shares} '
+                        f'prev_bal={prev_bal}')
             else:
                 if self.verbose_trading:
                     log.info(
-                        '{} - sell fail {} {}@{} {} shares={} cost={} '
-                        'bal={} '.format(
-                            self.name,
-                            use_date,
-                            ticker,
-                            close,
-                            ae_consts.get_status(status=new_sell['status']),
-                            num_owned,
-                            new_sell['sell_price'],
-                            self.balance))
+                        f'{self.name} - sell fail {use_date} {ticker}@{close} '
+                        f'{ae_consts.get_status(status=new_sell["status"])} '
+                        f'shares={num_owned} cost={new_sell["sell_price"]} '
+                        f'bal={self.balance}')
             # end of if trade worked or not
 
             # update the sells
@@ -2889,11 +2692,7 @@ class BaseAlgo:
                                 self.latest_ind_report[k])
         except Exception as e:
             self.debug_msg = (
-                '{} - sell {}@{} - FAILED with ex={}'.format(
-                    self.name,
-                    ticker,
-                    close,
-                    e))
+                f'{self.name} - sell {ticker}@{close} - FAILED with ex={e}')
             log.error(self.debug_msg)
             if self.raise_on_err:
                 raise e
@@ -2915,10 +2714,7 @@ class BaseAlgo:
         percent_done = ae_consts.get_percent_done(
             progress=progress,
             total=total)
-        progress_label = '{} {}/{}'.format(
-            percent_done,
-            progress,
-            total)
+        progress_label = f'{percent_done} {progress}/{total}'
         return progress_label
     # end of build_progress_label
 
@@ -3108,9 +2904,7 @@ class BaseAlgo:
         self.should_sell = False
 
         # by default assume close of trading for the day
-        self.use_minute = (
-            '{} 16:00:00'.format(
-                self.trade_date))
+        self.use_minute = f'{self.trade_date} 16:00:00'
 
         try:
             if hasattr(self.df_daily, 'index'):
@@ -3160,12 +2954,8 @@ class BaseAlgo:
                         self.df_minute.iloc[-1]['volume'])
         except Exception as e:
             self.debug_msg = (
-                '{} handle - FAILED getting latest prices '
-                'for algo={} - ds={} ex={}'.format(
-                    self.name,
-                    self.ds_id,
-                    self.ds_date,
-                    e))
+                f'{self.name} handle - FAILED getting latest prices '
+                f'for algo={self.ds_id} - ds={self.ds_date} ex={e}')
             log.error(self.debug_msg)
             if self.raise_on_err:
                 raise e
@@ -3218,30 +3008,19 @@ class BaseAlgo:
             raise Exception(
                 'Invalid end_min must be greater than start_min - '
                 'self.populate_intraday_events_dict('
-                'start_min={}, end_min={}) '
-                'algo={}'.format(
-                    start_min,
-                    end_min,
-                    self.name))
+                f'start_min={start_min}, end_min={end_min}) '
+                f'algo={self.name}')
 
         num_minutes = ((end_min - start_min).total_seconds() / 60.0) + 1
 
         if num_minutes > 1440:
             raise Exception(
-                'Invalid number of minutes={} between '
-                'start_min={} and end_min={} is more than '
+                f'Invalid number of minutes={num_minutes} between '
+                f'start_min={start_min} and end_min={end_min} is more than '
                 'the number of minutes in a single day: 1440 '
-                'algo={}'.format(
-                    num_minutes,
-                    start_min,
-                    end_min,
-                    self.name))
+                f'algo={self.name}')
 
-        log.info(
-            'num_minutes={} between: {} - {}'.format(
-                num_minutes,
-                start_min,
-                end_min))
+        log.info(f'num_minutes={num_minutes} between: {start_min} - {end_min}')
 
         self.intraday_start_min = start_min
         self.intraday_end_min = end_min
@@ -3282,9 +3061,7 @@ class BaseAlgo:
         if use_day_timeseries or (
                 not self.found_minute_data and
                 use_minute_timeseries):
-            self.use_minute = (
-                '{} 16:00:00'.format(
-                    self.trade_date))
+            self.use_minute = f'{self.trade_date} 16:00:00'
             self.last_history_dict = self.get_trade_history_node()
             if self.last_history_dict:
                 if self.latest_ind_report:
@@ -3306,13 +3083,11 @@ class BaseAlgo:
                 self.order_history.append(self.last_history_dict)
         else:
             raise Exception(
-                'Unsupported self.timeseries={} and '
-                'self.found_minute_data={} - please use '
-                'timeseries=day or timeseries=minute or '
+                f'Unsupported self.timeseries={self.timeseries} and '
+                f'self.found_minute_data={self.found_minute_data} - '
+                'please use timeseries=day or timeseries=minute or '
                 'timeseries=intraday and ensure the '
-                'datasets have \'minute\' data'.format(
-                    self.timeseries,
-                    self.found_minute_data))
+                'datasets have \'minute\' data')
         # end of processing trading history for this dataset
     # end of record_trade_history_for_dataset
 
@@ -3332,9 +3107,7 @@ class BaseAlgo:
                 # string usually: YYYY-MM-DD
                 date = '2018-11-05'
                 # redis cache key for the dataset format: <ticker>_<date>
-                dataset_id = '{}_{}'.format(
-                    ticker,
-                    date)
+                dataset_id = f'{ticker}_{date}'
                 dataset = {
                     ticker: [
                         {
@@ -3492,15 +3265,11 @@ class BaseAlgo:
 
         # parse the dataset node and set member variables
         self.debug_msg = (
-            '{} START - load dataset id={}'.format(
-                ticker,
-                node.get('id', 'missing-id')))
+            f'{ticker} START - load dataset id={node.get("id", "missing-id")}')
         self.load_from_dataset(
             ds_data=node)
         self.debug_msg = (
-            '{} END - load dataset id={}'.format(
-                ticker,
-                node.get('id', 'missing-id')))
+            f'{ticker} END - load dataset id={node.get("id", "missing-id")}')
 
         """
         Indicator Processor
@@ -3510,9 +3279,7 @@ class BaseAlgo:
         self.latest_buys = []
         self.latest_sells = []
         if self.iproc:
-            self.debug_msg = (
-                '{} BASEALGO-START - indicator processing'.format(
-                    ticker))
+            self.debug_msg = f'{ticker} BASEALGO-START - indicator processing'
             self.latest_ind_report = self.iproc.process(
                 algo_id=algo_id,
                 ticker=self.ticker,
@@ -3523,9 +3290,7 @@ class BaseAlgo:
             self.latest_sells = self.latest_ind_report.get(
                 'sells',
                 [])
-            self.debug_msg = (
-                '{} BASEALGO-END - indicator processing'.format(
-                    ticker))
+            self.debug_msg = f'{ticker} BASEALGO-END - indicator processing'
         # end of indicator processing
 
         self.num_latest_buys = len(self.latest_buys)
@@ -3535,34 +3300,26 @@ class BaseAlgo:
         Call the Algorithm's process() method
         """
         self.debug_msg = (
-            '{} START - process id={}'.format(
-                ticker,
-                node.get('id', 'missing-id')))
+            f'{ticker} START - process id={node.get("id", "missing-id")}')
         self.process(
             algo_id=algo_id,
             ticker=self.ticker,
             dataset=node)
         self.debug_msg = (
-            '{} END - process id={}'.format(
-                ticker,
-                node.get('id', 'missing-id')))
+            f'{ticker} END - process id={node.get("id", "missing-id")}')
 
         """
         Execute trades based off self.trade_strategy
         """
         self.debug_msg = (
-            '{} START - trade id={}'.format(
-                ticker,
-                node.get('id', 'missing-id')))
+            f'{ticker} START - trade id={node.get("id", "missing-id")}')
         self.trade_off_indicator_buy_and_sell_signals(
             ticker=ticker,
             algo_id=algo_id,
             reason_for_buy=self.buy_reason,
             reason_for_sell=self.sell_reason)
         self.debug_msg = (
-            '{} END - trade id={}'.format(
-                ticker,
-                node.get('id', 'missing-id')))
+            f'{ticker} END - trade id={node.get("id", "missing-id")}')
 
         """
         Record the Trading History record
@@ -3570,15 +3327,11 @@ class BaseAlgo:
         analysis/review using: myalgo.get_result()
         """
         self.debug_msg = (
-            '{} START - history id={}'.format(
-                ticker,
-                node.get('id', 'missing-id')))
+            f'{ticker} START - history id={node.get("id", "missing-id")}')
         self.record_trade_history_for_dataset(
             node=node)
         self.debug_msg = (
-            '{} END - history id={}'.format(
-                ticker,
-                node.get('id', 'missing-id')))
+            f'{ticker} END - history id={node.get("id", "missing-id")}')
     # end of handle_daily_dataset
 
     def prepare_for_new_indicator_run(
@@ -3790,21 +3543,16 @@ class BaseAlgo:
         first_date = history_df['date'].iloc[0]
         end_date = history_df['date'].iloc[-1]
         title = (
-            'Trading History {} for Algo {}\n'
-            'Backtest dates from {} to {}'.format(
-                ticker,
-                trading_history_dict['algo_name'],
-                first_date,
-                end_date))
+            f'Trading History {ticker} for Algo '
+            f'{trading_history_dict["algo_name"]}\n'
+            f'Backtest dates from {first_date} to {end_date}')
         use_xcol = 'date'
         use_as_date_format = '%d\n%b'
         if self.config_dict['timeseries'] == 'minute':
             use_xcol = 'minute'
             use_as_date_format = '%d %H:%M:%S\n%b'
-        xlabel = 'Dates vs {} values'.format(
-            trading_history_dict['algo_name'])
-        ylabel = 'Algo {}\nvalues'.format(
-            trading_history_dict['algo_name'])
+        xlabel = f'Dates vs {trading_history_dict["algo_name"]} values'
+        ylabel = f'Algo {trading_history_dict["algo_name"]}\nvalues'
         df_filter = (history_df['close'] > 0.01)
 
         # set default columns:

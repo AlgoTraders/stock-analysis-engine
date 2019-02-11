@@ -41,8 +41,7 @@ def load_report_dataset_from_file(
         data_from_file = cur_file.read()
 
     if not data_from_file:
-        log.error('missing data from file={}'.format(
-            path_to_file))
+        log.error(f'missing data from file={path_to_file}')
         return None
 
     return prepare_report.prepare_report_dataset(

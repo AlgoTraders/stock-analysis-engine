@@ -181,17 +181,13 @@ def get_data_from_iex(
         if use_field == 'news':
             use_field = 'news1'
         if 'redis_key' in work_dict:
-            upload_and_cache_req['redis_key'] = '{}_{}'.format(
-                work_dict.get(
-                    'redis_key',
-                    iex_req['redis_key']),
-                use_field)
+            upload_and_cache_req['redis_key'] = f'''{work_dict.get(
+                    "redis_key",
+                    iex_req["redis_key"])}_{use_field}'''
         if 's3_key' in work_dict:
-            upload_and_cache_req['s3_key'] = '{}_{}'.format(
-                work_dict.get(
+            upload_and_cache_req['s3_key'] = f'''{work_dict.get(
                     's3_key',
-                    iex_req['s3_key']),
-                use_field)
+                    iex_req['s3_key'])}_{use_field}'''
 
         try:
             update_res = publisher.run_publish_pricing_update(

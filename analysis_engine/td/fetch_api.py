@@ -48,12 +48,8 @@ def fetch_calls(
         None)
 
     log.debug(
-        '{} - call - args={} ticker={}'
-        ''.format(
-            label,
-            scrub_mode,
-            work_dict,
-            ticker))
+        f'{label} - call - scrub_mode={scrub_mode} '
+        f'args={work_dict} ticker={ticker}')
 
     exp_date = opt_dates.option_expiration().strftime(
         ae_consts.COMMON_DATE_FORMAT)
@@ -70,9 +66,9 @@ def fetch_calls(
     if res.status_code != requests.codes.OK:
         if res.status_code in [401, 403]:
             log.critical(
-                f'Please check the TD_TOKEN is correct '
+                'Please check the TD_TOKEN is correct '
                 f'received {res.status_code} during '
-                f'fetch for: calls')
+                'fetch for: calls')
         else:
             log.info(
                 f'failed to get call with response={res} '
@@ -87,8 +83,7 @@ def fetch_calls(
     if len(org_records) == 0:
         log.info(
             'failed to get call records '
-            'text={}'.format(
-                res.text))
+            f'text={res.text}')
         return ae_consts.EMPTY, pd.DataFrame([{}])
 
     options_list = []
@@ -203,12 +198,7 @@ def fetch_puts(
         'exp_date',
         None)
 
-    log.debug(
-        '{} - puts - args={} ticker={} '
-        ''.format(
-            label,
-            work_dict,
-            ticker))
+    log.debug(f'{label} - puts - args={work_dict} ticker={ticker}')
 
     exp_date = opt_dates.option_expiration().strftime(
         ae_consts.COMMON_DATE_FORMAT)
@@ -225,9 +215,9 @@ def fetch_puts(
     if res.status_code != requests.codes.OK:
         if res.status_code in [401, 403]:
             log.critical(
-                f'Please check the TD_TOKEN is correct '
+                'Please check the TD_TOKEN is correct '
                 f'received {res.status_code} during '
-                f'fetch for: puts')
+                'fetch for: puts')
         else:
             log.info(
                 f'failed to get put with response={res} '
@@ -242,8 +232,7 @@ def fetch_puts(
     if len(org_records) == 0:
         log.info(
             'failed to get put records '
-            'text={}'.format(
-                res.text))
+            f'text={res.text}')
         return ae_consts.EMPTY, pd.DataFrame([{}])
 
     options_list = []

@@ -157,10 +157,8 @@ def plot_dnn_fit_history(
 
     use_footnote = footnote_text
     if not use_footnote:
-        use_footnote = (
-            'algotraders - {}'.format(
-                datetime.datetime.now().strftime(
-                    ae_consts.COMMON_TICK_DATE_FORMAT)))
+        use_footnote = f'''algotraders - {datetime.datetime.now().strftime(
+            ae_consts.COMMON_TICK_DATE_FORMAT)}'''
 
     column_list = []
     all_plots = []
@@ -266,7 +264,7 @@ def plot_dnn_fit_history(
             line.set_label(use_label)
             if line.get_label() not in lines:
                 lines.append(line)
-        rec['ax{}'.format(idx + 1)] = cur_ax
+        rec[f'ax{idx + 1}'] = cur_ax
     # end of compiling a new-shortened legend while removing dupes
 
     for idx, cur_ax in enumerate(all_axes):

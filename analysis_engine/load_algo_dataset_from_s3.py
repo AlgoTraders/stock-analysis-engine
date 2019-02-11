@@ -60,11 +60,9 @@ def load_algo_dataset_from_s3(
 
     data_from_file = None
 
-    endpoint_url = 'http://{}'.format(
-        s3_address)
+    endpoint_url = f'http://{s3_address}'
     if s3_secure:
-        endpoint_url = 'https://{}'.format(
-            s3_address)
+        endpoint_url = f'https://{s3_address}'
 
     s3 = boto3.resource(
         's3',

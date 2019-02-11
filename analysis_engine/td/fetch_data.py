@@ -60,11 +60,7 @@ def fetch_data(
         work_dict['exp_date'] = opt_dates.option_expiration().strftime(
             ae_consts.COMMON_DATE_FORMAT)
 
-    log.debug(
-        'name={} type={} args={}'.format(
-            use_fetch_name,
-            fetch_type,
-            work_dict))
+    log.debug(f'name={use_fetch_name} type={fetch_type} args={work_dict}')
 
     status_df = ae_consts.NOT_SET
     df = pd.DataFrame([{}])
@@ -84,23 +80,17 @@ def fetch_data(
             work_copy['fd_type'] = 'tdcalls'
             if 'tdcalls' in work_dict:
                 work_copy['redis_key'] = work_dict['tdcalls']
-                work_copy['s3_key'] = '{}.json'.format(
-                    work_dict['tdcalls'])
+                work_copy['s3_key'] = f'{work_dict["tdcalls"]}.json'
             else:
-                work_copy['redis_key'] = (
-                    '{}_tdcalls'.format(
-                        work_dict['redis_key']))
-                work_copy['s3_key'] = (
-                    '{}_tdcalls'.format(
-                        work_dict['s3_key']))
+                work_copy['redis_key'] = f'{work_dict["redis_key"]}_tdcalls'
+                work_copy['s3_key'] = f'{work_dict["redis_key"]}_tdcalls'
             ext_status, ext_df = \
                 td_extract.extract_option_calls_dataset(
                     work_dict=work_copy)
             if ext_status == ae_consts.SUCCESS and len(ext_df.index) > 0:
                 log.debug(
-                    'call - merging fetch={} with ext={}'.format(
-                        len(fetch_df.index),
-                        len(ext_df.index)))
+                    f'call - merging fetch={len(fetch_df.index)} '
+                    f'with ext={len(ext_df.index)}')
                 """
                 for testing compression:
                 """
@@ -120,9 +110,7 @@ def fetch_data(
                 dates_by_strike_dict = {}
                 for ex_row in extracted_records:
                     date_strike_name = (
-                        '{}_{}'.format(
-                            ex_row['created'],
-                            ex_row['strike']))
+                        f'{ex_row["created"]}_{ex_row["strike"]}')
                     if date_strike_name not in dates_by_strike_dict:
                         new_node = {}
                         for c in td_consts.TD_OPTION_COLUMNS:
@@ -137,9 +125,7 @@ def fetch_data(
 
                 for ft_row in fetched_records:
                     date_strike_name = (
-                        '{}_{}'.format(
-                            ft_row['created'],
-                            ft_row['strike']))
+                        f'{ft_row["created"]}_{ft_row["strike"]}')
                     try:
                         if date_strike_name not in dates_by_strike_dict:
                             new_node = {}
@@ -153,15 +139,11 @@ def fetch_data(
                             dates_by_strike_dict[date_strike_name] = True
                         else:
                             log.error(
-                                'already have {} call - date={} '
-                                'strike={}'.format(
-                                    ticker,
-                                    ft_row['created'],
-                                    ft_row['strike']))
+                                f'already have {ticker} call - '
+                                f'date={ft_row["created"]} '
+                                f'strike={ft_row["strike"]}')
                     except Exception as p:
-                        log.critical(
-                            'failed fetching call with ex={}'.format(
-                                p))
+                        log.critical(f'failed fetching call with ex={p}')
                         return ae_consts.ERR, None
                     # end of adding fetched records after the extracted
 
@@ -172,9 +154,7 @@ def fetch_data(
                         'strike'
                     ],
                     ascending=True)
-                log.debug(
-                    'call - merged={}'.format(
-                        len(df.index)))
+                log.debug(f'call - merged={len(df.index)}')
             else:
                 df = fetch_df.sort_values(
                     by=[
@@ -200,23 +180,17 @@ def fetch_data(
             work_copy['fd_type'] = 'tdputs'
             if 'tdputs' in work_dict:
                 work_copy['redis_key'] = work_dict['tdputs']
-                work_copy['s3_key'] = '{}.json'.format(
-                    work_dict['tdputs'])
+                work_copy['s3_key'] = f'{work_dict["tdputs"]}.json'
             else:
-                work_copy['redis_key'] = (
-                    '{}_tdputs'.format(
-                        work_dict['redis_key']))
-                work_copy['s3_key'] = (
-                    '{}_tdputs'.format(
-                        work_dict['s3_key']))
+                work_copy['redis_key'] = f'{work_dict["redis_key"]}_tdputs'
+                work_copy['s3_key'] = f'{work_dict["s3_key"]}_tdputs'
             ext_status, ext_df = \
                 td_extract.extract_option_puts_dataset(
                     work_dict=work_copy)
             if ext_status == ae_consts.SUCCESS and len(ext_df.index) > 0:
                 log.debug(
-                    'put - merging fetch={} with ext={}'.format(
-                        len(fetch_df.index),
-                        len(ext_df.index)))
+                    f'put - merging fetch={len(fetch_df.index)} with '
+                    f'ext={len(ext_df.index)}')
                 """
                 for testing compression:
                 """
@@ -233,9 +207,7 @@ def fetch_data(
                 dates_by_strike_dict = {}
                 for ex_row in extracted_records:
                     date_strike_name = (
-                        '{}_{}'.format(
-                            ex_row['created'],
-                            ex_row['strike']))
+                        f'{ex_row["created"]}_{ex_row["strike"]}')
                     if date_strike_name not in dates_by_strike_dict:
                         new_node = {}
                         for c in td_consts.TD_OPTION_COLUMNS:
@@ -250,9 +222,7 @@ def fetch_data(
 
                 for ft_row in fetched_records:
                     date_strike_name = (
-                        '{}_{}'.format(
-                            ft_row['created'],
-                            ft_row['strike']))
+                        f'{ft_row["created"]}_{ft_row["strike"]}')
                     try:
                         if date_strike_name not in dates_by_strike_dict:
                             new_node = {}
@@ -266,15 +236,11 @@ def fetch_data(
                             dates_by_strike_dict[date_strike_name] = True
                         else:
                             log.error(
-                                'already have {} put - date={} '
-                                'strike={}'.format(
-                                    ticker,
-                                    ft_row['created'],
-                                    ft_row['strike']))
+                                f'already have {ticker} put - '
+                                f'date={ft_row["created"]} '
+                                f'strike={ft_row["strike"]}')
                     except Exception as p:
-                        log.critical(
-                            'failed fetching puts with ex={}'.format(
-                                p))
+                        log.critical(f'failed fetching puts with ex={p}')
                         return ae_consts.ERR, None
                 # end of adding fetched records after the extracted
 
@@ -285,9 +251,7 @@ def fetch_data(
                         'strike'
                     ],
                     ascending=True)
-                log.debug(
-                    'put - merged={}'.format(
-                        len(df.index)))
+                log.debug(f'put - merged={len(df.index)}')
             else:
                 df = fetch_df.sort_values(
                     by=[

@@ -137,20 +137,15 @@ def restore_missing_dataset_values_from_algo_ready_file(
         (default is ``True``)
     """
     if not os.path.exists(path_to_file):
-        log.error(
-            'missing file={} for restore'.format(
-                path_to_file))
+        log.error(f'missing file={path_to_file} for restore')
         return
 
     if dataset_type == ae_consts.SA_DATASET_TYPE_ALGO_READY:
-        log.info(
-            'restore start - load dataset from file={}'.format(
-                path_to_file))
+        log.info(f'restore start - load dataset from file={path_to_file}')
     else:
         log.error(
-            'restore dataset unsupported type={} for file={}'.format(
-                dataset_type,
-                path_to_file))
+            'restore dataset unsupported '
+            f'type={dataset_type} for file={path_to_file}')
         return
 
     if not output_redis_db:
@@ -168,9 +163,7 @@ def restore_missing_dataset_values_from_algo_ready_file(
         redis_db=redis_db,
         redis_output_db=output_redis_db,
         verbose=False)
-    log.info(
-        'restore done - dataset in file={}'.format(
-            path_to_file))
+    log.info(f'restore done - dataset in file={path_to_file}')
 # end of restore_missing_dataset_values_from_algo_ready_file
 
 
@@ -199,23 +192,18 @@ def examine_dataset_in_file(
         deserialize in the dataset
     """
     if dataset_type == ae_consts.SA_DATASET_TYPE_ALGO_READY:
-        log.info(
-            'show start - load dataset from file={}'.format(
-                path_to_file))
+        log.info(f'show start - load dataset from file={path_to_file}')
         show_dataset.show_dataset(
             path_to_file=path_to_file,
             compress=compress,
             encoding=encoding,
             dataset_type=dataset_type,
             serialize_datasets=serialize_datasets)
-        log.info(
-            'show done - dataset in file={}'.format(
-                path_to_file))
+        log.info(f'show done - dataset in file={path_to_file}')
     elif dataset_type == ae_consts.SA_DATASET_TYPE_TRADING_HISTORY:
         log.info(
             'load trading history dataset '
-            'from file={}'.format(
-                path_to_file))
+            f'from file={path_to_file}')
         trading_history_dict = load_history.load_history_dataset_from_file(
             path_to_file=path_to_file,
             compress=compress,
@@ -225,18 +213,14 @@ def examine_dataset_in_file(
         first_date = history_df['date'].iloc[0]
         end_date = history_df['date'].iloc[-1]
         title = (
-            'Trading History {} for Algo {}\n'
-            'Backtest dates from {} to {}'.format(
-                ticker,
-                trading_history_dict['algo_name'],
-                first_date,
-                end_date))
+            f'Trading History {ticker} for Algo '
+            f'{trading_history_dict["algo_name"]}\n'
+            f'Backtest dates from {first_date} to {end_date}')
         xcol = 'date'
-        xlabel = 'Dates vs {} values'.format(
-            trading_history_dict['algo_name'])
-        ylabel = 'Algo Values from columns:\n{}'.format(
-            trading_history_dict['algo_name'],
-            list(history_df.columns.values))
+        xlabel = f'Dates vs {trading_history_dict["algo_name"]} values'
+        ylabel = (
+            'Algo Values from columns:\n'
+            f'{list(history_df.columns.values)}')
         df_filter = (history_df['close'] > 0.01)
 
         # set default hloc columns:
@@ -246,8 +230,8 @@ def examine_dataset_in_file(
         orange = 'open'
 
         log.info(
-            'available columns to plot in dataset: {}'.format(
-                ae_consts.ppj(list(history_df.columns.values))))
+            'available columns to plot in dataset: '
+            f'{ae_consts.ppj(list(history_df.columns.values))}')
 
         plot_trading_history.plot_trading_history(
             title=title,
@@ -265,8 +249,7 @@ def examine_dataset_in_file(
     elif dataset_type == ae_consts.SA_DATASET_TYPE_TRADING_REPORT:
         log.info(
             'load trading performance report dataset '
-            'from file={}'.format(
-                path_to_file))
+            f'from file={path_to_file}')
         trading_report_dict = load_report.load_report_dataset_from_file(
             path_to_file=path_to_file,
             compress=compress,
@@ -274,9 +257,8 @@ def examine_dataset_in_file(
         print(trading_report_dict)
     else:
         log.error(
-            'show unsupported dataset type={} for file={}'.format(
-                dataset_type,
-                path_to_file))
+            f'show unsupported dataset type={dataset_type} '
+            f'for file={path_to_file}')
         return
 # end of examine_dataset_in_file
 
@@ -629,9 +611,7 @@ def run_sa_tool():
             plot_action = ae_consts.PLOT_ACTION_SAVE_AS_FILE
         else:
             plot_action = ae_consts.PLOT_ACTION_SHOW
-            log.warning(
-                'unsupported plot_action: {}'.format(
-                    args.plot_action))
+            log.warning(f'unsupported plot_action: {args.plot_action}')
 
     if args.debug:
         debug = True
@@ -656,36 +636,30 @@ def run_sa_tool():
         mode = ae_consts.SA_MODE_RUN_ALGO
     if args.start_date:
         try:
-            use_start_date = '{} 00:00:00'.format(
-                str(args.start_date))
+            use_start_date = f'{str(args.start_date)} 00:00:00'
             datetime.datetime.strptime(
                 args.start_date,
                 ae_consts.COMMON_DATE_FORMAT)
         except Exception as e:
             msg = (
-                'please use a start date formatted as: {}'
-                '\n'
-                'error was: {}'.format(
-                    ae_consts.COMMON_DATE_FORMAT,
-                    e))
+                'please use a start date formatted as: '
+                f'{ae_consts.COMMON_DATE_FORMAT}\n'
+                f'error was: {e}')
             log.error(msg)
             sys.exit(1)
         # end of testing for a valid date
     # end of args.start_date
     if args.end_date:
         try:
-            use_end_date = '{} 00:00:00'.format(
-                str(args.end_date))
+            use_end_date = f'{str(args.end_date)} 00:00:00'
             datetime.datetime.strptime(
                 args.end_date,
                 ae_consts.COMMON_DATE_FORMAT)
         except Exception as e:
             msg = (
-                'please use an end date formatted as: {}'
-                '\n'
-                'error was: {}'.format(
-                    ae_consts.COMMON_DATE_FORMAT,
-                    e))
+                'please use an end date formatted as: '
+                f'{ae_consts.COMMON_DATE_FORMAT}\n'
+                f'error was: {e}')
             log.error(msg)
             sys.exit(1)
         # end of testing for a valid date
@@ -694,8 +668,7 @@ def run_sa_tool():
         use_config_file = args.config_file
         if not os.path.exists(use_config_file):
             log.error(
-                'Failed: unable to find config file: -c {}'.format(
-                    use_config_file))
+                f'Failed: unable to find config file: -c {use_config_file}')
             sys.exit(1)
 
     config_dict = None
@@ -742,9 +715,8 @@ def run_sa_tool():
     path_to_tasks = 'analysis_engine.work_tasks'
     if mode == ae_consts.SA_MODE_PREPARE:
         task_name = (
-            '{}.'
-            'prepare_pricing_dataset.prepare_pricing_dataset').format(
-                path_to_tasks)
+            f'{path_to_tasks}.'
+            'prepare_pricing_dataset.prepare_pricing_dataset')
         work = api_requests.build_prepare_dataset_request()
         if output_s3_key:
             work['prepared_s3_key'] = output_s3_key
@@ -783,9 +755,7 @@ def run_sa_tool():
             ticker=ticker,
             path_to_file=show_from_file)
         log.info(
-            'done showing {} dataset from file={}'.format(
-                ticker,
-                show_from_file))
+            f'done showing {ticker} dataset from file={show_from_file}')
         sys.exit(0)
     elif mode == ae_consts.SA_MODE_SHOW_HISTORY_DATASET:
         examine_dataset_in_file(
@@ -793,10 +763,8 @@ def run_sa_tool():
             dataset_type=ae_consts.SA_DATASET_TYPE_TRADING_HISTORY,
             path_to_file=show_history_from_file)
         log.info(
-            'done showing trading history {} dataset from '
-            'file={}'.format(
-                ticker,
-                show_from_file))
+            f'done showing trading history {ticker} dataset from '
+            f'file={show_from_file}')
         sys.exit(0)
     elif mode == ae_consts.SA_MODE_SHOW_REPORT_DATASET:
         examine_dataset_in_file(
@@ -804,10 +772,8 @@ def run_sa_tool():
             dataset_type=ae_consts.SA_DATASET_TYPE_TRADING_REPORT,
             path_to_file=show_report_from_file)
         log.info(
-            'done showing trading performance report {} dataset from '
-            'file={}'.format(
-                ticker,
-                show_from_file))
+            f'done showing trading performance report {ticker} dataset from '
+            f'file={show_from_file}')
         sys.exit(0)
     elif mode == ae_consts.SA_MODE_RESTORE_REDIS_DATASET:
         restore_missing_dataset_values_from_algo_ready_file(
@@ -820,17 +786,14 @@ def run_sa_tool():
             dataset_type=ae_consts.SA_DATASET_TYPE_ALGO_READY,
             serialize_datasets=ae_consts.DEFAULT_SERIALIZED_DATASETS)
         log.info(
-            'done restoring {} dataset from file={} into redis_db={}'.format(
-                ticker,
-                restore_algo_file,
-                redis_db))
+            f'done restoring {ticker} dataset from file={restore_algo_file} '
+            f'into redis_db={redis_db}')
         sys.exit(0)
     elif mode == ae_consts.SA_MODE_RUN_ALGO:
         if args.run_algo_in_file:
             if not os.path.exists(args.run_algo_in_file):
                 log.error(
-                    'missing algorithm module file: {}'.format(
-                        args.run_algo_in_file))
+                    f'missing algorithm module file: {args.run_algo_in_file}')
                 sys.exit(1)
 
         if args.backtest_loc:
@@ -840,12 +803,11 @@ def run_sa_tool():
                     'redis://' not in backtest_loc):
                 log.error(
                     'invalid -b <backtest dataset file> specified. '
-                    '{} '
+                    f'{backtest_loc} '
                     'please use either: '
                     '-b file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
                     '-b s3://algoready/SPY-latest.json or '
-                    '-b redis://SPY-latest'.format(
-                        backtest_loc))
+                    '-b redis://SPY-latest')
                 sys.exit(1)
             if 's3://' in backtest_loc:
                 load_from_s3_bucket = backtest_loc.split('/')[-2]
@@ -864,12 +826,11 @@ def run_sa_tool():
                     'redis://' not in algo_history_loc):
                 log.error(
                     'invalid -p <backtest dataset file> specified. '
-                    '{} '
+                    f'{algo_history_loc} '
                     'please use either: '
                     '-p file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
                     '-p s3://algoready/SPY-latest.json or '
-                    '-p redis://SPY-latest'.format(
-                        algo_history_loc))
+                    '-p redis://SPY-latest')
                 sys.exit(1)
             if 's3://' in algo_history_loc:
                 history_s3_bucket = algo_history_loc.split('/')[-2]
@@ -888,12 +849,11 @@ def run_sa_tool():
                     'redis://' not in algo_report_loc):
                 log.error(
                     'invalid -o <backtest dataset file> specified. '
-                    '{} '
+                    f'{algo_report_loc} '
                     'please use either: '
                     '-o file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
                     '-o s3://algoready/SPY-latest.json or '
-                    '-o redis://SPY-latest'.format(
-                        algo_report_loc))
+                    '-o redis://SPY-latest')
                 sys.exit(1)
             if 's3://' in algo_report_loc:
                 report_s3_bucket = algo_report_loc.split('/')[-2]
@@ -912,12 +872,11 @@ def run_sa_tool():
                     'redis://' not in algo_extract_loc):
                 log.error(
                     'invalid -e <backtest dataset file> specified. '
-                    '{} '
+                    f'{algo_extract_loc} '
                     'please use either: '
                     '-e file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
                     '-e s3://algoready/SPY-latest.json or '
-                    '-e redis://SPY-latest'.format(
-                        algo_extract_loc))
+                    '-e redis://SPY-latest')
                 sys.exit(1)
             if 's3://' in algo_extract_loc:
                 extract_s3_bucket = algo_extract_loc.split('/')[-2]
@@ -1020,71 +979,50 @@ def run_sa_tool():
             trade_strategy=use_trade_strategy,
             verbose=verbose)
 
-        show_label = 'algo.name={}'.format(
-            use_name)
-        show_extract = '{}'.format(
-            algo_extract_loc)
-        show_history = '{}'.format(
-            algo_history_loc)
-        show_report = '{}'.format(
-            algo_report_loc)
+        show_label = f'algo.name={use_name}'
+        show_extract = f'{algo_extract_loc}'
+        show_history = f'{algo_history_loc}'
+        show_report = f'{algo_report_loc}'
         base_label = (
-            'load={} '
-            'extract={} '
-            'history={} '
-            'report={}'.format(
-                args.run_algo_in_file,
-                show_extract,
-                show_history,
-                show_report))
+            f'load={args.run_algo_in_file} extract={show_extract} '
+            f'history={show_history} report={show_report}')
         show_label = (
-            '{} running in engine task_id={} {}'.format(
-                ticker,
-                algo_res['rec'].get(
-                    'task_id',
-                    'missing-task-id'),
-                base_label))
+            f'{ticker} running in engine '
+            f'''task_id={algo_res['rec'].get(
+                'task_id',
+                'missing-task-id')} {base_label}''')
         if not run_on_engine:
             algo_trade_history_recs = algo_res['rec'].get(
                 'history',
                 [])
             show_label = (
-                '{} algo.name={} {} trade_history_len={}'.format(
-                    ticker,
-                    use_name,
-                    base_label,
-                    len(algo_trade_history_recs)))
+                f'{ticker} algo.name={use_name} {base_label} '
+                f'trade_history_len={len(algo_trade_history_recs)}')
         if args.debug:
-            log.info(
-                'algo_res={}'.format(
-                    algo_res))
+            log.info(f'algo_res={algo_res}')
             if algo_res['status'] == ae_consts.SUCCESS:
                 log.info(
-                    '{} - done running {}'.format(
-                        ae_consts.get_status(status=algo_res['status']),
-                        show_label))
+                    f'{ae_consts.get_status(status=algo_res["status"])} - '
+                    f'done running {show_label}')
             else:
                 log.error(
-                    '{} - done running {}'.format(
-                        ae_consts.get_status(status=algo_res['status']),
-                        show_label))
+                    f'{ae_consts.get_status(status=algo_res["status"])} - '
+                    f'done running {show_label}')
         else:
             if algo_res['status'] == ae_consts.SUCCESS:
                 log.info(
-                    '{} - done running {}'.format(
-                        ae_consts.get_status(status=algo_res['status']),
-                        show_label))
+                    f'{ae_consts.get_status(status=algo_res["status"])} - '
+                    f'done running {show_label}')
             else:
                 log.error(
-                    'run_custom_algo returned error: {}'.format(
-                        algo_res['err']))
+                    f'run_custom_algo returned error: {algo_res["err"]}')
                 sys.exit(1)
         # end of running the custom algo handler
 
         if mode == ae_consts.SA_MODE_EXTRACT:
-            log.info('done extracting dataset - {}'.format(ticker))
+            log.info(f'done extracting dataset - {ticker}')
         elif mode == ae_consts.SA_MODE_RUN_ALGO:
-            log.info('done running algo - {}'.format(ticker))
+            log.info(f'done running algo - {ticker}')
 
         sys.exit(0)
     # end of handling mode-specific arg assignments
@@ -1118,38 +1056,26 @@ def run_sa_tool():
     work['s3_enabled'] = s3_enabled
     work['redis_enabled'] = redis_enabled
     work['debug'] = debug
-    work['label'] = 'ticker={}'.format(
-        ticker)
+    work['label'] = f'ticker={ticker}'
 
     task_res = None
     if ae_consts.is_celery_disabled():
         work['celery_disabled'] = True
-        log.debug(
-            'starting without celery work={}'.format(
-                ae_consts.ppj(work)))
+        log.debug(f'starting without celery work={ae_consts.ppj(work)}')
         if mode == ae_consts.SA_MODE_PREPARE:
             task_res = prep_dataset.prepare_pricing_dataset(
                 work)
 
         if debug:
             log.info(
-                'done - result={} '
-                'task={} status={} '
-                'err={} label={}'.format(
-                    ae_consts.ppj(task_res),
-                    task_name,
-                    ae_consts.get_status(status=task_res['status']),
-                    task_res['err'],
-                    work['label']))
+                f'done - result={ae_consts.ppj(task_res)} task={task_name} '
+                f'status={ae_consts.get_status(status=task_res["status"])} '
+                f'err={task_res["err"]} label={work["label"]}')
         else:
             log.info(
-                'done - result '
-                'task={} status={} '
-                'err={} label={}'.format(
-                    task_name,
-                    ae_consts.get_status(status=task_res['status']),
-                    task_res['err'],
-                    work['label']))
+                f'done - result task={task_name} '
+                f'status={ae_consts.get_status(status=task_res["status"])} '
+                f'err={task_res["err"]} label={work["label"]}')
 
         if task_res['status'] == ae_consts.SUCCESS:
             image_res = None
@@ -1159,8 +1085,7 @@ def run_sa_tool():
                 log.info(
                     'showing plot')
                 """
-                minute_key = '{}_minute'.format(
-                    redis_key)
+                minute_key = f'{redis_key}_minute'
                 minute_df_res = build_df.build_df_from_redis(
                     label=label',
                     address=redis_address,
@@ -1181,17 +1106,14 @@ def run_sa_tool():
                 today_str = datetime.datetime.now().strftime(
                     '%Y-%m-%d')
                 extract_req = work
-                extract_req['redis_key'] = '{}_minute'.format(
-                    work['redis_key'])
+                extract_req['redis_key'] = f'{work["redis_key"]}_minute'
                 extract_status, minute_df = \
                     extract_utils.extract_minute_dataset(
                         work_dict=work)
                 if extract_status == ae_consts.SUCCESS:
                     log.info(
-                        '{} - ticker={} creating chart date={}'.format(
-                            label,
-                            ticker,
-                            today_str))
+                        f'{label} - ticker={ticker} creating chart '
+                        f'date={today_str}')
                     """
                     Plot Pricing with the Volume Overlay:
                     """
@@ -1209,9 +1131,7 @@ def run_sa_tool():
                     image_res = ae_charts.plot_hloc_pricing(
                         log_label=label,
                         ticker=ticker,
-                        title='{} - Minute Pricing - {}'.format(
-                            ticker,
-                            today_str),
+                        title=f'{ticker} - Minute Pricing - {today_str}',
                         df=minute_df,
                         show_plot=True)
                     """
@@ -1246,15 +1166,11 @@ def run_sa_tool():
                     'coming soon - support to save as file')
             if image_res:
                 log.info(
-                    '{} show plot - status={} err={}'.format(
-                        label,
-                        ae_consts.get_status(image_res['status']),
-                        image_res['err']))
+                    f'{label} show plot - '
+                    f'status={ae_consts.get_status(image_res["status"])} '
+                    f'err={image_res["err"]}')
     else:
-        log.info(
-            'connecting to broker={} backend={}'.format(
-                broker_url,
-                backend_url))
+        log.info(f'connecting to broker={broker_url} backend={backend_url}')
 
         # Get the Celery app
         app = get_celery_app.get_celery_app(
@@ -1266,17 +1182,11 @@ def run_sa_tool():
             transport_options=transport_options,
             include_tasks=include_tasks)
 
-        log.info(
-            'calling task={} - work={}'.format(
-                task_name,
-                ae_consts.ppj(work)))
+        log.info(f'calling task={task_name} - work={ae_consts.ppj(work)}')
         job_id = app.send_task(
             task_name,
             (work,))
-        log.info(
-            'calling task={} - success job_id={}'.format(
-                task_name,
-                job_id))
+        log.info(f'calling task={task_name} - success job_id={job_id}')
     # end of if/else
 
 # end of run_sa_tool

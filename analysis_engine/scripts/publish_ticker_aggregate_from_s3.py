@@ -267,47 +267,32 @@ def publish_ticker_aggregate_from_s3():
     work['redis_db'] = redis_db
     work['redis_expire'] = redis_expire
     work['debug'] = debug
-    work['label'] = 'ticker={}'.format(
-        ticker)
+    work['label'] = f'ticker={ticker}'
 
     path_to_tasks = 'analysis_engine.work_tasks'
     task_name = (
-        '{}.publish_ticker_aggregate_from_s3.'
-        'publish_ticker_aggregate_from_s3'.format(
-            path_to_tasks))
+        f'{path_to_tasks}.publish_ticker_aggregate_from_s3.'
+        'publish_ticker_aggregate_from_s3')
     task_res = None
     if is_celery_disabled():
         work['celery_disabled'] = True
         log.debug(
-            'starting without celery work={}'.format(
-                ppj(work)))
+            f'starting without celery work={ppj(work)}')
         task_res = task_publisher.publish_ticker_aggregate_from_s3(
             work_dict=work)
         if debug:
             log.info(
-                'done - result={} '
-                'task={} status={} '
-                'err={} label={}'.format(
-                    ppj(task_res),
-                    task_name,
-                    get_status(status=task_res['status']),
-                    task_res['err'],
-                    work['label']))
+                f'done - result={ppj(task_res)} task={task_name} '
+                f'status={get_status(status=task_res["status"])} '
+                f'err={task_res["err"]} label={work["label"]}')
         else:
             log.info(
-                'done - result '
-                'task={} status={} '
-                'err={} label={}'.format(
-                    task_name,
-                    get_status(status=task_res['status']),
-                    task_res['err'],
-                    work['label']))
+                f'done - result task={task_name} '
+                f'status={get_status(status=task_res["status"])} '
+                f'err={task_res["err"]} label={work["label"]}')
         # if/else debug
     else:
-        log.info(
-            'connecting to broker={} backend={}'.format(
-                broker_url,
-                backend_url))
+        log.info(f'connecting to broker={broker_url} backend={backend_url}')
 
         # Get the Celery app
         app = get_celery_app(
@@ -319,17 +304,11 @@ def publish_ticker_aggregate_from_s3():
             transport_options=transport_options,
             include_tasks=include_tasks)
 
-        log.info(
-            'calling task={} - work={}'.format(
-                task_name,
-                ppj(work)))
+        log.info(f'calling task={task_name} - work={ppj(work)}')
         job_id = app.send_task(
             task_name,
             (work,))
-        log.info(
-            'calling task={} - success job_id={}'.format(
-                task_name,
-                job_id))
+        log.info(f'calling task={task_name} - success job_id={job_id}')
     # end of if/else
 # end of publish_ticker_aggregate_from_s3
 

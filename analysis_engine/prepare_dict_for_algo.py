@@ -66,9 +66,7 @@ def prepare_dict_for_algo(
     use_serialized_datasets = dataset_names
     if not use_serialized_datasets:
         use_serialized_datasets = ae_consts.DEFAULT_SERIALIZED_DATASETS
-    log.info(
-        'converting serialized_datasets={}'.format(
-            use_serialized_datasets))
+    log.info(f'converting serialized_datasets={use_serialized_datasets}')
     num_datasets = 0
     for ticker in data_as_dict:
         if ticker not in use_data:
@@ -94,11 +92,9 @@ def prepare_dict_for_algo(
     # end for all tickers in the dataset
 
     if num_datasets:
-        log.info('found datasets={}'.format(
-            num_datasets))
+        log.info(f'found datasets={num_datasets}')
     else:
-        log.error('did not find any datasets={}'.format(
-            num_datasets))
+        log.error(f'did not find any datasets={num_datasets}')
 
     return use_data
 # end of prepare_dict_for_algo

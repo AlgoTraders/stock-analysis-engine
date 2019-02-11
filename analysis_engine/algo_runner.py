@@ -241,14 +241,12 @@ class AlgoRunner:
         self.algo_history_s3_key = None
 
         if self.start_date:
-            self.use_start_date = '{} 00:00:00'.format(
-                str(self.start_date))
+            self.use_start_date = f'{str(self.start_date)} 00:00:00'
             datetime.datetime.strptime(
                 self.start_date,
                 ae_consts.COMMON_DATE_FORMAT)
         if self.end_date:
-            self.use_end_date = '{} 00:00:00'.format(
-                str(self.end_date))
+            self.use_end_date = f'{str(self.end_date)} 00:00:00'
             datetime.datetime.strptime(
                 self.end_date,
                 ae_consts.COMMON_DATE_FORMAT)
@@ -948,7 +946,7 @@ class AlgoRunner:
             if iex_daily_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
-                        'unable to extract iex_daily={}'.format(ticker))
+                        f'unable to extract iex_daily={ticker}')
         if 'minute' in self.iex_datasets or extract_iex:
             iex_minute_status, iex_minute_df = \
                 iex_extract_utils.extract_minute_dataset(
@@ -956,7 +954,7 @@ class AlgoRunner:
             if iex_minute_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
-                        'unable to extract iex_minute={}'.format(ticker))
+                        f'unable to extract iex_minute={ticker}')
         if 'quote' in self.iex_datasets or extract_iex:
             iex_quote_status, iex_quote_df = \
                 iex_extract_utils.extract_quote_dataset(
@@ -964,7 +962,7 @@ class AlgoRunner:
             if iex_quote_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
-                        'unable to extract iex_quote={}'.format(ticker))
+                        f'unable to extract iex_quote={ticker}')
         if 'stats' in self.iex_datasets or extract_iex:
             iex_stats_status, iex_stats_df = \
                 iex_extract_utils.extract_stats_dataset(
@@ -972,7 +970,7 @@ class AlgoRunner:
             if iex_stats_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
-                        'unable to extract iex_stats={}'.format(ticker))
+                        f'unable to extract iex_stats={ticker}')
         if 'peers' in self.iex_datasets or extract_iex:
             iex_peers_status, iex_peers_df = \
                 iex_extract_utils.extract_peers_dataset(
@@ -980,7 +978,7 @@ class AlgoRunner:
             if iex_peers_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
-                        'unable to extract iex_peers={}'.format(ticker))
+                        f'unable to extract iex_peers={ticker}')
         if 'news' in self.iex_datasets or extract_iex:
             iex_news_status, iex_news_df = \
                 iex_extract_utils.extract_news_dataset(
@@ -988,7 +986,7 @@ class AlgoRunner:
             if iex_news_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
-                        'unable to extract iex_news={}'.format(ticker))
+                        f'unable to extract iex_news={ticker}')
         if 'financials' in self.iex_datasets or extract_iex:
             iex_financials_status, iex_financials_df = \
                 iex_extract_utils.extract_financials_dataset(
@@ -996,7 +994,7 @@ class AlgoRunner:
             if iex_financials_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
-                        'unable to extract iex_financials={}'.format(ticker))
+                        f'unable to extract iex_financials={ticker}')
         if 'earnings' in self.iex_datasets or extract_iex:
             iex_earnings_status, iex_earnings_df = \
                 iex_extract_utils.extract_earnings_dataset(
@@ -1004,7 +1002,7 @@ class AlgoRunner:
             if iex_earnings_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
-                        'unable to extract iex_earnings={}'.format(ticker))
+                        f'unable to extract iex_earnings={ticker}')
         if 'dividends' in self.iex_datasets or extract_iex:
             iex_dividends_status, iex_dividends_df = \
                 iex_extract_utils.extract_dividends_dataset(
@@ -1012,7 +1010,7 @@ class AlgoRunner:
             if iex_dividends_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
-                        'unable to extract iex_dividends={}'.format(ticker))
+                        f'unable to extract iex_dividends={ticker}')
         if 'company' in self.iex_datasets or extract_iex:
             iex_company_status, iex_company_df = \
                 iex_extract_utils.extract_company_dataset(
@@ -1020,7 +1018,7 @@ class AlgoRunner:
             if iex_company_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
-                        'unable to extract iex_company={}'.format(ticker))
+                        f'unable to extract iex_company={ticker}')
         # end of iex extracts
 
         if extract_yahoo:
@@ -1033,21 +1031,21 @@ class AlgoRunner:
             if yahoo_options_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
-                        'unable to extract yahoo_options={}'.format(ticker))
+                        f'unable to extract yahoo_options={ticker}')
             yahoo_pricing_status, yahoo_pricing_df = \
                 yahoo_extract_utils.extract_pricing_dataset(
                     extract_req)
             if yahoo_pricing_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
-                        'unable to extract yahoo_pricing={}'.format(ticker))
+                        f'unable to extract yahoo_pricing={ticker}')
             yahoo_news_status, yahoo_news_df = \
                 yahoo_extract_utils.extract_yahoo_news_dataset(
                     extract_req)
             if yahoo_news_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
-                        'unable to extract yahoo_news={}'.format(ticker))
+                        f'unable to extract yahoo_news={ticker}')
         # end of yahoo extracts
 
         if extract_td:
@@ -1069,7 +1067,7 @@ class AlgoRunner:
             if td_calls_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
-                        'unable to extract tdcalls={}'.format(ticker))
+                        f'unable to extract tdcalls={ticker}')
             else:
                 if ae_consts.is_df(
                         df=td_calls_df):
@@ -1090,7 +1088,7 @@ class AlgoRunner:
             if td_puts_status != ae_consts.SUCCESS:
                 if verbose:
                     log.warning(
-                        'unable to extract tdputs={}'.format(ticker))
+                        f'unable to extract tdputs={ticker}')
             else:
                 if ae_consts.is_df(
                         df=td_puts_df):

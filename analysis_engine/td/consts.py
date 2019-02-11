@@ -22,17 +22,12 @@ TD_TOKEN = os.getenv(
     'MISSING_TD_TOKEN')
 TD_URLS = {
     'account': (
-        'https://{}'
-        '/v1/user/profile'
-        ''.format(
-            TD_ENDPOINT_DATA)),
+        f'https://{TD_ENDPOINT_DATA}'
+        '/v1/user/profile'),
     'options': (
-        'https://{}'
+        f'https://{TD_ENDPOINT_DATA}'
         '/v1/markets/options/chains'
-        '?symbol={}&expiration={}'.format(
-            TD_ENDPOINT_DATA,
-            '{}',
-            '{}'))
+        f'?symbol={"{}"}&expiration={"{}"}')
 }
 
 FETCH_TD_CALLS = 10000
@@ -107,8 +102,7 @@ def get_ft_str_td(
     elif ft_type == FETCH_TD_PUTS:
         return 'tdputs'
     else:
-        return 'unsupported ft_type={}'.format(
-            ft_type)
+        return f'unsupported ft_type={ft_type}'
 # end of get_ft_str_td
 
 
@@ -124,8 +118,7 @@ def get_datafeed_str_td(
     elif df_type == DATAFEED_TD_PUTS:
         return 'tdputs'
     else:
-        return 'unsupported df_type={}'.format(
-            df_type)
+        return f'unsupported df_type={df_type}'
 # end of get_datafeed_str_td
 
 
@@ -148,9 +141,8 @@ def get_auth_headers(
             env_token,
             TD_TOKEN)
     headers = {
-        "Accept": "application/json",
-        "Authorization": "Bearer {}".format(
-            token)
+        'Accept': 'application/json',
+        'Authorization': f'Bearer {token}'
     }
     return headers
 # end of get_auth_headers

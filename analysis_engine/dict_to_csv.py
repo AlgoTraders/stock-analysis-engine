@@ -28,7 +28,7 @@ def flatten_dict(
             items.extend(flatten_dict(value, new_key, sep=sep).items())
         elif isinstance(value, list):
             for idx, val in enumerate(value):
-                temp_key = '{}_{}'.format(new_key, idx)
+                temp_key = f'{new_key}_{idx}'
                 items.extend(flatten_dict(
                     val,
                     temp_key,
@@ -50,11 +50,9 @@ def dict_to_csv(
     :param filename: The name of the CSV to produce
     """
     noext_filename = os.path.splitext(filename)[0]
-    log.info(('START dict={} conversion to csv={}.csv').format(
-        data,
-        noext_filename))
+    log.info((f'START dict={data} conversion to csv={noext_filename}.csv'))
     flattened_data = flatten_dict(data)
-    with open('{}.csv'.format(noext_filename), 'w') as f:
+    with open(f'{noext_filename}.csv', 'w') as f:
         w = csv.DictWriter(f, flattened_data.keys())
         w.writeheader()
         w.writerow(flattened_data)

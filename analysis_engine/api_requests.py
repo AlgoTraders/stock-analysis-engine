@@ -144,10 +144,8 @@ def build_get_new_pricing_request(
     """
     ticker = ae_consts.TICKER
     ticker_id = ae_consts.TICKER_ID
-    base_key = '{}_{}'.format(
-        ticker,
-        datetime.datetime.utcnow().strftime(
-            '%Y_%m_%d_%H_%M_%S'))
+    base_key = f'''{ticker}_{datetime.datetime.utcnow().strftime(
+        '%Y_%m_%d_%H_%M_%S')}'''
     s3_bucket_name = ae_consts.S3_BUCKET
     s3_key = base_key
     redis_key = base_key
@@ -343,10 +341,8 @@ def build_publish_pricing_request(
     """
     ticker = ae_consts.TICKER
     ticker_id = ae_consts.TICKER_ID
-    base_key = '{}_{}'.format(
-        ticker,
-        datetime.datetime.utcnow().strftime(
-            '%Y_%m_%d_%H_%M_%S'))
+    base_key = f'''{ticker}_{datetime.datetime.utcnow().strftime(
+        '%Y_%m_%d_%H_%M_%S')}'''
     s3_bucket_name = ae_consts.S3_BUCKET
     s3_key = base_key
     redis_key = base_key
@@ -386,10 +382,8 @@ def build_publish_from_s3_to_redis_request(
     """
     ticker = ae_consts.TICKER
     ticker_id = ae_consts.TICKER_ID
-    base_key = '{}_{}'.format(
-        ticker,
-        datetime.datetime.utcnow().strftime(
-            '%Y_%m_%d_%H_%M_%S'))
+    base_key = f'''{ticker}_{datetime.datetime.utcnow().strftime(
+        '%Y_%m_%d_%H_%M_%S')}'''
     s3_bucket_name = ae_consts.S3_BUCKET
     s3_key = base_key
     redis_key = base_key
@@ -428,8 +422,8 @@ def build_publish_ticker_aggregate_from_s3_request(
     ticker_id = ae_consts.TICKER_ID
     s3_bucket_name = ae_consts.S3_BUCKET
     s3_compiled_bucket_name = ae_consts.S3_COMPILED_BUCKET
-    s3_key = '{}_latest'.format(ticker)
-    redis_key = '{}_latest'.format(ticker)
+    s3_key = f'{ticker}_latest'
+    redis_key = f'{ticker}_latest'
     s3_enabled = True
     redis_enabled = True
 
@@ -464,18 +458,14 @@ def build_prepare_dataset_request(
     """
     ticker = ae_consts.TICKER
     ticker_id = ae_consts.TICKER_ID
-    base_key = '{}_{}'.format(
-        ticker,
-        datetime.datetime.utcnow().strftime(
-            '%Y_%m_%d_%H_%M_%S'))
+    base_key = f'''{ticker}_{datetime.datetime.utcnow().strftime(
+        '%Y_%m_%d_%H_%M_%S')}'''
     s3_bucket_name = ae_consts.S3_BUCKET
     s3_key = base_key
     redis_key = base_key
     s3_prepared_bucket_name = ae_consts.PREPARE_S3_BUCKET_NAME
-    s3_prepared_key = '{}.csv'.format(
-        base_key)
-    redis_prepared_key = '{}'.format(
-        base_key)
+    s3_prepared_key = f'{base_key}.csv'
+    redis_prepared_key = f'{base_key}'
     ignore_columns = None
     s3_enabled = True
     redis_enabled = True
@@ -514,18 +504,14 @@ def build_analyze_dataset_request(
     """
     ticker = ae_consts.TICKER
     ticker_id = ae_consts.TICKER_ID
-    base_key = '{}_{}'.format(
-        ticker,
-        datetime.datetime.utcnow().strftime(
-            '%Y_%m_%d_%H_%M_%S'))
+    base_key = f'''{ticker}_{datetime.datetime.utcnow().strftime(
+        '%Y_%m_%d_%H_%M_%S')}'''
     s3_bucket_name = ae_consts.PREPARE_S3_BUCKET_NAME
     s3_key = base_key
     redis_key = base_key
     s3_analyzed_bucket_name = ae_consts.ANALYZE_S3_BUCKET_NAME
-    s3_analyzed_key = '{}.csv'.format(
-        base_key)
-    redis_analyzed_key = '{}'.format(
-        base_key)
+    s3_analyzed_key = f'{base_key}.csv'
+    redis_analyzed_key = f'{base_key}'
     ignore_columns = None
     s3_enabled = True
     redis_enabled = True
@@ -567,10 +553,8 @@ def build_iex_fetch_daily_request(
     :param label: log label to use
     """
     ticker = ae_consts.TICKER
-    base_key = '{}_daily_{}'.format(
-        ticker,
-        datetime.datetime.utcnow().strftime(
-            '%Y_%m_%d_%H_%M_%S'))
+    base_key = f'''{ticker}_daily_{datetime.datetime.utcnow().strftime(
+        '%Y_%m_%d_%H_%M_%S')}'''
     s3_bucket_name = ae_consts.DAILY_S3_BUCKET_NAME
     s3_key = base_key
     redis_key = base_key
@@ -607,10 +591,8 @@ def build_iex_fetch_minute_request(
     :param label: log label to use
     """
     ticker = ae_consts.TICKER
-    base_key = '{}_minute_{}'.format(
-        ticker,
-        datetime.datetime.utcnow().strftime(
-            '%Y_%m_%d_%H_%M_%S'))
+    base_key = f'''{ticker}_minute_{datetime.datetime.utcnow().strftime(
+        '%Y_%m_%d_%H_%M_%S')}'''
     s3_bucket_name = ae_consts.MINUTE_S3_BUCKET_NAME
     s3_key = base_key
     redis_key = base_key
@@ -648,10 +630,8 @@ def build_iex_fetch_quote_request(
     :param label: log label to use
     """
     ticker = ae_consts.TICKER
-    base_key = '{}_quote_{}'.format(
-        ticker,
-        datetime.datetime.utcnow().strftime(
-            '%Y_%m_%d_%H_%M_%S'))
+    base_key = f'''{ticker}_quote_{datetime.datetime.utcnow().strftime(
+        '%Y_%m_%d_%H_%M_%S')}'''
     s3_bucket_name = ae_consts.QUOTE_S3_BUCKET_NAME
     s3_key = base_key
     redis_key = base_key
@@ -687,10 +667,8 @@ def build_iex_fetch_stats_request(
     :param label: log label to use
     """
     ticker = ae_consts.TICKER
-    base_key = '{}_stat_{}'.format(
-        ticker,
-        datetime.datetime.utcnow().strftime(
-            '%Y_%m_%d_%H_%M_%S'))
+    base_key = f'''{ticker}_stat_{datetime.datetime.utcnow().strftime(
+        '%Y_%m_%d_%H_%M_%S')}'''
     s3_bucket_name = ae_consts.STATS_S3_BUCKET_NAME
     s3_key = base_key
     redis_key = base_key
@@ -726,10 +704,8 @@ def build_iex_fetch_peers_request(
     :param label: log label to use
     """
     ticker = ae_consts.TICKER
-    base_key = '{}_peer_{}'.format(
-        ticker,
-        datetime.datetime.utcnow().strftime(
-            '%Y_%m_%d_%H_%M_%S'))
+    base_key = f'''{ticker}_peer_{datetime.datetime.utcnow().strftime(
+        '%Y_%m_%d_%H_%M_%S')}'''
     s3_bucket_name = ae_consts.PEERS_S3_BUCKET_NAME
     s3_key = base_key
     redis_key = base_key
@@ -766,10 +742,8 @@ def build_iex_fetch_news_request(
     :param label: log label to use
     """
     ticker = ae_consts.TICKER
-    base_key = '{}_news_{}'.format(
-        ticker,
-        datetime.datetime.utcnow().strftime(
-            '%Y_%m_%d_%H_%M_%S'))
+    base_key = f'''{ticker}_news_{datetime.datetime.utcnow().strftime(
+        '%Y_%m_%d_%H_%M_%S')}'''
     s3_bucket_name = ae_consts.NEWS_S3_BUCKET_NAME
     s3_key = base_key
     redis_key = base_key
@@ -806,10 +780,8 @@ def build_iex_fetch_financials_request(
     :param label: log label to use
     """
     ticker = ae_consts.TICKER
-    base_key = '{}_financial_{}'.format(
-        ticker,
-        datetime.datetime.utcnow().strftime(
-            '%Y_%m_%d_%H_%M_%S'))
+    base_key = f'''{ticker}_financial_{datetime.datetime.utcnow().strftime(
+        '%Y_%m_%d_%H_%M_%S')}'''
     s3_bucket_name = ae_consts.FINANCIALS_S3_BUCKET_NAME
     s3_key = base_key
     redis_key = base_key
@@ -846,10 +818,8 @@ def build_iex_fetch_earnings_request(
     :param label: log label to use
     """
     ticker = ae_consts.TICKER
-    base_key = '{}_earning_{}'.format(
-        ticker,
-        datetime.datetime.utcnow().strftime(
-            '%Y_%m_%d_%H_%M_%S'))
+    base_key = f'''{ticker}_earning_{datetime.datetime.utcnow().strftime(
+        '%Y_%m_%d_%H_%M_%S')}'''
     s3_bucket_name = ae_consts.EARNINGS_S3_BUCKET_NAME
     s3_key = base_key
     redis_key = base_key
@@ -886,10 +856,8 @@ def build_iex_fetch_dividends_request(
     :param label: log label to use
     """
     ticker = ae_consts.TICKER
-    base_key = '{}_dividend_{}'.format(
-        ticker,
-        datetime.datetime.utcnow().strftime(
-            '%Y_%m_%d_%H_%M_%S'))
+    base_key = f'''{ticker}_dividend_{datetime.datetime.utcnow().strftime(
+        '%Y_%m_%d_%H_%M_%S')}'''
     s3_bucket_name = ae_consts.DIVIDENDS_S3_BUCKET_NAME
     s3_key = base_key
     redis_key = base_key
@@ -926,10 +894,8 @@ def build_iex_fetch_company_request(
     :param label: log label to use
     """
     ticker = ae_consts.TICKER
-    base_key = '{}_company_{}'.format(
-        ticker,
-        datetime.datetime.utcnow().strftime(
-            '%Y_%m_%d_%H_%M_%S'))
+    base_key = f'''{ticker}_company_{datetime.datetime.utcnow().strftime(
+        '%Y_%m_%d_%H_%M_%S')}'''
     s3_bucket_name = ae_consts.COMPANY_S3_BUCKET_NAME
     s3_key = base_key
     redis_key = base_key
@@ -1047,10 +1013,8 @@ def build_td_fetch_calls_request(
     :param label: log label to use
     """
     ticker = ae_consts.TICKER
-    base_key = '{}_tdcalls_{}'.format(
-        ticker,
-        datetime.datetime.utcnow().strftime(
-            '%Y_%m_%d_%H_%M_%S'))
+    base_key = f'''{ticker}_tdcalls_{datetime.datetime.utcnow().strftime(
+        '%Y_%m_%d_%H_%M_%S')}'''
     s3_bucket_name = 'tdcalls'
     s3_key = base_key
     redis_key = base_key
@@ -1088,10 +1052,8 @@ def build_td_fetch_puts_request(
     :param label: log label to use
     """
     ticker = ae_consts.TICKER
-    base_key = '{}_tdputs_{}'.format(
-        ticker,
-        datetime.datetime.utcnow().strftime(
-            '%Y_%m_%d_%H_%M_%S'))
+    base_key = f'''{ticker}_tdputs_{datetime.datetime.utcnow().strftime(
+        '%Y_%m_%d_%H_%M_%S')}'''
     s3_bucket_name = 'tdputs'
     s3_key = base_key
     redis_key = base_key

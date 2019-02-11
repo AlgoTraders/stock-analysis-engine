@@ -55,7 +55,7 @@ def extract(
         d = extract(ticker='NFLX')
         print(d)
         for k in d['NFLX']:
-            print('dataset key: {}'.format(k))
+            print(f'dataset key: {k}')
 
 
     This was created for reducing the amount of typying in
@@ -230,22 +230,15 @@ def extract(
 
     if iex_datasets:
         log.info(
-            '{} - getting latest for tickers={} '
-            'iex={}'.format(
-                label,
-                num_tickers,
-                json.dumps(iex_datasets)))
+            f'{label} - getting latest for tickers={num_tickers} '
+            f'iex={json.dumps(iex_datasets)}')
     else:
         log.info(
-            '{} - getting latest for tickers={}'.format(
-                label,
-                num_tickers))
+            f'{label} - getting latest for tickers={num_tickers}')
 
     ticker_key = use_key
     if not ticker_key:
-        ticker_key = '{}_{}'.format(
-            ticker,
-            last_close_str)
+        ticker_key = f'{ticker}_{last_close_str}'
 
     common_vals = {}
     common_vals['base_key'] = ticker_key
@@ -272,14 +265,10 @@ def extract(
     common_vals['s3_address'] = s3_address
 
     log.info(
-        '{} - extract ticker={} last_close={} base_key={} '
-        'redis_address={} s3_address={}'.format(
-            label,
-            ticker,
-            last_close_str,
-            common_vals['base_key'],
-            common_vals['redis_address'],
-            common_vals['s3_address']))
+        f'{label} - extract ticker={ticker} last_close={last_close_str} '
+        f'base_key={common_vals["base_key"]} '
+        f'redis_address={common_vals["redis_address"]} '
+        f's3_address={common_vals["s3_address"]}')
 
     """
     Extract Datasets
@@ -346,80 +335,70 @@ def extract(
                     extract_req)
             if iex_daily_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract iex_daily={}'.format(ticker))
+                    log.warning(f'unable to extract iex_daily={ticker}')
         if 'minute' in iex_datasets or extract_iex:
             iex_minute_status, iex_minute_df = \
                 iex_extract_utils.extract_minute_dataset(
                     extract_req)
             if iex_minute_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract iex_minute={}'.format(ticker))
+                    log.warning(f'unable to extract iex_minute={ticker}')
         if 'quote' in iex_datasets or extract_iex:
             iex_quote_status, iex_quote_df = \
                 iex_extract_utils.extract_quote_dataset(
                     extract_req)
             if iex_quote_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract iex_quote={}'.format(ticker))
+                    log.warning(f'unable to extract iex_quote={ticker}')
         if 'stats' in iex_datasets or extract_iex:
             iex_stats_df, iex_stats_df = \
                 iex_extract_utils.extract_stats_dataset(
                     extract_req)
             if iex_stats_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract iex_stats={}'.format(ticker))
+                    log.warning(f'unable to extract iex_stats={ticker}')
         if 'peers' in iex_datasets or extract_iex:
             iex_peers_df, iex_peers_df = \
                 iex_extract_utils.extract_peers_dataset(
                     extract_req)
             if iex_peers_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract iex_peers={}'.format(ticker))
+                    log.warning(f'unable to extract iex_peers={ticker}')
         if 'news' in iex_datasets or extract_iex:
             iex_news_status, iex_news_df = \
                 iex_extract_utils.extract_news_dataset(
                     extract_req)
             if iex_news_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract iex_news={}'.format(ticker))
+                    log.warning(f'unable to extract iex_news={ticker}')
         if 'financials' in iex_datasets or extract_iex:
             iex_financials_status, iex_financials_df = \
                 iex_extract_utils.extract_financials_dataset(
                     extract_req)
             if iex_financials_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract iex_financials={}'.format(ticker))
+                    log.warning(f'unable to extract iex_financials={ticker}')
         if 'earnings' in iex_datasets or extract_iex:
             iex_earnings_status, iex_earnings_df = \
                 iex_extract_utils.extract_earnings_dataset(
                     extract_req)
             if iex_earnings_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract iex_earnings={}'.format(ticker))
+                    log.warning(f'unable to extract iex_earnings={ticker}')
         if 'dividends' in iex_datasets or extract_iex:
             iex_dividends_status, iex_dividends_df = \
                 iex_extract_utils.extract_dividends_dataset(
                     extract_req)
             if iex_dividends_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract iex_dividends={}'.format(ticker))
+                    log.warning(f'unable to extract iex_dividends={ticker}')
         if 'company' in iex_datasets or extract_iex:
             iex_company_status, iex_company_df = \
                 iex_extract_utils.extract_company_dataset(
                     extract_req)
             if iex_company_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract iex_company={}'.format(ticker))
+                    log.warning(f'unable to extract iex_company={ticker}')
         # end of iex extracts
 
         if extract_yahoo:
@@ -431,22 +410,19 @@ def extract(
                     extract_req)
             if yahoo_options_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract yahoo_options={}'.format(ticker))
+                    log.warning(f'unable to extract yahoo_options={ticker}')
             yahoo_pricing_status, yahoo_pricing_df = \
                 yahoo_extract_utils.extract_pricing_dataset(
                     extract_req)
             if yahoo_pricing_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract yahoo_pricing={}'.format(ticker))
+                    log.warning(f'unable to extract yahoo_pricing={ticker}')
             yahoo_news_status, yahoo_news_df = \
                 yahoo_extract_utils.extract_yahoo_news_dataset(
                     extract_req)
             if yahoo_news_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract yahoo_news={}'.format(ticker))
+                    log.warning(f'unable to extract yahoo_news={ticker}')
         # end of yahoo extracts
 
         if extract_td:
@@ -455,15 +431,13 @@ def extract(
                     extract_req)
             if td_calls_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract tdcalls={}'.format(ticker))
+                    log.warning(f'unable to extract tdcalls={ticker}')
             td_puts_status, td_puts_df = \
                 td_extract_utils.extract_option_puts_dataset(
                     extract_req)
             if td_puts_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract tdputs={}'.format(ticker))
+                    log.warning(f'unable to extract tdputs={ticker}')
         # td extracts
 
         ticker_data = {}

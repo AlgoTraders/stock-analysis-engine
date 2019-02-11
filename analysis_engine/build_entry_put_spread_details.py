@@ -55,13 +55,11 @@ def build_entry_put_spread_details(
         high_bid=high_bid)
 
     log.debug(
-        '{} type={} spread={} option={} close={} spread={}'.format(
-            ticker,
-            ae_consts.get_status(status=spread_details['trade_type']),
-            ae_consts.get_status(status=spread_details['spread_type']),
-            ae_consts.get_status(status=spread_details['option_type']),
-            close,
-            ae_consts.ppj(spread_details)))
+        f'{ticker} '
+        f'type={ae_consts.get_status(status=spread_details["trade_type"])} '
+        f'spread={ae_consts.get_status(status=spread_details["spread_type"])} '
+        f'option={ae_consts.get_status(status=spread_details["option_type"])} '
+        f'close={close} spread={ae_consts.ppj(spread_details)}')
 
     return spread_details
 # end of build_entry_put_spread_details

@@ -98,9 +98,7 @@ def mock_request_get(
             '</body>'
             '</html>')
     elif 'exception' in url:
-        raise Exception(
-            'mock_request_get - threw for url={}'.format(
-                url))
+        raise Exception(f'mock_request_get - threw for url={url}')
     return res
 # end of mock_request_get
 
@@ -239,13 +237,9 @@ class TestFinVizFetchAPI(BaseTestCase):
         :param df: ``pandas.DataFrame`` from a fetch
         """
         print('-----------------------------------')
-        print(
-            'dataframe: {}'.format(
-                df))
+        print(f'dataframe: {df}')
         print('')
-        print(
-            'dataframe columns:\n{}'.format(
-                df.columns.values))
+        print(f'dataframe columns:\n{df.columns.values}')
         print('-----------------------------------')
     # end of debug_df
 

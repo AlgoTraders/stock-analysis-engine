@@ -63,15 +63,21 @@ class TestIEXDatasetExtraction(BaseTestCase):
         :param df: ``pandas.DataFrame`` from a fetch
         """
         print('-----------------------------------')
-        print(
-            'dataframe: {}'.format(
-                df))
+        print(f'dataframe: {df}')
         print('')
-        print(
-            'dataframe columns:\n{}'.format(
-                df.columns.values))
+        print(f'dataframe columns:\n{df.columns.values}')
         print('-----------------------------------')
     # end of debug_df
+
+    def _check(self, df, status, label, work):
+        if status == SUCCESS:
+            self.assertIsNotNone(
+                df)
+            self.debug_df(df=df)
+        else:
+            log.critical(
+                f'{label} is missing in redis for ticker={work["ticker"]} '
+                f'status={get_status(status=status)}')
 
     def test_integration_extract_daily_dataset(self):
         """test_integration_extract_daily_dataset"""
@@ -86,17 +92,7 @@ class TestIEXDatasetExtraction(BaseTestCase):
 
         status, df = extract_daily_dataset(
             work_dict=work)
-        if status == SUCCESS:
-            self.assertIsNotNone(
-                df)
-            self.debug_df(df=df)
-        else:
-            log.critical(
-                '{} is missing in redis '
-                'for ticker={} status={}'.format(
-                    label,
-                    work['ticker'],
-                    get_status(status=status)))
+        self._check(df=df, status=status, label=label, work=work)
     # end of test_integration_extract_daily_dataset
 
     def test_integration_extract_minute_dataset(self):
@@ -112,15 +108,7 @@ class TestIEXDatasetExtraction(BaseTestCase):
 
         status, df = extract_minute_dataset(
             work_dict=work)
-        if status == SUCCESS:
-            self.assertIsNotNone(
-                df)
-            self.debug_df(df=df)
-        else:
-            log.critical(
-                f'{label} is missing in redis '
-                f'for ticker={work["ticker"]} '
-                f'status={get_status(status=status)}')
+        self._check(df=df, status=status, label=label, work=work)
     # end of test_integration_extract_minute_dataset
 
     def test_integration_extract_quote_dataset(self):
@@ -136,17 +124,7 @@ class TestIEXDatasetExtraction(BaseTestCase):
 
         status, df = extract_quote_dataset(
             work_dict=work)
-        if status == SUCCESS:
-            self.assertIsNotNone(
-                df)
-            self.debug_df(df=df)
-        else:
-            log.critical(
-                '{} is missing in redis '
-                'for ticker={} status={}'.format(
-                    label,
-                    work['ticker'],
-                    get_status(status=status)))
+        self._check(df=df, status=status, label=label, work=work)
     # end of test_integration_extract_quote_dataset
 
     def test_integration_extract_stats_dataset(self):
@@ -162,17 +140,7 @@ class TestIEXDatasetExtraction(BaseTestCase):
 
         status, df = extract_stats_dataset(
             work_dict=work)
-        if status == SUCCESS:
-            self.assertIsNotNone(
-                df)
-            self.debug_df(df=df)
-        else:
-            log.critical(
-                '{} is missing in redis '
-                'for ticker={} status={}'.format(
-                    label,
-                    work['ticker'],
-                    get_status(status=status)))
+        self._check(df=df, status=status, label=label, work=work)
     # end of test_integration_extract_stats_dataset
 
     def test_integration_extract_peers_dataset(self):
@@ -188,17 +156,7 @@ class TestIEXDatasetExtraction(BaseTestCase):
 
         status, df = extract_peers_dataset(
             work_dict=work)
-        if status == SUCCESS:
-            self.assertIsNotNone(
-                df)
-            self.debug_df(df=df)
-        else:
-            log.critical(
-                '{} is missing in redis '
-                'for ticker={} status={}'.format(
-                    label,
-                    work['ticker'],
-                    get_status(status=status)))
+        self._check(df=df, status=status, label=label, work=work)
     # end of test_integration_extract_peers_dataset
 
     def test_integration_extract_news_dataset(self):
@@ -214,17 +172,7 @@ class TestIEXDatasetExtraction(BaseTestCase):
 
         status, df = extract_news_dataset(
             work_dict=work)
-        if status == SUCCESS:
-            self.assertIsNotNone(
-                df)
-            self.debug_df(df=df)
-        else:
-            log.critical(
-                '{} is missing in redis '
-                'for ticker={} status={}'.format(
-                    label,
-                    work['ticker'],
-                    get_status(status=status)))
+        self._check(df=df, status=status, label=label, work=work)
     # end of test_integration_extract_news_dataset
 
     def test_integration_extract_financials_dataset(self):
@@ -240,17 +188,7 @@ class TestIEXDatasetExtraction(BaseTestCase):
 
         status, df = extract_financials_dataset(
             work_dict=work)
-        if status == SUCCESS:
-            self.assertIsNotNone(
-                df)
-            self.debug_df(df=df)
-        else:
-            log.critical(
-                '{} is missing in redis '
-                'for ticker={} status={}'.format(
-                    label,
-                    work['ticker'],
-                    get_status(status=status)))
+        self._check(df=df, status=status, label=label, work=work)
     # end of test_integration_extract_financials_dataset
 
     def test_integration_extract_earnings_dataset(self):
@@ -266,17 +204,7 @@ class TestIEXDatasetExtraction(BaseTestCase):
 
         status, df = extract_earnings_dataset(
             work_dict=work)
-        if status == SUCCESS:
-            self.assertIsNotNone(
-                df)
-            self.debug_df(df=df)
-        else:
-            log.critical(
-                '{} is missing in redis '
-                'for ticker={} status={}'.format(
-                    label,
-                    work['ticker'],
-                    get_status(status=status)))
+        self._check(df=df, status=status, label=label, work=work)
     # end of test_integration_extract_earnings_dataset
 
     def test_integration_extract_dividends_dataset(self):
@@ -292,17 +220,7 @@ class TestIEXDatasetExtraction(BaseTestCase):
 
         status, df = extract_dividends_dataset(
             work_dict=work)
-        if status == SUCCESS:
-            self.assertIsNotNone(
-                df)
-            self.debug_df(df=df)
-        else:
-            log.critical(
-                '{} is missing in redis '
-                'for ticker={} status={}'.format(
-                    label,
-                    work['ticker'],
-                    get_status(status=status)))
+        self._check(df=df, status=status, label=label, work=work)
     # end of test_integration_extract_dividends_dataset
 
     def test_integration_extract_company_dataset(self):
@@ -318,17 +236,7 @@ class TestIEXDatasetExtraction(BaseTestCase):
 
         status, df = extract_company_dataset(
             work_dict=work)
-        if status == SUCCESS:
-            self.assertIsNotNone(
-                df)
-            self.debug_df(df=df)
-        else:
-            log.critical(
-                '{} is missing in redis '
-                'for ticker={} status={}'.format(
-                    label,
-                    work['ticker'],
-                    get_status(status=status)))
+        self._check(df=df, status=status, label=label, work=work)
     # end of test_integration_extract_company_dataset
 
 # end of TestIEXDatasetExtraction

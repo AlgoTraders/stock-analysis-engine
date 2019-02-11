@@ -128,11 +128,8 @@ def load_dataset(
     use_ds = algo_dataset
     if not use_ds:
         log.info(
-            'loading {} from file={} s3={} redis={}'.format(
-                ae_consts.get_status(status=dataset_type),
-                path_to_file,
-                s3_key,
-                redis_key))
+            f'loading {ae_consts.get_status(status=dataset_type)} from '
+            f'file={path_to_file} s3={s3_key} redis={redis_key}')
     # load if not created
 
     supported_type = False
@@ -141,7 +138,7 @@ def load_dataset(
         if (path_to_file and
                 not use_ds):
             if not os.path.exists(path_to_file):
-                log.error('missing file: {}'.format(path_to_file))
+                log.error(f'missing file: {path_to_file}')
             use_ds = file_utils.load_algo_dataset_from_file(
                 path_to_file=path_to_file,
                 compress=compress,
@@ -162,7 +159,7 @@ def load_dataset(
                 serialize_datasets=serialize_datasets)
         elif (redis_key and
                 not use_ds):
-            use_ds = redis_utils.load_algo_dataset_from_s3(
+            use_ds = redis_utils.load_algo_dataset_from_redis(
                 redis_key=redis_key,
                 redis_address=redis_address,
                 redis_db=redis_db,
@@ -176,20 +173,14 @@ def load_dataset(
         supported_type = False
         use_ds = None
         log.error(
-            'loading {} from file={} s3={} redis={}'.format(
-                dataset_type,
-                path_to_file,
-                s3_key,
-                redis_key))
+            f'loading {dataset_type} from file={path_to_file} '
+            f's3={s3_key} redis={redis_key}')
     # load if not created
 
     if not use_ds and supported_type:
         log.error(
-            'unable to load a dataset from file={} '
-            's3={} redis={}'.format(
-                path_to_file,
-                s3_key,
-                redis_key))
+            f'unable to load a dataset from file={path_to_file} '
+            f's3={s3_key} redis={redis_key}')
 
     return use_ds
 # end of load_dataset

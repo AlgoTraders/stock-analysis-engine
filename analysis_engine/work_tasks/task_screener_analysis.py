@@ -38,9 +38,7 @@ def task_screener_analysis(
         'label',
         'screener')
 
-    log.info(
-        '{} - start'.format(
-            label))
+    log.info(f'{label} - start')
 
     rec = {}
     res = build_result.build_result(
@@ -104,16 +102,10 @@ def task_screener_analysis(
     try:
 
         log.info(
-            '{} fetch={} tickers={} '
-            'iex_datasets={} '
-            'sell_task={} '
-            'buy_task={}'.format(
-                label,
-                fetch_mode,
-                tickers,
-                iex_datasets,
-                determine_sells_callback,
-                determine_buys_callback))
+            f'{label} fetch={fetch_mode} tickers={tickers} '
+            f'iex_datasets={iex_datasets} '
+            f'sell_task={determine_sells_callback} '
+            f'buy_task={determine_buys_callback}')
 
         """
         Input - Set up required urls for building buckets
@@ -133,13 +125,8 @@ def task_screener_analysis(
         # without an engine running
         if res['err']:
             log.error(
-                '{} - tickers={} fetch={} iex_datasets={} '
-                'hit validation err={}'.format(
-                    label,
-                    tickers,
-                    fetch_mode,
-                    iex_datasets,
-                    res['err']))
+                f'{label} - tickers={tickers} fetch={fetch_mode} '
+                f'iex_datasets={iex_datasets} hit validation err={res["err"]}')
 
             return get_task_results.get_task_results(
                 work_dict=work_dict,
@@ -147,19 +134,12 @@ def task_screener_analysis(
         # end of input validation checks
 
         num_urls = len(fv_urls)
-        log.info(
-            '{} - running urls={}'.format(
-                label,
-                fv_urls))
+        log.info(f'{label} - running urls={fv_urls}')
 
         fv_dfs = []
         for uidx, url in enumerate(fv_urls):
             log.info(
-                '{} - url={}/{} url={}'.format(
-                    label,
-                    uidx,
-                    num_urls,
-                    url))
+                f'{label} - url={uidx}/{num_urls} url={url}')
             fv_res = finviz_utils.fetch_tickers_from_screener(
                 url=url)
             if fv_res['status'] == ae_consts.SUCCESS:
@@ -170,12 +150,7 @@ def task_screener_analysis(
                         tickers.append(upper_ft_ticker)
                 # end of for all found tickers
             else:
-                log.error(
-                    '{} - failed url={}/{} url={}'.format(
-                        label,
-                        uidx,
-                        num_urls,
-                        url))
+                log.error(f'{label} - failed url={uidx}/{num_urls} url={url}')
             # if success vs log the error
         # end of urls to get pandas.DataFrame and unique tickers
 
@@ -186,10 +161,7 @@ def task_screener_analysis(
         num_tickers = len(tickers)
 
         log.info(
-            '{} - fetching tickers={} from urls={}'.format(
-                label,
-                num_tickers,
-                num_urls))
+            f'{label} - fetching tickers={num_tickers} from urls={num_urls}')
 
         """
         pull ticker data
@@ -214,27 +186,17 @@ def task_screener_analysis(
                 rec=rec)
         else:
             err = (
-                '{} - tickers={} failed fetch={} '
-                'iex_datasets={}'.format(
-                    label,
-                    tickers,
-                    fetch_mode,
-                    iex_datasets))
+                f'{label} - tickers={ticker} failed fetch={fetch_mode} '
+                f'iex_datasets={iex_datasets}')
             res = build_result.build_result(
                 status=ae_consts.ERR,
                 err=err,
                 rec=rec)
 
-        log.info(
-            '{} - done'.format(
-                label))
+        log.info(f'{label} - done')
     except Exception as e:
         err = (
-            '{} - tickers={} fetch={} hit ex={} '.format(
-                label,
-                tickers,
-                fetch_mode,
-                e))
+            f'{label} - tickers={tickers} fetch={fetch_mode} hit ex={e} ')
         log.error(err)
         res = build_result.build_result(
             status=ae_consts.ERR,
@@ -258,15 +220,11 @@ def run_screener_analysis(
     """
 
     fn_name = 'run_screener_analysis'
-    label = '{} - {}'.format(
-        fn_name,
-        work_dict.get(
-            'label',
-            ''))
+    label = f'''{fn_name} - {work_dict.get(
+        'label',
+        '')}'''
 
-    log.info(
-        '{} - start'.format(
-            label))
+    log.info(f'{label} - start')
 
     response = build_result.build_result(
         status=ae_consts.NOT_RUN,
@@ -292,15 +250,11 @@ def run_screener_analysis(
                     response_details = response
 
                 log.info(
-                    '{} task result={}'.format(
-                        label,
-                        response_details))
+                    f'{label} task result={response_details}')
         else:
             log.error(
-                '{} celery was disabled but the task={} '
-                'did not return anything'.format(
-                    label,
-                    response))
+                f'{label} celery was disabled but the task={response} '
+                'did not return anything')
         # end of if response
     else:
         task_res = task_screener_analysis.delay(
@@ -317,24 +271,16 @@ def run_screener_analysis(
     if response:
         if ae_consts.ev('DEBUG_RESULTS', '0') == '1':
             log.info(
-                '{} - done '
-                'status={} err={} rec={}'.format(
-                    label,
-                    ae_consts.get_status(response['status']),
-                    response['err'],
-                    response['rec']))
+                f'{label} - done '
+                f'status={ae_consts.get_status(response["status"])} '
+                f'err={response["err"]} rec={response["rec"]}')
         else:
             log.info(
-                '{} - done '
-                'status={} err={}'.format(
-                    label,
-                    ae_consts.get_status(response['status']),
-                    response['err']))
+                f'{label} - done '
+                f'status={ae_consts.get_status(response["status"])} '
+                f'err={response["err"]}')
     else:
-        log.info(
-            '{} - done '
-            'no response'.format(
-                label))
+        log.info(f'{label} - done no response')
     # end of if/else response
 
     return response

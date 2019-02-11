@@ -126,14 +126,11 @@ run a backtest with an algorithm config dictionary
         def process(self, algo_id, ticker, dataset):
             if self.verbose:
                 print(
-                    'process start - {} '
-                    'date={} minute={} close={} '
-                    'high={} low={} open={} volume={}'
-                    ''.format(
-                        self.name, self.backtest_date, self.latest_min,
-                        self.latest_close, self.latest_high,
-                        self.latest_low, self.latest_open,
-                        self.latest_volume))
+                    f'process start - {self.name} '
+                    f'date={self.backtest_date} minute={self.latest_min} '
+                    f'close={self.latest_close} high={self.latest_high} '
+                    f'low={self.latest_low} open={self.latest_open} '
+                    f'volume={self.latest_volume}')
         # end of process
     # end of ExampleCustomAlgo
 
@@ -150,15 +147,14 @@ run a backtest with an algorithm config dictionary
     if algo_res['status'] != ae_consts.SUCCESS:
         print(
             'failed running algo backtest '
-            '{} hit status: {} error: {}'.format(
-                algo_obj.get_name(),
-                ae_consts.get_status(status=algo_res['status']),
-                algo_res['err']))
+            f'{algo_obj.get_name()} hit status: '
+            f'{ae_consts.get_status(status=algo_res['status'])} '
+            f'error: {algo_res["err"]}')
     else:
         print(
-            'backtest: {} {} - plotting history'.format(
-                algo_obj.get_name(),
-                ae_consts.get_status(status=algo_res['status'])))
+            f'backtest: {algo_obj.get_name()} '
+            f'{ae_consts.get_status(status=algo_res["status"])} - '
+            'plotting history')
     # if not successful
 
 """
@@ -368,17 +364,11 @@ class ExampleCustomAlgo(base_algo.BaseAlgo):
         """
         if self.verbose:
             log.info(
-                'process start - {} '
-                'balance={} '
-                'date={} minute={} close={} '
-                'high={} low={} open={} volume={}'
-                ''.format(
-                    self.name,
-                    self.balance,
-                    self.backtest_date, self.latest_min,
-                    self.latest_close, self.latest_high,
-                    self.latest_low, self.latest_open,
-                    self.latest_volume))
+                f'process start - {self.name} balance={self.balance} '
+                f'date={self.backtest_date} minute={self.latest_min} '
+                f'close={self.latest_close} high={self.latest_high} '
+                f'low={self.latest_low} open={self.latest_open} '
+                f'volume={self.latest_volume}')
     # end of process
 
 # end of ExampleCustomAlgo
@@ -693,36 +683,28 @@ def run_backtest_and_plot_history(
 
     if args.start_date:
         try:
-            use_start_date = '{} 00:00:00'.format(
-                str(args.start_date))
+            use_start_date = f'{str(args.start_date)} 00:00:00'
             datetime.datetime.strptime(
                 args.start_date,
                 ae_consts.COMMON_DATE_FORMAT)
         except Exception as e:
             msg = (
-                'please use a start date formatted as: {}'
-                '\n'
-                'error was: {}'.format(
-                    ae_consts.COMMON_DATE_FORMAT,
-                    e))
+                'please use a start date formatted as: '
+                f'{ae_consts.COMMON_DATE_FORMAT}\nerror was: {e}')
             log.error(msg)
             sys.exit(1)
         # end of testing for a valid date
     # end of args.start_date
     if args.end_date:
         try:
-            use_end_date = '{} 00:00:00'.format(
-                str(args.end_date))
+            use_end_date = f'{str(args.end_date)} 00:00:00'
             datetime.datetime.strptime(
                 args.end_date,
                 ae_consts.COMMON_DATE_FORMAT)
         except Exception as e:
             msg = (
-                'please use an end date formatted as: {}'
-                '\n'
-                'error was: {}'.format(
-                    ae_consts.COMMON_DATE_FORMAT,
-                    e))
+                'please use an end date formatted as: '
+                f'{ae_consts.COMMON_DATE_FORMAT}\nerror was: {e}')
             log.error(msg)
             sys.exit(1)
         # end of testing for a valid date
@@ -731,8 +713,7 @@ def run_backtest_and_plot_history(
         use_config_file = args.config_file
         if not os.path.exists(use_config_file):
             log.error(
-                'Failed: unable to find config file: -c {}'.format(
-                    use_config_file))
+                f'Failed: unable to find config file: -c {use_config_file}')
             sys.exit(1)
 
     if args.backtest_loc:
@@ -742,12 +723,11 @@ def run_backtest_and_plot_history(
                 'redis://' not in backtest_loc):
             log.error(
                 'invalid -b <backtest dataset file> specified. '
-                '{} '
+                f'{backtest_loc} '
                 'please use either: '
                 '-b file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
                 '-b s3://algoready/SPY-latest.json or '
-                '-b redis://SPY-latest'.format(
-                    backtest_loc))
+                '-b redis://SPY-latest')
             sys.exit(1)
 
         load_from_s3_bucket = None
@@ -780,8 +760,7 @@ def run_backtest_and_plot_history(
             s3_region_name=s3_region_name,
             s3_secure=s3_secure,
             verbose=debug,
-            label='load-{}'.format(
-                backtest_loc))
+            label=f'load-{backtest_loc}')
         if load_from_file:
             load_config['output_file'] = load_from_file
         if load_from_redis_key:
@@ -824,17 +803,15 @@ def run_backtest_and_plot_history(
     if algo_res['status'] != ae_consts.SUCCESS:
         log.error(
             'failed running algo backtest '
-            '{} hit status: {} error: {}'.format(
-                algo_obj.get_name(),
-                ae_consts.get_status(status=algo_res['status']),
-                algo_res['err']))
+            f'{algo_obj.get_name()} hit status: '
+            f'{ae_consts.get_status(status=algo_res["status"])} '
+            f'error: {algo_res["err"]}')
         return
     # if not successful
 
     log.info(
-        'backtest: {} {}'.format(
-            algo_obj.get_name(),
-            ae_consts.get_status(status=algo_res['status'])))
+        f'backtest: {algo_obj.get_name()} '
+        f'{ae_consts.get_status(status=algo_res["status"])}')
 
     trading_history_dict = algo_obj.get_history_dataset()
     history_df = trading_history_dict[ticker]
@@ -842,9 +819,7 @@ def run_backtest_and_plot_history(
         return
 
     if history_json_file:
-        log.info(
-            'saving history to: {}'.format(
-                history_json_file))
+        log.info(f'saving history to: {history_json_file}')
         history_df.to_json(
             history_json_file,
             orient='records',
@@ -854,10 +829,8 @@ def run_backtest_and_plot_history(
 
     use_xcol = 'date'
     use_as_date_format = '%d\n%b'
-    xlabel = 'Dates vs {} values'.format(
-        trading_history_dict['algo_name'])
-    ylabel = 'Algo {}\nvalues'.format(
-        trading_history_dict['algo_name'])
+    xlabel = f'Dates vs {trading_history_dict["algo_name"]} values'
+    ylabel = f'Algo {trading_history_dict["algo_name"]}\nvalues'
     df_filter = (history_df['close'] > 0.01)
     first_date = history_df[df_filter]['date'].iloc[0]
     end_date = history_df[df_filter]['date'].iloc[-1]
@@ -867,12 +840,9 @@ def run_backtest_and_plot_history(
         first_date = history_df[df_filter]['minute'].iloc[0]
         end_date = history_df[df_filter]['minute'].iloc[-1]
     title = (
-        'Trading History {} for Algo {}\n'
-        'Backtest dates from {} to {}'.format(
-            ticker,
-            trading_history_dict['algo_name'],
-            first_date,
-            end_date))
+        f'Trading History {ticker} for Algo '
+        f'{trading_history_dict["algo_name"]}\n'
+        f'Backtest dates from {first_date} to {end_date}')
 
     # set default hloc columns:
     blue = None
@@ -884,9 +854,7 @@ def run_backtest_and_plot_history(
 
     if debug:
         for i, r in history_df.iterrows():
-            log.debug('{} - {}'.format(
-                r['minute'],
-                r['close']))
+            log.debug(f'{r["minute"]} - {r["close"]}')
 
     plot_trading_history.plot_trading_history(
         title=title,

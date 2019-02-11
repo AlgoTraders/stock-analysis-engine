@@ -127,11 +127,9 @@ def build_sell_order(
         use_date = date
 
     log.debug(
-        '{} {} sell {} order={}'.format(
-            ticker,
-            use_date,
-            ae_consts.get_status(status=order_dict['status']),
-            ae_consts.ppj(order_dict)))
+        f'{ticker} {use_date} sell '
+        f'{ae_consts.get_status(status=order_dict["status"])} '
+        f'order={ae_consts.ppj(order_dict)}')
 
     return order_dict
 # end of build_sell_order

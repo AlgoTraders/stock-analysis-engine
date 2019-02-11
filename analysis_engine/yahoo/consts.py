@@ -59,8 +59,7 @@ def get_ft_str_yahoo(
     elif ft_type == FETCH_NEWS_YAHOO:
         return 'news_yahoo'
     else:
-        return 'unsupported ft_type={}'.format(
-            ft_type)
+        return f'unsupported ft_type={ft_type}'
 # end of get_ft_str_yahoo
 
 
@@ -78,6 +77,5 @@ def get_datafeed_str_yahoo(
     elif df_type == DATAFEED_NEWS_YAHOO:
         return 'news_yahoo'
     else:
-        return 'unsupported df_type={}'.format(
-            df_type)
+        return f'unsupported df_type={df_type}'
 # end of get_datafeed_str_yahoo

@@ -23,15 +23,11 @@ and more) from these sources:
     # store data
     cur_date = datetime.datetime.now().strftime('%Y-%m-%d')
     work = build_get_new_pricing_request(
-        label='get-pricing-{}'.format(cur_date))
+        label=f'get-pricing-{cur_date}')
     work['ticker'] = 'TSLA'
     work['s3_bucket'] = 'pricing'
-    work['s3_key'] = '{}-{}'.format(
-        work['ticker'],
-        cur_date)
-    work['redis_key'] = '{}-{}'.format(
-        work['ticker'],
-        cur_date)
+    work['s3_key'] = f'{work["ticker"]}-{cur_date}'
+    work['redis_key'] = f'{work["ticker"]}-{cur_date}'
     work['celery_disabled'] = True
     res = get_new_pricing_data(
         work)
@@ -42,7 +38,7 @@ and more) from these sources:
             'named datasets returned as '
             'json-serialized pandas DataFrames:')
         for k in res['data']:
-            print(' - {}'.format(k))
+            print(f' - {k}')
 
 .. warning:: When fetching pricing data from sources like IEX,
     Please ensure the returned values are
@@ -284,7 +280,7 @@ def get_new_pricing_data(
                         get_td_data = True
                     else:
                         log.warn(
-                            f'unsupported IEX dataset '
+                            'unsupported IEX dataset '
                             f'{fetch_name}')
             found_fetch = (
                 len(iex_datasets) != 0)
@@ -307,11 +303,11 @@ def get_new_pricing_data(
             if not iex_token:
                 log.warn(
                     f'{label} - '
-                    f'please set a valid IEX Cloud Account token ('
-                    f'https://iexcloud.io/cloud-login/#/register'
-                    f') to fetch data from IEX Cloud. It must be '
-                    f'set as an environment variable like: '
-                    f'export IEX_TOKEN=<token>')
+                    'please set a valid IEX Cloud Account token ('
+                    'https://iexcloud.io/cloud-login/#/register'
+                    ') to fetch data from IEX Cloud. It must be '
+                    'set as an environment variable like: '
+                    'export IEX_TOKEN=<token>')
                 get_iex_data = False
             else:
                 num_tokens += 1
@@ -325,11 +321,11 @@ def get_new_pricing_data(
             if td_token in missing_td_token:
                 log.warn(
                     f'{label} - '
-                    f'please set a valid Tradier Account token ('
-                    f'https://developer.tradier.com/user/sign_up'
-                    f') to fetch pricing data from Tradier. It must be '
-                    f'set as an environment variable like: '
-                    f'export TD_TOKEN=<token>')
+                    'please set a valid Tradier Account token ('
+                    'https://developer.tradier.com/user/sign_up'
+                    ') to fetch pricing data from Tradier. It must be '
+                    'set as an environment variable like: '
+                    'export TD_TOKEN=<token>')
                 get_td_data = False
             else:
                 num_tokens += 1
@@ -403,8 +399,7 @@ def get_new_pricing_data(
 
         # disabled on 2019-01-03
         if get_yahoo_data:
-            log.debug(
-                f'{label} YHO ticker={ticker}')
+            log.debug(f'{label} YHO ticker={ticker}')
             yahoo_res = yahoo_data.get_data_from_yahoo(
                 work_dict=work_dict)
             status_str = ae_consts.get_status(status=yahoo_res['status'])
@@ -433,8 +428,7 @@ def get_new_pricing_data(
 
         if get_iex_data:
             num_iex_ds = len(iex_datasets)
-            log.debug(
-                f'{label} IEX datasets={num_iex_ds}')
+            log.debug(f'{label} IEX datasets={num_iex_ds}')
             for idx, ft_type in enumerate(iex_datasets):
                 dataset_field = iex_consts.get_ft_str(
                     ft_type=ft_type)
@@ -442,8 +436,7 @@ def get_new_pricing_data(
                 log.debug(
                     f'{label} IEX={idx}/{num_iex_ds} '
                     f'field={dataset_field} ticker={ticker}')
-                iex_label = (
-                    f'{label}-{dataset_field}')
+                iex_label = f'{label}-{dataset_field}'
                 iex_req = copy.deepcopy(work_dict)
                 iex_req['label'] = iex_label
                 iex_req['ft_type'] = ft_type
@@ -481,8 +474,7 @@ def get_new_pricing_data(
 
         if get_td_data:
             num_td_ds = len(td_datasets)
-            log.debug(
-                f'{label} TD datasets={num_td_ds}')
+            log.debug(f'{label} TD datasets={num_td_ds}')
 
             for idx, ft_type in enumerate(td_datasets):
                 dataset_field = td_consts.get_ft_str_td(
@@ -617,7 +609,7 @@ def get_new_pricing_data(
         res = build_result.build_result(
             status=ae_consts.ERR,
             err=(
-                f'failed - get_new_pricing_data '
+                'failed - get_new_pricing_data '
                 f'dict={work_dict} with ex={e}'),
             rec=rec)
         log.error(
@@ -635,8 +627,7 @@ def get_new_pricing_data(
             f'IEX={get_iex_data} '
             f'TD={get_td_data} '
             f'YHO={get_yahoo_data}')
-        log.debug(
-            f'{label} sending slack msg={done_msg}')
+        log.debug(f'{label} sending slack msg={done_msg}')
         if res['status'] == ae_consts.SUCCESS:
             slack_utils.post_success(
                 msg=done_msg,
@@ -651,7 +642,7 @@ def get_new_pricing_data(
     # end of publishing to slack
 
     log.debug(
-        f'task - get_new_pricing_data done - '
+        'task - get_new_pricing_data done - '
         f'{label} - status={ae_consts.get_status(res["status"])}')
 
     return get_task_results.get_task_results(
@@ -673,8 +664,7 @@ def run_get_new_pricing_data(
         'label',
         '')
 
-    log.debug(
-        f'run_get_new_pricing_data - {label} - start')
+    log.debug(f'run_get_new_pricing_data - {label} - start')
 
     response = build_result.build_result(
         status=ae_consts.NOT_RUN,
@@ -704,7 +694,7 @@ def run_get_new_pricing_data(
         else:
             log.error(
                 f'{label} celery was disabled but the task={response} '
-                f'did not return anything')
+                'did not return anything')
         # end of if response
     else:
         task_res = get_new_pricing_data.delay(
@@ -734,7 +724,7 @@ def run_get_new_pricing_data(
     else:
         log.debug(
             f'run_get_new_pricing_data - {label} - done '
-            f'no response')
+            'no response')
     # end of if/else response
 
     return response

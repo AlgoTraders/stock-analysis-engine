@@ -143,12 +143,9 @@ class ExampleIndicatorWilliamsROpen(base_indicator.BaseIndicator):
         self.starter_dict.update(default_values_dict)
 
         self.lg(
-            'configurables={} for class={} in file={} '
-            'starter:\n {}'.format(
-                ae_consts.ppj(self.ind_confs),
-                self.__class__.__name__,
-                use_file,
-                ae_consts.ppj(self.starter_dict)))
+            f'configurables={ae_consts.ppj(self.ind_confs)} for '
+            f'class={self.__class__.__name__} in file={use_file} '
+            f'starter:\n {ae_consts.ppj(self.starter_dict)}')
 
         return self.ind_confs
     # end of get_configurables
@@ -214,9 +211,8 @@ class ExampleIndicatorWilliamsROpen(base_indicator.BaseIndicator):
         # converts any self.config keys into useable
         # member variables automatically in your derived class
         self.lg(
-            'process - num_points={} df={}'.format(
-                self.num_points,
-                len(self.use_df.index)))
+            f'process - num_points={self.num_points} '
+            f'df={len(self.use_df.index)}')
         """
         real = WILLR(high, low, open, timeperiod=14)
         """
@@ -230,10 +226,7 @@ class ExampleIndicatorWilliamsROpen(base_indicator.BaseIndicator):
                 how='any')
 
             if len(self.use_df.index) == 0:
-                self.lg(
-                    'empty dataframe={} on date={}'.format(
-                        self.uses_data,
-                        end_date))
+                self.lg(f'empty dataframe={self.uses_data} on date={end_date}')
                 return
 
             """
@@ -244,13 +237,8 @@ class ExampleIndicatorWilliamsROpen(base_indicator.BaseIndicator):
                 close = row['close']
                 row_date = row['date']
                 self.lg(
-                    '{} - WILLROPEN(high={}, low={}, '
-                    'open={}, period={})'.format(
-                        row_date,
-                        high,
-                        low,
-                        open_val,
-                        self.num_points))
+                    f'{row_date} - WILLROPEN(high={high}, low={low}, '
+                    f'open={open_val}, period={self.num_points})')
             """
             highs = self.use_df['high'].values
             lows = self.use_df['low'].values
@@ -277,20 +265,12 @@ class ExampleIndicatorWilliamsROpen(base_indicator.BaseIndicator):
                 self.is_sell = ae_consts.INDICATOR_SELL
 
             self.lg(
-                'process end - {} to {} willr_open_value={} '
-                'buy_below={} is_buy={} '
-                'sell_above={} is_sell={}'.format(
-                    first_date,
-                    end_date,
-                    self.willr_open_value,
-                    self.buy_below,
-                    self.is_buy,
-                    self.sell_above,
-                    self.is_sell))
+                f'process end - {first_date} to {end_date} '
+                f'willr_open_value={self.willr_open_value} '
+                f'buy_below={self.buy_below} is_buy={self.is_buy} '
+                f'sell_above={self.sell_above} is_sell={self.is_sell}')
         else:
-            self.lg(
-                'process end - willr={}'.format(
-                    self.willr_open_value))
+            self.lg(f'process end - willr={self.willr_open_value}')
     # end of process
 
     def reset_internals(

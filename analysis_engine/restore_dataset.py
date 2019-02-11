@@ -166,10 +166,7 @@ def restore_dataset(
 
     if not use_ds:
         log.info(
-            'loading from file={} s3={} redis={}'.format(
-                path_to_file,
-                s3_key,
-                redis_key))
+            f'loading from file={path_to_file} s3={s3_key} redis={redis_key}')
         use_ds = load_dataset.load_dataset(
             dataset_type=dataset_type,
             compress=compress,
@@ -193,11 +190,8 @@ def restore_dataset(
 
     if not use_ds:
         log.error(
-            'unable to load a dataset from file={} '
-            's3={} redis={}'.format(
-                path_to_file,
-                s3_key,
-                redis_key))
+            f'unable to load a dataset from file={path_to_file} '
+            f's3={s3_key} redis={redis_key}')
         return None
 
     log.info('restore - start')
@@ -209,19 +203,16 @@ def restore_dataset(
                     total_to_restore += 1
     # end of counting total_to_restore
 
-    log.info('restore - records={}'.format(total_to_restore))
+    log.info(f'restore - records={total_to_restore}')
     num_done = 0
     for ticker in use_ds:
         for ds_node in use_ds[ticker]:
             ds_parent_key = ds_node['id']
             log.info(
-                'restore - parent_key={} - {} {}/{}'.format(
-                    ds_parent_key,
-                    ae_consts.get_percent_done(
-                        progress=num_done,
-                        total=total_to_restore),
-                    num_done,
-                    total_to_restore))
+                f'restore - parent_key={ds_parent_key} - '
+                f'''{ae_consts.get_percent_done(
+                    progress=num_done,
+                    total=total_to_restore)} {num_done}/{total_to_restore}''')
             if verbose:
                 print(ds_parent_key)
 
@@ -235,7 +226,7 @@ def restore_dataset(
                 serializer=redis_serializer,
                 encoding=redis_encoding,
                 expire=redis_expire,
-                label='restore-{}'.format(ds_parent_key))
+                label=f'restore-{ds_parent_key}')
 
             should_restore = False
             if (not force_restore and
@@ -248,8 +239,7 @@ def restore_dataset(
                 should_restore = True
             if should_restore:
                 log.info(
-                    ' - parent {} restore'.format(
-                        ds_parent_key))
+                    f' - parent {ds_parent_key} restore')
                 new_parent_rec = {
                     'exp_date': None,
                     'publish_pricing_update': None,
@@ -287,18 +277,14 @@ def restore_dataset(
 
             for ds_key in ds_node['data']:
                 if ds_key in serialize_datasets:
-                    new_key = '{}_{}'.format(
-                        ds_parent_key,
-                        ds_key)
+                    new_key = f'{ds_parent_key}_{ds_key}'
                     if hasattr(
                             ds_node['data'][ds_key],
                             'index'):
                         loaded_df = ds_node['data'][ds_key]
                         if len(loaded_df.index) > 0:
                             if verbose:
-                                print(
-                                    ' - checking: {}'.format(
-                                        new_key))
+                                print(f' - checking: {new_key}')
 
                             cache_res = redis_utils.get_data_from_redis_key(
                                 host=redis_host,
@@ -310,7 +296,7 @@ def restore_dataset(
                                 serializer=redis_serializer,
                                 encoding=redis_encoding,
                                 expire=redis_expire,
-                                label='restore-{}'.format(new_key))
+                                label=f'restore-{new_key}')
 
                             should_restore = False
                             success_status = (
@@ -327,9 +313,8 @@ def restore_dataset(
                                     should_restore = True
                             if should_restore:
                                 log.info(
-                                    'restore nested dataset: {}'.format(
-                                        ds_parent_key,
-                                        new_key))
+                                    'restore nested dataset: '
+                                    f'{ds_parent_key} to: {new_key}')
                                 publish.publish(
                                     data=loaded_df,
                                     redis_enabled=True,
@@ -346,13 +331,10 @@ def restore_dataset(
                                     verbose=verbose)
                             else:
                                 if verbose:
-                                    print(
-                                        ' - checking: {} - SKIP'.format(
-                                            new_key))
+                                    print(f' - checking: {new_key} - SKIP')
 
                         if verbose:
-                            print(' - {} - no data to sync'.format(
-                                new_key))
+                            print(f' - {new_key} - no data to sync')
                     # end of is a dataframe
                     # else:
                     # end of handling dataframe vs dictionary
@@ -362,10 +344,7 @@ def restore_dataset(
         print('-----------------------------------')
     # end for all dataset to restore
 
-    log.info(
-        'restore - done - num_done={} total={}'.format(
-            num_done,
-            total_to_restore))
+    log.info(f'restore - done - num_done={num_done} total={total_to_restore}')
 
     return use_ds
 # end of restore_dataset

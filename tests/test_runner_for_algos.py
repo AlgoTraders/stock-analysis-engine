@@ -43,13 +43,9 @@ class TestRunnerForAlgos(base_test.BaseTestCase):
         :param df: ``pandas.DataFrame`` from a fetch
         """
         print('-----------------------------------')
-        print(
-            'dataframe: {}'.format(
-                df))
+        print(f'dataframe: {df}')
         print('')
-        print(
-            'dataframe columns:\n{}'.format(
-                df.columns.values))
+        print(f'dataframe columns:\n{df.columns.values}')
         print('-----------------------------------')
     # end of debug_df
 

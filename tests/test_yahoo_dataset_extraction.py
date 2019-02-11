@@ -33,13 +33,8 @@ def mock_extract_pricing_from_redis_success(
     """
     sample_record = api_requests.build_cache_ready_pricing_dataset(
         label=(
-            '{}.{}.{}.{}.{}.'
-            'mock_extract_pricing_from_redis_success'.format(
-                label,
-                host,
-                port,
-                db,
-                key)))
+            f'{label}.{host}.{port}.{db}.{key}.'
+            'mock_extract_pricing_from_redis_success'))
     rec = {
         'data': sample_record['pricing']
     }
@@ -69,13 +64,8 @@ def mock_extract_news_from_redis_success(
     """
     sample_record = api_requests.build_cache_ready_pricing_dataset(
         label=(
-            '{}.{}.{}.{}.{}.'
-            'mock_extract_news_from_redis_success'.format(
-                label,
-                host,
-                port,
-                db,
-                key)))
+            f'{label}.{host}.{port}.{db}.{key}.'
+            'mock_extract_news_from_redis_success'))
     rec = {
         'data': sample_record['news']
     }
@@ -105,13 +95,8 @@ def mock_extract_options_from_redis_success(
     """
     sample_record = api_requests.build_cache_ready_pricing_dataset(
         label=(
-            '{}.{}.{}.{}.{}.'
-            'mock_extract_options_from_redis_success'.format(
-                label,
-                host,
-                port,
-                db,
-                key)))
+            f'{label}.{host}.{port}.{db}.{key}.'
+            'mock_extract_options_from_redis_success'))
     options_dict = sample_record['options']
     rec = {
         'data': options_dict
@@ -258,13 +243,9 @@ class TestYahooDatasetExtraction(base_test.BaseTestCase):
         :param df: ``pandas.DataFrame`` from a fetch
         """
         print('-----------------------------------')
-        print(
-            'dataframe: {}'.format(
-                df))
+        print(f'dataframe: {df}')
         print('')
-        print(
-            'dataframe columns:\n{}'.format(
-                df.columns.values))
+        print(f'dataframe columns:\n{df.columns.values}')
         print('-----------------------------------')
     # end of debug_df
 
@@ -287,9 +268,8 @@ class TestYahooDatasetExtraction(base_test.BaseTestCase):
         else:
             log.critical(
                 'Yahoo Pricing are missing in redis '
-                'for ticker={} status={}'.format(
-                    work['ticker'],
-                    ae_consts.get_status(status=status)))
+                f'for ticker={work["ticker"]} '
+                f'status={ae_consts.get_status(status=status)}')
     # end of test_integration_extract_pricing
 
     def test_integration_extract_yahoo_news(self):
@@ -311,9 +291,8 @@ class TestYahooDatasetExtraction(base_test.BaseTestCase):
         else:
             log.critical(
                 'Yahoo News is missing in redis '
-                'for ticker={} status={}'.format(
-                    work['ticker'],
-                    ae_consts.get_status(status=status)))
+                f'for ticker={work["ticker"]} '
+                f'status={ae_consts.get_status(status=status)}')
     # end of test_integration_extract_yahoo_news
 
     def test_integration_extract_option_calls(self):
@@ -341,9 +320,8 @@ class TestYahooDatasetExtraction(base_test.BaseTestCase):
         else:
             log.critical(
                 'Yahoo Option Calls are missing in redis '
-                'for ticker={} status={}'.format(
-                    work['ticker'],
-                    ae_consts.get_status(status=status)))
+                f'for ticker={work["ticker"]} '
+                f'status={ae_consts.get_status(status=status)}')
     # end of test_integration_extract_option_calls
 
     def test_integration_extract_option_puts(self):
@@ -365,9 +343,8 @@ class TestYahooDatasetExtraction(base_test.BaseTestCase):
         else:
             log.critical(
                 'Yahoo Option Puts are missing in redis '
-                'for ticker={} status={}'.format(
-                    work['ticker'],
-                    ae_consts.get_status(status=status)))
+                f'for ticker={work["ticker"]} '
+                f'status={ae_consts.get_status(status=status)}')
     # end of test_integration_extract_option_puts
 
 # end of TestYahooDatasetExtraction

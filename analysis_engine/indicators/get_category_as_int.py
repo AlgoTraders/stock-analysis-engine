@@ -119,17 +119,14 @@ def get_category_as_int(
     elif ind_category_str == 'fed':
         return ae_consts.INDICATOR_CATEGORY_FED
     else:
-        return ae_consts.INDICATOR_CATEGORY_UNKNOWN
         if label:
             log.error(
-                'unsupported indicator '
-                'uses_dataset={} defaulting to "unknown"'.format(
-                    ind_category_str))
+                f'{label} - unsupported indicator '
+                f'uses_dataset={ind_category_str} defaulting to "unknown"')
         else:
             log.error(
-                '{} - unsupported indicator '
-                'uses_dataset={} defaulting to "unknown"'.format(
-                    label,
-                    ind_category_str))
+                'unsupported indicator '
+                f'uses_dataset={ind_category_str} defaulting to "unknown"')
+        return ae_consts.INDICATOR_CATEGORY_UNKNOWN
     # end of supported indicator dataset types
 # end of get_category_as_int
