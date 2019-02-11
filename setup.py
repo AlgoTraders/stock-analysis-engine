@@ -46,9 +46,9 @@ if (os.getenv('READTHEDOCS', '') == ''
         and os.getenv('TRAVIS', '') == ''):
     install_requires = install_requires + requires_that_fail_on_rtd
 
-if sys.version_info < (3, 5):
+if sys.version_info < (3, 6):
     warnings.warn(
-        'Less than Python 3.5 is not supported.',
+        'Less than Python 3.6 is not supported.',
         DeprecationWarning)
 
 
@@ -68,7 +68,7 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.7.12',
+    version='1.7.13',
     description=(
         'Backtest 1000s of minute-by-minute '
         'trading algorithms. Automated '
@@ -148,7 +148,6 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Software Development :: Libraries :: Python Modules',
