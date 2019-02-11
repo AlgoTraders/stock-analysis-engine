@@ -4,6 +4,7 @@ a valid IEX account
 """
 
 import pandas as pd
+import analysis_engine.consts as ae_consts
 import analysis_engine.utils as ae_utils
 import analysis_engine.dataset_scrub_utils as dataset_utils
 import analysis_engine.iex.consts as iex_consts
@@ -14,7 +15,8 @@ log = log_utils.build_colorized_logger(name=__name__)
 
 
 def fetch_daily(
-        work_dict,
+        ticker=None,
+        work_dict=None,
         scrub_mode='sort-by-date'):
     """fetch_daily
 
@@ -24,10 +26,15 @@ def fetch_daily(
     https://iexcloud.io/docs/api/#historical-prices
 
     :param work_dict: dictionary of args
+    :param ticker: optional - ticker string used for
+        mostly testing
     :param scrub_mode: type of scrubbing handler to run
     """
-    ticker = work_dict.get('ticker', None)
-    label = work_dict.get('label', None)
+    label = None
+    if work_dict:
+        if not ticker:
+            ticker = work_dict.get('ticker', None)
+        label = work_dict.get('label', None)
 
     use_url = (
         f'/stock/{ticker}/chart/1m')
@@ -74,7 +81,8 @@ def fetch_daily(
 
 
 def fetch_minute(
-        work_dict,
+        ticker=None,
+        work_dict=None,
         scrub_mode='sort-by-date'):
     """fetch_minute
 
@@ -84,22 +92,29 @@ def fetch_minute(
     https://iexcloud.io/docs/api/#historical-prices
 
     :param work_dict: dictionary of args
+    :param ticker: optional - ticker string used for
+        mostly testing
     :param scrub_mode: type of scrubbing handler to run
     """
-    ticker = work_dict.get('ticker', None)
-    label = work_dict.get('label', None)
-    use_date = work_dict.get('use_date', None)
-
+    label = None
+    use_date = None
     from_historical_date = None
     last_close_to_use = None
     dates = []
 
-    if 'from_historical_date' in work_dict:
-        from_historical_date = work_dict['from_historical_date']
-        last_close_to_use = work_dict['last_close_to_use']
-        dates = ae_utils.get_days_between_dates(
-            from_historical_date=work_dict['from_historical_date'],
-            last_close_to_use=last_close_to_use)
+    if work_dict:
+        if not ticker:
+            ticker = work_dict.get('ticker', None)
+        label = work_dict.get('label', None)
+        use_date = work_dict.get('use_date', None)
+        if 'from_historical_date' in work_dict:
+            from_historical_date = work_dict['from_historical_date']
+        if 'last_close_to_use' in work_dict:
+            last_close_to_use = work_dict['last_close_to_use']
+        if from_historical_date and last_close_to_use:
+            dates = ae_utils.get_days_between_dates(
+                from_historical_date=work_dict['from_historical_date'],
+                last_close_to_use=last_close_to_use)
 
     use_url = (
         f'/stock/{ticker}/chart/1d')
@@ -131,20 +146,23 @@ def fetch_minute(
         src_col='minute',
         use_date_str=use_date,
         df=df)
-    df['minute'] = pd.to_datetime(
+    df['date'] = pd.to_datetime(
         new_minutes,
-        format=iex_consts.IEX_TICK_FORMAT)
+        format=ae_consts.COMMON_TICK_DATE_FORMAT)
+    # make sure dates are set as strings in the cache
+    df['date'] = df['date'].dt.strftime(
+        ae_consts.COMMON_TICK_DATE_FORMAT)
     df.set_index(
         [
-            'date',
-            'minute'
+            'date'
         ])
     return df
 # end of fetch_minute
 
 
 def fetch_quote(
-        work_dict,
+        ticker=None,
+        work_dict=None,
         scrub_mode='sort-by-date'):
     """fetch_quote
 
@@ -154,10 +172,15 @@ def fetch_quote(
     https://iexcloud.io/docs/api/#quote
 
     :param work_dict: dictionary of args
+    :param ticker: optional - ticker string used for
+        mostly testing
     :param scrub_mode: type of scrubbing handler to run
     """
-    ticker = work_dict.get('ticker', None)
-    label = work_dict.get('label', None)
+    label = None
+    if work_dict:
+        if not ticker:
+            ticker = work_dict.get('ticker', None)
+        label = work_dict.get('label', None)
 
     use_url = (
         f'/stock/{ticker}/quote')
@@ -192,7 +215,8 @@ def fetch_quote(
 
 
 def fetch_stats(
-        work_dict,
+        ticker=None,
+        work_dict=None,
         scrub_mode='sort-by-date'):
     """fetch_stats
 
@@ -202,10 +226,15 @@ def fetch_stats(
     https://iexcloud.io/docs/api/#key-stats
 
     :param work_dict: dictionary of args
+    :param ticker: optional - ticker string used for
+        mostly testing
     :param scrub_mode: type of scrubbing handler to run
     """
-    ticker = work_dict.get('ticker', None)
-    label = work_dict.get('label', None)
+    label = None
+    if work_dict:
+        if not ticker:
+            ticker = work_dict.get('ticker', None)
+        label = work_dict.get('label', None)
 
     use_url = (
         f'/stock/{ticker}/stats')
@@ -240,7 +269,8 @@ def fetch_stats(
 
 
 def fetch_peers(
-        work_dict,
+        ticker=None,
+        work_dict=None,
         scrub_mode='sort-by-date'):
     """fetch_peers
 
@@ -250,10 +280,15 @@ def fetch_peers(
     https://iexcloud.io/docs/api/#peers
 
     :param work_dict: dictionary of args
+    :param ticker: optional - ticker string used for
+        mostly testing
     :param scrub_mode: type of scrubbing handler to run
     """
-    ticker = work_dict.get('ticker', None)
-    label = work_dict.get('label', None)
+    label = None
+    if work_dict:
+        if not ticker:
+            ticker = work_dict.get('ticker', None)
+        label = work_dict.get('label', None)
 
     use_url = (
         f'/stock/{ticker}/relevant')
@@ -288,7 +323,9 @@ def fetch_peers(
 
 
 def fetch_news(
-        work_dict,
+        ticker=None,
+        num_news=5,
+        work_dict=None,
         scrub_mode='sort-by-date'):
     """fetch_news
 
@@ -298,11 +335,19 @@ def fetch_news(
     https://iexcloud.io/docs/api/#news
 
     :param work_dict: dictionary of args
+    :param ticker: optional - ticker string used for
+        mostly testing
+    :param num_news: optional - int number of news
+        articles to fetch used for mostly testing
     :param scrub_mode: type of scrubbing handler to run
     """
-    ticker = work_dict.get('ticker', None)
-    label = work_dict.get('label', None)
-    num_news = int(work_dict.get('num_news', 5))
+    label = None
+    if work_dict:
+        if not ticker:
+            ticker = work_dict.get('ticker', None)
+        label = work_dict.get('label', None)
+        if not num_news:
+            num_news = int(work_dict.get('num_news', 5))
 
     use_url = (
         f'/stock/{ticker}/news/last/{num_news}')
@@ -338,7 +383,8 @@ def fetch_news(
 
 
 def fetch_financials(
-        work_dict,
+        ticker=None,
+        work_dict=None,
         scrub_mode='sort-by-date'):
     """fetch_financials
 
@@ -348,10 +394,15 @@ def fetch_financials(
     https://iexcloud.io/docs/api/#financials
 
     :param work_dict: dictionary of args
+    :param ticker: optional - ticker string used for
+        mostly testing
     :param scrub_mode: type of scrubbing handler to run
     """
-    ticker = work_dict.get('ticker', None)
-    label = work_dict.get('label', None)
+    label = None
+    if work_dict:
+        if not ticker:
+            ticker = work_dict.get('ticker', None)
+        label = work_dict.get('label', None)
 
     use_url = (
         f'/stock/{ticker}/financials')
@@ -386,7 +437,8 @@ def fetch_financials(
 
 
 def fetch_earnings(
-        work_dict,
+        ticker=None,
+        work_dict=None,
         scrub_mode='sort-by-date'):
     """fetch_earnings
 
@@ -396,10 +448,15 @@ def fetch_earnings(
     https://iexcloud.io/docs/api/#earnings
 
     :param work_dict: dictionary of args
+    :param ticker: optional - ticker string used for
+        mostly testing
     :param scrub_mode: type of scrubbing handler to run
     """
-    ticker = work_dict.get('ticker', None)
-    label = work_dict.get('label', None)
+    label = None
+    if work_dict:
+        if not ticker:
+            ticker = work_dict.get('ticker', None)
+        label = work_dict.get('label', None)
 
     use_url = (
         f'/stock/{ticker}/earnings')
@@ -434,7 +491,9 @@ def fetch_earnings(
 
 
 def fetch_dividends(
-        work_dict,
+        ticker=None,
+        timeframe='3m',
+        work_dict=None,
         scrub_mode='sort-by-date'):
     """fetch_dividends
 
@@ -444,11 +503,20 @@ def fetch_dividends(
     https://iexcloud.io/docs/api/#dividends
 
     :param work_dict: dictionary of args
+    :param ticker: optional - ticker string used for
+        mostly testing
+    :param timeframe: optional - string for setting
+        dividend lookback period used for
+        mostly testing
     :param scrub_mode: type of scrubbing handler to run
     """
-    ticker = work_dict.get('ticker', None)
-    label = work_dict.get('label', None)
-    timeframe = work_dict.get('timeframe', '3m')
+    label = None
+    if work_dict:
+        if not ticker:
+            ticker = work_dict.get('ticker', None)
+        label = work_dict.get('label', None)
+        if not timeframe:
+            timeframe = work_dict.get('timeframe', '3m')
 
     use_url = (
         f'/stock/{ticker}/dividends/{timeframe}')
@@ -483,7 +551,8 @@ def fetch_dividends(
 
 
 def fetch_company(
-        work_dict,
+        ticker=None,
+        work_dict=None,
         scrub_mode='NO_SORT'):
     """fetch_company
 
@@ -493,10 +562,15 @@ def fetch_company(
     https://iexcloud.io/docs/api/#company
 
     :param work_dict: dictionary of args
+    :param ticker: optional - ticker string used for
+        mostly testing
     :param scrub_mode: type of scrubbing handler to run
     """
-    ticker = work_dict.get('ticker', None)
-    label = work_dict.get('label', None)
+    label = None
+    if work_dict:
+        if not ticker:
+            ticker = work_dict.get('ticker', None)
+        label = work_dict.get('label', None)
 
     use_url = (
         f'/stock/{ticker}/company')
