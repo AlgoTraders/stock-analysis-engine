@@ -115,8 +115,6 @@ spec:
           value: prepared
         - name: ANALYZE_S3_BUCKET_NAME
           value: analyzed
-        - name: FETCH_MODE
-          value: td
         - name: TICKER
           value: SPY
         # Pull your own tickers here:
