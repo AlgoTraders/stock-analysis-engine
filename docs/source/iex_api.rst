@@ -54,11 +54,48 @@ Default Fields
 .. automodule:: analysis_engine.iex.get_default_fields
    :members: get_default_fields
 
-IEX Dataset Extraction API
-==========================
+IEX - Dataset Extraction API
+============================
 
 Here is the extraction API for returning a ``pandas.DataFrame`` from cached or archived IEX datasets.
 
 .. automodule:: analysis_engine.iex.extract_df_from_redis
    :members: extract_daily_dataset,extract_minute_dataset,extract_quote_dataset,extract_stats_dataset,extract_peers_dataset,extract_news_dataset,extract_financials_dataset,extract_earnings_dataset,extract_dividends_dataset,extract_company_dataset
 
+IEX API Example - Fetch Minute Intraday Data using HTTP
+=======================================================
+
+.. warning:: This will fetch ``minute`` data using your IEX Cloud account and can cost money depending on your request usage.
+
+.. code-block:: python
+
+    import analysis_engine.iex.fetch_api as fetch
+    df = fetch.fetch_minute(ticker='SPY')
+    print(df)
+
+IEX API Example - Extract Minute Intraday Data from Cache
+=========================================================
+
+.. code-block:: python
+
+    import datetime
+    import analysis_engine.iex.extract_df_from_redis as extract
+    ticker = 'SPY'
+    today = datetime.datetime.now().strftime('%Y-%m-%d')
+    status, df = extract.extract_minute_dataset({
+        'ticker': f'{ticker}',
+        'redis_key': f'{ticker}_{today}_minute'})
+    print(df)
+
+IEX API Example - Get Minute Data from IEX (calls fetch and cache)
+==================================================================
+
+.. warning:: This will fetch and cache ``minute`` data using your IEX Cloud account and can cost money depending on your request usage.
+
+.. code-block:: python
+
+    import analysis_engine.iex.get_data as get_data
+    df = get_data.get_data_from_iex({
+        'ticker': 'SPY',
+        'ft_type': 'minute'})
+    print(df)
