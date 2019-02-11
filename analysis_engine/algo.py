@@ -1629,6 +1629,7 @@ class BaseAlgo:
                 f'file={output_file} s3={s3_key} '
                 f'redis={redis_key} size={num_mb}MB')
         else:
+            status = ae_consts.SUCCESS
             if self.verbose:
                 log.info(
                     f'{self.name} - report not publishing for '
@@ -1680,11 +1681,11 @@ class BaseAlgo:
                     log.info(
                         f'{self.name} report - {algo_id} - ds={node["date"]}')
 
-                    new_node = {
-                        'id': node['id'],
-                        'date': node['date'],
-                        'data': {}
-                    }
+                new_node = {
+                    'id': node['id'],
+                    'date': node['date'],
+                    'data': {}
+                }
 
                 output_record[ticker].append(new_node)
                 cur_idx += 1
@@ -1851,6 +1852,7 @@ class BaseAlgo:
                 f'file={output_file} s3={s3_key} redis={redis_key} '
                 f'size={num_mb}MB')
         else:
+            status = ae_consts.SUCCESS
             if self.verbose:
                 log.info(
                     f'{self.name} - history not publishing for '

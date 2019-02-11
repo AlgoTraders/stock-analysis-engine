@@ -244,11 +244,10 @@ def publish(
             xx=False)
 
         if redis_res['status'] != ae_consts.SUCCESS:
-            if verbose:
-                log.debug(
-                    'redis failed - '
-                    f'{ae_consts.get_status(status=redis_res["status"])} '
-                    f'{redis_res["err"]}')
+            log.error(
+                f'redis failed - '
+                f'{ae_consts.get_status(status=redis_res["status"])} '
+                f'{redis_res["err"]}')
             return ae_consts.REDIS_FAILED
     # end of redis_enabled
 
@@ -259,10 +258,9 @@ def publish(
             output_file=output_file,
             data=data)
         if not file_exists:
-            if verbose:
-                log.debug(
-                    'file failed - did not find '
-                    f'output_file={output_file}')
+            log.error(
+                f'file failed - did not find '
+                f'output_file={output_file}')
             return ae_consts.FILE_FAILED
         if verbose:
             log.debug(f'file done - output_file={output_file}')
