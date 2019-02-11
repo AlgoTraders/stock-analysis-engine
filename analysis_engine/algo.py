@@ -3401,8 +3401,9 @@ class BaseAlgo:
 
         num_rows = len(self.df_minute.index)
         if num_rows == 0:
-            log.info(
-                f'no minute data on: {node_id}')
+            log.warn(
+                f'no minute data for {ticker} on: {node_id} '
+                f'rows={num_rows}')
             return
         # if no minute data found
 
@@ -3412,6 +3413,11 @@ class BaseAlgo:
             # as if the minute was the latest trading time
             # as it iterates minute-by-minute
             self.latest_min = row.get('date', None)
+            if num_rows == 0:
+                log.warn(
+                    f'no cached minute data found in cache for {ticker} '
+                    f'on: {node_id} rows={num_rows}')
+                return
             self.latest_high = row.get('high', None)
             self.latest_low = row.get('low', None)
             self.latest_open = row.get('open', None)

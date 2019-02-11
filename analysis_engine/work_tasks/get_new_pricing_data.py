@@ -407,6 +407,7 @@ def get_new_pricing_data(
                 yahoo_rec = yahoo_res['rec']
                 msg = (
                     f'{label} YHO ticker={ticker} '
+                    f'redis_key={redis_key}_[price,news,options] '
                     f'status={status_str} err={yahoo_res["err"]}')
                 if ae_consts.ev('SHOW_SUCCESS', '0') == '1':
                     log.info(msg)
@@ -451,6 +452,7 @@ def get_new_pricing_data(
                     iex_rec = iex_res['rec']
                     msg = (
                         f'{label} IEX ticker={ticker} '
+                        f'redis_key={redis_key}_{dataset_field} '
                         f'field={dataset_field} '
                         f'status={status_str} '
                         f'err={iex_res["err"]}')
@@ -498,6 +500,7 @@ def get_new_pricing_data(
                     td_rec = td_res['rec']
                     msg = (
                         f'{label} TD ticker={ticker} '
+                        f'redis_key={redis_key}_{dataset_field} '
                         f'field={dataset_field} '
                         f'status={status_str} '
                         f'err={td_res["err"]}')

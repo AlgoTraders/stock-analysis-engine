@@ -545,12 +545,13 @@ def fetch_new_stock_datasets():
             req=work)
     # end of analysis_type
     else:
+        last_close_date = ae_utils.last_close()
+        last_close_str = last_close_date.strftime(
+            ae_consts.COMMON_DATE_FORMAT)
+        cache_base_key = f'{ticker}_{last_close_str}'
         if not args.keyname:
-            last_close_date = ae_utils.last_close()
-            work['s3_key'] = f'''{work["ticker"]}_{last_close_date.strftime(
-                ae_consts.COMMON_DATE_FORMAT)}'''
-            work['redis_key'] = f'''{work["ticker"]}_{last_close_date.strftime(
-                ae_consts.COMMON_DATE_FORMAT)}'''
+            work['s3_key'] = cache_base_key
+            work['redis_key'] = cache_base_key
 
         path_to_tasks = 'analysis_engine.work_tasks'
         task_name = (
