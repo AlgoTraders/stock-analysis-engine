@@ -75,6 +75,8 @@ Here is a video showing how to fetch the latest pricing data for a ticker using 
             # and fetch from just Tradier with:
             # fetch -t SPY -g td
 
+    #.  Please refer to `the documentation for more examples on controlling your pricing request usage (including how to run fetches for intraday, daily and weekly use cases) <https://stock-analysis-engine.readthedocs.io/en/latest/scripts.html#module-analysis_engine.scripts.fetch_new_stock_datasets>`__
+
     .. note:: Yahoo `disabled the YQL finance API so fetching pricing data from yahoo is disabled by default <https://developer.yahoo.com/yql/>`__
 
 #.  View the Compressed Pricing Data in Redis
@@ -106,6 +108,17 @@ Run a backtest with the latest pricing data:
     # runner.start()
 
 Check out the `backtest_with_runner.py script <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/backtest_with_runner.py>`__ for a command line example of using the `Algorithm Runner API <https://stock-analysis-engine.readthedocs.io/en/latest/algo_runner.html>`__ to run and plot from an `Algorithm backtest config file <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/cfg/default_algo.json>`__.
+
+Using Cached IEX Pricing Data on a Date
+=======================================
+
+Extract cached minute or daily pricing data with the code:
+
+.. code-block:: python
+
+    import analysis_engine.iex.get_pricing_on_date as iex_cache
+    print(iex_cache.get_pricing_on_date('SPY'))
+    print(iex_cache.get_pricing_on_date('SPY', date_str='2019-02-07'))
 
 Backups
 =======
@@ -619,6 +632,7 @@ Table of Contents
    :caption: Contents:
 
    README
+   get_pricing_on_date
    scripts
    example_algo_minute
    plot_trading_history

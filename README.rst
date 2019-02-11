@@ -70,6 +70,8 @@ Here is a video showing how to fetch the latest pricing data for a ticker using 
             # and fetch from just Tradier with:
             # fetch -t SPY -g td
 
+    #.  Please refer to `the documentation for more examples on controlling your pricing request usage (including how to run fetches for intraday, daily and weekly use cases) <https://stock-analysis-engine.readthedocs.io/en/latest/scripts.html#module-analysis_engine.scripts.fetch_new_stock_datasets>`__
+
     .. note:: Yahoo `disabled the YQL finance API so fetching pricing data from yahoo is disabled by default <https://developer.yahoo.com/yql/>`__
 
 #.  View the Compressed Pricing Data in Redis
@@ -101,6 +103,17 @@ Run a backtest with the latest pricing data:
     # runner.start()
 
 Check out the `backtest_with_runner.py script <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/backtest_with_runner.py>`__ for a command line example of using the `Algorithm Runner API <https://stock-analysis-engine.readthedocs.io/en/latest/algo_runner.html>`__ to run and plot from an `Algorithm backtest config file <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/cfg/default_algo.json>`__.
+
+Using Cached IEX Pricing Data on a Date
+=======================================
+
+Extract cached minute or daily pricing data with the code:
+
+.. code-block:: python
+
+    import analysis_engine.iex.get_pricing_on_date as iex_cache
+    print(iex_cache.get_pricing_on_date('SPY'))
+    print(iex_cache.get_pricing_on_date('SPY', date_str='2019-02-07'))
 
 Backups
 =======
@@ -841,15 +854,20 @@ Please refer to the `fetch_new_stock_datasets.py script <https://github.com/Algo
 ::
 
     fetch -h
-    2018-11-17 16:20:41,524 - fetch - INFO - start - fetch_new_stock_datasets
-    usage: fetch [-h] [-t TICKER] [-g FETCH_MODE] [-i TICKER_ID] [-e EXP_DATE_STR]
-                [-l LOG_CONFIG_PATH] [-b BROKER_URL] [-B BACKEND_URL]
-                [-k S3_ACCESS_KEY] [-s S3_SECRET_KEY] [-a S3_ADDRESS]
-                [-S S3_SECURE] [-u S3_BUCKET_NAME] [-G S3_REGION_NAME]
-                [-p REDIS_PASSWORD] [-r REDIS_ADDRESS] [-n KEYNAME] [-m REDIS_DB]
-                [-x REDIS_EXPIRE] [-z STRIKE] [-c CONTRACT_TYPE] [-P GET_PRICING]
-                [-N GET_NEWS] [-O GET_OPTIONS] [-U S3_ENABLED] [-R REDIS_ENABLED]
-                [-A ANALYSIS_TYPE] [-L URLS] [-Z] [-d]
+    2019-02-11 01:55:33,791 - fetch - INFO - start - fetch_new_stock_datasets
+    usage: fetch_new_stock_datasets.py [-h] [-t TICKER] [-g FETCH_MODE]
+                                    [-i TICKER_ID] [-e EXP_DATE_STR]
+                                    [-l LOG_CONFIG_PATH] [-b BROKER_URL]
+                                    [-B BACKEND_URL] [-k S3_ACCESS_KEY]
+                                    [-s S3_SECRET_KEY] [-a S3_ADDRESS]
+                                    [-S S3_SECURE] [-u S3_BUCKET_NAME]
+                                    [-G S3_REGION_NAME] [-p REDIS_PASSWORD]
+                                    [-r REDIS_ADDRESS] [-n KEYNAME]
+                                    [-m REDIS_DB] [-x REDIS_EXPIRE] [-z STRIKE]
+                                    [-c CONTRACT_TYPE] [-P GET_PRICING]
+                                    [-N GET_NEWS] [-O GET_OPTIONS]
+                                    [-U S3_ENABLED] [-R REDIS_ENABLED]
+                                    [-A ANALYSIS_TYPE] [-L URLS] [-Z] [-d]
 
     Download and store the latest stock pricing, news, and options chain data and
     store it in Minio (S3) and Redis. Also includes support for getting FinViz
@@ -858,9 +876,31 @@ Please refer to the `fetch_new_stock_datasets.py script <https://github.com/Algo
     optional arguments:
     -h, --help          show this help message and exit
     -t TICKER           ticker
-    -g FETCH_MODE       optional - fetch mode: all = fetch from all data sources
-                        (default), td = fetch from just Tradier sources, iex =
-                        fetch from just IEX sources
+    -g FETCH_MODE       optional - fetch mode: initial = default fetch from
+                        initial data feeds (IEX and Tradier), intra = fetch
+                        intraday from IEX and Tradier, daily = fetch daily from
+                        IEX, weekly = fetch weekly from IEX, all = fetch from
+                        all data feeds, td = fetch from Tradier feeds only, iex
+                        = fetch from IEX Cloud feeds only, iex_min = fetch IEX
+                        Cloud intraday per-minute feed
+                        https://iexcloud.io/docs/api/#historical-prices iex_day
+                        = fetch IEX Cloud daily feed
+                        https://iexcloud.io/docs/api/#historical-prices
+                        iex_quote = fetch IEX Cloud quotes feed
+                        https://iexcloud.io/docs/api/#quote iex_stats = fetch
+                        IEX Cloud key stats feed
+                        https://iexcloud.io/docs/api/#key-stats iex_peers =
+                        fetch from just IEX Cloud peers feed
+                        https://iexcloud.io/docs/api/#peers iex_news = fetch IEX
+                        Cloud news feed https://iexcloud.io/docs/api/#news
+                        iex_fin = fetch IEX Cloud financials
+                        feedhttps://iexcloud.io/docs/api/#financials iex_earn =
+                        fetch from just IEX Cloud earnings feeed
+                        https://iexcloud.io/docs/api/#earnings iex_div = fetch
+                        from just IEX Cloud dividends
+                        feedhttps://iexcloud.io/docs/api/#dividends iex_comp =
+                        fetch from just IEX Cloud company feed
+                        https://iexcloud.io/docs/api/#company
     -i TICKER_ID        optional - ticker id not used without a database
     -e EXP_DATE_STR     optional - options expiration date
     -l LOG_CONFIG_PATH  optional - path to the log config file
