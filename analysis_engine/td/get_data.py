@@ -80,7 +80,7 @@ def get_data_from_td(
             log.error(
                 f'{label} - unsupported ft_type={ft_type} ft_str={ft_str} '
                 f'ticker={ticker}')
-            raise NotImplemented
+            raise NotImplementedError
         # if supported fetch request type
 
         clone_keys = [
@@ -201,7 +201,7 @@ def get_data_from_td(
                 f'{label} publish update '
                 f'status={ae_consts.get_status(status=update_status)} '
                 f'data={update_res}')
-        except Exception as f:
+        except Exception:
             err = (
                 f'{label} - failed to upload td data={upload_and_cache_req} '
                 f'to s3_key={upload_and_cache_req["s3_key"]} and '

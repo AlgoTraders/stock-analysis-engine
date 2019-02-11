@@ -97,7 +97,7 @@ def extract_pricing_dataset(
                 df = pd.DataFrame(
                     cached_dict,
                     index=[0])
-            except Exception as f:
+            except Exception:
                 log.debug(
                     f'{label} - {df_str} redis_key={redis_key} '
                     'no pricing df found')
@@ -198,7 +198,7 @@ def extract_yahoo_news_dataset(
             try:
                 df = pd.DataFrame(
                     cached_dict)
-            except Exception as f:
+            except Exception:
                 log.debug(
                     f'{label} - {df_str} redis_key={redis_key} '
                     'no news df found')
@@ -310,7 +310,7 @@ def extract_option_calls_dataset(
                     epoch=exp_epoch_value,
                     fmt=ae_consts.COMMON_DATE_FORMAT,
                     use_utc=True)
-            except Exception as f:
+            except Exception:
                 log.debug(
                     f'{label} - {df_str} redis_key={redis_key} '
                     'no calls df found')
@@ -421,7 +421,7 @@ def extract_option_puts_dataset(
                     epoch=exp_epoch_value,
                     fmt=ae_consts.COMMON_DATE_FORMAT,
                     use_utc=True)
-            except Exception as f:
+            except Exception:
                 log.debug(
                     f'{label} - {df_str} redis_key={redis_key} '
                     'no puts df found')

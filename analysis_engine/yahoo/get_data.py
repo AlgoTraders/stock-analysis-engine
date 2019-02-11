@@ -325,7 +325,7 @@ def get_data_from_yahoo(
                     f'{label} publish update '
                     f'status={get_status(status=update_status)} '
                     f'data={update_res}')
-            except Exception as f:
+            except Exception:
                 err = (
                     f'{label} - failed to upload YAHOO '
                     f'data={upload_and_cache_req} to '

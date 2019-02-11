@@ -297,7 +297,7 @@ def extract_option_puts_dataset(
                 puts_df['date'] = puts_df['date'].dt.strftime(
                     ae_consts.COMMON_TICK_DATE_FORMAT)
 
-            except Exception as f:
+            except Exception:
                 log.debug(
                     f'{label} - {df_str} redis_key={redis_key} '
                     'no puts df found')

@@ -105,7 +105,7 @@ def get_data_from_iex(
             log.error(
                 f'{label} - unsupported ft_type={ft_type} '
                 f'ft_str={ft_str} ticker={ticker}')
-            raise NotImplemented
+            raise NotImplementedError
         # if supported fetch request type
 
         ticker = iex_req['ticker']
@@ -199,7 +199,7 @@ def get_data_from_iex(
                 f'{label} publish update '
                 f'status={ae_consts.get_status(status=update_status)} '
                 f'data={update_res}')
-        except Exception as f:
+        except Exception:
             err = (
                 f'{label} - failed to upload iex '
                 f'data={upload_and_cache_req} to '

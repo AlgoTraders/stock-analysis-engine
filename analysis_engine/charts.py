@@ -293,7 +293,7 @@ def plot_overlay_pricing_and_volume(
         try:
             start_date = str(use_df.iloc[0]['date'].strftime(date_format))
             end_date = str(use_df.iloc[-1]['date'].strftime(date_format))
-        except Exception as f:
+        except Exception:
             date_format = '%Y-%m-%d'
             start_date = str(use_df.iloc[0]['date'].strftime(date_format))
             end_date = str(use_df.iloc[-1]['date'].strftime(date_format))

@@ -37,5 +37,5 @@ def get_default_fields(
         log.error(
             f'get_default_fields({field}) is not a supported '
             'field')
-        raise NotImplemented
+        raise NotImplementedError
 # end of get_default_fields

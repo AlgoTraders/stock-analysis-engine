@@ -270,7 +270,7 @@ def fetch_data(
             f'work_dict={work_dict}, '
             f'fetch_type={fetch_type}'
             f')')
-        raise NotImplemented
+        raise NotImplementedError
     # end of supported fetchers
 
     return status_df, df

@@ -102,7 +102,7 @@ def plot_trading_history(
         the ``df`` with a ``close`` value greater than ``0.01``
     :param start_date: optional - string ``datetime``
         for plotting only from a date formatted as
-        ``YYYY-MM-DD HH\:MM\:SS``
+        ``YYYY-MM-DD HH\\:MM\\:SS``
     :param footnote_text: optional - string footnote text
         (default is ``algotraders <DATE>``)
     :param footnote_xpos: optional - float for footnote position
