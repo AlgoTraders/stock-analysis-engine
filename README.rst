@@ -595,7 +595,7 @@ With redis and minio running (``./compose/start.sh``), you can fetch, cache, arc
     from analysis_engine.fetch import fetch
     d = fetch(ticker='SPY')
     for k in d['SPY']:
-        print('dataset key: {}\nvalue {}\n'.format(k, d['SPY'][k]))
+        print(f'dataset key: {k}\nvalue {d["SPY"][k]}\n')
 
 Extract
 -------
@@ -607,7 +607,7 @@ Once collected and cached, you can extract datasets:
     from analysis_engine.extract import extract
     d = extract(ticker='SPY')
     for k in d['SPY']:
-        print('dataset key: {}\nvalue {}\n'.format(k, d['SPY'][k]))
+        print(f'dataset key: {k}\nvalue {d["SPY"][k]}\n')
 
 Please refer to the `Stock Analysis Intro Extracting Datasets Jupyter Notebook <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro-Extracting-Datasets.ipynb>`__ for the latest usage examples.
 

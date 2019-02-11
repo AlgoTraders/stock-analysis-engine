@@ -26,9 +26,7 @@ class TestBuildDatasetCacheDict(BaseTestCase):
     def test_get_ds_dict(self):
         """test_get_ds_dict"""
         test_name = 'test_build_dataset_cache_dict'
-        base_key = '{}_{}'.format(
-            self.ticker,
-            self.last_close_str)
+        base_key = f'{self.ticker}_{self.last_close_str}'
         cache_dict = get_ds_dict(
             ticker=self.ticker,
             label=test_name)
@@ -40,56 +38,43 @@ class TestBuildDatasetCacheDict(BaseTestCase):
             self.ticker)
         self.assertEqual(
             cache_dict['daily'],
-            '{}_daily'.format(
-                base_key))
+            f'{base_key}_daily')
         self.assertEqual(
             cache_dict['minute'],
-            '{}_minute'.format(
-                base_key))
+            f'{base_key}_minute')
         self.assertEqual(
             cache_dict['quote'],
-            '{}_quote'.format(
-                base_key))
+            f'{base_key}_quote')
         self.assertEqual(
             cache_dict['stats'],
-            '{}_stats'.format(
-                base_key))
+            f'{base_key}_stats')
         self.assertEqual(
             cache_dict['peers'],
-            '{}_peers'.format(
-                base_key))
+            f'{base_key}_peers')
         self.assertEqual(
             cache_dict['news1'],
-            '{}_news1'.format(
-                base_key))
+            f'{base_key}_news1')
         self.assertEqual(
             cache_dict['financials'],
-            '{}_financials'.format(
-                base_key))
+            f'{base_key}_financials')
         self.assertEqual(
             cache_dict['earnings'],
-            '{}_earnings'.format(
-                base_key))
+            f'{base_key}_earnings')
         self.assertEqual(
             cache_dict['dividends'],
-            '{}_dividends'.format(
-                base_key))
+            f'{base_key}_dividends')
         self.assertEqual(
             cache_dict['company'],
-            '{}_company'.format(
-                base_key))
+            f'{base_key}_company')
         self.assertEqual(
             cache_dict['options'],
-            '{}_options'.format(
-                base_key))
+            f'{base_key}_options')
         self.assertEqual(
             cache_dict['pricing'],
-            '{}_pricing'.format(
-                base_key))
+            f'{base_key}_pricing')
         self.assertEqual(
             cache_dict['news'],
-            '{}_news'.format(
-                base_key))
+            f'{base_key}_news')
         self.assertEqual(
             cache_dict['version'],
             CACHE_DICT_VERSION)

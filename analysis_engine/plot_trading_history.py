@@ -102,7 +102,7 @@ def plot_trading_history(
         the ``df`` with a ``close`` value greater than ``0.01``
     :param start_date: optional - string ``datetime``
         for plotting only from a date formatted as
-        ``YYYY-MM-DD HH\:MM\:SS``
+        ``YYYY-MM-DD HH\\:MM\\:SS``
     :param footnote_text: optional - string footnote text
         (default is ``algotraders <DATE>``)
     :param footnote_xpos: optional - float for footnote position
@@ -225,10 +225,8 @@ def plot_trading_history(
 
     if verbose:
         log.info(
-            'plot_history_df start_date={} df.index={} column_list={}'.format(
-                start_date,
-                len(use_df.index),
-                column_list))
+            f'plot_history_df start_date={start_date} '
+            f'df.index={len(use_df.index)} column_list={column_list}')
 
     if hasattr(df_filter, 'to_json'):
         # Was seeing this warning below in Jupyter:
@@ -238,12 +236,9 @@ def plot_trading_history(
         # now using:
         use_df = use_df.loc[df_filter, column_list]
 
-    if verbose:
-        log.info(
-            'plot_history_df filter df.index={} column_list={}'.format(
-                start_date,
-                len(use_df.index),
-                column_list))
+    log.info(
+            f'plot_history_df start_date={start_date} '
+            f'df.index={len(use_df.index)} column_list={column_list}')
 
     if dropna_for_all:
         use_df = use_df.dropna(axis=0, how='any')
@@ -352,7 +347,7 @@ def plot_trading_history(
             line.set_label(use_label)
             if line.get_label() not in lines:
                 lines.append(line)
-        rec['ax{}'.format(idx + 1)] = cur_ax
+        rec[f'ax{idx + 1}'] = cur_ax
     # end of compiling a new-shortened legend while removing dupes
 
     for idx, cur_ax in enumerate(all_axes):

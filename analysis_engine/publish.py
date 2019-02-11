@@ -170,29 +170,17 @@ def publish(
 
     if verbose:
         log.debug(
-            'start - file={} s3_key={} redis_key={} slack={} '
-            'compress={} size={}MB'.format(
-                output_file,
-                s3_key,
-                redis_key,
-                slack_enabled,
-                compress,
-                num_mb))
+            f'start - file={output_file} s3_key={s3_key} '
+            f'redis_key={redis_key} slack={slack_enabled} '
+            f'compress={compress} size={num_mb}MB')
 
     if s3_enabled and s3_address and s3_bucket and s3_key:
-        endpoint_url = 'http://{}'.format(
-            s3_address)
-        if s3_secure:
-            endpoint_url = 'https://{}'.format(
-                s3_address)
+        endpoint_url = f'http{"s" if s3_secure else ""}://{s3_address}'
 
         if verbose:
             log.debug(
-                's3 start - {} endpoint_url={} '
-                'region={}'.format(
-                    label,
-                    endpoint_url,
-                    s3_region_name))
+                f's3 start - {label} endpoint_url={endpoint_url} '
+                f'region={s3_region_name}')
 
         s3 = boto3.resource(
             's3',
@@ -206,20 +194,14 @@ def publish(
 
         if s3.Bucket(s3_bucket) not in s3.buckets.all():
             if verbose:
-                log.debug(
-                    's3 creating bucket={} {}'.format(
-                        s3_bucket,
-                        label))
+                log.debug(f's3 creating bucket={s3_bucket} {label}')
             s3.create_bucket(
                 Bucket=s3_bucket)
 
         if verbose:
             log.debug(
-                's3 upload start - bytes={} to {}:{} {}'.format(
-                    num_mb,
-                    s3_bucket,
-                    s3_key,
-                    label))
+                f's3 upload start - bytes={num_mb} to '
+                f'{s3_bucket}:{s3_key} {label}')
 
         s3.Bucket(
             s3_bucket).put_object(
@@ -228,11 +210,8 @@ def publish(
 
         if verbose:
             log.debug(
-                's3 upload done - bytes={} to {}:{} {}'.format(
-                    num_mb,
-                    s3_bucket,
-                    s3_key,
-                    label))
+                f's3 upload done - bytes={num_mb} to '
+                f'{s3_bucket}:{s3_key} {label}')
 
     # end of s3_enabled
 
@@ -241,14 +220,9 @@ def publish(
         redis_host = redis_split[0]
         redis_port = int(redis_split[1])
         log.debug(
-            '{} redis={}:{}@{} connect '
-            'key={} expire={}'.format(
-                label if label else '',
-                redis_host,
-                redis_port,
-                redis_db,
-                redis_key,
-                redis_expire))
+            f'{label if label else ""} '
+            f'redis={redis_host}:{redis_port}@{redis_db} connect '
+            f'key={redis_key} expire={redis_expire}')
 
         rc = redis.Redis(
             host=redis_host,
@@ -271,27 +245,27 @@ def publish(
 
         if redis_res['status'] != ae_consts.SUCCESS:
             if verbose:
-                log.debug('redis failed - {} {}'.format(
-                    ae_consts.get_status(status=redis_res['status']),
-                    redis_res['err']))
+                log.debug(
+                    'redis failed - '
+                    f'{ae_consts.get_status(status=redis_res["status"])} '
+                    f'{redis_res["err"]}')
             return ae_consts.REDIS_FAILED
     # end of redis_enabled
 
     if output_file:
         if verbose:
-            log.debug('file start - output_file={}'.format(
-                output_file))
+            log.debug(f'file start - output_file={output_file}')
         file_exists = file_utils.write_to_file(
             output_file=output_file,
             data=data)
         if not file_exists:
             if verbose:
-                log.debug('file failed - did not find output_file={}'.format(
-                    output_file))
+                log.debug(
+                    'file failed - did not find '
+                    f'output_file={output_file}')
             return ae_consts.FILE_FAILED
         if verbose:
-            log.debug('file done - output_file={}'.format(
-                output_file))
+            log.debug(f'file done - output_file={output_file}')
     # end of writing to file
 
     if slack_enabled:
@@ -309,15 +283,9 @@ def publish(
 
     if verbose:
         log.debug(
-            'end - {} file={} s3_key={} redis_key={} slack={} '
-            'compress={} size={}MB'.format(
-                ae_consts.get_status(status=status),
-                output_file,
-                s3_key,
-                redis_key,
-                slack_enabled,
-                compress,
-                num_mb))
+            f'end - {ae_consts.get_status(status=status)} file={output_file} '
+            f's3_key={s3_key} redis_key={redis_key} slack={slack_enabled} '
+            f'compress={compress} size={num_mb}MB')
 
     return status
 # end of publish

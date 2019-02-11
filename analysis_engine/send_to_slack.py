@@ -113,20 +113,19 @@ def parse_msg(msg, block=False):
     """
     if type(msg) is str:
         if block:
-            return [{"value": "```{}```".format(msg)}]
+            return [{"value": f"```{msg}```"}]
         return [{"value": msg}]
     elif type(msg) is list:
         if block:
-            string_list = '\n'.join("{}".format(str(x)) for x in msg)
-            return [{"value": "```{}```".format(string_list)}]
+            string_list = '\n'.join(f"{str(x)}" for x in msg)
+            return [{"value": f"```{string_list}```"}]
         return [{"value": str(x)} for x in msg]
     elif type(msg) is dict:
         if block:
             string_dict = '\n'.join(
-                "{}: {}".format(str(k), str(v)) for k, v in msg.items())
-            return [{"value": "```{}```".format(string_dict)}]
-        return [{"value": "{}: {}".format(
-            str(k), str(v))} for k, v in msg.items()]
+                f"{str(k)}: {str(v)}" for k, v in msg.items())
+            return [{"value": f"```{string_dict}```"}]
+        return [{"value": f"{str(k)}: {str(v)}"} for k, v in msg.items()]
     return None
 
 
@@ -145,39 +144,40 @@ def post(attachments, jupyter=False):
     if attachments and SLACK_WEBHOOK:
         try:
             # if not jupyter:
-            #     log.debug(('Attempting to post attachments={} '
-            #               'to slack_webhook exists').format(attachments))
+            #     log.debug(f'Attempting to post attachments={attachments} '
+            #               'to slack_webhook exists')
             for attachment in attachments:
                 r = requests.post(SLACK_WEBHOOK, data=json.dumps(attachment))
                 if str(r.status_code) == "200":
                     # log.info((
-                    #   'Successful post of attachment={} '
-                    #   'to slack_webhook').format(
+                    #   f'''Successful post of attachment={
                     #       attachment if not jupyter else
-                    #       True if attachment else False))
+                    #       True if attachment else False} '''
+                    #   'to slack_webhook'))
                     result['status'] = ae_consts.SUCCESS
                 else:
-                    log.error(('Failed to post attachment={} '
-                               'with status_code={}').format(
-                                   attachment if not jupyter else
-                                   True if attachment else False,
-                                   r.status_code))
+                    log.error(
+                        f'''Failed to post attachment={
+                            attachment if not jupyter else
+                            True if attachment else False} '''
+                        f'with status_code={r.status_code}')
                     result['status'] = ae_consts.FAILED
                     break
         except Exception as e:
-            log.error(('Failed to post attachments={} '
-                       'with ex={}').format(
-                           attachments if not jupyter else
-                           True if attachments else False,
-                           e))
+            log.error(
+                f'''Failed to post attachments={
+                    attachments if not jupyter else
+                    True if attachments else False} '''
+                f'with ex={e}')
             result['status'] = ae_consts.ERR
             result['err'] = e
     else:
-        log.info(('Skipping post to slack due to missing '
-                  'attachments={} or SLACK_WEBHOOK missing={}').format(
-                      attachments if not jupyter else
-                      True if attachments else False,
-                      False if SLACK_WEBHOOK else True))
+        log.info(
+            'Skipping post to slack due to missing '
+            f'''attachments={
+                attachments if not jupyter else
+                True if attachments else False} or SLACK_WEBHOOK '''
+            f'missing={False if SLACK_WEBHOOK else True}')
     return result
 
 
@@ -218,10 +218,9 @@ def post_df(
         log.debug('post_df - no df ')
         return
 
-    log.debug('post_df - df.index={} columns={} fmt={}'.format(
-        len(df.index),
-        columns,
-        tablefmt))
+    log.debug(
+        f'post_df - df.index={len(df.index)} '
+        f'columns={columns} fmt={tablefmt}')
 
     msg = None
     if columns:
@@ -276,9 +275,7 @@ def post_cb(
         log.debug('post_cb - no msg')
         return
 
-    log.debug('post_cb - msg={} fmt={}'.format(
-        len(msg),
-        tablefmt))
+    log.debug(f'post_cb - msg={len(msg)} fmt={tablefmt}')
 
     post_success(
         msg=msg,

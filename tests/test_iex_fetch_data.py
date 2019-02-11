@@ -261,13 +261,9 @@ class TestIEXFetchData(BaseTestCase):
         :param df: ``pandas.DataFrame`` from a fetch
         """
         print('-----------------------------------')
-        print(
-            'dataframe: {}'.format(
-                df))
+        print(f'dataframe: {df}')
         print('')
-        print(
-            'dataframe columns:\n{}'.format(
-                df.columns.values))
+        print(f'dataframe columns:\n{df.columns.values}')
         print('-----------------------------------')
     # end of debug_df
 
@@ -476,10 +472,8 @@ class TestIEXFetchData(BaseTestCase):
         ]
         work['ticker'] = 'AAPL'
         work['s3_bucket'] = 'testing'
-        work['s3_key'] = 'testing_{}'.format(
-            work['ticker'])
-        work['redis_key'] = 'testing_{}'.format(
-            work['ticker'])
+        work['s3_key'] = f'testing_{work["ticker"]}'
+        work['redis_key'] = f'testing_{work["ticker"]}'
         work['celery_disabled'] = True
         dataset_results = get_new_pricing_data(
             work)

@@ -105,42 +105,21 @@ def perform_extract(
         ae_consts.REDIS_EXPIRE)
 
     log.debug(
-        '{} - {} - START - ds_id={} scrub_mode={} '
-        'redis_address={}@{} redis_key={} '
-        's3={} s3_address={} s3_bucket={} s3_key={}'.format(
-            label,
-            df_str,
-            ds_id,
-            scrub_mode,
-            redis_address,
-            redis_db,
-            redis_key,
-            s3_enabled,
-            s3_address,
-            s3_bucket,
-            s3_key))
+        f'{label} - {df_str} - START - ds_id={ds_id} scrub_mode={scrub_mode} '
+        f'redis_address={redis_address}@{redis_db} redis_key={redis_key} '
+        f's3={s3_enabled} s3_address={s3_address} s3_bucket={s3_bucket} '
+        f's3_key={s3_key}')
 
     if ae_consts.ev('DEBUG_REDIS_EXTRACT', '0') == '1':
         log.info(
-            '{} - {} - ds_id={} redis '
-            'pw={} expire={}'.format(
-                label,
-                df_str,
-                ds_id,
-                redis_password,
-                redis_expire))
+            f'{label} - {df_str} - ds_id={ds_id} redis '
+            f'pw={redis_password} expire={redis_expire}')
 
     if ae_consts.ev('DEBUG_S3_EXTRACT', '0') == '1':
         log.info(
-            '{} - {} - ds_id={} s3 '
-            'ak={} sk={} region={} secure={}'.format(
-                label,
-                df_str,
-                ds_id,
-                s3_access_key,
-                s3_secret_key,
-                s3_region_name,
-                s3_secure))
+            f'{label} - {df_str} - ds_id={ds_id} s3 '
+            f'ak={s3_access_key} sk={s3_secret_key} '
+            f'region={s3_region_name} secure={s3_secure}')
 
     extract_res = None
     try:
@@ -152,15 +131,8 @@ def perform_extract(
     except Exception as e:
         extract_res = None
         log.error(
-            '{} - {} - ds_id={} failed extract from '
-            'redis={}@{} key={} ex={}'.format(
-                label,
-                df_str,
-                ds_id,
-                redis_address,
-                redis_db,
-                redis_key,
-                e))
+            f'{label} - {df_str} - ds_id={ds_id} failed extract from '
+            f'redis={redis_address}@{redis_db} key={redis_key} ex={e}')
     # end of try/ex extract from redis
 
     if not extract_res:
@@ -173,14 +145,9 @@ def perform_extract(
     if not valid_df:
         if ae_consts.ev('DEBUG_S3_EXTRACT', '0') == '1':
             log.error(
-                '{} - {} ds_id={} invalid df '
-                'status={} extract_res={}'.format(
-                    label,
-                    df_str,
-                    ds_id,
-                    ae_consts.get_status(
-                        status=extract_res['status']),
-                    extract_res))
+                f'{label} - {df_str} ds_id={ds_id} invalid df '
+                f'status={ae_consts.get_status(status=extract_res["status"])} '
+                f'extract_res={extract_res}')
         return status, None
 
     extract_df = extract_res['rec']['data']

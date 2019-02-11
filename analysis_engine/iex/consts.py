@@ -196,8 +196,7 @@ def get_ft_str(
     elif ft_type == FETCH_COMPANY or ft_str == 'company':
         return 'company'
     else:
-        return 'unsupported ft_type={}'.format(
-            ft_type)
+        return f'unsupported ft_type={ft_type}'
 # end of get_ft_str
 
 
@@ -229,6 +228,5 @@ def get_datafeed_str(
     elif df_type == DATAFEED_COMPANY:
         return 'company'
     else:
-        return 'unsupported df_type={}'.format(
-            df_type)
+        return f'unsupported df_type={df_type}'
 # end of get_datafeed_str

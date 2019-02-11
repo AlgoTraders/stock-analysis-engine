@@ -136,9 +136,8 @@ def build_algo_request(
     end_date_val = ae_utils.get_date_from_str(end_date)
     if start_date_val > end_date_val:
         raise Exception(
-            'Invalid start_date={} must be less than end_date={}'.format(
-                start_date,
-                end_date))
+            f'Invalid start_date={start_date} '
+            f'must be less than end_date={end_date}')
 
     use_dates = []
     new_dataset = None
@@ -153,15 +152,11 @@ def build_algo_request(
         if cur_date.weekday() < 5:
             for t in use_tickers:
                 if cache_freq == 'daily':
-                    new_dataset = '{}_{}'.format(
-                        t,
-                        cur_date.strftime(
-                            ae_consts.COMMON_DATE_FORMAT))
+                    new_dataset = f'''{t}_{cur_date.strftime(
+                        ae_consts.COMMON_DATE_FORMAT)}'''
                 else:
-                    new_dataset = '{}_{}'.format(
-                        t,
-                        cur_date.strftime(
-                            ae_consts.COMMON_TICK_DATE_FORMAT))
+                    new_dataset = f'''{t}_{cur_date.strftime(
+                        ae_consts.COMMON_TICK_DATE_FORMAT)}'''
                 if new_dataset:
                     use_dates.append(new_dataset)
                 new_dataset = None
@@ -177,23 +172,16 @@ def build_algo_request(
         work['extract_datasets'] = use_dates
 
         log.debug(
-            'tickers={} balance={} start={} end={} '
-            'cache_freq={} request={}'.format(
-                work['tickers'],
-                work['balance'],
-                work['extract_datasets'][0],
-                work['extract_datasets'][-1],
-                cache_freq,
-                ae_consts.ppj(work)))
+            f'tickers={work["tickers"]} balance={work["balance"]} '
+            f'start={work["extract_datasets"][0]} '
+            f'end={work["extract_datasets"][-1]} '
+            f'cache_freq={cache_freq} request={ae_consts.ppj(work)}')
     else:
         log.error(
-            'there are not enough dates to test between start={} end={} '
-            'tickers={} request={}'.format(
-                start_date_val,
-                end_date_val,
-                work['tickers'],
-                cache_freq,
-                ae_consts.ppj(work)))
+            f'there are not enough dates to test between '
+            f'start={start_date_val} end={end_date_val} '
+            f'tickers={work["tickers"]} cache_freq={cache_freq} '
+            f'request={ae_consts.ppj(work)}')
 
     return work
 # end of build_algo_request

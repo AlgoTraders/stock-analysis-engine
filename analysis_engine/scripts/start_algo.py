@@ -390,36 +390,30 @@ def start_algo():
         run_this_date = args.run_this_date
     if args.start_date:
         try:
-            use_start_date = '{} 00:00:00'.format(
-                str(args.start_date))
+            use_start_date = f'{str(args.start_date)} 00:00:00'
             datetime.datetime.strptime(
                 args.start_date,
                 ae_consts.COMMON_DATE_FORMAT)
         except Exception as e:
             msg = (
-                'please use a start date formatted as: {}'
-                '\n'
-                'error was: {}'.format(
-                    ae_consts.COMMON_DATE_FORMAT,
-                    e))
+                'please use a start date formatted as: '
+                f'{ae_consts.COMMON_DATE_FORMAT}\n'
+                f'error was: {e}')
             log.error(msg)
             sys.exit(1)
         # end of testing for a valid date
     # end of args.start_date
     if args.end_date:
         try:
-            use_end_date = '{} 00:00:00'.format(
-                str(args.end_date))
+            use_end_date = f'{str(args.end_date)} 00:00:00'
             datetime.datetime.strptime(
                 args.end_date,
                 ae_consts.COMMON_DATE_FORMAT)
         except Exception as e:
             msg = (
-                'please use an end date formatted as: {}'
-                '\n'
-                'error was: {}'.format(
-                    ae_consts.COMMON_DATE_FORMAT,
-                    e))
+                'please use an end date formatted as: '
+                f'{ae_consts.COMMON_DATE_FORMAT}\n'
+                f'error was: {e}')
             log.error(msg)
             sys.exit(1)
         # end of testing for a valid date
@@ -428,17 +422,14 @@ def start_algo():
     if args.run_algo_in_file:
         if not os.path.exists(args.run_algo_in_file):
             log.error(
-                'missing algorithm module file: {}'.format(
-                    args.run_algo_in_file))
+                f'missing algorithm module file: {args.run_algo_in_file}')
             sys.exit(1)
         algo_mod_path = args.run_algo_in_file
     if args.config_file:
         use_config_file = args.config_file
 
     if not os.path.exists(use_config_file):
-        log.error(
-            'Failed: unable to find config file: -c {}'.format(
-                use_config_file))
+        log.error(f'Failed: unable to find config file: -c {use_config_file}')
         sys.exit(1)
     config_dict = json.loads(open(use_config_file).read())
     algo_mod_path = config_dict.get(
@@ -446,8 +437,7 @@ def start_algo():
         algo_mod_path)
     if not os.path.exists(algo_mod_path):
         log.error(
-            'missing algorithm module file from config: {}'.format(
-                algo_mod_path))
+            f'missing algorithm module file from config: {algo_mod_path}')
         sys.exit(1)
 
     """
@@ -503,12 +493,11 @@ def start_algo():
                     'redis://' not in backtest_loc):
                 log.error(
                     'invalid -b <backtest dataset file> specified. '
-                    '{} '
+                    f'{backtest_loc} '
                     'please use either: '
                     '-b file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
                     '-b s3://algoready/SPY-latest.json or '
-                    '-b redis://SPY-latest'.format(
-                        backtest_loc))
+                    '-b redis://SPY-latest')
                 sys.exit(1)
             if 's3://' in backtest_loc:
                 load_from_s3_bucket = backtest_loc.split('/')[-2]
@@ -527,12 +516,11 @@ def start_algo():
                     'redis://' not in algo_history_loc):
                 log.error(
                     'invalid -p <backtest dataset file> specified. '
-                    '{} '
+                    f'{algo_history_loc} '
                     'please use either: '
                     '-p file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
                     '-p s3://algoready/SPY-latest.json or '
-                    '-p redis://SPY-latest'.format(
-                        algo_history_loc))
+                    '-p redis://SPY-latest')
                 sys.exit(1)
             if 's3://' in algo_history_loc:
                 history_s3_bucket = algo_history_loc.split('/')[-2]
@@ -551,12 +539,11 @@ def start_algo():
                     'redis://' not in algo_report_loc):
                 log.error(
                     'invalid -o <backtest dataset file> specified. '
-                    '{} '
+                    f'{algo_report_loc} '
                     'please use either: '
                     '-o file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
                     '-o s3://algoready/SPY-latest.json or '
-                    '-o redis://SPY-latest'.format(
-                        algo_report_loc))
+                    '-o redis://SPY-latest')
                 sys.exit(1)
             if 's3://' in algo_report_loc:
                 report_s3_bucket = algo_report_loc.split('/')[-2]
@@ -575,12 +562,11 @@ def start_algo():
                     'redis://' not in algo_extract_loc):
                 log.error(
                     'invalid -e <backtest dataset file> specified. '
-                    '{} '
+                    f'{algo_extract_loc} '
                     'please use either: '
                     '-e file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
                     '-e s3://algoready/SPY-latest.json or '
-                    '-e redis://SPY-latest'.format(
-                        algo_extract_loc))
+                    '-e redis://SPY-latest')
                 sys.exit(1)
             if 's3://' in algo_extract_loc:
                 extract_s3_bucket = algo_extract_loc.split('/')[-2]
@@ -689,31 +675,19 @@ def start_algo():
             trade_strategy=trade_strategy,
             verbose=verbose_algo)
 
-        show_label = 'algo.name={}'.format(
-            use_name)
-        show_extract = '{}'.format(
-            algo_extract_loc)
-        show_history = '{}'.format(
-            algo_history_loc)
-        show_report = '{}'.format(
-            algo_report_loc)
+        show_label = f'algo.name={use_name}'
+        show_extract = f'{algo_extract_loc}'
+        show_history = f'{algo_history_loc}'
+        show_report = f'{algo_report_loc}'
         base_label = (
-            'load={} '
-            'extract={} '
-            'history={} '
-            'report={}'.format(
-                args.run_algo_in_file,
-                show_extract,
-                show_history,
-                show_report))
+            f'load={args.run_algo_in_file} extract={show_extract} '
+            f'history={show_history} report={show_report}')
 
         task_id = None
         if run_on_engine:
             task_id = algo_res.get('rec', {}).get('task_id', None)
         if task_id:
-            log.info(
-                'waiting on task_id={} to finish'.format(
-                    task_id))
+            log.info(f'waiting on task_id={task_id} to finish')
             res = task_id.get()
             history_config = res.get(
                 'algo_req', {}).get(
@@ -726,8 +700,8 @@ def start_algo():
 
             history_df = load_res[ticker]
             log.info(
-                'plotting history df with columns: {}'.format(
-                    history_df.columns.values))
+                'plotting history df with columns: '
+                f'{history_df.columns.values}')
 
             history_df['date'] = pd.to_datetime(
                 history_df['date'])
@@ -738,11 +712,8 @@ def start_algo():
             first_date = history_df['date'].iloc[0]
             end_date = history_df['date'].iloc[-1]
             title = (
-                'Trading History {}\n'
-                'Backtest dates from {} to {}'.format(
-                    ticker,
-                    first_date,
-                    end_date))
+                f'Trading History {ticker}\n'
+                f'Backtest dates from {first_date} to {end_date}')
             use_xcol = 'date'
             use_as_date_format = '%d\n%b'
             use_minute = False
@@ -789,9 +760,7 @@ def start_algo():
         # end of getting the algo results from s3
 
         if not algo_obj:
-            log.error(
-                '{} - did not create algorithm object'.format(
-                    show_label))
+            log.error(f'{show_label} - did not create algorithm object')
             sys.exit(1)
 
         if not run_on_engine:
@@ -799,38 +768,29 @@ def start_algo():
                 'history',
                 [])
             show_label = (
-                '{} algo.name={} {} trade_history_len={}'.format(
-                    ticker,
-                    use_name,
-                    base_label,
-                    len(algo_trade_history_recs)))
+                f'{ticker} algo.name={use_name} {base_label} '
+                f'trade_history_len={len(algo_trade_history_recs)}')
         if args.debug:
-            log.info(
-                'algo_res={}'.format(
-                    algo_res))
+            log.info(f'algo_res={algo_res}')
             if algo_res['status'] == ae_consts.SUCCESS:
                 log.info(
-                    '{} - done running {}'.format(
-                        ae_consts.get_status(
-                            status=algo_res['status']),
-                        show_label))
+                    f'''{ae_consts.get_status(
+                        status=algo_res['status'])} - '''
+                    f'done running {show_label}')
             else:
                 log.error(
-                    '{} - done running {}'.format(
-                        ae_consts.get_status(
-                            status=algo_res['status']),
-                        show_label))
+                    f'''{ae_consts.get_status(
+                        status=algo_res['status'])} - '''
+                    f'done running {show_label}')
         else:
             if algo_res['status'] == ae_consts.SUCCESS:
                 log.info(
-                    '{} - done running {}'.format(
-                        ae_consts.get_status(
-                            status=algo_res['status']),
-                        show_label))
+                    f'''{ae_consts.get_status(
+                        status=algo_res['status'])} - '''
+                    f'done running {show_label}')
             else:
                 log.error(
-                    'run_custom_algo returned error: {}'.format(
-                        algo_res['err']))
+                    f'run_custom_algo returned error: {algo_res["err"]}')
                 sys.exit(1)
         # end of running the custom algo handler
 
@@ -848,9 +808,7 @@ def start_algo():
             return
 
         if history_json_file:
-            log.info(
-                'saving history to: {}'.format(
-                    history_json_file))
+            log.info(f'saving history to: {history_json_file}')
             history_df.to_json(
                 history_json_file,
                 orient='records',
@@ -861,21 +819,16 @@ def start_algo():
         first_date = history_df['date'].iloc[0]
         end_date = history_df['date'].iloc[-1]
         title = (
-            'Trading History {} for Algo {}\n'
-            'Backtest dates from {} to {}'.format(
-                ticker,
-                trading_history_dict['algo_name'],
-                first_date,
-                end_date))
+            f'Trading History {ticker} for Algo '
+            f'{trading_history_dict["algo_name"]}\n'
+            f'Backtest dates from {first_date} to {end_date}')
         use_xcol = 'date'
         use_as_date_format = '%d\n%b'
         if config_dict['timeseries'] == 'minute':
             use_xcol = 'minute'
             use_as_date_format = '%d %H:%M:%S\n%b'
-        xlabel = 'Dates vs {} values'.format(
-            trading_history_dict['algo_name'])
-        ylabel = 'Algo {}\nvalues'.format(
-            trading_history_dict['algo_name'])
+        xlabel = f'Dates vs {trading_history_dict["algo_name"]} values'
+        ylabel = f'Algo {trading_history_dict["algo_name"]}\nvalues'
         df_filter = (history_df['close'] > 0.01)
 
         # set default hloc columns:
@@ -888,9 +841,7 @@ def start_algo():
 
         if debug:
             for i, r in history_df.iterrows():
-                log.info('{} - {}'.format(
-                    r['minute'],
-                    r['close']))
+                log.info(f'{r["minute"]} - {r["close"]}')
 
         plot_trading_history.plot_trading_history(
             title=title,

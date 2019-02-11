@@ -71,15 +71,9 @@ def get_celery_app(
     """
 
     if len(include_tasks) == 0:
-        log.error(
-            'creating celery app={} MISSING tasks={}'.format(
-                name,
-                include_tasks))
+        log.error(f'creating celery app={name} MISSING tasks={include_tasks}')
     else:
-        log.info(
-            'creating celery app={} tasks={}'.format(
-                name,
-                include_tasks))
+        log.info(f'creating celery app={name} tasks={include_tasks}')
 
     # get the Celery application
     app = celery.Celery(
@@ -95,16 +89,12 @@ def get_celery_app(
     app.conf.update(kwargs)
 
     if transport_options:
-        log.info(
-            'loading transport_options={}'.format(
-                transport_options))
+        log.info(f'loading transport_options={transport_options}')
         app.conf.update(**transport_options)
     # custom tranport options
 
     if ssl_options:
-        log.info(
-            'loading ssl_options={}'.format(
-                ssl_options))
+        log.info(f'loading ssl_options={ssl_options}')
         app.conf.update(**ssl_options)
     # custom ssl options
 

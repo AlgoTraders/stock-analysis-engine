@@ -91,23 +91,18 @@ def send_final_log(
 
     if not fn_name:
         log.error(
-            '{} missing fn_name parameter for send_final_log'.format(
-                log_label))
+            f'{log_label} missing fn_name parameter for send_final_log')
         return
 
     if not result:
         log.error(
-            '{} missing result parameter for send_final_log'.format(
-                log_label))
+            f'{log_label} missing result parameter for send_final_log')
         return
 
     str_result = (
-        '{} - {} - done status={} '
-        'err={}'.format(
-            log_label,
-            fn_name,
-            ae_consts.get_status(result['status']),
-            result['err']))
+        f'{log_label} - {fn_name} - done '
+        f'status={ae_consts.get_status(result["status"])} '
+        f'err={result["err"]}')
 
     if result['status'] == ae_consts.ERR:
         log.error(str_result)
@@ -143,10 +138,9 @@ def show_with_entities(
     """
 
     log.debug(
-        '{} - '
+        f'{log_label} - '
         'show_with_entities'
-        ' - start'.format(
-            log_label))
+        ' - start')
 
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
@@ -235,20 +229,18 @@ def plot_overlay_pricing_and_volume(
     try:
 
         log.info(
-            '{} - '
+            f'{log_label} - '
             'plot_overlay_pricing_and_volume'
-            ' - start'.format(
-                log_label))
+            ' - start')
 
         set_common_seaborn_fonts()
 
         use_df = df
         if dropna_for_all:
             log.info(
-                '{} - '
+                f'{log_label} - '
                 'plot_overlay_pricing_and_volume'
-                ' - dropna_for_all'.format(
-                    log_label))
+                ' - dropna_for_all')
             use_df = df.dropna(axis=0, how='any')
         # end of pre-plot dataframe scrubbing
 
@@ -291,8 +283,7 @@ def plot_overlay_pricing_and_volume(
         if not use_xlabel:
             xlabel = 'Minute Dates'
         if not use_ylabel:
-            ylabel = '{} High and Close Prices'.format(
-                ticker)
+            ylabel = f'{ticker} High and Close Prices'
         plt.xlabel(use_xlabel)
         plt.ylabel(use_ylabel)
 
@@ -302,16 +293,13 @@ def plot_overlay_pricing_and_volume(
         try:
             start_date = str(use_df.iloc[0]['date'].strftime(date_format))
             end_date = str(use_df.iloc[-1]['date'].strftime(date_format))
-        except Exception as f:
+        except Exception:
             date_format = '%Y-%m-%d'
             start_date = str(use_df.iloc[0]['date'].strftime(date_format))
             end_date = str(use_df.iloc[-1]['date'].strftime(date_format))
 
         use_title = (
-            '{} Pricing from: {} to {}'.format(
-                ticker,
-                start_date,
-                end_date))
+            f'{ticker} Pricing from: {start_date} to {end_date}')
         ax.set_title(use_title)
 
         # Merge in the second axis (volume) Legend
@@ -363,8 +351,7 @@ def plot_overlay_pricing_and_volume(
     except Exception as e:
         err = (
             'failed plot_overlay_pricing_and_volume '
-            'and volume with ex={}'.format(
-                e))
+            f'and volume with ex={e}')
         result = build_result.build_result(
             status=ae_consts.ERR,
             err=err,
@@ -413,10 +400,9 @@ def plot_hloc_pricing(
     try:
 
         log.info(
-            '{} - '
+            f'{log_label} - '
             'plot_hloc_pricing'
-            ' - start'.format(
-                log_label))
+            ' - start')
 
         set_common_seaborn_fonts()
 
@@ -426,10 +412,9 @@ def plot_hloc_pricing(
         use_df = df
         if dropna_for_all:
             log.info(
-                '{} - '
+                f'{log_label} - '
                 'plot_hloc_pricing'
-                ' - dropna_for_all'.format(
-                    log_label))
+                ' - dropna_for_all')
             use_df = df.dropna(axis=0, how='any')
         # end of pre-plot dataframe scrubbing
 
@@ -470,10 +455,7 @@ def plot_hloc_pricing(
         end_date = str(use_df.iloc[-1]['date'].strftime('%Y-%m-%d'))
         if not title:
             title = (
-                '{} Pricing from: {} to {}'.format(
-                    ticker,
-                    start_date,
-                    end_date))
+                f'{ticker} Pricing from: {start_date} to {end_date}')
         ax.set_title(title)
 
         # Build out the xtick chart by the dates
@@ -507,8 +489,7 @@ def plot_hloc_pricing(
 
     except Exception as e:
         err = (
-            'failed plot_hloc_pricing with ex={}'.format(
-                e))
+            f'failed plot_hloc_pricing with ex={e}')
         log.error(err)
         result = build_result.build_result(
             status=ae_consts.ERR,
@@ -565,18 +546,16 @@ def plot_df(
     try:
 
         log.info(
-            '{} - '
+            f'{log_label} - '
             'plot_df'
-            ' - start'.format(
-                log_label))
+            ' - start')
 
         use_df = df
         if dropna_for_all:
             log.info(
-                '{} - '
+                f'{log_label} - '
                 'plot_df'
-                ' - dropna_for_all'.format(
-                    log_label))
+                ' - dropna_for_all')
             use_df = df.dropna(axis=0, how='any')
         # end of pre-plot dataframe scrubbing
 
@@ -642,9 +621,7 @@ def plot_df(
 
     except Exception as e:
         err = (
-            'failed plot_df title={} with ex={}'.format(
-                title,
-                e))
+            f'failed plot_df title={title} with ex={e}')
         result = build_result.build_result(
             status=ae_consts.ERR,
             err=err,
@@ -697,10 +674,9 @@ def dist_plot(
     try:
 
         log.info(
-            '{} - '
+            f'{log_label} - '
             'dist_plot'
-            ' - start'.format(
-                log_label))
+            ' - start')
 
         set_common_seaborn_fonts()
 
@@ -714,10 +690,9 @@ def dist_plot(
         use_df = df
         if dropna_for_all:
             log.info(
-                '{} - '
+                f'{log_label} - '
                 'dist_plot'
-                ' - dropna_for_all'.format(
-                    log_label))
+                ' - dropna_for_all')
             use_df = df.dropna(axis=0, how='any')
         # end of pre-plot dataframe scrubbing
 
@@ -754,9 +729,7 @@ def dist_plot(
 
     except Exception as e:
         err = (
-            'failed dist_plot title={} with ex={}'.format(
-                title,
-                e))
+            f'failed dist_plot title={title} with ex={e}')
         log.error(err)
         result = build_result.build_result(
             status=ae_consts.ERR,

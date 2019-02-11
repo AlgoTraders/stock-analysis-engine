@@ -61,19 +61,11 @@ def load_history_dataset_from_s3(
     :param s3_secure: Transmit using tls encryption
         (default is ``False``)
     """
-    log.info(
-        'start s3={}:{}/{}'.format(
-            s3_address,
-            s3_bucket,
-            s3_key))
+    log.info(f'start s3={s3_address}:{s3_bucket}/{s3_key}')
 
     data_from_file = None
 
-    endpoint_url = 'http://{}'.format(
-        s3_address)
-    if s3_secure:
-        endpoint_url = 'https://{}'.format(
-            s3_address)
+    endpoint_url = f'http{"s" if s3_secure else ""}://{s3_address}'
 
     s3 = boto3.resource(
         's3',
@@ -96,19 +88,14 @@ def load_history_dataset_from_s3(
                 'An error occurred (NoSuchBucket) '
                 'when calling the GetObject operation') in str(e):
             msg = (
-                'missing s3_bucket={} in s3_address={}'.format(
-                    s3_address,
-                    s3_bucket))
+                f'missing s3_bucket={s3_bucket} in s3_address={s3_address}')
             log.error(msg)
             raise Exception(msg)
         else:
             raise Exception(e)
 
     if not data_from_file:
-        log.error('missing data from s3={}:{}/{}'.format(
-            s3_address,
-            s3_bucket,
-            s3_key))
+        log.error(f'missing data from s3={s3_address}:{s3_bucket}/{s3_key}')
         return None
 
     return prepare_utils.prepare_history_dataset(

@@ -176,10 +176,7 @@ class TestPreparePricingDataset(BaseTestCase):
         use_test_name = test_name
         if not use_test_name:
             use_test_name = str(uuid.uuid4())
-        test_key = (
-            '{}_{}'.format(
-                __name__,
-                use_test_name))
+        test_key = f'{__name__}_{use_test_name}'
         return test_key
     # end of build_test_key
 
@@ -337,8 +334,7 @@ class TestPreparePricingDataset(BaseTestCase):
         s3_key = redis_key
         expected_err = (
             'prepare did not find any data to prepare in '
-            'redis_key={}'.format(
-                redis_key))
+            f'redis_key={redis_key}')
         value = {
             'BAD_JSON': test_name
         }

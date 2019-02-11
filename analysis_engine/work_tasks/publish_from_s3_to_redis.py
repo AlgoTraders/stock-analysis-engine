@@ -69,11 +69,7 @@ def publish_from_s3_to_redis(
 
     label = 'pub-s3-to-redis'
 
-    log.info(
-        'task - {} - start '
-        'work_dict={}'.format(
-            label,
-            work_dict))
+    log.info(f'task - {label} - start work_dict={work_dict}')
 
     ticker = ae_consts.TICKER
     ticker_id = ae_consts.TICKER_ID
@@ -145,9 +141,7 @@ def publish_from_s3_to_redis(
 
         if enable_s3_read:
 
-            log.info(
-                '{} parsing s3 values'.format(
-                    label))
+            log.info(f'{label} parsing s3 values')
             access_key = work_dict.get(
                 's3_access_key',
                 ae_consts.S3_ACCESS_KEY)
@@ -164,18 +158,11 @@ def publish_from_s3_to_redis(
                 's3_secure',
                 ae_consts.S3_SECURE) == '1'
 
-            endpoint_url = 'http://{}'.format(
-                service_address)
-            if secure:
-                endpoint_url = 'https://{}'.format(
-                    service_address)
+            endpoint_url = f'http{"s" if secure else ""}://{service_address}'
 
             log.info(
-                '{} building s3 endpoint_url={} '
-                'region={}'.format(
-                    label,
-                    endpoint_url,
-                    region_name))
+                f'{label} building s3 endpoint_url={endpoint_url} '
+                f'region={region_name}')
 
             s3 = boto3.resource(
                 's3',
@@ -189,33 +176,22 @@ def publish_from_s3_to_redis(
 
             try:
                 log.info(
-                    '{} checking bucket={} exists'.format(
-                        label,
-                        s3_bucket_name))
+                    f'{label} checking bucket={s3_bucket_name} exists')
                 if s3.Bucket(s3_bucket_name) not in s3.buckets.all():
                     log.info(
-                        '{} creating bucket={}'.format(
-                            label,
-                            s3_bucket_name))
+                        f'{label} creating bucket={s3_bucket_name}')
                     s3.create_bucket(
                         Bucket=s3_bucket_name)
             except Exception as e:
                 log.info(
-                    '{} failed creating bucket={} '
-                    'with ex={}'.format(
-                        label,
-                        s3_bucket_name,
-                        e))
+                    f'{label} failed creating bucket={s3_bucket_name} '
+                    f'with ex={e}')
             # end of try/ex for creating bucket
 
             try:
                 log.info(
-                    '{} reading to s3={}/{} '
-                    'updated={}'.format(
-                        label,
-                        s3_bucket_name,
-                        s3_key,
-                        updated))
+                    f'{label} reading to s3={s3_bucket_name}/{s3_key} '
+                    f'updated={updated}')
                 data = s3_read_contents_from_key.s3_read_contents_from_key(
                     s3=s3,
                     s3_bucket_name=s3_bucket_name,
@@ -228,26 +204,16 @@ def publish_from_s3_to_redis(
                 initial_size_str = ae_consts.to_f(initial_size_value)
                 if ae_consts.ev('DEBUG_S3', '0') == '1':
                     log.info(
-                        '{} read s3={}/{} data={}'.format(
-                            label,
-                            s3_bucket_name,
-                            s3_key,
-                            ae_consts.ppj(data)))
+                        f'{label} read s3={s3_bucket_name}/{s3_key} '
+                        f'data={ae_consts.ppj(data)}')
                 else:
                     log.info(
-                        '{} read s3={}/{} data size={} MB'.format(
-                            label,
-                            s3_bucket_name,
-                            s3_key,
-                            initial_size_str))
+                        f'{label} read s3={s3_bucket_name}/{s3_key} '
+                        f'data size={initial_size_str} MB')
             except Exception as e:
                 err = (
-                    '{} failed reading bucket={} '
-                    'key={} ex={}').format(
-                        label,
-                        s3_bucket_name,
-                        s3_key,
-                        e)
+                    f'{label} failed reading bucket={s3_bucket_name} '
+                    f'key={s3_key} ex={e}')
                 log.error(
                     err)
                 res = build_result.build_result(
@@ -257,11 +223,8 @@ def publish_from_s3_to_redis(
             # end of try/ex for creating bucket
         else:
             log.info(
-                '{} SKIP S3 read bucket={} '
-                'key={}'.format(
-                    label,
-                    s3_bucket_name,
-                    s3_key))
+                f'{label} SKIP S3 read bucket={s3_bucket_name} '
+                f'key={s3_key}')
         # end of if enable_s3_read
 
         if enable_redis_publish:
@@ -285,40 +248,21 @@ def publish_from_s3_to_redis(
                     'redis_expire',
                     ae_consts.REDIS_EXPIRE)
             log.info(
-                'redis enabled address={}@{} '
-                'key={}'.format(
-                    redis_address,
-                    redis_db,
-                    redis_key))
+                f'redis enabled address={redis_address}@{redis_db} '
+                f'key={redis_key}')
             redis_host = redis_address.split(':')[0]
             redis_port = redis_address.split(':')[1]
             try:
                 if ae_consts.ev('DEBUG_REDIS', '0') == '1':
                     log.info(
-                        '{} publishing redis={}:{} '
-                        'db={} key={} '
-                        'updated={} expire={} '
-                        'data={}'.format(
-                            label,
-                            redis_host,
-                            redis_port,
-                            redis_db,
-                            redis_key,
-                            updated,
-                            redis_expire,
-                            ae_consts.ppj(data)))
+                        f'{label} publishing redis={redis_host}:{redis_port} '
+                        f'db={redis_db} key={redis_key} updated={updated} '
+                        f'expire={redis_expire} data={ae_consts.ppj(data)}')
                 else:
                     log.info(
-                        '{} publishing redis={}:{} '
-                        'db={} key={} '
-                        'updated={} expire={}'.format(
-                            label,
-                            redis_host,
-                            redis_port,
-                            redis_db,
-                            redis_key,
-                            updated,
-                            redis_expire))
+                        f'{label} publishing redis={redis_host}:{redis_port} '
+                        f'db={redis_db} key={redis_key} updated={updated} '
+                        f'expire={redis_expire}')
                 # end of if/else
 
                 rc = redis.Redis(
@@ -340,25 +284,17 @@ def publish_from_s3_to_redis(
                     xx=False)
 
                 log.info(
-                    '{} redis_set status={} err={}'.format(
-                        label,
-                        ae_consts.get_status(redis_set_res['status']),
-                        redis_set_res['err']))
+                    f'{label} redis_set '
+                    f'status={ae_consts.get_status(redis_set_res["status"])} '
+                    f'err={redis_set_res["err"]}')
 
             except Exception as e:
                 log.error(
-                    '{} failed - redis publish to '
-                    'key={} ex={}'.format(
-                        label,
-                        redis_key,
-                        e))
+                    f'{label} failed - redis publish to '
+                    f'key={redis_key} ex={e}')
             # end of try/ex for creating bucket
         else:
-            log.info(
-                '{} SKIP REDIS publish '
-                'key={}'.format(
-                    label,
-                    redis_key))
+            log.info(f'{label} SKIP REDIS publish key={redis_key}')
         # end of if enable_redis_publish
 
         res = build_result.build_result(
@@ -371,21 +307,14 @@ def publish_from_s3_to_redis(
             status=ae_consts.ERR,
             err=(
                 'failed - publish_from_s3_to_redis '
-                'dict={} with ex={}').format(
-                    work_dict,
-                    e),
+                f'dict={work_dict} with ex={e}'),
             rec=rec)
-        log.error(
-            '{} - {}'.format(
-                label,
-                res['err']))
+        log.error(f'{label} - {res["err"]}')
     # end of try/ex
 
     log.info(
         'task - publish_from_s3_to_redis done - '
-        '{} - status={}'.format(
-            label,
-            ae_consts.get_status(res['status'])))
+        f'{label} - status={ae_consts.get_status(res["status"])}')
 
     return get_task_results.get_task_results(
         work_dict=work_dict,
@@ -406,9 +335,7 @@ def run_publish_from_s3_to_redis(
         'label',
         '')
 
-    log.info(
-        'run_publish_from_s3_to_redis - {} - start'.format(
-            label))
+    log.info(f'run_publish_from_s3_to_redis - {label} - start')
 
     response = build_result.build_result(
         status=ae_consts.NOT_RUN,
@@ -432,16 +359,11 @@ def run_publish_from_s3_to_redis(
                     response_details = ae_consts.ppj(response)
                 except Exception:
                     response_details = response
-                log.info(
-                    '{} task result={}'.format(
-                        label,
-                        response_details))
+                log.info(f'{label} task result={response_details}')
         else:
             log.error(
-                '{} celery was disabled but the task={} '
-                'did not return anything'.format(
-                    label,
-                    response))
+                f'{label} celery was disabled but the task={response} '
+                'did not return anything')
         # end of if response
     else:
         task_res = publish_from_s3_to_redis.delay(
@@ -458,24 +380,16 @@ def run_publish_from_s3_to_redis(
     if response:
         if ae_consts.ev('DEBUG_RESULTS', '0') == '1':
             log.info(
-                'run_publish_from_s3_to_redis - {} - done '
-                'status={} err={} rec={}'.format(
-                    label,
-                    ae_consts.get_status(response['status']),
-                    response['err'],
-                    response['rec']))
+                f'run_publish_from_s3_to_redis - {label} - done '
+                f'status={ae_consts.get_status(response["status"])} '
+                f'err={response["err"]} rec={response["rec"]}')
         else:
             log.info(
-                'run_publish_from_s3_to_redis - {} - done '
-                'status={} err={}'.format(
-                    label,
-                    ae_consts.get_status(response['status']),
-                    response['err']))
+                f'run_publish_from_s3_to_redis - {label} - done '
+                f'status={ae_consts.get_status(response["status"])} '
+                f'err={response["err"]}')
     else:
-        log.info(
-            'run_publish_from_s3_to_redis - {} - done '
-            'no response'.format(
-                label))
+        log.info(f'run_publish_from_s3_to_redis - {label} - done no response')
     # end of if/else response
 
     return response

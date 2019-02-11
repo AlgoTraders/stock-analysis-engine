@@ -79,13 +79,9 @@ def build_option_spread_details(
     high_distance = high_strike - int(close)
     details['strike_width'] = ae_consts.to_f(
         high_strike - low_strike)
-    details['spread_id'] = 'S_{}_O_{}_low_{}_high_{}_w_{}'.format(
-        trade_type,
-        spread_type,
-        option_type,
-        low_distance,
-        high_distance,
-        details['strike_width'])
+    details['spread_id'] = (
+        f'T_{trade_type}_S_{spread_type}_O_{option_type}_low_{low_distance}'
+        f'_high_{high_distance}_w_{details["strike_width"]}')
     details['low_bidask_mid'] = ae_consts.to_f(low_bid + low_ask / 2.0)
     details['high_bidask_mid'] = ae_consts.to_f(high_bid + high_ask / 2.0)
     details['mid_price'] = ae_consts.to_f(abs(
@@ -143,20 +139,14 @@ def build_option_spread_details(
     details['revenue'] = revenue_of_contracts_at_mid_price
 
     log.debug(
-        'type={} spread={} option={} close={} spread_id={} '
-        'revenue={} cost={} mid={} width={} '
-        'max_profit={} max_loss={}'.format(
-            ae_consts.get_status(status=trade_type),
-            ae_consts.get_status(status=spread_type),
-            ae_consts.get_status(status=option_type),
-            close,
-            details['spread_id'],
-            revenue_of_contracts_at_mid_price,
-            cost_of_contracts_at_mid_price,
-            details['mid_price'],
-            details['strike_width'],
-            details['max_profit'],
-            details['max_loss']))
+        f'type={ae_consts.get_status(status=trade_type)} '
+        f'spread={ae_consts.get_status(status=spread_type)} '
+        f'option={ae_consts.get_status(status=option_type)} '
+        f'close={close} spread_id={details["spread_id"]} '
+        f'revenue={revenue_of_contracts_at_mid_price} '
+        f'cost={cost_of_contracts_at_mid_price} '
+        f'mid={details["mid_price"]} width={details["strike_width"]} '
+        f'max_profit={details["max_profit"]} max_loss={details["max_loss"]}')
 
     return details
 # end of build_option_spread_details

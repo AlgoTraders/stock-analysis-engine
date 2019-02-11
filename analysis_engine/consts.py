@@ -973,8 +973,7 @@ def get_status(
     elif status == MISSING_TOKEN:
         return 'MISSING_TOKEN'
     else:
-        return 'unsupported status={}'.format(
-            status)
+        return f'unsupported status={status}'
 # end of get_status
 
 
@@ -1229,9 +1228,7 @@ def get_algo_timeseries_from_int(
     for a in ALGO_TIMESERIES:
         if ALGO_TIMESERIES[a] == val:
             return a
-    return (
-        'unsupported algorithm timeseries value={}'.format(
-            val))
+    return f'unsupported algorithm timeseries value={val}'
 # end of get_algo_timeseries_from_int
 
 

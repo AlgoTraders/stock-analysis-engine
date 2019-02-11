@@ -354,23 +354,15 @@ def run_algo(
     if iex_datasets:
         if verbose:
             log.info(
-                '{} - tickers={} '
-                'iex={}'.format(
-                    label,
-                    num_tickers,
-                    json.dumps(iex_datasets)))
+                f'{label} - tickers={num_tickers} '
+                f'iex={json.dumps(iex_datasets)}')
     else:
         if verbose:
-            log.info(
-                '{} - tickers={}'.format(
-                    label,
-                    num_tickers))
+            log.info(f'{label} - tickers={num_tickers}')
 
     ticker_key = use_key
     if not ticker_key:
-        ticker_key = '{}_{}'.format(
-            ticker,
-            last_close_str)
+        ticker_key = f'{ticker}_{last_close_str}'
 
     if not algo:
         algo = base_algo.BaseAlgo(
@@ -392,9 +384,7 @@ def run_algo(
         # in the result at: res['rec']['algo']
 
     if not algo:
-        msg = (
-            '{} - missing algo object'.format(
-                label))
+        msg = f'{label} - missing algo object'
         log.error(msg)
         return build_result.build_result(
                 status=ae_consts.EMPTY,
@@ -402,9 +392,7 @@ def run_algo(
                 rec=rec)
 
     if raise_on_err:
-        log.debug(
-            '{} - enabling algo exception raises'.format(
-                label))
+        log.debug(f'{label} - enabling algo exception raises')
         algo.raise_on_err = True
 
     common_vals = {}
@@ -495,11 +483,8 @@ def run_algo(
 
     if end_date_val < start_date_val:
         msg = (
-            '{} - invalid dates - start_date={} is after '
-            'end_date={}'.format(
-                label,
-                start_date_val,
-                end_date_val))
+            f'{label} - invalid dates - start_date={start_date_val} is after '
+            f'end_date={end_date_val}')
         raise Exception(msg)
 
     if verbose:
@@ -521,9 +506,7 @@ def run_algo(
             timeseries=timeseries,
             trade_strategy=trade_strategy,
             label=label)
-        ticker_key = '{}_{}'.format(
-            ticker,
-            last_close_str)
+        ticker_key = f'{ticker}_{last_close_str}'
         common_vals['ticker'] = ticker
         common_vals['base_key'] = ticker_key
         common_vals['redis_key'] = ticker_key
@@ -536,7 +519,7 @@ def run_algo(
                 ds_id=label,
                 service_dict=common_vals)
             node_date_key = date_key.replace(
-                '{}_'.format(ticker),
+                f'{ticker}_',
                 '')
             extract_requests.append({
                 'id': date_key,
@@ -607,80 +590,70 @@ def run_algo(
                     extract_req)
             if iex_daily_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract iex_daily={}'.format(ticker))
+                    log.warning(f'unable to extract iex_daily={ticker}')
         if 'minute' in iex_datasets or extract_iex:
             iex_minute_status, iex_minute_df = \
                 iex_extract_utils.extract_minute_dataset(
                     extract_req)
             if iex_minute_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract iex_minute={}'.format(ticker))
+                    log.warning(f'unable to extract iex_minute={ticker}')
         if 'quote' in iex_datasets or extract_iex:
             iex_quote_status, iex_quote_df = \
                 iex_extract_utils.extract_quote_dataset(
                     extract_req)
             if iex_quote_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract iex_quote={}'.format(ticker))
+                    log.warning(f'unable to extract iex_quote={ticker}')
         if 'stats' in iex_datasets or extract_iex:
             iex_stats_df, iex_stats_df = \
                 iex_extract_utils.extract_stats_dataset(
                     extract_req)
             if iex_stats_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract iex_stats={}'.format(ticker))
+                    log.warning(f'unable to extract iex_stats={ticker}')
         if 'peers' in iex_datasets or extract_iex:
             iex_peers_df, iex_peers_df = \
                 iex_extract_utils.extract_peers_dataset(
                     extract_req)
             if iex_peers_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract iex_peers={}'.format(ticker))
+                    log.warning(f'unable to extract iex_peers={ticker}')
         if 'news' in iex_datasets or extract_iex:
             iex_news_status, iex_news_df = \
                 iex_extract_utils.extract_news_dataset(
                     extract_req)
             if iex_news_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract iex_news={}'.format(ticker))
+                    log.warning(f'unable to extract iex_news={ticker}')
         if 'financials' in iex_datasets or extract_iex:
             iex_financials_status, iex_financials_df = \
                 iex_extract_utils.extract_financials_dataset(
                     extract_req)
             if iex_financials_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract iex_financials={}'.format(ticker))
+                    log.warning(f'unable to extract iex_financials={ticker}')
         if 'earnings' in iex_datasets or extract_iex:
             iex_earnings_status, iex_earnings_df = \
                 iex_extract_utils.extract_earnings_dataset(
                     extract_req)
             if iex_earnings_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract iex_earnings={}'.format(ticker))
+                    log.warning(f'unable to extract iex_earnings={ticker}')
         if 'dividends' in iex_datasets or extract_iex:
             iex_dividends_status, iex_dividends_df = \
                 iex_extract_utils.extract_dividends_dataset(
                     extract_req)
             if iex_dividends_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract iex_dividends={}'.format(ticker))
+                    log.warning(f'unable to extract iex_dividends={ticker}')
         if 'company' in iex_datasets or extract_iex:
             iex_company_status, iex_company_df = \
                 iex_extract_utils.extract_company_dataset(
                     extract_req)
             if iex_company_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract iex_company={}'.format(ticker))
+                    log.warning(f'unable to extract iex_company={ticker}')
         # end of iex extracts
 
         if extract_yahoo:
@@ -692,22 +665,19 @@ def run_algo(
                     extract_req)
             if yahoo_options_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract yahoo_options={}'.format(ticker))
+                    log.warning(f'unable to extract yahoo_options={ticker}')
             yahoo_pricing_status, yahoo_pricing_df = \
                 yahoo_extract_utils.extract_pricing_dataset(
                     extract_req)
             if yahoo_pricing_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract yahoo_pricing={}'.format(ticker))
+                    log.warning(f'unable to extract yahoo_pricing={ticker}')
             yahoo_news_status, yahoo_news_df = \
                 yahoo_extract_utils.extract_yahoo_news_dataset(
                     extract_req)
             if yahoo_news_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract yahoo_news={}'.format(ticker))
+                    log.warning(f'unable to extract yahoo_news={ticker}')
         # end of yahoo extracts
 
         if extract_td:
@@ -728,8 +698,7 @@ def run_algo(
                     extract_req)
             if td_calls_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract tdcalls={}'.format(ticker))
+                    log.warning(f'unable to extract tdcalls={ticker}')
             else:
                 if ae_consts.is_df(
                         df=td_calls_df):
@@ -749,8 +718,7 @@ def run_algo(
                     extract_req)
             if td_puts_status != ae_consts.SUCCESS:
                 if verbose:
-                    log.warning(
-                        'unable to extract tdputs={}'.format(ticker))
+                    log.warning(f'unable to extract tdputs={ticker}')
             else:
                 if ae_consts.is_df(
                         df=td_puts_df):
@@ -905,36 +873,24 @@ def run_algo(
     try:
         if verbose:
             log.info(
-                'get_result START - {} from {} to {}'.format(
-                    percent_label,
-                    first_extract_date,
-                    last_extract_date))
+                f'get_result START - {percent_label} from '
+                f'{first_extract_date} to {last_extract_date}')
         rec = algo.get_result()
         status = ae_consts.SUCCESS
         if verbose:
             log.info(
-                'get_result END - {} from {} to {}'.format(
-                    percent_label,
-                    first_extract_date,
-                    last_extract_date))
+                f'get_result END - {percent_label} from '
+                f'{first_extract_date} to {last_extract_date}')
     except Exception as e:
         msg = (
-            '{} - algo={} encountered exception in get_result '
-            'tickers={} from '
-            '{} to {} ex={}'.format(
-                percent_label,
-                algo.get_name(),
-                use_tickers,
-                first_extract_date,
-                last_extract_date,
-                e))
+            f'{percent_label} - algo={algo.get_name()} encountered exception '
+            f'in get_result tickers={use_tickers} from '
+            f'{first_extract_date} to {last_extract_date} ex={e}')
         if raise_on_err:
             if algo:
                 log.error(
-                    'algo={} failed in get_result with debug_msg'
-                    '={}'.format(
-                        algo.get_name(),
-                        algo.get_debug_msg()))
+                    f'algo={algo.get_name()} failed in get_result with '
+                    f'debug_msg={algo.get_debug_msg()}')
             log.error(msg)
             raise e
         else:

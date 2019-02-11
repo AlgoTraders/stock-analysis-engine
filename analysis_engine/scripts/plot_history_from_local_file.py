@@ -66,15 +66,11 @@ def plot_local_history_file():
             '-f <path to local trading history file>')
         return
     elif not os.path.exists(history_json_file):
-        log.error(
-            'did not find trading history file={}'.format(
-                history_json_file))
+        log.error(f'did not find trading history file={history_json_file}')
         return
     # end of checking the file arg is set and exists on disk
 
-    log.info(
-        'plotting history to: {}'.format(
-            history_json_file))
+    log.info(f'plotting history to: {history_json_file}')
     history_df = pd.read_json(
         history_json_file,
         orient='records')
@@ -90,11 +86,8 @@ def plot_local_history_file():
     first_date = history_df['date'].iloc[0]
     end_date = history_df['date'].iloc[-1]
     title = (
-        'Trading History {}\n'
-        'Backtest dates from {} to {}'.format(
-            ticker,
-            first_date,
-            end_date))
+        f'Trading History {ticker}\n'
+        f'Backtest dates from {first_date} to {end_date}')
     use_xcol = 'date'
     use_as_date_format = '%d\n%b'
     use_minute = False
@@ -120,9 +113,7 @@ def plot_local_history_file():
 
     if debug:
         for i, r in history_df.iterrows():
-            log.info('{} - {}'.format(
-                r['minute'],
-                r['close']))
+            log.info(f'{r["minute"]} - {r["close"]}')
     # end of debug
 
     show_plot = True

@@ -66,11 +66,7 @@ def extract_pricing_dataset(
         ae_consts.REDIS_DB)
 
     log.debug(
-        '{} - {} - start - redis_key={} s3_key={}'.format(
-            label,
-            df_str,
-            redis_key,
-            s3_key))
+        f'{label} - {df_str} - start - redis_key={redis_key} s3_key={s3_key}')
 
     if not redis_host and not redis_port:
         redis_host = ae_consts.REDIS_ADDRESS.split(':')[0]
@@ -90,70 +86,42 @@ def extract_pricing_dataset(
 
         status = redis_rec['status']
         log.debug(
-            '{} - {} redis get data key={} status={}'.format(
-                label,
-                df_str,
-                redis_key,
-                ae_consts.get_status(status=status)))
+            f'{label} - {df_str} redis get data key={redis_key} '
+            f'status={ae_consts.get_status(status=status)}')
 
         if status == ae_consts.SUCCESS:
-            log.debug(
-                '{} - {} redis convert pricing to json'.format(
-                    label,
-                    df_str))
+            log.debug(f'{label} - {df_str} redis convert pricing to json')
             cached_dict = redis_rec['rec']['data']
-            log.debug(
-                '{} - {} redis convert pricing to df'.format(
-                    label,
-                    df_str))
+            log.debug(f'{label} - {df_str} redis convert pricing to df')
             try:
                 df = pd.DataFrame(
                     cached_dict,
                     index=[0])
-            except Exception as f:
+            except Exception:
                 log.debug(
-                    '{} - {} redis_key={} '
-                    'no pricing df found'.format(
-                        label,
-                        df_str,
-                        redis_key))
+                    f'{label} - {df_str} redis_key={redis_key} '
+                    'no pricing df found')
                 return ae_consts.EMPTY, None
             # end of try/ex to convert to df
             log.debug(
-                '{} - {} redis_key={} done convert pricing to df'.format(
-                    label,
-                    df_str,
-                    redis_key))
+                f'{label} - {df_str} redis_key={redis_key} done '
+                'convert pricing to df')
         else:
             log.debug(
-                '{} - {} did not find valid redis pricing '
-                'in redis_key={} status={}'.format(
-                    label,
-                    df_str,
-                    redis_key,
-                    ae_consts.get_status(status=status)))
+                f'{label} - {df_str} did not find valid redis pricing '
+                f'in redis_key={redis_key} '
+                f'status={ae_consts.get_status(status=status)}')
 
     except Exception as e:
         log.debug(
-            '{} - {} - ds_id={} failed getting pricing from '
-            'redis={}:{}@{} key={} ex={}'.format(
-                label,
-                df_str,
-                ds_id,
-                redis_host,
-                redis_port,
-                redis_db,
-                redis_key,
-                e))
+            f'{label} - {df_str} - ds_id={ds_id} failed getting pricing from '
+            f'redis={redis_host}:{redis_port}@{redis_db} '
+            f'key={redis_key} ex={e}')
         return ae_consts.ERR, None
     # end of try/ex extract from redis
 
     log.debug(
-        '{} - {} ds_id={} extract scrub={}'.format(
-            label,
-            df_str,
-            ds_id,
-            scrub_mode))
+        f'{label} - {df_str} ds_id={ds_id} extract scrub={scrub_mode}')
 
     scrubbed_df = scrub_utils.extract_scrub_dataset(
         label=label,
@@ -201,11 +169,7 @@ def extract_yahoo_news_dataset(
         ae_consts.REDIS_DB)
 
     log.debug(
-        '{} - {} - start - redis_key={} s3_key={}'.format(
-            label,
-            df_str,
-            redis_key,
-            s3_key))
+        f'{label} - {df_str} - start - redis_key={redis_key} s3_key={s3_key}')
 
     if not redis_host and not redis_port:
         redis_host = ae_consts.REDIS_ADDRESS.split(':')[0]
@@ -225,65 +189,39 @@ def extract_yahoo_news_dataset(
 
         status = redis_rec['status']
         log.debug(
-            '{} - {} redis get data key={} status={}'.format(
-                label,
-                df_str,
-                redis_key,
-                ae_consts.get_status(status=status)))
+            f'{label} - {df_str} redis get data key={redis_key} '
+            f'status={ae_consts.get_status(status=status)}')
 
         if status == ae_consts.SUCCESS:
             cached_dict = redis_rec['rec']['data']
-            log.debug(
-                '{} - {} redis convert news to df'.format(
-                    label,
-                    df_str))
+            log.debug(f'{label} - {df_str} redis convert news to df')
             try:
                 df = pd.DataFrame(
                     cached_dict)
-            except Exception as f:
+            except Exception:
                 log.debug(
-                    '{} - {} redis_key={} '
-                    'no news df found'.format(
-                        label,
-                        df_str,
-                        redis_key))
+                    f'{label} - {df_str} redis_key={redis_key} '
+                    'no news df found')
                 return ae_consts.EMPTY, None
             # end of try/ex to convert to df
             log.debug(
-                '{} - {} redis_key={} done convert news to df'.format(
-                    label,
-                    df_str,
-                    redis_key))
+                f'{label} - {df_str} redis_key={redis_key} done '
+                f'convert news to df')
         else:
             log.debug(
-                '{} - {} did not find valid redis news '
-                'in redis_key={} status={}'.format(
-                    label,
-                    df_str,
-                    redis_key,
-                    ae_consts.get_status(status=status)))
+                f'{label} - {df_str} did not find valid redis news '
+                f'in redis_key={redis_key} '
+                f'status={ae_consts.get_status(status=status)}')
 
     except Exception as e:
         log.debug(
-            '{} - {} - ds_id={} failed getting news from '
-            'redis={}:{}@{} key={} ex={}'.format(
-                label,
-                df_str,
-                ds_id,
-                redis_host,
-                redis_port,
-                redis_db,
-                redis_key,
-                e))
+            f'{label} - {df_str} - ds_id={ds_id} failed getting news from '
+            f'redis={redis_host}:{redis_port}@{redis_db} key={redis_key} '
+            f'ex={e}')
         return ae_consts.ERR, None
     # end of try/ex extract from redis
 
-    log.debug(
-        '{} - {} ds_id={} extract scrub={}'.format(
-            label,
-            df_str,
-            ds_id,
-            scrub_mode))
+    log.debug(f'{label} - {df_str} ds_id={ds_id} extract scrub={scrub_mode}')
 
     scrubbed_df = scrub_utils.extract_scrub_dataset(
         label=label,
@@ -310,7 +248,7 @@ def extract_option_calls_dataset(
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    label = '{}-calls'.format(work_dict.get('label', 'extract'))
+    label = f'{work_dict.get("label", "extract")}-calls'
     ds_id = work_dict.get('ticker')
     df_type = yahoo_consts.DATAFEED_OPTIONS_YAHOO
     df_str = yahoo_consts.get_datafeed_str_yahoo(df_type=df_type)
@@ -331,11 +269,7 @@ def extract_option_calls_dataset(
         ae_consts.REDIS_DB)
 
     log.debug(
-        '{} - {} - start - redis_key={} s3_key={}'.format(
-            label,
-            df_str,
-            redis_key,
-            s3_key))
+        f'{label} - {df_str} - start - redis_key={redis_key} s3_key={s3_key}')
 
     if not redis_host and not redis_port:
         redis_host = ae_consts.REDIS_ADDRESS.split(':')[0]
@@ -356,11 +290,8 @@ def extract_option_calls_dataset(
 
         status = redis_rec['status']
         log.debug(
-            '{} - {} redis get data key={} status={}'.format(
-                label,
-                df_str,
-                redis_key,
-                ae_consts.get_status(status=status)))
+            f'{label} - {df_str} redis get data key={redis_key} '
+            f'status={ae_consts.get_status(status=status)}')
 
         if status == ae_consts.SUCCESS:
             calls_json = None
@@ -368,10 +299,7 @@ def extract_option_calls_dataset(
                 calls_json = redis_rec['rec']['data']['calls']
             else:
                 calls_json = redis_rec['rec']['data']
-            log.debug(
-                '{} - {} redis convert calls to df'.format(
-                    label,
-                    df_str))
+            log.debug(f'{label} - {df_str} redis convert calls to df')
             exp_date_str = None
             try:
                 calls_df = pd.read_json(
@@ -382,52 +310,30 @@ def extract_option_calls_dataset(
                     epoch=exp_epoch_value,
                     fmt=ae_consts.COMMON_DATE_FORMAT,
                     use_utc=True)
-            except Exception as f:
+            except Exception:
                 log.debug(
-                    '{} - {} redis_key={} '
-                    'no calls df found'.format(
-                        label,
-                        df_str,
-                        redis_key))
+                    f'{label} - {df_str} redis_key={redis_key} '
+                    'no calls df found')
                 return ae_consts.EMPTY, None
             # end of try/ex to convert to df
             log.debug(
-                '{} - {} redis_key={} calls={} exp_date={}'.format(
-                    label,
-                    df_str,
-                    redis_key,
-                    len(calls_df.index),
-                    exp_date_str))
+                f'{label} - {df_str} redis_key={redis_key} '
+                f'calls={len(calls_df.index)} exp_date={exp_date_str}')
         else:
             log.debug(
-                '{} - {} did not find valid redis option calls '
-                'in redis_key={} status={}'.format(
-                    label,
-                    df_str,
-                    redis_key,
-                    ae_consts.get_status(status=status)))
+                f'{label} - {df_str} did not find valid redis option calls '
+                f'in redis_key={redis_key} '
+                f'status={ae_consts.get_status(status=status)}')
 
     except Exception as e:
         log.debug(
-            '{} - {} - ds_id={} failed getting option calls from '
-            'redis={}:{}@{} key={} ex={}'.format(
-                label,
-                df_str,
-                ds_id,
-                redis_host,
-                redis_port,
-                redis_db,
-                redis_key,
-                e))
+            f'{label} - {df_str} - ds_id={ds_id} failed getting option calls '
+            f'from redis={redis_host}:{redis_port}@{redis_db} '
+            f'key={redis_key} ex={e}')
         return ae_consts.ERR, None
     # end of try/ex extract from redis
 
-    log.debug(
-        '{} - {} ds_id={} extract scrub={}'.format(
-            label,
-            df_str,
-            ds_id,
-            scrub_mode))
+    log.debug(f'{label} - {df_str} ds_id={ds_id} extract scrub={scrub_mode}')
 
     scrubbed_df = scrub_utils.extract_scrub_dataset(
         label=label,
@@ -454,7 +360,7 @@ def extract_option_puts_dataset(
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    label = '{}-puts'.format(work_dict.get('label', 'extract'))
+    label = f'{work_dict.get("label", "extract")}-puts'
     ds_id = work_dict.get('ticker')
     df_type = yahoo_consts.DATAFEED_OPTIONS_YAHOO
     df_str = yahoo_consts.get_datafeed_str_yahoo(df_type=df_type)
@@ -475,11 +381,7 @@ def extract_option_puts_dataset(
         ae_consts.REDIS_DB)
 
     log.debug(
-        '{} - {} - start - redis_key={} s3_key={}'.format(
-            label,
-            df_str,
-            redis_key,
-            s3_key))
+        f'{label} - {df_str} - start - redis_key={redis_key} s3_key={s3_key}')
 
     if not redis_host and not redis_port:
         redis_host = ae_consts.REDIS_ADDRESS.split(':')[0]
@@ -500,11 +402,8 @@ def extract_option_puts_dataset(
 
         status = redis_rec['status']
         log.debug(
-            '{} - {} redis get data key={} status={}'.format(
-                label,
-                df_str,
-                redis_key,
-                ae_consts.get_status(status=status)))
+            f'{label} - {df_str} redis get data key={redis_key} '
+            f'status={ae_consts.get_status(status=status)}')
 
         if status == ae_consts.SUCCESS:
             puts_json = None
@@ -512,10 +411,7 @@ def extract_option_puts_dataset(
                 puts_json = redis_rec['rec']['data']['puts']
             else:
                 puts_json = redis_rec['rec']['data']
-            log.debug(
-                '{} - {} redis convert puts to df'.format(
-                    label,
-                    df_str))
+            log.debug(f'{label} - {df_str} redis convert puts to df')
             try:
                 puts_df = pd.read_json(
                     puts_json,
@@ -525,52 +421,30 @@ def extract_option_puts_dataset(
                     epoch=exp_epoch_value,
                     fmt=ae_consts.COMMON_DATE_FORMAT,
                     use_utc=True)
-            except Exception as f:
+            except Exception:
                 log.debug(
-                    '{} - {} redis_key={} '
-                    'no puts df found'.format(
-                        label,
-                        df_str,
-                        redis_key))
+                    f'{label} - {df_str} redis_key={redis_key} '
+                    'no puts df found')
                 return ae_consts.EMPTY, None
             # end of try/ex to convert to df
             log.debug(
-                '{} - {} redis_key={} puts={} exp_date={}'.format(
-                    label,
-                    df_str,
-                    redis_key,
-                    len(puts_df.index),
-                    exp_date_str))
+                f'{label} - {df_str} redis_key={redis_key} '
+                f'puts={len(puts_df.index)} exp_date={exp_date_str}')
         else:
             log.debug(
-                '{} - {} did not find valid redis option puts '
-                'in redis_key={} status={}'.format(
-                    label,
-                    df_str,
-                    redis_key,
-                    ae_consts.get_status(status=status)))
+                f'{label} - {df_str} did not find valid redis option puts '
+                f'in redis_key={redis_key} '
+                f'status={ae_consts.get_status(status=status)}')
 
     except Exception as e:
         log.debug(
-            '{} - {} - ds_id={} failed getting option puts from '
-            'redis={}:{}@{} key={} ex={}'.format(
-                label,
-                df_str,
-                ds_id,
-                redis_host,
-                redis_port,
-                redis_db,
-                redis_key,
-                e))
+            f'{label} - {df_str} - ds_id={ds_id} failed getting option puts '
+            f'from redis={redis_host}:{redis_port}@{redis_db} '
+            f'key={redis_key} ex={e}')
         return ae_consts.ERR, None
     # end of try/ex extract from redis
 
-    log.debug(
-        '{} - {} ds_id={} extract scrub={}'.format(
-            label,
-            df_str,
-            ds_id,
-            scrub_mode))
+    log.debug(f'{label} - {df_str} ds_id={ds_id} extract scrub={scrub_mode}')
 
     scrubbed_df = scrub_utils.extract_scrub_dataset(
         label=label,

@@ -52,15 +52,12 @@ source_code_dirs = [
 ]
 
 for source_code_dir_name in source_code_dirs:
-    use_dir = '{}/{}'.format(
-        PACKAGE_SOURCE_PATH_FROM_DOCS,
-        source_code_dir_name)
+    use_dir = f'{PACKAGE_SOURCE_PATH_FROM_DOCS}/{source_code_dir_name}'
     if os.path.exists(use_dir):
         sys.path.insert(0, use_dir)
     else:
         if on_rtd:
-            print('did not find from docs path dir: {}'.format(
-                use_dir))
+            print(f'did not find from docs path dir: {use_dir}')
 # end for all source dirs
 
 project = 'Stock Analysis Engine'

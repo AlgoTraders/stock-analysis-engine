@@ -96,11 +96,9 @@ def prepare_report_dataset(
     """
     if num_datasets:
         if verbose:
-            log.info('found datasets={}'.format(
-            num_datasets))
+            log.info(f'found datasets={num_datasets}')
     else:
-        log.error('did not find any datasets={}'.format(
-            num_datasets))
+        log.error(f'did not find any datasets={num_datasets}')
     """
 
     return use_data

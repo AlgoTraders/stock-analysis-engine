@@ -144,9 +144,7 @@ def build_publish_request(
         'label': label
     }
 
-    log.debug(
-        'created publish_request={}'.format(
-            ae_consts.ppj(work)))
+    log.debug(f'created publish_request={ae_consts.ppj(work)}')
 
     return work
 # end of build_publish_request

@@ -59,8 +59,7 @@ class BaseIndicator:
                 False)
 
         if not self.name:
-            self.name = 'ind_{}'.format(
-                str(uuid.uuid4()).replace('-', ''))
+            self.name = f'ind_{str(uuid.uuid4()).replace("-", "")}'
 
         self.starter_dict = None
         self.previous_df = self.config.get(
@@ -254,9 +253,8 @@ class BaseIndicator:
         self.ind_confs = []
 
         self.lg(
-            'configurables={} for class={}'.format(
-                ae_consts.ppj(self.ind_confs),
-                self.__class__.__name__))
+            f'configurables={ae_consts.ppj(self.ind_confs)} for '
+            f'class={self.__class__.__name__}')
 
         return self.ind_confs
     # end of get_configurables
@@ -420,13 +418,9 @@ class BaseIndicator:
 
         if verbose or self.verbose:
             self.lg(
-                'indicator={} '
-                'report={} '
-                'buy={} sell={}'.format(
-                    self.name,
-                    ae_consts.ppj(cur_report_dict),
-                    buy_value,
-                    sell_value))
+                f'indicator={self.name} '
+                f'report={ae_consts.ppj(cur_report_dict)} '
+                f'buy={buy_value} sell={sell_value}')
 
         return cur_report_dict
     # end of get_report
@@ -582,12 +576,8 @@ class BaseIndicator:
         :param ticker: string - ticker
         :param dataset: dictionary of ``pd.DataFrame(s)`` to process
         """
-        self.lg(
-            '{} BASE_IND process - start'.format(
-                self.name))
-        self.lg(
-            '{} BASE_IND process - end'.format(
-                self.name))
+        self.lg(f'{self.name} BASE_IND process - start')
+        self.lg(f'{self.name} BASE_IND process - end')
     # end of process
 
 # end of BaseIndicator

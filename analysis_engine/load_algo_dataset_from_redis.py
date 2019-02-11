@@ -61,19 +61,14 @@ def load_algo_dataset_from_redis(
 
     if redis_res['status'] != ae_consts.SUCCESS:
         log.error(
-            'failed getting data from redis={}:{}/{}'.format(
-                redis_address,
-                redis_db,
-                redis_key))
+            'failed getting data from '
+            f'redis={redis_address}:{redis_db}/{redis_key}')
         return None
 
     data_from_file = redis_res['rec']['data']
     if not data_from_file:
         log.error(
-            'missing data from redis={}:{}/{}'.format(
-                redis_address,
-                redis_db,
-                redis_key))
+            f'missing data from redis={redis_address}:{redis_db}/{redis_key}')
         return None
 
     return prepare_utils.prepare_dict_for_algo(

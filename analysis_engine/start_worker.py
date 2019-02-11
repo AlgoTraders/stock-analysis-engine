@@ -17,17 +17,12 @@ log = log_utils.build_colorized_logger(
     name=consts.APP_NAME,
     log_config_path=consts.LOG_CONFIG_PATH)
 
-log.info(
-    'start - {}'.format(
-        consts.APP_NAME))
+log.info(f'start - {consts.APP_NAME}')
 
 log.info(
-    'broker={} backend={} '
-    'config={} include_tasks={}'.format(
-        consts.WORKER_BROKER_URL,
-        consts.WORKER_BACKEND_URL,
-        consts.WORKER_CELERY_CONFIG_MODULE,
-        consts.WORKER_TASKS))
+    f'broker={consts.WORKER_BROKER_URL} backend={consts.WORKER_BACKEND_URL} '
+    f'config={consts.WORKER_CELERY_CONFIG_MODULE} '
+    f'include_tasks={consts.WORKER_TASKS}')
 
 # Get the Celery app from the project's get_celery_app module
 app = get_celery_app.get_celery_app(
@@ -40,6 +35,4 @@ app = get_celery_app.get_celery_app(
 log.info('starting celery')
 app.start()
 
-log.info(
-    'end - {}'.format(
-        consts.APP_NAME))
+log.info(f'end - {consts.APP_NAME}')

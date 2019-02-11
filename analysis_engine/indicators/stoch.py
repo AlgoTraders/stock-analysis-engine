@@ -168,12 +168,9 @@ class IndicatorSTOCH(base_indicator.BaseIndicator):
         self.starter_dict.update(default_values_dict)
 
         self.lg(
-            'configurables={} for class={} in file={} '
-            'starter:\n {}'.format(
-                ae_consts.ppj(self.ind_confs),
-                self.__class__.__name__,
-                use_file,
-                ae_consts.ppj(self.starter_dict)))
+            f'configurables={ae_consts.ppj(self.ind_confs)} for '
+            f'class={self.__class__.__name__} in file={use_file} '
+            f'starter:\n {ae_consts.ppj(self.starter_dict)}')
 
         return self.ind_confs
     # end of get_configurables
@@ -238,9 +235,8 @@ class IndicatorSTOCH(base_indicator.BaseIndicator):
         # converts any self.config keys into useable
         # member variables automatically in your derived class
         self.lg(
-            'process - num_points={} df={}'.format(
-                self.num_points,
-                len(self.use_df.index)))
+            f'process - num_points={self.num_points} '
+            f'df={len(self.use_df.index)}')
         """
         slowk, slowd = STOCH(
             high,
@@ -267,13 +263,8 @@ class IndicatorSTOCH(base_indicator.BaseIndicator):
                 close = row['close']
                 row_date = row['date']
                 self.lg(
-                    '{} - high={}, low={}, '
-                    'close={}, period={}'.format(
-                        row_date,
-                        high,
-                        low,
-                        close,
-                        self.num_points))
+                    f'{row_date} - high={high}, low={low}, '
+                    f'close={close}, period={self.num_points}')
             """
             highs = self.use_df['high'].values
             lows = self.use_df['low'].values
@@ -295,9 +286,7 @@ class IndicatorSTOCH(base_indicator.BaseIndicator):
             """
 
             if cur_value <= 0:
-                self.lg(
-                    'invalid current_value={}'.format(
-                        cur_value))
+                self.lg(f'invalid current_value={cur_value}')
                 return
 
             self.close = cur_value
@@ -324,17 +313,11 @@ class IndicatorSTOCH(base_indicator.BaseIndicator):
                 self.is_sell = ae_consts.INDICATOR_SELL
 
             self.lg(
-                'process end - {} to {} '
-                'buy_below={} buy_above={} is_buy={} '
-                'sell_below={} sell_above={} is_sell={}'.format(
-                    first_date,
-                    end_date,
-                    self.buy_below_percent,
-                    self.buy_above_percent,
-                    self.is_buy,
-                    self.sell_below_percent,
-                    self.sell_above_percent,
-                    self.is_sell))
+                f'process end - {first_date} to {end_date} '
+                f'buy_below={self.buy_below_percent} '
+                f'buy_above={self.buy_above_percent} is_buy={self.is_buy} '
+                f'sell_below={self.sell_below_percent} '
+                f'sell_above={self.sell_above_percent} is_sell={self.is_sell}')
         else:
             self.lg('process end')
     # end of process

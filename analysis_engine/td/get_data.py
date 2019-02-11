@@ -32,11 +32,7 @@ def get_data_from_td(
     """
     label = 'get_data_from_td'
 
-    log.debug(
-        'task - {} - start '
-        'work_dict={}'.format(
-            label,
-            work_dict))
+    log.debug(f'task - {label} - start work_dict={work_dict}')
 
     rec = {
         'data': None,
@@ -82,12 +78,9 @@ def get_data_from_td(
                 label=label)
         else:
             log.error(
-                '{} - unsupported ft_type={} ft_str={} ticker={}'.format(
-                    label,
-                    ft_type,
-                    ft_str,
-                    ticker))
-            raise NotImplemented
+                f'{label} - unsupported ft_type={ft_type} ft_str={ft_str} '
+                f'ticker={ticker}')
+            raise NotImplementedError
         # if supported fetch request type
 
         clone_keys = [
@@ -104,18 +97,13 @@ def get_data_from_td(
         for k in clone_keys:
             td_req[k] = work_dict.get(
                 k,
-                '{}-missing-in-{}'.format(
-                    k,
-                    label))
+                f'{k}-missing-in-{label}')
         # end of cloning keys
 
         if not td_req:
             err = (
-                '{} - ticker={} did not build an TD request '
-                'for work={}'.format(
-                    label,
-                    td_req['ticker'],
-                    work_dict))
+                f'{label} - ticker={td_req["ticker"]} did not build a TD '
+                f'request for work={work_dict}')
             log.error(err)
             res = build_result.build_result(
                 status=ae_consts.ERR,
@@ -124,12 +112,8 @@ def get_data_from_td(
             return res
         else:
             log.debug(
-                '{} - ticker={} field={} '
-                'orient={} fetch'.format(
-                    label,
-                    td_req['ticker'],
-                    field,
-                    orient))
+                f'{label} - ticker={td_req["ticker"]} field={field} '
+                f'orient={orient} fetch')
         # if invalid td request
 
         df = None
@@ -156,12 +140,9 @@ def get_data_from_td(
                 return res
             else:
                 err = (
-                    '{} - ticker={} td_fetch_data.fetch_data field={} '
-                    'failed fetch_data'
-                    ''.format(
-                        label,
-                        td_req['ticker'],
-                        ft_type))
+                    f'{label} - ticker={td_req["ticker"]} '
+                    f'td_fetch_data.fetch_data field={ft_type} '
+                    'failed fetch_data')
                 log.critical(err)
                 res = build_result.build_result(
                     status=ae_consts.ERR,
@@ -170,12 +151,8 @@ def get_data_from_td(
                 return res
         except Exception as f:
             err = (
-                '{} - ticker={} field={} failed fetch_data '
-                'with ex={}'.format(
-                    label,
-                    td_req['ticker'],
-                    ft_type,
-                    f))
+                f'{label} - ticker={td_req["ticker"]} field={ft_type} '
+                f'failed fetch_data with ex={f}')
             log.critical(err)
             res = build_result.build_result(
                 status=ae_consts.ERR,
@@ -186,17 +163,11 @@ def get_data_from_td(
 
         if ae_consts.ev('DEBUG_TD_DATA', '0') == '1':
             log.debug(
-                '{} ticker={} field={} data={} to_json'.format(
-                    label,
-                    td_req['ticker'],
-                    field,
-                    rec['data']))
+                f'{label} ticker={td_req["ticker"]} field={field} '
+                f'data={rec["data"]} to_json')
         else:
             log.debug(
-                '{} ticker={} field={} to_json'.format(
-                    label,
-                    td_req['ticker'],
-                    field))
+                f'{label} ticker={td_req["ticker"]} field={field} to_json')
         # end of if/else found data
 
         upload_and_cache_req = copy.deepcopy(td_req)
@@ -208,17 +179,17 @@ def get_data_from_td(
         if use_field == 'news':
             use_field = 'news1'
         if 'redis_key' in work_dict:
-            upload_and_cache_req['redis_key'] = '{}_{}'.format(
-                work_dict.get(
+            upload_and_cache_req['redis_key'] = (
+                f'''{work_dict.get(
                     'redis_key',
-                    td_req['redis_key']),
-                use_field)
+                    td_req['redis_key'])}_'''
+                f'{use_field}')
         if 's3_key' in work_dict:
-            upload_and_cache_req['s3_key'] = '{}_{}'.format(
-                work_dict.get(
+            upload_and_cache_req['s3_key'] = (
+                f'''{work_dict.get(
                     's3_key',
-                    td_req['s3_key']),
-                use_field)
+                    td_req['s3_key'])}_'''
+                f'{use_field}')
 
         try:
             update_res = publisher.run_publish_pricing_update(
@@ -227,27 +198,21 @@ def get_data_from_td(
                 'status',
                 ae_consts.NOT_SET)
             log.debug(
-                '{} publish update status={} data={}'.format(
-                    label,
-                    ae_consts.get_status(status=update_status),
-                    update_res))
-        except Exception as f:
+                f'{label} publish update '
+                f'status={ae_consts.get_status(status=update_status)} '
+                f'data={update_res}')
+        except Exception:
             err = (
-                '{} - failed to upload td data={} to '
-                'to s3_key={} and redis_key={}'.format(
-                    label,
-                    upload_and_cache_req,
-                    upload_and_cache_req['s3_key'],
-                    upload_and_cache_req['redis_key']))
+                f'{label} - failed to upload td data={upload_and_cache_req} '
+                f'to s3_key={upload_and_cache_req["s3_key"]} and '
+                f'redis_key={upload_and_cache_req["redis_key"]}')
             log.error(err)
         # end of try/ex to upload and cache
 
         if not rec['data']:
             log.debug(
-                '{} - ticker={} no Tradier data field={} to publish'.format(
-                    label,
-                    td_req['ticker'],
-                    field))
+                f'{label} - ticker={td_req["ticker"]} no Tradier data '
+                f'field={field} to publish')
         # end of if/else
 
         res = build_result.build_result(
@@ -260,18 +225,14 @@ def get_data_from_td(
             status=ae_consts.ERR,
             err=(
                 'failed - get_data_from_td '
-                'dict={} with ex={}').format(
-                    work_dict,
-                    e),
+                f'dict={work_dict} with ex={e}'),
             rec=rec)
     # end of try/ex
 
     log.debug(
         'task - get_data_from_td done - '
-        '{} - status={} err={}'.format(
-            label,
-            ae_consts.get_status(res['status']),
-            res['err']))
+        f'{label} - status={ae_consts.get_status(res["status"])} '
+        f'err={res["err"]}')
 
     return res
 # end of get_data_from_td

@@ -55,13 +55,11 @@ def start_screener_analysis(
     label = req.get(
         'label',
         'screener')
-    log.info(
-        f'{label} - start screener analysis')
+    log.info(f'{label} - start screener analysis')
     req['celery_disabled'] = True
     analysis_res = screener_utils.run_screener_analysis(
         work_dict=req)
-    log.info(
-        f'{label} - done screener analysis result={analysis_res}')
+    log.info(f'{label} - done screener analysis result={analysis_res}')
 # end of start_screener_analysis
 
 
@@ -529,12 +527,10 @@ def fetch_new_stock_datasets():
     work['analysis_type'] = analysis_type
     work['iex_datasets'] = iex_consts.DEFAULT_FETCH_DATASETS
     work['debug'] = debug
-    work['label'] = 'ticker={}'.format(
-        ticker)
+    work['label'] = f'ticker={ticker}'
 
     if analysis_type == 'scn':
-        label = 'screener={}'.format(
-            work['ticker'])
+        label = f'screener={work["ticker"]}'
         fv_urls = []
         if args.urls:
             fv_urls = str(args.urls).split('|')
@@ -551,14 +547,10 @@ def fetch_new_stock_datasets():
     else:
         if not args.keyname:
             last_close_date = ae_utils.last_close()
-            work['s3_key'] = '{}_{}'.format(
-                work['ticker'],
-                last_close_date.strftime(
-                    ae_consts.COMMON_DATE_FORMAT))
-            work['redis_key'] = '{}_{}'.format(
-                work['ticker'],
-                last_close_date.strftime(
-                    ae_consts.COMMON_DATE_FORMAT))
+            work['s3_key'] = f'''{work["ticker"]}_{last_close_date.strftime(
+                ae_consts.COMMON_DATE_FORMAT)}'''
+            work['redis_key'] = f'''{work["ticker"]}_{last_close_date.strftime(
+                ae_consts.COMMON_DATE_FORMAT)}'''
 
         path_to_tasks = 'analysis_engine.work_tasks'
         task_name = (
@@ -568,8 +560,7 @@ def fetch_new_stock_datasets():
         if ae_consts.is_celery_disabled() or run_offline:
             work['celery_disabled'] = True
             log.debug(
-                f'starting without celery '
-                f'work={ae_consts.ppj(work)} '
+                f'starting without celery work={ae_consts.ppj(work)} '
                 f'offline={run_offline}')
             task_res = task_pricing.get_new_pricing_data(
                 work)
@@ -585,7 +576,7 @@ def fetch_new_stock_datasets():
                     log.error(
                         f'failed fetching ticker={work["ticker"]} '
                         f'from {fetch_mode} - please check the '
-                        f'environment variables')
+                        'environment variables')
                 else:
                     log.info(
                         f'done fetching ticker={work["ticker"]} '
@@ -593,16 +584,16 @@ def fetch_new_stock_datasets():
                         f'status={status_str} '
                         f'err={task_res["err"]} {include_results}')
                     print(
-                        f'View keys in redis with:\n'
+                        'View keys in redis with:\n'
                         f'redis-cli -h {redis_arr[0]} '
-                        f'keys '
+                        'keys '
                         f'"{work["ticker"]}_{cur_date}*"')
             elif task_res['status'] == ae_consts.MISSING_TOKEN:
                 print(
-                    f'Set an IEX or Tradier token: '
-                    f'\n'
-                    f'  export IEX_TOKEN=YOUR_IEX_TOKEN\n'
-                    f'  export TD_TOKEN=YOUR_TD_TOKEN\n')
+                    'Set an IEX or Tradier token: '
+                    '\n'
+                    '  export IEX_TOKEN=YOUR_IEX_TOKEN\n'
+                    '  export TD_TOKEN=YOUR_TD_TOKEN\n')
             else:
                 log.error(
                     f'done fetching ticker={work["ticker"]} '
@@ -625,13 +616,11 @@ def fetch_new_stock_datasets():
                 transport_options=transport_options,
                 include_tasks=include_tasks)
 
-            log.debug(
-                f'calling task={task_name} - work={ae_consts.ppj(work)}')
+            log.debug(f'calling task={task_name} - work={ae_consts.ppj(work)}')
             job_id = app.send_task(
                 task_name,
                 (work,))
-            log.debug(
-                f'task={task_name} - job_id={job_id}')
+            log.debug(f'task={task_name} - job_id={job_id}')
         # end of if/else
     # end of supported modes
 # end of fetch_new_stock_datasets

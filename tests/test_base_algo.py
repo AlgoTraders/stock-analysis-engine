@@ -39,9 +39,7 @@ def mock_write_to_file(
         data):
     print(
         'mock - mock_write_to_file('
-        'output_file={}, data={})'.format(
-            output_file,
-            len(data)))
+        f'output_file={output_file}, data={len(data)})')
     return True
 # end of mock_write_to_file
 
@@ -51,9 +49,7 @@ def mock_write_to_file_failed(
         data):
     print(
         'mock - fail - mock_write_to_file('
-        'output_file={}, data={})'.format(
-            output_file,
-            len(data)))
+        f'output_file={output_file}, data={len(data)})')
     return False
 # end of mock_write_to_file_failed
 
@@ -126,9 +122,7 @@ class TestBaseAlgo(base_test.BaseTestCase):
         self.minute_df = pd.DataFrame([])
         self.options_df = pd.DataFrame([])
         self.use_date = '2018-11-05'
-        self.dataset_id = '{}_{}'.format(
-            self.ticker,
-            self.use_date)
+        self.dataset_id = f'{self.ticker}_{self.use_date}'
         self.datasets = [
             'daily'
         ]
@@ -210,10 +204,7 @@ class TestBaseAlgo(base_test.BaseTestCase):
         show_dataset.show_dataset(
             algo_dataset=cur_algo.loaded_dataset)
         """
-        print(
-            'testing: {} in node={}'.format(
-                self.ticker,
-                loaded_ds))
+        print(f'testing: {self.ticker} in node={loaded_ds}')
         """
         idx = 0
         for ds_node in loaded_ds:
@@ -228,11 +219,8 @@ class TestBaseAlgo(base_test.BaseTestCase):
             for ds_key in expected_datasets:
                 """
                 print(
-                    'checking {} is in cur_algo.load'
-                    'ed_dataset[{}][{}][\'data\']'.format(
-                        ds_key,
-                        self.ticker,
-                        idx))
+                    f'checking {ds_key} is in cur_algo.load'
+                    f'ed_dataset[{self.ticker}][{idx}][\'data\']')
                 """
                 if ds_key not in [
                             'tdcalls',
@@ -333,7 +321,7 @@ class TestBaseAlgo(base_test.BaseTestCase):
             num_owned=expected_prev_shares,  # currently owned shares
             shares=buy_num,  # buy 5 shares for (5 * 280) + 12 = 1412.00
             use_key=use_key,
-            reason='testing {}'.format(use_key))
+            reason=f'testing {use_key}')
         print(ae_consts.ppj(req))
         self.assertEqual(
             ae_consts.get_status(status=req['status']),
@@ -389,7 +377,7 @@ class TestBaseAlgo(base_test.BaseTestCase):
             num_owned=expected_prev_shares,  # currently owned shares
             shares=buy_num,  # buy 5 shares for (5 * 280) + 12 = 1412.00
             use_key=use_key,
-            reason='testing {}'.format(use_key))
+            reason=f'testing {use_key}')
         print(ae_consts.ppj(req))
         self.assertEqual(
             ae_consts.get_status(status=req['status']),
@@ -445,7 +433,7 @@ class TestBaseAlgo(base_test.BaseTestCase):
             num_owned=expected_prev_shares,
             shares=sell_num,
             use_key=use_key,
-            reason='testing {}'.format(use_key))
+            reason=f'testing {use_key}')
         print(ae_consts.ppj(req))
         self.assertEqual(
             ae_consts.get_status(status=req['status']),
@@ -501,7 +489,7 @@ class TestBaseAlgo(base_test.BaseTestCase):
             num_owned=expected_prev_shares,
             shares=sell_num,
             use_key=use_key,
-            reason='testing {}'.format(use_key))
+            reason=f'testing {use_key}')
         print(ae_consts.ppj(req))
         self.assertEqual(
             ae_consts.get_status(status=req['status']),
@@ -557,7 +545,7 @@ class TestBaseAlgo(base_test.BaseTestCase):
             num_owned=expected_prev_shares,
             shares=sell_num,
             use_key=use_key,
-            reason='testing {}'.format(use_key))
+            reason=f'testing {use_key}')
         print(ae_consts.ppj(req))
         self.assertEqual(
             ae_consts.get_status(status=req['status']),
@@ -695,7 +683,7 @@ class TestBaseAlgo(base_test.BaseTestCase):
             config_dict=config_dict,
             timeseries=self.timeseries,
             trade_strategy=self.trade_strategy,
-            name='test-{}'.format(ticker))
+            name=f'test-{ticker}')
         self.assertEqual(
             demo_algo.latest_high,
             config_dict['latest_high'])
@@ -734,11 +722,9 @@ class TestBaseAlgo(base_test.BaseTestCase):
             commission=6.00,
             timeseries=self.timeseries,
             trade_strategy=self.trade_strategy,
-            name='test-{}'.format(ticker))
+            name=f'test-{ticker}')
         date = '2018-11-05'
-        dataset_id = '{}_{}'.format(
-            ticker,
-            date)
+        dataset_id = f'{ticker}_{date}'
 
         # mock the data pipeline in redis:
         data = {
@@ -1053,14 +1039,11 @@ class TestBaseAlgo(base_test.BaseTestCase):
         self.assertEqual(
             algo.tickers,
             [self.ticker])
-        output_file = '/opt/sa/tests/datasets/algo/{}.json'.format(
-            test_name)
+        output_file = f'/opt/sa/tests/datasets/algo/{test_name}.json'
         redis_enabled = False
-        redis_key = '{}'.format(
-            test_name)
+        redis_key = f'{test_name}'
         s3_enabled = False
-        s3_key = '{}.json'.format(
-            test_name)
+        s3_key = f'{test_name}.json'
         compress = True
         slack_enabled = False
         slack_code_block = True
@@ -1125,14 +1108,11 @@ class TestBaseAlgo(base_test.BaseTestCase):
         self.assertEqual(
             algo.tickers,
             [self.ticker])
-        output_file = './tests/datasets/algo/{}.json'.format(
-            test_name)
+        output_file = f'./tests/datasets/algo/{test_name}.json'
         redis_enabled = True
-        redis_key = '{}'.format(
-            test_name)
+        redis_key = f'{test_name}'
         s3_enabled = True
-        s3_key = '{}.json'.format(
-            test_name)
+        s3_key = f'{test_name}.json'
         compress = True
         slack_enabled = True
         slack_code_block = True
@@ -1197,14 +1177,11 @@ class TestBaseAlgo(base_test.BaseTestCase):
         self.assertEqual(
             algo.tickers,
             [self.ticker])
-        output_file = './tests/datasets/algo/{}.json'.format(
-            test_name)
+        output_file = f'./tests/datasets/algo/{test_name}.json'
         redis_enabled = True
-        redis_key = '{}'.format(
-            test_name)
+        redis_key = f'{test_name}'
         s3_enabled = True
-        s3_key = '{}.json'.format(
-            test_name)
+        s3_key = f'{test_name}.json'
         compress = True
         slack_enabled = True
         slack_code_block = True
@@ -1272,14 +1249,11 @@ class TestBaseAlgo(base_test.BaseTestCase):
         self.assertEqual(
             algo.tickers,
             [self.ticker])
-        output_file = './tests/datasets/algo/{}.json'.format(
-            test_name)
+        output_file = f'./tests/datasets/algo/{test_name}.json'
         redis_enabled = True
-        redis_key = '{}'.format(
-            test_name)
+        redis_key = f'{test_name}'
         s3_enabled = True
-        s3_key = '{}.json'.format(
-            test_name)
+        s3_key = f'{test_name}.json'
         compress = True
         slack_enabled = True
         slack_code_block = True
@@ -1354,15 +1328,11 @@ class TestBaseAlgo(base_test.BaseTestCase):
             algo.tickers,
             [self.ticker])
         test_should_create_this_file = (
-            './tests/datasets/algo/{}-{}.json'.format(
-                test_name,
-                str(uuid.uuid4())))
+            f'./tests/datasets/algo/{test_name}-{str(uuid.uuid4())}.json')
         redis_enabled = True
-        redis_key = '{}'.format(
-            test_name)
+        redis_key = f'{test_name}'
         s3_enabled = True
-        s3_key = '{}.json'.format(
-            test_name)
+        s3_key = f'{test_name}.json'
         compress = True
         slack_enabled = True
         slack_code_block = True
@@ -1398,9 +1368,7 @@ class TestBaseAlgo(base_test.BaseTestCase):
         test_name = (
             'test_integration_algo_load_from_file')
         test_file_regex = (
-            '{}/test_integration_algo_load_from_file'
-            '*.json'.format(
-                self.output_dir))
+            f'{self.output_dir}/test_integration_algo_load_from_file*.json')
         files = sorted(
             glob.iglob(test_file_regex),
             key=os.path.getctime,
@@ -1408,9 +1376,7 @@ class TestBaseAlgo(base_test.BaseTestCase):
 
         load_config_req = None
         latest_file = (
-            './tests/datasets/algo/{}-{}.json'.format(
-                test_name,
-                str(uuid.uuid4())))
+            f'./tests/datasets/algo/{test_name}-{str(uuid.uuid4())}.json')
         if len(files) == 0:
             algo = base_algo.BaseAlgo(
                 ticker=self.ticker,
@@ -1460,8 +1426,7 @@ class TestBaseAlgo(base_test.BaseTestCase):
             commission=6.0,
             timeseries=self.timeseries,
             trade_strategy=self.trade_strategy,
-            name='load-from-file_{}'.format(
-                test_name),
+            name=f'load-from-file_{test_name}',
             load_config=load_config_req)
 
         print(file_algo.loaded_dataset)
@@ -1501,17 +1466,11 @@ class TestBaseAlgo(base_test.BaseTestCase):
             [self.ticker])
         unique_id = str(uuid.uuid4())
         test_should_create_this_file = (
-            './tests/datasets/algo/{}-{}.json'.format(
-                test_name,
-                unique_id))
+            f'./tests/datasets/algo/{test_name}-{unique_id}.json')
         redis_enabled = True
-        redis_key = '{}:{}'.format(
-            test_name,
-            unique_id)
+        redis_key = f'{test_name}:{unique_id}'
         s3_enabled = True
-        s3_key = '{}-{}.json'.format(
-            test_name,
-            unique_id)
+        s3_key = f'{test_name}-{unique_id}.json'
         compress = True
         slack_enabled = True
         slack_code_block = True
@@ -1609,13 +1568,9 @@ class TestBaseAlgo(base_test.BaseTestCase):
             [self.ticker])
         unique_id = str(uuid.uuid4())
         test_should_create_this_file = (
-            './tests/datasets/algo/{}-{}.json'.format(
-                test_name,
-                unique_id))
+            f'./tests/datasets/algo/{test_name}-{unique_id}.json')
         redis_enabled = True
-        redis_key = '{}:{}'.format(
-            test_name,
-            unique_id)
+        redis_key = f'{test_name}:{unique_id}'
         s3_enabled = True
         s3_key = f'{test_name}-{unique_id}.json'
         compress = True
@@ -1711,17 +1666,11 @@ class TestBaseAlgo(base_test.BaseTestCase):
             [self.ticker])
         unique_id = str(uuid.uuid4())
         test_should_create_this_file = (
-            './tests/datasets/algo/{}-{}.json'.format(
-                test_name,
-                unique_id))
+            f'./tests/datasets/algo/{test_name}-{unique_id}.json')
         redis_enabled = True
-        redis_key = '{}:{}'.format(
-            test_name,
-            unique_id)
+        redis_key = f'{test_name}:{unique_id}'
         s3_enabled = True
-        s3_key = '{}-{}.json'.format(
-            test_name,
-            unique_id)
+        s3_key = f'{test_name}-{unique_id}.json'
         compress = True
         slack_enabled = True
         slack_code_block = True

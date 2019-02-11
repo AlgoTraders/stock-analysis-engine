@@ -126,10 +126,7 @@ def show_dataset(
     use_ds = algo_dataset
     if not use_ds:
         log.info(
-            'loading from file={} s3={} redis={}'.format(
-                path_to_file,
-                s3_key,
-                redis_key))
+            f'loading from file={path_to_file} s3={s3_key} redis={redis_key}')
         use_ds = load_dataset.load_dataset(
             dataset_type=dataset_type,
             compress=compress,
@@ -152,11 +149,8 @@ def show_dataset(
 
         if not use_ds:
             log.error(
-                'unable to load a dataset from file={} '
-                's3={} redis={}'.format(
-                    path_to_file,
-                    s3_key,
-                    redis_key))
+                f'unable to load a dataset from file={path_to_file} '
+                f's3={s3_key} redis={redis_key}')
             return None
     # load if not created
 
@@ -208,16 +202,14 @@ def show_dataset(
                 if ds_key == 'data':
                     show_first[ds_key] = {}
                     for ds_name in first_node[ds_key]:
-                        print(
-                            'first_node has dataset with name: {}'.format(
-                                ds_name))
+                        print(f'first_node has dataset with name: {ds_name}')
                         show_first[ds_key][ds_name] = 'EMPTY_DF'
                         if hasattr(
                                 first_node[ds_key][ds_name],
                                 'index'):
                             show_first[ds_key][ds_name] = (
-                                'pd.DataFrame() rows={}'.format(
-                                    len(first_node[ds_key][ds_name].index)))
+                                'pd.DataFrame() rows='
+                                f'{len(first_node[ds_key][ds_name].index)}')
                 else:
                     show_first[ds_key] = first_node[ds_key]
             print('')
@@ -238,15 +230,12 @@ def show_dataset(
                                     cur_node[ds_key][ds_name],
                                     'index'):
                                 show_node[ds_key][ds_name] = (
-                                    'pd.DataFrame() rows={}'.format(
-                                        len(cur_node[ds_key][ds_name].index)))
+                                    'pd.DataFrame() rows='
+                                    f'{len(cur_node[ds_key][ds_name].index)}')
                     else:
                         show_node[ds_key] = cur_node[ds_key]
                 # end of show cur_node
-                print(
-                    'node={}/{} values:'.format(
-                        cur_cell,
-                        num_records))
+                print(f'node={cur_cell}/{num_records} values:')
                 print(ae_consts.ppj(show_node))
                 print('')
                 cur_cell += 1
@@ -258,14 +247,10 @@ def show_dataset(
                 print('missing last node in dataset')
         if len(all_dates) > 0:
             print(
-                'root_keys={} from {} to {}'.format(
-                    root_keys,
-                    all_dates[0],
-                    all_dates[-1]))
+                f'root_keys={root_keys} from {all_dates[0]} '
+                f'to {all_dates[-1]}')
         else:
-            print(
-                'root_keys={} missing dates'.format(
-                    root_keys))
+            print(f'root_keys={root_keys} missing dates')
 
         print('-----------------------------------')
 

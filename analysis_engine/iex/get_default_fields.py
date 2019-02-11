@@ -35,8 +35,7 @@ def get_default_fields(
         return ['KEY']
     else:
         log.error(
-            'get_default_fields({}) is not a supported '
-            'field'.format(
-                field))
-        raise NotImplemented
+            f'get_default_fields({field}) is not a supported '
+            'field')
+        raise NotImplementedError
 # end of get_default_fields

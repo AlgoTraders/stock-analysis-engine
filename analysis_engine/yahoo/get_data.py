@@ -36,11 +36,7 @@ def get_data_from_yahoo(
     """
     label = 'get_data_from_yahoo'
 
-    log.info(
-        'task - {} - start '
-        'work_dict={}'.format(
-            label,
-            work_dict))
+    log.info(f'task - {label} - start work_dict={work_dict}')
 
     num_news_rec = 0
     num_option_calls = 0
@@ -118,10 +114,7 @@ def get_data_from_yahoo(
 
         """
         if get_pricing:
-            log.info(
-                '{} getting ticker={} pricing'.format(
-                    label,
-                    ticker))
+            log.info(f'{label} getting ticker={ticker} pricing')
             ticker_results.get_quotes()
             if ticker_results.quotes_data:
                 pricing_dict = ticker_results.quotes_data
@@ -159,70 +152,45 @@ def get_data_from_yahoo(
                                 COMMON_TICK_DATE_FORMAT)
 
                 log.info(
-                    '{} ticker={} converting pricing to '
-                    'df orient={}'.format(
-                        label,
-                        ticker,
-                        orient))
+                    f'{label} ticker={ticker} converting pricing to '
+                    f'df orient={orient}')
 
                 try:
                     rec['pricing'] = pricing_dict
                 except Exception as f:
                     rec['pricing'] = '{}'
                     log.info(
-                        '{} ticker={} failed converting pricing '
-                        'data={} to df ex={}'.format(
-                            label,
-                            ticker,
-                            ppj(pricing_dict),
-                            f))
+                        f'{label} ticker={ticker} failed converting pricing '
+                        f'data={ppj(pricing_dict)} to df ex={f}')
                 # try/ex
 
                 log.info(
-                    '{} ticker={} done converting pricing to '
-                    'df orient={}'.format(
-                        label,
-                        ticker,
-                        orient))
+                    f'{label} ticker={ticker} done converting pricing to '
+                    f'df orient={orient}')
 
             else:
                 log.error(
-                    '{} ticker={} missing quotes_data={}'.format(
-                        label,
-                        ticker,
-                        ticker_results.quotes_data))
+                    f'{label} ticker={ticker} '
+                    f'missing quotes_data={ticker_results.quotes_data}')
             # end of if ticker_results.quotes_data
 
             log.info(
-                '{} ticker={} close={} vol={}'.format(
-                    label,
-                    ticker,
-                    cur_close,
-                    cur_volume))
+                f'{label} ticker={ticker} close={cur_close} vol={cur_volume}')
         else:
-            log.info(
-                '{} skip - getting ticker={} pricing'.format(
-                    label,
-                    ticker,
-                    get_pricing))
+            log.info(f'{label} skip - getting ticker={ticker} pricing')
         # if get_pricing
 
         if get_news:
             log.info(
-                '{} getting ticker={} news'.format(
-                    label,
-                    ticker))
+                f'{label} getting ticker={ticker} news')
             ticker_results.get_news()
             if ticker_results.news_data:
                 news_list = None
                 try:
                     news_list = ticker_results.news_data
                     log.info(
-                        '{} ticker={} converting news to '
-                        'df orient={}'.format(
-                            label,
-                            ticker,
-                            orient))
+                        f'{label} ticker={ticker} converting news to '
+                        f'df orient={orient}')
 
                     num_news_rec = len(news_list)
 
@@ -230,32 +198,21 @@ def get_data_from_yahoo(
                 except Exception as f:
                     rec['news'] = '{}'
                     log.info(
-                        '{} ticker={} failed converting news '
-                        'data={} to df ex={}'.format(
-                            label,
-                            ticker,
-                            news_list,
-                            f))
+                        f'{label} ticker={ticker} failed converting news '
+                        f'data={news_list} to df ex={f}')
                 # try/ex
 
                 log.info(
-                    '{} ticker={} done converting news to '
-                    'df orient={}'.format(
-                        label,
-                        ticker,
-                        orient))
+                    f'{label} ticker={ticker} done converting news to '
+                    f'df orient={orient}')
             else:
                 log.info(
-                    '{} ticker={} Yahoo NO news={}'.format(
-                        label,
-                        ticker,
-                        ticker_results.news_data))
+                    f'{label} ticker={ticker} Yahoo NO '
+                    f'news={ticker_results.news_data}')
             # end of if ticker_results.news_data
         else:
             log.info(
-                '{} skip - getting ticker={} news'.format(
-                    label,
-                    ticker))
+                f'{label} skip - getting ticker={ticker} news')
         # end if get_news
 
         if get_options:
@@ -270,15 +227,9 @@ def get_data_from_yahoo(
                     cur_strike = 287
 
             log.info(
-                '{} ticker={} num_news={} get options close={} '
-                'exp_date={} contract={} strike={}'.format(
-                    label,
-                    ticker,
-                    num_news_rec,
-                    cur_close,
-                    use_date,
-                    contract_type,
-                    cur_strike))
+                f'{label} ticker={ticker} num_news={num_news_rec} get options '
+                f'close={cur_close} exp_date={use_date} '
+                f'contract={contract_type} strike={cur_strike}')
 
             options_dict = \
                 yahoo_get_pricing.get_options(
@@ -291,11 +242,8 @@ def get_data_from_yahoo(
 
             try:
                 log.info(
-                    '{} ticker={} converting options to '
-                    'df orient={}'.format(
-                        label,
-                        ticker,
-                        orient))
+                    f'{label} ticker={ticker} converting options to '
+                    f'df orient={orient}')
 
                 num_option_calls = options_dict.get(
                     'num_calls',
@@ -325,39 +273,24 @@ def get_data_from_yahoo(
             except Exception as f:
                 rec['options'] = '{}'
                 log.info(
-                    '{} ticker={} failed converting options '
-                    'data={} to df ex={}'.format(
-                        label,
-                        ticker,
-                        options_dict,
-                        f))
+                    f'{label} ticker={ticker} failed converting options '
+                    f'data={options_dict} to df ex={f}')
             # try/ex
 
             log.info(
-                '{} ticker={} done converting options to '
-                'df orient={} num_calls={} num_puts={}'.format(
-                    label,
-                    ticker,
-                    orient,
-                    num_option_calls,
-                    num_option_puts))
+                f'{label} ticker={ticker} done converting options to '
+                f'df orient={orient} num_calls={num_option_calls} '
+                f'num_puts={num_option_puts}')
 
         else:
             log.info(
-                '{} skip - getting ticker={} options'.format(
-                    label,
-                    ticker))
+                f'{label} skip - getting ticker={ticker} options')
         # end of if get_options
 
         log.info(
-            '{} yahoo pricing for ticker={} close={} '
-            'num_calls={} num_puts={} news={}'.format(
-                label,
-                ticker,
-                cur_close,
-                num_option_calls,
-                num_option_puts,
-                num_news_rec))
+            f'{label} yahoo pricing for ticker={ticker} close={cur_close} '
+            f'num_calls={num_option_calls} num_puts={num_option_puts} '
+            f'news={num_news_rec}')
 
         fields_to_upload = [
             'pricing',
@@ -375,21 +308,13 @@ def get_data_from_yahoo(
                 upload_and_cache_req['data'] = '{}'
 
             if 'redis_key' in work_dict:
-                upload_and_cache_req['redis_key'] = '{}_{}'.format(
-                    work_dict.get(
+                upload_and_cache_req['redis_key'] = f'''{work_dict.get(
                         'redis_key',
-                        '{}_{}'.format(
-                            ticker,
-                            field_name)),
-                    field_name)
+                        f'{ticker}_{field_name}')}_{field_name}'''
             if 's3_key' in work_dict:
-                upload_and_cache_req['s3_key'] = '{}_{}'.format(
-                    work_dict.get(
+                upload_and_cache_req['s3_key'] = f'''{work_dict.get(
                         's3_key',
-                        '{}_{}'.format(
-                            ticker,
-                            field_name)),
-                    field_name)
+                        f'{ticker}_{field_name}')}_{field_name}'''
             try:
                 update_res = publisher.run_publish_pricing_update(
                     work_dict=upload_and_cache_req)
@@ -397,27 +322,21 @@ def get_data_from_yahoo(
                     'status',
                     NOT_SET)
                 log.info(
-                    '{} publish update status={} data={}'.format(
-                        label,
-                        get_status(status=update_status),
-                        update_res))
-            except Exception as f:
+                    f'{label} publish update '
+                    f'status={get_status(status=update_status)} '
+                    f'data={update_res}')
+            except Exception:
                 err = (
-                    '{} - failed to upload YAHOO data={} to '
-                    'to s3_key={} and redis_key={}'.format(
-                        label,
-                        upload_and_cache_req,
-                        upload_and_cache_req['s3_key'],
-                        upload_and_cache_req['redis_key']))
+                    f'{label} - failed to upload YAHOO '
+                    f'data={upload_and_cache_req} to '
+                    f's3_key={upload_and_cache_req["s3_key"]} and '
+                    f'redis_key={upload_and_cache_req["redis_key"]}')
                 log.error(err)
             # end of try/ex to upload and cache
             if not rec[field_name]:
                 log.debug(
-                    '{} - ticker={} no data from YAHOO for '
-                    'field_name={}'.format(
-                        label,
-                        ticker,
-                        field_name))
+                    f'{label} - ticker={ticker} no data from YAHOO for '
+                    f'field_name={field_name}')
         # end of for all fields
 
         res = build_result.build_result(
@@ -429,21 +348,14 @@ def get_data_from_yahoo(
             status=ERR,
             err=(
                 'failed - get_data_from_yahoo '
-                'dict={} with ex={}').format(
-                    work_dict,
-                    e),
+                f'dict={work_dict} with ex={e}'),
             rec=rec)
-        log.error(
-            '{} - {}'.format(
-                label,
-                res['err']))
+        log.error(f'{label} - {res["err"]}')
     # end of try/ex
 
     log.info(
         'task - get_data_from_yahoo done - '
-        '{} - status={}'.format(
-            label,
-            get_status(res['status'])))
+        f'{label} - status={get_status(res["status"])}')
 
     return res
 # end of get_data_from_yahoo

@@ -51,9 +51,8 @@ def load_indicator_from_module(
     # this allows building multiple indicator objects
     # that use the same filename but in different
     # locations on disk
-    use_module_name = '{}_{}'.format(
-        module_name,
-        str(uuid.uuid4())[0:8].replace('-', ''))
+    use_module_name = (
+        f'{module_name}_{str(uuid.uuid4())[0:8].replace("-", "")}')
 
     use_log_label = log_label
     if not use_log_label:
@@ -75,12 +74,10 @@ def load_indicator_from_module(
 
     if not os.path.exists(path_to_module):
         raise Exception(
-            '{} - did not find Indicator module at path={} '
-            'please confirm the file exists on disk and '
-            'if you are using a container, confirm it is '
-            'accessible within the container'.format(
-                use_module_name,
-                path_to_module))
+            f'{use_module_name} - did not find Indicator module at '
+            f'path={path_to_module} please confirm the file exists on disk '
+            'and if you are using a container, confirm it is '
+            'accessible within the container')
 
     loader = importlib.machinery.SourceFileLoader(
         use_module_name,
@@ -101,31 +98,25 @@ def load_indicator_from_module(
 
     if not found_base_object:
         raise Exception(
-            '{} load_indicator_from_module error - '
-            'did not find Indicator with base class={} from module '
-            'at path={} - please confirm '
+            f'{use_module_name} load_indicator_from_module error - '
+            f'did not find Indicator with base class={base_class_module_name} '
+            f'from module at path={path_to_module} - please confirm '
             'the file has just one class that '
             'inherits from the base Indicator class: '
             'analysis_engine.indicators.base_indicator.BaseIndicator '
-            'and try again'.format(
-                use_module_name,
-                base_class_module_name,
-                path_to_module))
+            'and try again')
 
         err = (
-            '{} load_indicator_from_module error - '
-            'unable to find custom indicator derived from module={} '
-            'at file path={}'.format(
-                use_module_name,
-                base_class_module_name,
-                path_to_module))
+            f'{use_module_name} load_indicator_from_module error - '
+            'unable to find custom indicator derived from '
+            f'module={base_class_module_name} at file path={path_to_module}')
         if path_to_module:
             err = (
-                '{} load_indicator_from_module error - '
+                f'{use_module_name} load_indicator_from_module error - '
                 'analysis_engine.indicators.base_indicator.BaseIndicator '
-                'was unable to find custom Indicator module={} '
-                'with provided path to \n '
-                'file: {} \n'
+                'was unable to find custom Indicator '
+                f'module={custom_indicator_module} with provided path to \n '
+                f'file: {path_to_module} \n'
                 '\n'
                 'Please confirm '
                 'that the class inherits from the BaseIndicator '
@@ -138,33 +129,24 @@ def load_indicator_from_module(
                 'If it is then please file an issue on github:\n '
                 'https://github.com/AlgoTraders/stock-analysis-engine/'
                 'issues/new \n\nFor now this error results in a shutdown'
-                '\n'.format(
-                    use_module_name,
-                    custom_indicator_module,
-                    path_to_module))
+                '\n')
         log.error(err)
         raise Exception(err)
     # end of if did not find the module with the correct Base Class
 
     if ind_dict.get('verbose', False):
         log.info(
-            'load - custom indicator module={} '
-            'from file={} member={}'.format(
-                use_module_name,
-                path_to_module,
-                class_member_in_module))
+            f'load - custom indicator module={use_module_name} '
+            f'from file={path_to_module} member={class_member_in_module}')
     ind = class_member_in_module[1](
         config_dict=ind_dict,
         name=use_log_label,
         path_to_module=path_to_module)
     if ind_dict.get('verbose', False):
         log.info(
-            'ready - custom indicator={} from module={} '
-            'from file={} member={}'.format(
-                ind.__class__.__name__,
-                use_module_name,
-                path_to_module,
-                class_member_in_module))
+            f'ready - custom indicator={ind.__class__.__name__} from '
+            f'module={use_module_name} from file={path_to_module} '
+            f'member={class_member_in_module}')
 
     return ind
 # end of load_indicator_from_module

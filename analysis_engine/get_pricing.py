@@ -36,17 +36,12 @@ def create_url(
     srv = random.randrange(1, 3, 1)
     if exp_date_str:
         return (
-            'https://query{}.finance.yahoo.com/v7/'
-            'finance/options/{}?&date={}').format(
-                srv,
-                ticker,
-                exp_date_str)
+            f'https://query{srv}.finance.yahoo.com/v7/'
+            f'finance/options/{ticker}?&date={exp_date_str}')
     else:
         return (
-            'https://query{}.finance.yahoo.com/v7/'
-            'finance/options/{}').format(
-                srv,
-                ticker)
+            f'https://query{srv}.finance.yahoo.com/v7/'
+            f'finance/options/{ticker}')
 # end of create_url
 
 
@@ -108,10 +103,7 @@ def extract_options_data(
     :param strike: strike price
     """
     if strike:
-        log.debug(
-            'getting contract={} strike={}'.format(
-                contract_type,
-                strike))
+        log.debug(f'getting contract={contract_type} strike={strike}')
         if contract_type == 'C':
             calls = response['optionChain']['result'][0]['options'][0]['calls']
             for call in calls:
@@ -149,10 +141,7 @@ def get_quotes(
         quotes_data = response['optionChain']['result'][0]['quote']
         return quotes_data
     except Exception as e:
-        log.error(
-            'failed get_quotes(ticker={}) with ex={}'.format(
-                ticker,
-                e))
+        log.error(f'failed get_quotes(ticker={ticker}) with ex={e}')
         return []
 # end of get_quotes
 
@@ -173,12 +162,8 @@ def get_options(
                           is ignored
     """
     log.info(
-        'get_options ticker={} '
-        'contract={} exp_date={} strike={}'.format(
-            ticker,
-            contract_type,
-            exp_date_str,
-            strike))
+        f'get_options ticker={ticker} contract={contract_type} '
+        f'exp_date={exp_date_str} strike={strike}')
 
     response = make_request(
         ticker=ticker,
@@ -219,14 +204,9 @@ def get_options(
     except Exception as e:
         log.error(
             'failed get_options('
-            'ticker={}, '
-            'contract_type={}, '
-            'exp_date_str={}, '
-            'strike={}) with ex={}'.format(
-                ticker,
-                contract_type,
-                exp_date_str,
-                strike,
-                e))
+            f'ticker={ticker}, '
+            f'contract_type={contract_type}, '
+            f'exp_date_str={exp_date_str}, '
+            f'strike={strike}) with ex={e}')
         return []
 # end of get_options

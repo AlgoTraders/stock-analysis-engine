@@ -71,9 +71,7 @@ def handle_pricing_update_task(
 
     label = 'update_prices'
 
-    log.info(
-        'task - {} - start'.format(
-            label))
+    log.info(f'task - {label} - start')
 
     ticker = ae_consts.TICKER
     ticker_id = 1
@@ -129,34 +127,19 @@ def handle_pricing_update_task(
 
         pricing_s3_key = work_dict.get(
             'pricing_s3_key',
-            'pricing_ticker_{}_id_{}_date_{}'.format(
-                ticker,
-                ticker_id,
-                cur_date_str))
+            f'pricing_ticker_{ticker}_id_{ticker_id}_date_{cur_date_str}')
         news_s3_key = work_dict.get(
             'news_s3_key',
-            'news_ticker_{}_id_{}_date_{}'.format(
-                ticker,
-                ticker_id,
-                cur_date_str))
+            f'news_ticker_{ticker}_id_{ticker_id}_date_{cur_date_str}')
         options_s3_key = work_dict.get(
             'options_s3_key',
-            'options_ticker_{}_id_{}_date_{}'.format(
-                ticker,
-                ticker_id,
-                cur_date_str))
+            f'options_ticker_{ticker}_id_{ticker_id}_date_{cur_date_str}')
         calls_s3_key = work_dict.get(
             'calls_s3_key',
-            'calls_ticker_{}_id_{}_date_{}'.format(
-                ticker,
-                ticker_id,
-                cur_date_str))
+            f'calls_ticker_{ticker}_id_{ticker_id}_date_{cur_date_str}')
         puts_s3_key = work_dict.get(
             'puts_s3_key',
-            'puts_ticker_{}_id_{}_date_{}'.format(
-                ticker,
-                ticker_id,
-                cur_date_str))
+            f'puts_ticker_{ticker}_id_{ticker_id}_date_{cur_date_str}')
 
         pricing_s3_bucket = work_dict.get(
             'pricing_s3_bucket',
@@ -170,24 +153,19 @@ def handle_pricing_update_task(
 
         pricing_by_ticker_redis_key = work_dict.get(
             'pricing_redis_key',
-            'price_{}'.format(
-                ticker))
+            f'price_{ticker}')
         news_by_ticker_redis_key = work_dict.get(
             'news_redis_key',
-            'news_{}'.format(
-                ticker))
+            f'news_{ticker}')
         options_by_ticker_redis_key = work_dict.get(
             'options_redis_key',
-            'options_{}'.format(
-                ticker))
+            f'options_{ticker}')
         calls_by_ticker_redis_key = work_dict.get(
             'calls_redis_key',
-            'calls_{}'.format(
-                ticker))
+            f'calls_{ticker}')
         puts_by_ticker_redis_key = work_dict.get(
             'puts_redis_key',
-            'puts_{}'.format(
-                ticker))
+            f'puts_{ticker}')
 
         pricing_size = len(str(
             pricing_data))
@@ -271,36 +249,21 @@ def handle_pricing_update_task(
         total_payloads = len(payloads_to_publish)
 
         log.info(
-            '{} ticker={} processing payloads={}'.format(
-                label,
-                ticker,
-                total_payloads))
+            f'{label} ticker={ticker} processing payloads={total_payloads}')
 
         for ridx, r in enumerate(payloads_to_publish):
             log.info(
-                '{} ticker={} update={}/{} key={} redis_key={}'.format(
-                    label,
-                    ticker,
-                    ridx,
-                    total_payloads,
-                    r['s3_key'],
-                    r['redis_key']))
+                f'{label} ticker={ticker} update={ridx}/{total_payloads} '
+                f'key={r["s3_key"]} redis_key={r["redis_key"]}')
             r['celery_disabled'] = False
-            r['label'] = 'handle_pricing_update_task-{}'.format(
-                label)
+            r['label'] = f'handle_pricing_update_task-{label}'
             payload_res = \
                 publisher.task_publish_pricing_update(
                     work_dict=r)
             log.info(
-                '{} ticker={} update={}/{} status={} '
-                's3_key={} redis_key={}'.format(
-                    label,
-                    ticker,
-                    ridx,
-                    total_payloads,
-                    ae_consts.get_status(status=payload_res['status']),
-                    r['s3_key'],
-                    r['redis_key']))
+                f'{label} ticker={ticker} update={ridx}/{total_payloads} '
+                f'status={ae_consts.get_status(status=payload_res["status"])} '
+                f's3_key={r["s3_key"]} redis_key={r["redis_key"]}')
         # end of for all payloads to publish
 
         res = build_result.build_result(
@@ -313,21 +276,14 @@ def handle_pricing_update_task(
             status=ae_consts.ERR,
             err=(
                 'failed - handle_pricing_update_task '
-                'dict={} with ex={}').format(
-                    work_dict,
-                    e),
+                f'dict={work_dict} with ex={e}'),
             rec=rec)
-        log.error(
-            '{} - {}'.format(
-                label,
-                res['err']))
+        log.error(f'{label} - {res["err"]}')
     # end of try/ex
 
     log.info(
         'task - handle_pricing_update_task done - '
-        '{} - status={}'.format(
-            label,
-            ae_consts.get_status(res['status'])))
+        f'{label} - status={ae_consts.get_status(res["status"])}')
 
     return get_task_results.get_task_results(
         work_dict=work_dict,
@@ -348,9 +304,7 @@ def run_handle_pricing_update_task(
         'label',
         '')
 
-    log.info(
-        'run_handle_pricing_update_task - {} - start'.format(
-            label))
+    log.info(f'run_handle_pricing_update_task - {label} - start')
 
     response = build_result.build_result(
         status=ae_consts.NOT_RUN,
@@ -359,12 +313,9 @@ def run_handle_pricing_update_task(
     task_res = {}
 
     log.info(
-        'run_handle_pricing_update_task - {} - done '
-        'status={} err={} rec={}'.format(
-            label,
-            ae_consts.get_status(response['status']),
-            response['err'],
-            response['rec']))
+        f'run_handle_pricing_update_task - {label} - done '
+        f'status={ae_consts.get_status(response["status"])} '
+        f'err={response["err"]} rec={response["rec"]}')
 
     # allow running without celery
     if ae_consts.is_celery_disabled(
@@ -383,16 +334,12 @@ def run_handle_pricing_update_task(
                 except Exception:
                     response_details = response
                 log.info(
-                    '{} handle_pricing_update_task '
-                    'task result={}'.format(
-                        label,
-                        response_details))
+                    f'{label} handle_pricing_update_task '
+                    f'task result={response_details}')
         else:
             log.error(
-                '{} celery was disabled but the task={} '
-                'did not return anything'.format(
-                    label,
-                    response))
+                f'{label} celery was disabled but the task={response} '
+                'did not return anything')
         # end of if response
     else:
         task_res = handle_pricing_update_task.delay(
@@ -409,24 +356,18 @@ def run_handle_pricing_update_task(
     if response:
         if ae_consts.ev('DEBUG_RESULTS', '0') == '1':
             log.info(
-                'run_handle_pricing_update_task - {} - done '
-                'status={} err={} rec={}'.format(
-                    label,
-                    ae_consts.get_status(response['status']),
-                    response['err'],
-                    response['rec']))
+                f'run_handle_pricing_update_task - {label} - done '
+                f'status={ae_consts.get_status(response["status"])} '
+                f'err={response["err"]} rec={response["rec"]}')
         else:
             log.info(
-                'run_handle_pricing_update_task - {} - done '
-                'status={} err={}'.format(
-                    label,
-                    ae_consts.get_status(response['status']),
-                    response['err']))
+                f'run_handle_pricing_update_task - {label} - done '
+                f'status={ae_consts.get_status(response["status"])} '
+                f'err={response["err"]}')
     else:
         log.info(
-            'run_handle_pricing_update_task - {} - done '
-            'no response'.format(
-                label))
+            f'run_handle_pricing_update_task - {label} - done '
+            'no response')
     # end of if/else response
 
     return response

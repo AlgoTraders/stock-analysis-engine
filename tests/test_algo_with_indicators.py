@@ -28,9 +28,7 @@ def mock_write_to_file(
         data):
     print(
         'mock - mock_write_to_file('
-        'output_file={}, data={})'.format(
-            output_file,
-            len(data)))
+        f'output_file={output_file}, data={len(data)})')
     return True
 # end of mock_write_to_file
 
@@ -40,9 +38,7 @@ def mock_write_to_file_failed(
         data):
     print(
         'mock - fail - mock_write_to_file('
-        'output_file={}, data={})'.format(
-            output_file,
-            len(data)))
+        f'output_file={output_file}, data={len(data)})')
     return False
 # end of mock_write_to_file_failed
 
@@ -71,9 +67,7 @@ class TestAlgoWithIndicators(base_test.BaseTestCase):
         self.minute_df = pd.DataFrame([])
         self.options_df = pd.DataFrame([])
         self.use_date = '2018-11-05'
-        self.dataset_id = '{}_{}'.format(
-            self.ticker,
-            self.use_date)
+        self.dataset_id = f'{self.ticker}_{self.use_date}'
         self.datasets = [
             'daily'
         ]

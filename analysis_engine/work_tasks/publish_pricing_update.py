@@ -75,9 +75,7 @@ def publish_pricing_update(
 
     label = 'publish_pricing'
 
-    log.debug(
-        'task - {} - start'.format(
-            label))
+    log.debug(f'task - {label} - start')
 
     ticker = ae_consts.TICKER
     ticker_id = ae_consts.TICKER_ID
@@ -168,18 +166,11 @@ def publish_pricing_update(
                 's3_secure',
                 ae_consts.S3_SECURE) == '1'
 
-            endpoint_url = 'http://{}'.format(
-                service_address)
-            if secure:
-                endpoint_url = 'https://{}'.format(
-                    service_address)
+            endpoint_url = f'http{"s" if secure else ""}://{service_address}'
 
             log.debug(
-                '{} building s3 endpoint_url={} '
-                'region={}'.format(
-                    label,
-                    endpoint_url,
-                    region_name))
+                f'{label} building s3 endpoint_url={endpoint_url} '
+                f'region={region_name}')
 
             s3 = boto3.resource(
                 's3',
@@ -192,53 +183,33 @@ def publish_pricing_update(
             )
 
             try:
-                log.debug(
-                    '{} checking bucket={} exists'.format(
-                        label,
-                        s3_bucket_name))
+                log.debug(f'{label} checking bucket={s3_bucket_name} exists')
                 if s3.Bucket(s3_bucket_name) not in s3.buckets.all():
-                    log.debug(
-                        '{} creating bucket={}'.format(
-                            label,
-                            s3_bucket_name))
+                    log.debug(f'{label} creating bucket={s3_bucket_name}')
                     s3.create_bucket(
                         Bucket=s3_bucket_name)
             except Exception as e:
                 log.debug(
-                    '{} failed creating bucket={} '
-                    'with ex={}'.format(
-                        label,
-                        s3_bucket_name,
-                        e))
+                    f'{label} failed creating bucket={s3_bucket_name} '
+                    f'with ex={e}')
             # end of try/ex for creating bucket
 
             try:
                 log.debug(
-                    '{} uploading to s3={}/{} '
-                    'updated={}'.format(
-                        label,
-                        s3_bucket_name,
-                        s3_key,
-                        updated))
+                    f'{label} uploading to s3={s3_bucket_name}/{s3_key} '
+                    f'updated={updated}')
                 s3.Bucket(s3_bucket_name).put_object(
                     Key=s3_key,
                     Body=json.dumps(data).encode(encoding))
             except Exception as e:
                 log.error(
-                    '{} failed uploading bucket={} '
-                    'key={} ex={}'.format(
-                        label,
-                        s3_bucket_name,
-                        s3_key,
-                        e))
+                    f'{label} failed uploading bucket={s3_bucket_name} '
+                    f'key={s3_key} ex={e}')
             # end of try/ex for creating bucket
         else:
             log.debug(
-                '{} SKIP S3 upload bucket={} '
-                'key={}'.format(
-                    label,
-                    s3_bucket_name,
-                    s3_key))
+                f'{label} SKIP S3 upload bucket={s3_bucket_name} '
+                f'key={s3_key}')
         # end of if enable_s3_upload
 
         if enable_redis_publish:
@@ -260,11 +231,8 @@ def publish_pricing_update(
                     'redis_expire',
                     ae_consts.REDIS_EXPIRE)
             log.debug(
-                'redis enabled address={}@{} '
-                'key={}'.format(
-                    redis_address,
-                    redis_db,
-                    redis_key))
+                f'redis enabled address={redis_address}@{redis_db} '
+                f'key={redis_key}')
             redis_host = None
             redis_port = None
             try:
@@ -272,13 +240,10 @@ def publish_pricing_update(
                 redis_port = redis_address.split(':')[1]
             except Exception as c:
                 err = (
-                    '{} failed parsing redis_address={} '
-                    'with ex={} '
+                    f'{label} failed parsing redis_address={redis_address} '
+                    f'with ex={c} '
                     'please set one with the format: '
-                    '<hostname>:<port>'.format(
-                        label,
-                        redis_address,
-                        c))
+                    '<hostname>:<port>')
                 log.critical(err)
                 res = build_result.build_result(
                     status=ae_consts.ERR,
@@ -289,16 +254,9 @@ def publish_pricing_update(
 
             try:
                 log.debug(
-                    '{} publishing redis={}:{} '
-                    'db={} key={} '
-                    'updated={} expire={}'.format(
-                        label,
-                        redis_host,
-                        redis_port,
-                        redis_db,
-                        redis_key,
-                        updated,
-                        redis_expire))
+                    f'{label} publishing redis={redis_host}:{redis_port} '
+                    f'db={redis_db} key={redis_key} '
+                    f'updated={updated} expire={redis_expire}')
 
                 rc = redis.Redis(
                     host=redis_host,
@@ -315,10 +273,7 @@ def publish_pricing_update(
                 except Exception as p:
                     log.critical(
                         'failed to compress dataset for '
-                        'redis_key={} with ex={}'
-                        ''.format(
-                            redis_key,
-                            p))
+                        f'redis_key={redis_key} with ex={p}')
 
                 redis_set_res = redis_set.set_data_in_redis_key(
                     label=label,
@@ -334,25 +289,17 @@ def publish_pricing_update(
                     xx=False)
 
                 log.debug(
-                    '{} redis_set status={} err={}'.format(
-                        label,
-                        ae_consts.get_status(redis_set_res['status']),
-                        redis_set_res['err']))
+                    f'{label} redis_set '
+                    f'status={ae_consts.get_status(redis_set_res["status"])} '
+                    f'err={redis_set_res["err"]}')
 
             except Exception as e:
                 log.error(
-                    '{} failed - redis publish to '
-                    'key={} ex={}'.format(
-                        label,
-                        redis_key,
-                        e))
+                    f'{label} failed - redis publish to '
+                    f'key={redis_key} ex={e}')
             # end of try/ex for creating bucket
         else:
-            log.debug(
-                '{} SKIP REDIS publish '
-                'key={}'.format(
-                    label,
-                    redis_key))
+            log.debug(f'{label} SKIP REDIS publish key={redis_key}')
         # end of if enable_redis_publish
 
         res = build_result.build_result(
@@ -365,21 +312,15 @@ def publish_pricing_update(
             status=ae_consts.ERR,
             err=(
                 'failed - publish_pricing_update '
-                'dict={} with ex={}').format(
-                    work_dict,
-                    e),
+                f'dict={work_dict} with ex={e}'),
             rec=rec)
         log.error(
-            '{} - {}'.format(
-                label,
-                res['err']))
+            f'{label} - {res["err"]}')
     # end of try/ex
 
     log.debug(
-        'task - publish_pricing_update done - '
-        '{} - status={}'.format(
-            label,
-            ae_consts.get_status(res['status'])))
+        f'task - publish_pricing_update done - {label} - '
+        f'status={ae_consts.get_status(res["status"])}')
 
     return get_task_results.get_task_results(
         work_dict=work_dict,
@@ -400,9 +341,7 @@ def run_publish_pricing_update(
         'label',
         '')
 
-    log.debug(
-        'run_publish_pricing_update - {} - start'.format(
-            label))
+    log.debug(f'run_publish_pricing_update - {label} - start')
 
     response = build_result.build_result(
         status=ae_consts.NOT_RUN,
@@ -426,16 +365,11 @@ def run_publish_pricing_update(
                     response_details = ae_consts.ppj(response)
                 except Exception:
                     response_details = response
-                log.debug(
-                    '{} task result={}'.format(
-                        label,
-                        response_details))
+                log.debug(f'{label} task result={response_details}')
         else:
             log.error(
-                '{} celery was disabled but the task={} '
-                'did not return anything'.format(
-                    label,
-                    response))
+                f'{label} celery was disabled but the task={response} '
+                'did not return anything')
         # end of if response
     else:
         task_res = publish_pricing_update.delay(
@@ -452,24 +386,16 @@ def run_publish_pricing_update(
     if response:
         if ae_consts.ev('DEBUG_RESULTS', '0') == '1':
             log.debug(
-                'run_publish_pricing_update - {} - done '
-                'status={} err={} rec={}'.format(
-                    label,
-                    ae_consts.get_status(response['status']),
-                    response['err'],
-                    response['rec']))
+                f'run_publish_pricing_update - {label} - done '
+                f'status={ae_consts.get_status(response["status"])} '
+                f'err={response["err"]} rec={response["rec"]}')
         else:
             log.debug(
-                'run_publish_pricing_update - {} - done '
-                'status={} err={}'.format(
-                    label,
-                    ae_consts.get_status(response['status']),
-                    response['err']))
+                f'run_publish_pricing_update - {label} - done '
+                f'status={ae_consts.get_status(response["status"])} '
+                f'err={response["err"]}')
     else:
-        log.debug(
-            'run_publish_pricing_update - {} - done '
-            'no response'.format(
-                label))
+        log.debug(f'run_publish_pricing_update - {label} - done no response')
     # end of if/else response
 
     return response

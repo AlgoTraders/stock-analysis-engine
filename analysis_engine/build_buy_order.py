@@ -134,11 +134,9 @@ def build_buy_order(
         use_date = date
 
     log.debug(
-        '{} {} buy {} order={}'.format(
-            ticker,
-            use_date,
-            ae_consts.get_status(status=order_dict['status']),
-            ae_consts.ppj(order_dict)))
+        f'{ticker} {use_date} buy '
+        f'{ae_consts.get_status(status=order_dict["status"])} '
+        f'order={ae_consts.ppj(order_dict)}')
 
     return order_dict
 # end of build_buy_order
