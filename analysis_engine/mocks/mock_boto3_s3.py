@@ -183,7 +183,7 @@ class MockBotoS3AllBuckets:
         """
         if bucket_name not in self.buckets:
             log.info(
-                f'adding bucket={bucket_name} total={len(self.buckets) + 1)}')
+                f'adding bucket={bucket_name} total={len(self.buckets) + 1}')
             self.buckets[bucket_name] = MockBotoS3Bucket(
                 name=bucket_name)
 
