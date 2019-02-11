@@ -299,7 +299,7 @@ class IndicatorNATR(base_indicator.BaseIndicator):
                 f'process end - {first_date} to {end_date} '
                 f'buy_below={self.buy_below_percent} '
                 f'buy_above={self.buy_above_percent} is_buy={self.is_buy} '
-                f'sell_below={elf.sell_below_percent} '
+                f'sell_below={self.sell_below_percent} '
                 f'sell_above={self.sell_above_percent} is_sell={self.is_sell}')
         else:
             self.lg('process end')
