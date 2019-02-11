@@ -2077,6 +2077,14 @@ class BaseAlgo:
                 f'input publish - END - {ae_consts.get_status(status=status)} '
                 f'{self.name} - tickers={self.tickers} file={output_file} '
                 f's3={s3_key} redis={redis_key} size={num_mb}MB')
+        else:
+            status = ae_consts.SUCCESS
+            if self.verbose:
+                log.info(
+                    f'{self.name} - input not publishing for '
+                    f'output_file={output_file} s3_enabled={s3_enabled} '
+                    f'redis_enabled={redis_enabled} '
+                    f'slack_enabled={slack_enabled}')
         # end of handling for publish
 
         return status
