@@ -410,9 +410,13 @@ def get_new_pricing_data(
             status_str = ae_consts.get_status(status=yahoo_res['status'])
             if yahoo_res['status'] == ae_consts.SUCCESS:
                 yahoo_rec = yahoo_res['rec']
-                log.debug(
+                msg = (
                     f'{label} YHO ticker={ticker} '
                     f'status={status_str} err={yahoo_res["err"]}')
+                if ae_consts.ev('SHOW_SUCCESS', '0') == '1':
+                    log.info(msg)
+                else:
+                    log.debug(msg)
                 rec['pricing'] = yahoo_rec.get('pricing', '{}')
                 rec['news'] = yahoo_rec.get('news', '{}')
                 rec['options'] = yahoo_rec.get('options', '{}')
@@ -452,11 +456,15 @@ def get_new_pricing_data(
                     ae_consts.get_status(status=iex_res['status']))
                 if iex_res['status'] == ae_consts.SUCCESS:
                     iex_rec = iex_res['rec']
-                    log.debug(
+                    msg = (
                         f'{label} IEX ticker={ticker} '
                         f'field={dataset_field} '
                         f'status={status_str} '
                         f'err={iex_res["err"]}')
+                    if ae_consts.ev('SHOW_SUCCESS', '0') == '1':
+                        log.info(msg)
+                    else:
+                        log.debug(msg)
                     if dataset_field == 'news':
                         rec['iex_news'] = iex_rec['data']
                     else:
@@ -475,6 +483,7 @@ def get_new_pricing_data(
             num_td_ds = len(td_datasets)
             log.debug(
                 f'{label} TD datasets={num_td_ds}')
+
             for idx, ft_type in enumerate(td_datasets):
                 dataset_field = td_consts.get_ft_str_td(
                     ft_type=ft_type)
@@ -495,11 +504,15 @@ def get_new_pricing_data(
                     ae_consts.get_status(status=td_res['status']))
                 if td_res['status'] == ae_consts.SUCCESS:
                     td_rec = td_res['rec']
-                    log.debug(
+                    msg = (
                         f'{label} TD ticker={ticker} '
                         f'field={dataset_field} '
                         f'status={status_str} '
                         f'err={td_res["err"]}')
+                    if ae_consts.ev('SHOW_SUCCESS', '0') == '1':
+                        log.info(msg)
+                    else:
+                        log.debug(msg)
                     if dataset_field == 'tdcalls':
                         rec['tdcalls'] = td_rec['data']
                     if dataset_field == 'tdputs':

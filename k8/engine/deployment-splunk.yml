@@ -165,7 +165,10 @@ spec:
         # set to "1" to publish Celery task failures to Slack
         - name: PROD_SLACK_ALERTS
           value: "0"
-        # IEX Account Config
+        # show the fetch successes in the logs
+        - name: SHOW_SUCCESS
+          value: "1"
+        # IEX Cloud Account Config
         - name: IEX_TOKEN
           valueFrom:
             secretKeyRef:
