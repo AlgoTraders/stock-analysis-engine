@@ -3413,7 +3413,7 @@ class BaseAlgo:
             # as if the minute was the latest trading time
             # as it iterates minute-by-minute
             self.latest_min = row.get('date', None)
-            if num_rows == 0:
+            if not self.latest_min:
                 log.warn(
                     f'no cached minute data found in cache for {ticker} '
                     f'on: {node_id} rows={num_rows}')
