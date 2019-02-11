@@ -183,13 +183,8 @@ def fetch_data(
                     ],
                     ascending=True)
         else:
-            if 'date' in df and 'strike' in df:
-                df = fetch_df.sort_values(
-                        by=[
-                            'date',
-                            'strike'
-                        ],
-                        ascending=True)
+            log.warn(
+                f'{ticker} - no data found for calls')
         # if able to merge fetch + last for today
     elif (
             use_fetch_name == 'tdputs' or
@@ -301,23 +296,16 @@ def fetch_data(
                     ],
                     ascending=True)
         else:
-            if 'date' in df and 'strike' in df:
-                df = fetch_df.sort_values(
-                        by=[
-                            'date',
-                            'strike'
-                        ],
-                        ascending=True)
+            log.warn(
+                f'{ticker} - no data found for puts')
         # if able to merge fetch + last for today
     else:
         log.error(
-            'label={} - unsupported fetch_data('
-            'work_dict={}, '
-            'fetch_type={}'
-            ')'.format(
-                work_dict.get('label', None),
-                work_dict,
-                fetch_type))
+            f'label={work_dict.get("label", None)} - '
+            f'unsupported fetch_data('
+            f'work_dict={work_dict}, '
+            f'fetch_type={fetch_type}'
+            f')')
         raise NotImplemented
     # end of supported fetchers
 
