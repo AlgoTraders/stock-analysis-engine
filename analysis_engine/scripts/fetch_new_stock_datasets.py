@@ -402,6 +402,14 @@ def fetch_new_stock_datasets():
         dest='celery_enabled',
         action='store_true')
     parser.add_argument(
+        '-F',
+        help=(
+            'optional - backfill date for filling in '
+            'gaps for the IEX Cloud minute dataset '
+            'format is YYYY-MM-DD'),
+        required=False,
+        dest='backfill_date')
+    parser.add_argument(
         '-d',
         help=(
             'debug'),
@@ -441,6 +449,7 @@ def fetch_new_stock_datasets():
     s3_enabled = True
     redis_enabled = True
     analysis_type = None
+    backfill_date = None
     debug = False
 
     if args.ticker:
@@ -496,6 +505,8 @@ def fetch_new_stock_datasets():
         analysis_type = str(args.analysis_type).lower()
     if args.celery_enabled:
         run_offline = False
+    if args.backfill_date:
+        backfill_date = args.backfill_date
     if args.debug:
         debug = True
 
@@ -526,6 +537,7 @@ def fetch_new_stock_datasets():
     work['fetch_mode'] = fetch_mode
     work['analysis_type'] = analysis_type
     work['iex_datasets'] = iex_consts.DEFAULT_FETCH_DATASETS
+    work['backfill_date'] = backfill_date
     work['debug'] = debug
     work['label'] = f'ticker={ticker}'
 
@@ -567,7 +579,9 @@ def fetch_new_stock_datasets():
                 work)
             status_str = ae_consts.get_status(status=task_res['status'])
 
-            cur_date = ae_utils.get_last_close_str()
+            cur_date = backfill_date
+            if not backfill_date:
+                cur_date = ae_utils.get_last_close_str()
             redis_arr = work["redis_address"].split(':')
             include_results = ''
             if debug:

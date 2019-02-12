@@ -10,6 +10,7 @@ Supported environment variables:
 
 """
 
+import os
 import datetime
 import copy
 import analysis_engine.consts as ae_consts
@@ -59,6 +60,7 @@ def get_data_from_iex(
         ft_str = str(ft_type).lower()
         label = work_dict.get('label', label)
         orient = work_dict.get('orient', 'records')
+        backfill_date = work_dict.get('backfill_date', None)
 
         iex_req = None
         if ft_type == iex_consts.FETCH_DAILY or ft_str == 'daily':
@@ -108,7 +110,7 @@ def get_data_from_iex(
             raise NotImplementedError
         # if supported fetch request type
 
-        ticker = iex_req['ticker']
+        iex_req['ticker'] = ticker
         clone_keys = [
             'ticker',
             's3_address',
@@ -121,7 +123,8 @@ def get_data_from_iex(
         ]
 
         for k in clone_keys:
-            iex_req[k] = work_dict.get(k, f'{k}-missing-in-{label}')
+            if k in iex_req:
+                iex_req[k] = work_dict.get(k, f'{k}-missing-in-{label}')
         # end of cloning keys
 
         if not iex_req:
@@ -148,6 +151,20 @@ def get_data_from_iex(
                 iex_req['from'] = datetime.datetime.strptime(
                     '%Y-%m-%d %H:%M:%S',
                     work_dict['from'])
+            if backfill_date:
+                iex_req['backfill_date'] = backfill_date
+                iex_req['redis_key'] = (
+                    f'{ticker}_{backfill_date}_{field}')
+                iex_req['s3_key'] = (
+                    f'{ticker}_{backfill_date}_{field}')
+
+            if os.getenv('SHOW_SUCCESS', '0') == '1':
+                log.info(
+                    f'fetching IEX {field} req={iex_req}')
+            else:
+                log.debug(
+                    f'fetching IEX {field} req={iex_req}')
+
             df = iex_fetch_data.fetch_data(
                 work_dict=iex_req,
                 fetch_type=ft_type)
@@ -181,13 +198,17 @@ def get_data_from_iex(
         if use_field == 'news':
             use_field = 'news1'
         if 'redis_key' in work_dict:
-            upload_and_cache_req['redis_key'] = f'''{work_dict.get(
-                    "redis_key",
-                    iex_req["redis_key"])}_{use_field}'''
+            rk = work_dict.get('redis_key', iex_req['redis_key'])
+            if backfill_date:
+                rk = f'{ticker}_{backfill_date}'
+            upload_and_cache_req['redis_key'] = (
+                f'{rk}_{use_field}')
         if 's3_key' in work_dict:
-            upload_and_cache_req['s3_key'] = f'''{work_dict.get(
-                    's3_key',
-                    iex_req['s3_key'])}_{use_field}'''
+            sk = work_dict.get('s3_key', iex_req['s3_key'])
+            if backfill_date:
+                sk = f'{ticker}_{backfill_date}'
+            upload_and_cache_req['s3_key'] = (
+                f'{sk}_{use_field}')
 
         try:
             update_res = publisher.run_publish_pricing_update(

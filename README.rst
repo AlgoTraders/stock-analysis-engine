@@ -70,6 +70,13 @@ Here is a video showing how to fetch the latest pricing data for a ticker using 
             # and fetch from just Tradier with:
             # fetch -t SPY -g td
 
+        - Fetch previous 30 calendar days of intraday minute pricing data from IEX Cloud
+
+        ::
+
+            backfill-minute-data.sh TICKER
+            # backfill-minute-data.sh SPY
+
     #.  Please refer to `the documentation for more examples on controlling your pricing request usage (including how to run fetches for intraday, daily and weekly use cases) <https://stock-analysis-engine.readthedocs.io/en/latest/scripts.html#module-analysis_engine.scripts.fetch_new_stock_datasets>`__
 
     .. note:: Yahoo `disabled the YQL finance API so fetching pricing data from yahoo is disabled by default <https://developer.yahoo.com/yql/>`__
@@ -608,6 +615,17 @@ Once collected and cached, you can extract datasets:
     d = extract(ticker='SPY')
     for k in d['SPY']:
         print(f'dataset key: {k}\nvalue {d["SPY"][k]}\n')
+
+Backfill Historical Minute Data from IEX Cloud
+==============================================
+
+.. note:: `IEX Cloud supports pulling from 30 days before today <https://iexcloud.io/docs/api/#historical-prices>`__
+
+::
+
+    fetch -t TICKER -F PAST_DATE -g iex_min
+    # example:
+    # fetch -t SPY -F 2019-02-07 -g iex_min
 
 Please refer to the `Stock Analysis Intro Extracting Datasets Jupyter Notebook <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Stock-Analysis-Intro-Extracting-Datasets.ipynb>`__ for the latest usage examples.
 
