@@ -68,7 +68,7 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.7.13',
+    version='1.7.14',
     description=(
         'Backtest 1000s of minute-by-minute '
         'trading algorithms. Automated '
@@ -114,6 +114,7 @@ setup(
         'analysis_engine/scripts/sa.py',
         'analysis_engine/scripts/start_algo.py',
         'analysis_engine/scripts/train_dnn_from_history.py',
+        'tools/backfill-minute-data.sh',
         'tools/logs-dataset-collection.sh',
         'tools/logs-jupyter.sh',
         'tools/logs-workers.sh',

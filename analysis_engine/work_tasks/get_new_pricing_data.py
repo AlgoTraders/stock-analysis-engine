@@ -74,6 +74,7 @@ import celery
 import analysis_engine.consts as ae_consts
 import analysis_engine.utils as ae_utils
 import analysis_engine.iex.consts as iex_consts
+import analysis_engine.iex.get_pricing_on_date as iex_pricing
 import analysis_engine.td.consts as td_consts
 import analysis_engine.build_result as build_result
 import analysis_engine.get_task_results as get_task_results
@@ -190,6 +191,9 @@ def get_new_pricing_data(
             'td_token',
             td_consts.TD_TOKEN)
         str_fetch_mode = str(fetch_mode).lower()
+        backfill_date = work_dict.get(
+            'backfill_date',
+            None)
 
         # control flags to deal with feed issues:
         get_iex_data = True
@@ -443,6 +447,8 @@ def get_new_pricing_data(
                 iex_req['ft_type'] = ft_type
                 iex_req['field'] = dataset_field
                 iex_req['ticker'] = ticker
+                iex_req['backfill_date'] = backfill_date
+
                 iex_res = iex_data.get_data_from_iex(
                     work_dict=iex_req)
 
@@ -450,9 +456,14 @@ def get_new_pricing_data(
                     ae_consts.get_status(status=iex_res['status']))
                 if iex_res['status'] == ae_consts.SUCCESS:
                     iex_rec = iex_res['rec']
+                    rk = f'{redis_key}_{dataset_field}'
+                    if backfill_date:
+                        rk = (
+                            f'{ticker}_{backfill_date}_'
+                            f'{dataset_field}')
                     msg = (
                         f'{label} IEX ticker={ticker} '
-                        f'redis_key={redis_key}_{dataset_field} '
+                        f'redis_key={rk} '
                         f'field={dataset_field} '
                         f'status={status_str} '
                         f'err={iex_res["err"]}')
@@ -476,7 +487,22 @@ def get_new_pricing_data(
 
         if get_td_data:
             num_td_ds = len(td_datasets)
-            log.debug(f'{label} TD datasets={num_td_ds}')
+
+            latest_pricing = None
+            try:
+                latest_pricing = iex_pricing.get_pricing_on_date(
+                    ticker=ticker,
+                    date_str=None,
+                    label=label)
+            except Exception as e:
+                log.critical(
+                    f'failed to get {ticker} iex latest pricing data '
+                    f'with ex={e}')
+            # end of trying to extract the latest pricing data from redis
+
+            log.debug(
+                f'{label} TD datasets={num_td_ds} '
+                f'pricing={latest_pricing}')
 
             for idx, ft_type in enumerate(td_datasets):
                 dataset_field = td_consts.get_ft_str_td(
@@ -491,6 +517,7 @@ def get_new_pricing_data(
                 td_req['ft_type'] = ft_type
                 td_req['field'] = dataset_field
                 td_req['ticker'] = ticker
+                td_req['latest_pricing'] = latest_pricing
                 td_res = td_data.get_data_from_td(
                     work_dict=td_req)
 
@@ -573,6 +600,12 @@ def get_new_pricing_data(
         update_req['label'] = label
         update_req['celery_disabled'] = True
         update_status = ae_consts.NOT_SET
+
+        if backfill_date:
+            update_req['redis_key'] = (
+                f'{ticker}_{backfill_date}')
+            update_req['s3_key'] = (
+                f'{ticker}_{backfill_date}')
 
         try:
             update_res = publisher.run_publish_pricing_update(

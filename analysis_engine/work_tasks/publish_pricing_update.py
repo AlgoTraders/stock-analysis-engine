@@ -149,7 +149,9 @@ def publish_pricing_update(
         rec['s3_enabled'] = enable_s3_upload
         rec['redis_enabled'] = enable_redis_publish
 
-        if enable_s3_upload:
+        if (
+                enable_s3_upload and
+                s3_bucket_name != 'MISSING_AN_S3_BUCKET'):
             access_key = work_dict.get(
                 's3_access_key',
                 ae_consts.S3_ACCESS_KEY)
@@ -265,8 +267,9 @@ def publish_pricing_update(
                     db=redis_db)
 
                 already_compressed = False
+                uses_data = data
                 try:
-                    data = zlib.compress(json.dumps(data).encode(
+                    uses_data = zlib.compress(json.dumps(data).encode(
                         encoding),
                         9)
                     already_compressed = True
@@ -279,7 +282,7 @@ def publish_pricing_update(
                     label=label,
                     client=rc,
                     key=redis_key,
-                    data=data,
+                    data=uses_data,
                     already_compressed=already_compressed,
                     serializer=serializer,
                     encoding=encoding,

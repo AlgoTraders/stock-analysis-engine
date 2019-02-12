@@ -82,6 +82,7 @@ def fetch_daily(
 
 def fetch_minute(
         ticker=None,
+        backfill_date=None,
         work_dict=None,
         scrub_mode='sort-by-date'):
     """fetch_minute
@@ -94,19 +95,23 @@ def fetch_minute(
     :param work_dict: dictionary of args
     :param ticker: optional - ticker string used for
         mostly testing
+    :param backfill_date: optional - date string formatted
+        ``YYYY-MM-DD`` for filling in missing minute data
     :param scrub_mode: type of scrubbing handler to run
     """
     label = None
-    use_date = None
+    use_date = backfill_date
     from_historical_date = None
     last_close_to_use = None
     dates = []
 
     if work_dict:
-        if not ticker:
-            ticker = work_dict.get('ticker', None)
         label = work_dict.get('label', None)
         use_date = work_dict.get('use_date', None)
+        if not ticker:
+            ticker = work_dict.get('ticker', None)
+        if not backfill_date:
+            use_date = work_dict.get('backfill_date', None)
         if 'from_historical_date' in work_dict:
             from_historical_date = work_dict['from_historical_date']
         if 'last_close_to_use' in work_dict:
@@ -120,8 +125,9 @@ def fetch_minute(
         f'/stock/{ticker}/chart/1d')
 
     if use_date:
+        # no - chars in the date
         use_url = (
-            f'/stock/{ticker}/chart/date/{use_date}')
+            f'/stock/{ticker}/chart/date/{use_date.replace("-", "")}')
 
     log.debug(
         f'{label} - minute - url={use_url} '
@@ -135,6 +141,12 @@ def fetch_minute(
         token=iex_consts.IEX_TOKEN)
 
     df = pd.DataFrame(resp_json)
+
+    if 'date' not in df:
+        log.error(
+            f'unable to download IEX Cloud minute '
+            f'data for {ticker} on backfill_date={use_date}')
+        return df
 
     iex_helpers.convert_datetime_columns(
         df=df)
