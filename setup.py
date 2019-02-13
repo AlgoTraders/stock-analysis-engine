@@ -68,7 +68,7 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.8.1',
+    version='1.8.2',
     description=(
         'Backtest 1000s of minute-by-minute '
         'trading algorithms. Automated '
@@ -106,6 +106,7 @@ setup(
     ],
     scripts=[
         'analysis_engine/scripts/aws_backup.py',
+        'analysis_engine/scripts/backtest_with_runner.py',
         'analysis_engine/scripts/fetch_new_stock_datasets.py',
         'analysis_engine/scripts/plot_history_from_local_file.py',
         'analysis_engine/scripts/publish_from_s3_to_redis.py',
