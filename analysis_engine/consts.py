@@ -416,6 +416,14 @@ FETCH_MODE_DAILY = 30005
 FETCH_MODE_WEEKLY = 30006
 FETCH_MODE_INITIAL = 30007
 
+TRADIER_CONVERT_TO_DATETIME = [
+    'date',
+    'created',
+    'ask_date',
+    'bid_date',
+    'trade_date'
+]
+
 # version of python
 IS_PY2 = sys.version[0] == '2'
 NUM_BYTES_IN_AN_MB = 1048576

@@ -148,6 +148,8 @@ import datetime
 import pandas as pd
 import analysis_engine.consts as ae_consts
 import analysis_engine.utils as ae_utils
+import analysis_engine.load_history_dataset as load_history_utils
+import analysis_engine.get_data_from_redis_key as redis_get
 import analysis_engine.indicators.indicator_processor as ind_processor
 import analysis_engine.build_trade_history_entry as history_utils
 import analysis_engine.plot_trading_history as plot_trading_history
@@ -304,6 +306,10 @@ class BaseAlgo:
             verbose_processor=False,
             verbose_indicators=False,
             verbose_trading=False,
+            verbose_load=False,
+            verbose_extract=False,
+            verbose_history=False,
+            verbose_report=False,
             inspect_datasets=False,
             raise_on_err=True,
             **kwargs):
@@ -524,6 +530,14 @@ class BaseAlgo:
         :param verbose_trading: optional - boolean for logging
             in the trading functions including the reasons
             why a buy or sell was opened
+        :param verbose_load: optional - boolean for debugging
+            algorithm ready dataset loading
+        :param verbose_extract: optional - boolean for debugging
+            algorithm ready dataset extraction
+        :param verbose_history: optional - boolean for debugging
+            trading history dataset
+        :param verbose_report: optional - boolean for debugging
+            algorithm report
         :param inspect_datasets: optional - boolean for logging
             what is sent to the algorithm's ``process()`` function
             (default is ``False`` as this will slow processing down)
@@ -582,6 +596,7 @@ class BaseAlgo:
         self.latest_low = 0.0
         self.latest_volume = 0
         self.latest_min = None
+        self.last_minute = None
         self.backtest_date = None
         self.ask = 0.0
         self.bid = 0.0
@@ -645,6 +660,11 @@ class BaseAlgo:
         self.verbose_processor = verbose_processor
         self.verbose_indicators = verbose_indicators
         self.verbose_trading = verbose_trading
+        self.verbose_load = verbose_load
+        self.verbose_extract = verbose_extract
+        self.verbose_history = verbose_history
+        self.verbose_report = verbose_report
+
         self.inspect_datasets = inspect_datasets
         self.run_this_date = None
 
@@ -957,6 +977,7 @@ class BaseAlgo:
             self.trade_horizon = int(self.config_dict.get(
                 'trade_horizon',
                 '5'))
+            self.load_custom_datasets()
         # end of loading initial values from a config_dict before derived
 
         self.iproc = None
@@ -1004,6 +1025,7 @@ class BaseAlgo:
         self.show_balance = ae_consts.ev(
             'SHOW_ALGO_BALANCE',
             '0') == '1'
+        self.show_log = False
         self.red_column = 'close'
         self.blue_column = 'balance'
         self.green_column = None
@@ -1037,6 +1059,9 @@ class BaseAlgo:
         else:
             self.trade_off_num_indicators = True
 
+        self.indicator_datasets = []
+        self.determine_indicator_datsets()
+
         # build the IndicatorProcessor after loading
         # values from an optional config_dict
         self.iproc = self.get_indicator_processor()
@@ -1060,6 +1085,27 @@ class BaseAlgo:
         # if indicator_processor exists
 
     # end of __init__
+
+    def determine_indicator_datsets(
+            self):
+        """determine_indicator_datsets
+
+        Indicators are coupled to a dataset in the algorithm
+        config file. This allows for identifying the exact
+        datasets to pull from Redis to speed up backtesting.
+        """
+        if self.config_dict:
+            for ind_node in self.config_dict.get('indicators', []):
+                uses_dataset = ind_node.get('uses_data', 'minute')
+                if uses_dataset not in self.indicator_datasets:
+                    self.indicator_datasets.append(uses_dataset)
+    # end of determine_indicator_datsets
+
+    def get_indicator_datasets(
+            self):
+        """get_indicator_datasets"""
+        return self.indicator_datasets
+    # end of get_indicator_datasets
 
     def view_date_dataset_records(
             self,
@@ -1259,37 +1305,35 @@ class BaseAlgo:
         """
 
         use_date = self.trade_date
+        num_rows = len(self.df_daily.index)
         if self.latest_min:
             use_date = self.latest_min
 
-        if self.verbose:
+        if self.verbose or self.show_log:
             log.info(
-                f'process - ticker={self.ticker} balance={self.balance} '
-                f'owned={self.num_owned} date={use_date} '
-                f'high={self.latest_high} low={self.latest_low} '
-                f'open={self.latest_open} close={self.latest_close} '
+                f'process {algo_id} - {use_date} - '
+                f'{self.name} '
+                f'bal={self.balance} '
+                f'net={self.net_gain} '
+                f'owned={self.num_owned} '
+                f'high={self.latest_high} '
+                f'low={self.latest_low} '
+                f'open={self.latest_open} '
+                f'close={self.latest_close} '
                 f'vol={self.latest_volume} '
-                f'comm={self.commission} '
-                f'buy_str={self.buy_strength} buy_risk={self.buy_risk} '
-                f'sell_str={self.sell_strength} sell_risk={self.sell_risk} '
-                f'num_buys={len(self.buys)} num_sells={len(self.sells)} '
-                f'id={algo_id}')
+                f'cur_buy={self.num_latest_buys} '
+                f'min_buy={self.min_buy_indicators} '
+                f'num_buys={self.num_buys} '
+                f'cur_sell={self.num_latest_sells} '
+                f'min_sell={self.min_sell_indicators} '
+                f'num_sells={self.num_sells} '
+                f'rows={num_rows}')
 
         # flip these on to sell/buy
         # buys will not FILL if there's not enough funds to buy
         # sells will not FILL if there's nothing already owned
         self.should_sell = False
         self.should_buy = False
-
-        if self.verbose:
-            log.info(
-                f'{self.name} - ready with process has df_daily '
-                f'rows={len(self.df_daily.index)} '
-                f'num_owned={self.num_owned} '
-                f'indicator_buys={self.num_latest_buys} '
-                f'min_buy={self.min_buy_indicators} '
-                f'indicator_sells={self.num_latest_sells} '
-                f'min_sell={self.min_sell_indicators}')
 
         """
         Want to iterate over daily pricing data
@@ -1676,7 +1720,7 @@ class BaseAlgo:
                 track_label = self.build_progress_label(
                     progress=cur_idx,
                     total=num_ticker_datasets)
-                algo_id = f'ticker={ticker} {track_label}'
+                algo_id = f'{ticker} {track_label}'
                 if self.verbose:
                     log.info(
                         f'{self.name} report - {algo_id} - ds={node["date"]}')
@@ -1914,7 +1958,7 @@ class BaseAlgo:
                 track_label = self.build_progress_label(
                     progress=cur_idx,
                     total=num_ticker_datasets)
-                algo_id = f'ticker={ticker} {track_label}'
+                algo_id = f'{ticker} {track_label}'
                 if self.verbose:
                     log.info(
                         f'''{self.name} history - {algo_id} - ds={node.get(
@@ -2122,7 +2166,7 @@ class BaseAlgo:
                 track_label = self.build_progress_label(
                     progress=cur_idx,
                     total=num_ticker_datasets)
-                algo_id = f'ticker={ticker} {track_label}'
+                algo_id = f'{ticker} {track_label}'
                 if self.verbose:
                     log.info(
                         f'{self.name} convert - {algo_id} - ds={node["date"]}')
@@ -2301,7 +2345,7 @@ class BaseAlgo:
                 self.verbose = config_dict.get('verbose', False)
             if self.verbose:
                 for k in config_dict:
-                    log.info(
+                    log.debug(
                         f'setting algo member={k} to '
                         f'config value={config_dict[k]}')
             # end of logging all config keys
@@ -3174,7 +3218,7 @@ class BaseAlgo:
                     progress=cur_idx,
                     total=num_ticker_datasets)
                 algo_id = (
-                    f'ticker={ticker} {track_label}')
+                    f'{ticker} {track_label}')
                 self.debug_msg = (
                     f'{self.name} handle - {algo_id} - '
                     f'id={node["id"]} ds={node_date}')
@@ -3437,6 +3481,19 @@ class BaseAlgo:
             self.use_minute = self.latest_min.strftime(
                 ae_consts.COMMON_TICK_DATE_FORMAT)
 
+            self.show_log = False
+            # log every 5 days just to see progress
+            if self.last_minute:
+                num_day_since_last_log = (
+                    self.latest_min - self.last_minute).days
+                if num_day_since_last_log > 5:
+                    self.show_log = True
+                    self.last_minute = self.latest_min
+            else:
+                # start on monday
+                if self.latest_min.weekday() == 0:
+                    self.last_minute = self.latest_min
+
             if not self.starting_close:
                 self.starting_close = self.latest_close
 
@@ -3473,7 +3530,6 @@ class BaseAlgo:
 
                 # prune off the minutes that are not the latest
                 node['data']['minute'] = self.df_minute.iloc[0:(minute_idx+1)]
-
                 self.latest_ind_report = self.iproc.process(
                     algo_id=minute_algo_id,
                     ticker=self.ticker,
@@ -3593,5 +3649,122 @@ class BaseAlgo:
             dropna_for_all=True)
 
     # end of plot_trading_history_with_balance
+
+    def load_custom_datasets(
+            self):
+        """load_custom_datasets
+
+        Handler for loading custom datasets for indicators
+
+        .. tip:: Custom datasets allow indicators to analyze
+            more than the default pricing data provided by
+            ``IEX Cloud`` and ``Tradier``. This is helpful for
+            building indicators to analyze and train AI from
+            a previous algorithm ``Trading History``.
+        """
+        label = f'load_custom_ds'
+        ticker = self.tickers[0]
+        ds_list = self.config_dict.get(
+            'custom_datasets',
+            [])
+        redis_address = ae_consts.REDIS_ADDRESS
+        redis_db = ae_consts.REDIS_DB
+        redis_password = ae_consts.REDIS_PASSWORD
+        for node in ds_list:
+            ds_key = node['ds_key']
+            redis_loc = node.get('redis_loc', None)
+            s3_loc = node.get('s3_loc', None)
+            ds_type = node.get('type', 'trade_history').lower()
+            label = f'load_custom_ds_{ds_key}',
+            log.info(
+                f'loading {ds_key} {ds_type} from '
+                f'redis={redis_loc} '
+                f's3={s3_loc}')
+
+            custom_ds = None
+            publish_to_redis = False
+
+            if redis_loc:
+                if ds_type == 'trade_history':
+                    get_result = redis_get.get_data_from_redis_key(
+                        label=label,
+                        host=redis_address.split(':')[0],
+                        port=redis_address.split(':')[-1],
+                        password=redis_password,
+                        db=redis_db,
+                        key=redis_loc,
+                        decompress_df=True)
+
+                    if get_result['status'] == ae_consts.SUCCESS:
+                        publish_to_redis = False
+                        custom_ds = get_result['rec']['data']
+                    else:
+                        log.info(
+                            f'did not find {ds_key} {ds_type} in redis='
+                            f'{redis_loc}')
+                        publish_to_redis = True
+            # if need to load from redis
+
+            if (
+                    s3_loc and
+                    publish_to_redis):
+                s3_bucket = s3_loc.split('/')[2]
+                s3_key = s3_loc.split('/')[-1]
+                if ds_type == 'trade_history':
+                    load_res = load_history_utils.load_history_dataset(
+                        s3_bucket=s3_bucket,
+                        s3_key=s3_key)
+                    custom_ds = load_res[ticker]
+                    publish_to_redis = True
+            # if need to download from s3
+
+            if ds_type == 'trade_history':
+                if ticker in custom_ds:
+                    custom_ticker_df = pd.DataFrame(
+                        custom_ds[ticker])
+                    if ae_consts.is_df(df=custom_ticker_df):
+                        date_cols = [
+                            'date',
+                            'minute'
+                        ]
+                        for d in date_cols:
+                            if d in custom_ticker_df:
+                                custom_ticker_df[d] = pd.to_datetime(
+                                    custom_ticker_df[d])
+                        if 'minute' in custom_ticker_df:
+                            custom_ticker_df.sort_values(
+                                by=[
+                                    'minute'
+                                ],
+                                ascending=True)
+                        elif 'date' in custom_ticker_df:
+                            custom_ticker_df.sort_values(
+                                by=[
+                                    'date'
+                                ],
+                                ascending=True)
+                    custom_ds[ticker] = custom_ticker_df
+                    self.include_custom[ds_key] = custom_ds
+
+            if publish_to_redis:
+                log.info(
+                    f'publishing {ds_key} to redis={redis_loc}')
+                publish.publish(
+                    data=custom_ds,
+                    df_compress=True,
+                    convert_to_json=False,
+                    compress=False,
+                    label=f'load_custom_ds_{ds_key}',
+                    redis_enabled=True,
+                    redis_key=redis_loc,
+                    redis_address=redis_address,
+                    redis_db=redis_db,
+                    redis_password=redis_password,
+                    s3_enabled=False,
+                    slack_enabled=False,
+                    verbose=False)
+            # end of publishing to redis for speeding up next run
+        # end of for all custom datasets to load
+    # end of load_custom_datasets
 
 # end of BaseAlgo
