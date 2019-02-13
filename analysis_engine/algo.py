@@ -1257,8 +1257,8 @@ class BaseAlgo:
         :param ticker: string - ticker
         :param dataset: a dictionary of identifiers (for debugging) and
             multiple pandas ``pandas.DataFrame`` objects. Dictionary where keys
-            represent a label from one of the data sources (``IEX``,
-            ``Yahoo``, ``FinViz`` or other). Here is the supported
+            represent a label from one of the data sources (``IEX Cloud`` or
+            ``Tradier``). Here is the supported
             dataset structure for the process method:
 
             .. note:: There are no required keys for ``data``, the list

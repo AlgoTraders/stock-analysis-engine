@@ -2,10 +2,6 @@
 Build an authenticated url for IEX Cloud
 """
 
-import spylunking.log.setup_logging as log_utils
-
-log = log_utils.build_colorized_logger(name=__name__)
-
 
 def build_auth_url(
         url,
