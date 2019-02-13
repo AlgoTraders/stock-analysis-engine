@@ -1060,7 +1060,7 @@ class BaseAlgo:
             self.trade_off_num_indicators = True
 
         self.indicator_datasets = []
-        self.determine_indicator_datsets()
+        self.determine_indicator_datasets()
 
         # build the IndicatorProcessor after loading
         # values from an optional config_dict
@@ -1086,9 +1086,9 @@ class BaseAlgo:
 
     # end of __init__
 
-    def determine_indicator_datsets(
+    def determine_indicator_datasets(
             self):
-        """determine_indicator_datsets
+        """determine_indicator_datasets
 
         Indicators are coupled to a dataset in the algorithm
         config file. This allows for identifying the exact
@@ -1099,7 +1099,7 @@ class BaseAlgo:
                 uses_dataset = ind_node.get('uses_data', 'minute')
                 if uses_dataset not in self.indicator_datasets:
                     self.indicator_datasets.append(uses_dataset)
-    # end of determine_indicator_datsets
+    # end of determine_indicator_datasets
 
     def get_indicator_datasets(
             self):
