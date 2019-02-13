@@ -1,5 +1,5 @@
-Algorithm Runner API
-====================
+Algo Runner API
+===============
 
 .. automodule:: analysis_engine.algo_runner
    :members: AlgoRunner

@@ -650,6 +650,7 @@ Table of Contents
    :caption: Contents:
 
    README
+   algo_runner
    get_pricing_on_date
    scripts
    example_algo_minute
