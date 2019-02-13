@@ -9,14 +9,11 @@ import json
 import pandas as pd
 import analysis_engine.consts as ae_consts
 import analysis_engine.utils as ae_utils
-import analysis_engine.api_requests as api_requests
+import analysis_engine.build_dataset_node as build_dataset_node
 import analysis_engine.load_history_dataset as load_history_utils
 import analysis_engine.run_custom_algo as run_custom_algo
 import analysis_engine.publish as publish
 import analysis_engine.algo as base_algo
-import analysis_engine.iex.extract_df_from_redis as iex_extract_utils
-import analysis_engine.yahoo.extract_df_from_redis as yahoo_extract_utils
-import analysis_engine.td.extract_df_from_redis as td_extract_utils
 import spylunking.log.setup_logging as log_utils
 
 log = log_utils.build_colorized_logger(name=__name__)
@@ -287,7 +284,7 @@ class AlgoRunner:
                     f'invalid -b <backtest dataset file> specified. '
                     f'{self.backtest_loc} '
                     f'please use either: '
-                    f'-b file:/opt/ae/tests/datasets/algo/SPY-latest.json or '
+                    f'-b file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
                     f'-b s3://algoready/SPY-latest.json or '
                     f'-b redis://SPY-latest')
             if 's3://' in self.backtest_loc:
@@ -308,7 +305,7 @@ class AlgoRunner:
                     f'invalid -p <backtest dataset file> specified. '
                     f'{self.algo_history_loc} '
                     f'please use either: '
-                    f'-p file:/opt/ae/tests/datasets/algo/SPY-latest.json or '
+                    f'-p file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
                     f'-p s3://algoready/SPY-latest.json or '
                     f'-p redis://SPY-latest')
             if 's3://' in self.algo_history_loc:
@@ -329,7 +326,7 @@ class AlgoRunner:
                     f'invalid -o <backtest dataset file> specified. '
                     f'{self.algo_report_loc} '
                     f'please use either: '
-                    f'-o file:/opt/ae/tests/datasets/algo/SPY-latest.json or '
+                    f'-o file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
                     f'-o s3://algoready/SPY-latest.json or '
                     f'-o redis://SPY-latest')
             if 's3://' in self.algo_report_loc:
@@ -349,7 +346,7 @@ class AlgoRunner:
                     'invalid -e <backtest dataset file> specified. '
                     '{self.algo_extract_loc} '
                     'please use either: '
-                    '-e file:/opt/ae/tests/datasets/algo/SPY-latest.json or '
+                    '-e file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
                     '-e s3://algoready/SPY-latest.json or '
                     '-e redis://SPY-latest')
             if 's3://' in self.algo_extract_loc:
@@ -895,233 +892,16 @@ class AlgoRunner:
             f'run latest - start')
 
         ticker = self.config_dict['ticker']
-        self.common_fetch_vals['base_key'] = f'{ticker}_{use_date_str}'
-        extract_req = api_requests.get_ds_dict(
+        dataset_id = f'{ticker}_{use_date_str}'
+        self.common_fetch_vals['base_key'] = dataset_id
+        verbose_extract = self.config_dict.get('verbose_extract', False)
+        indicator_datasets = self.algo_obj.get_indicator_datasets()
+        ticker_data = build_dataset_node.build_dataset_node(
             ticker=ticker,
-            base_key=self.common_fetch_vals['base_key'],
-            ds_id=ticker,
-            service_dict=self.common_fetch_vals)
-        node_date_key = use_date_str.replace(
-            f'{ticker}_',
-            '')
-        req = {
-            'id': use_date_str,
-            'ticker': ticker,
-            'date_key': self.common_fetch_vals['base_key'],
-            'date': node_date_key,
-            'req': extract_req
-        }
-        # fetch
-        iex_daily_df = None
-        iex_minute_df = None
-        iex_quote_df = None
-        iex_stats_df = None
-        iex_peers_df = None
-        iex_news_df = None
-        iex_financials_df = None
-        iex_earnings_df = None
-        iex_dividends_df = None
-        iex_company_df = None
-        yahoo_option_calls_df = None
-        yahoo_option_puts_df = None
-        yahoo_pricing_df = None
-        yahoo_news_df = None
-        td_calls_df = None
-        td_puts_df = None
-
-        node_date_key = req['date']
-        dataset_node_id = req['id']
-        dataset_id = dataset_node_id
-
-        label = (
-            f'ticker={ticker} '
-            f'date={node_date_key}')
-        if verbose:
-            log.info(
-                f'{label} - extract - start')
-        if 'daily' in self.iex_datasets or extract_iex:
-            iex_daily_status, iex_daily_df = \
-                iex_extract_utils.extract_daily_dataset(
-                    extract_req)
-            if iex_daily_status != ae_consts.SUCCESS:
-                if verbose:
-                    log.warning(
-                        f'unable to extract iex_daily={ticker}')
-        if 'minute' in self.iex_datasets or extract_iex:
-            iex_minute_status, iex_minute_df = \
-                iex_extract_utils.extract_minute_dataset(
-                    extract_req)
-            if iex_minute_status != ae_consts.SUCCESS:
-                if verbose:
-                    log.warning(
-                        f'unable to extract iex_minute={ticker}')
-        if 'quote' in self.iex_datasets or extract_iex:
-            iex_quote_status, iex_quote_df = \
-                iex_extract_utils.extract_quote_dataset(
-                    extract_req)
-            if iex_quote_status != ae_consts.SUCCESS:
-                if verbose:
-                    log.warning(
-                        f'unable to extract iex_quote={ticker}')
-        if 'stats' in self.iex_datasets or extract_iex:
-            iex_stats_status, iex_stats_df = \
-                iex_extract_utils.extract_stats_dataset(
-                    extract_req)
-            if iex_stats_status != ae_consts.SUCCESS:
-                if verbose:
-                    log.warning(
-                        f'unable to extract iex_stats={ticker}')
-        if 'peers' in self.iex_datasets or extract_iex:
-            iex_peers_status, iex_peers_df = \
-                iex_extract_utils.extract_peers_dataset(
-                    extract_req)
-            if iex_peers_status != ae_consts.SUCCESS:
-                if verbose:
-                    log.warning(
-                        f'unable to extract iex_peers={ticker}')
-        if 'news' in self.iex_datasets or extract_iex:
-            iex_news_status, iex_news_df = \
-                iex_extract_utils.extract_news_dataset(
-                    extract_req)
-            if iex_news_status != ae_consts.SUCCESS:
-                if verbose:
-                    log.warning(
-                        f'unable to extract iex_news={ticker}')
-        if 'financials' in self.iex_datasets or extract_iex:
-            iex_financials_status, iex_financials_df = \
-                iex_extract_utils.extract_financials_dataset(
-                    extract_req)
-            if iex_financials_status != ae_consts.SUCCESS:
-                if verbose:
-                    log.warning(
-                        f'unable to extract iex_financials={ticker}')
-        if 'earnings' in self.iex_datasets or extract_iex:
-            iex_earnings_status, iex_earnings_df = \
-                iex_extract_utils.extract_earnings_dataset(
-                    extract_req)
-            if iex_earnings_status != ae_consts.SUCCESS:
-                if verbose:
-                    log.warning(
-                        f'unable to extract iex_earnings={ticker}')
-        if 'dividends' in self.iex_datasets or extract_iex:
-            iex_dividends_status, iex_dividends_df = \
-                iex_extract_utils.extract_dividends_dataset(
-                    extract_req)
-            if iex_dividends_status != ae_consts.SUCCESS:
-                if verbose:
-                    log.warning(
-                        f'unable to extract iex_dividends={ticker}')
-        if 'company' in self.iex_datasets or extract_iex:
-            iex_company_status, iex_company_df = \
-                iex_extract_utils.extract_company_dataset(
-                    extract_req)
-            if iex_company_status != ae_consts.SUCCESS:
-                if verbose:
-                    log.warning(
-                        f'unable to extract iex_company={ticker}')
-        # end of iex extracts
-
-        if extract_yahoo:
-            yahoo_options_status, yahoo_option_calls_df = \
-                yahoo_extract_utils.extract_option_calls_dataset(
-                    extract_req)
-            yahoo_options_status, yahoo_option_puts_df = \
-                yahoo_extract_utils.extract_option_puts_dataset(
-                    extract_req)
-            if yahoo_options_status != ae_consts.SUCCESS:
-                if verbose:
-                    log.warning(
-                        f'unable to extract yahoo_options={ticker}')
-            yahoo_pricing_status, yahoo_pricing_df = \
-                yahoo_extract_utils.extract_pricing_dataset(
-                    extract_req)
-            if yahoo_pricing_status != ae_consts.SUCCESS:
-                if verbose:
-                    log.warning(
-                        f'unable to extract yahoo_pricing={ticker}')
-            yahoo_news_status, yahoo_news_df = \
-                yahoo_extract_utils.extract_yahoo_news_dataset(
-                    extract_req)
-            if yahoo_news_status != ae_consts.SUCCESS:
-                if verbose:
-                    log.warning(
-                        f'unable to extract yahoo_news={ticker}')
-        # end of yahoo extracts
-
-        if extract_td:
-            """
-            Debug by setting:
-
-            extract_req['verbose_td'] = True
-            """
-            convert_to_datetime = [
-                'date',
-                'created',
-                'ask_date',
-                'bid_date',
-                'trade_date'
-            ]
-            td_calls_status, td_calls_df = \
-                td_extract_utils.extract_option_calls_dataset(
-                    extract_req)
-            if td_calls_status != ae_consts.SUCCESS:
-                if verbose:
-                    log.warning(
-                        f'unable to extract tdcalls={ticker}')
-            else:
-                if ae_consts.is_df(
-                        df=td_calls_df):
-                    for c in convert_to_datetime:
-                        if c in td_calls_df:
-                            td_calls_df[c] = pd.to_datetime(
-                                td_calls_df[c],
-                                format=ae_consts.COMMON_TICK_DATE_FORMAT)
-                    if 'date' in td_calls_df:
-                        td_calls_df.sort_values(
-                            'date',
-                            ascending=True)
-            # end of converting dates
-
-            td_puts_status, td_puts_df = \
-                td_extract_utils.extract_option_puts_dataset(
-                    extract_req)
-            if td_puts_status != ae_consts.SUCCESS:
-                if verbose:
-                    log.warning(
-                        f'unable to extract tdputs={ticker}')
-            else:
-                if ae_consts.is_df(
-                        df=td_puts_df):
-                    for c in convert_to_datetime:
-                        if c in td_puts_df:
-                            td_puts_df[c] = pd.to_datetime(
-                                td_puts_df[c],
-                                format=ae_consts.COMMON_TICK_DATE_FORMAT)
-                    if 'date' in td_puts_df:
-                        td_puts_df.sort_values(
-                            'date',
-                            ascending=True)
-            # end of converting dates
-        # td extracts
-
-        # map extracted data to DEFAULT_SERIALIZED_DATASETS
-        ticker_data = {}
-        ticker_data['daily'] = iex_daily_df
-        ticker_data['minute'] = iex_minute_df
-        ticker_data['quote'] = iex_quote_df
-        ticker_data['stats'] = iex_stats_df
-        ticker_data['peers'] = iex_peers_df
-        ticker_data['news1'] = iex_news_df
-        ticker_data['financials'] = iex_financials_df
-        ticker_data['earnings'] = iex_earnings_df
-        ticker_data['dividends'] = iex_dividends_df
-        ticker_data['company'] = iex_company_df
-        ticker_data['calls'] = yahoo_option_calls_df
-        ticker_data['puts'] = yahoo_option_puts_df
-        ticker_data['pricing'] = yahoo_pricing_df
-        ticker_data['news'] = yahoo_news_df
-        ticker_data['tdcalls'] = td_calls_df
-        ticker_data['tdputs'] = td_puts_df
+            date=use_date_str,
+            datasets=indicator_datasets,
+            service_dict=self.common_fetch_vals,
+            verbose=verbose_extract)
 
         algo_data_req = {
             ticker: [
@@ -1136,21 +916,19 @@ class AlgoRunner:
 
         if verbose:
             log.info(
-                f'extract - {label} '
+                f'extract - {dataset_id} '
                 f'dataset={len(algo_data_req[ticker])}')
 
         # this could be a separate celery task
         try:
             if verbose:
                 log.info(
-                    f'handle_data START - {label} from '
-                    f'{node_date_key}')
+                    f'handle_data START - {dataset_id}')
             self.algo_obj.handle_data(
                 data=algo_data_req)
             if verbose:
                 log.info(
-                    f'handle_data END - {label} from '
-                    f'{node_date_key}')
+                    f'handle_data END - {dataset_id}')
         except Exception as e:
             a_name = self.algo_obj.get_name()
             a_debug_msg = self.algo_obj.get_debug_msg()
@@ -1158,9 +936,9 @@ class AlgoRunner:
                 a_debug_msg = 'debug message not set'
             # a_config_dict = ae_consts.ppj(self.algo_obj.config_dict)
             msg = (
-                f'{label} - algo={a_name} '
+                f'{dataset_id} - algo={a_name} '
                 f'encountered exception in handle_data tickers={ticker} '
-                f'from {node_date_key} ex={e} '
+                f'from ex={e} '
                 f'and failed during operation: {a_debug_msg}')
             log.critical(
                 f'{msg}')

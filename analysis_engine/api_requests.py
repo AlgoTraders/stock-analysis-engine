@@ -125,7 +125,8 @@ def get_ds_dict(
     # launching job chains
     if service_dict:
         for k in ae_consts.SERVICE_VALS:
-            ds_cache_dict[k] = service_dict[k]
+            if k in service_dict:
+                ds_cache_dict[k] = service_dict[k]
 
     return ds_cache_dict
 # end of get_ds_dict
