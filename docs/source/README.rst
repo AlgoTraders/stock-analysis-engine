@@ -297,6 +297,27 @@ Run Algo with Extraction and History Publishing
 
     run-algo-history-to-file.sh -t ${ticker} -c ${algo_config} -e ${extract_loc} -p ${history_loc}
 
+Profile Your Algorithm's Code Performance with vprof
+====================================================
+
+The pip includes `vprof for profiling algorithm code performance <https://github.com/nvdv/vprof>`__
+
+#.  Start vprof in remote mode in a first terminal
+
+    .. note:: This command will start a webapp on port ``3434``
+
+    ::
+
+        vprof -r -p 3434
+
+#.  Start Profiler in a second terminal
+
+    .. note:: This command pushes data to the webapp in the other terminal listening on port ``3434``
+
+    ::
+
+        vprof -c cm ./analysis_engine/perf/profile_algo_runner.py
+
 Run a Local Backtest using an Algorithm Config and an Algorithm-Ready Dataset
 =============================================================================
 

@@ -92,7 +92,8 @@ def build_trade_history_entry(
         note=None,
         err=None,
         entry_spread_dict=None,
-        version=1):
+        version=1,
+        verbose=False):
     """build_trade_history_entry
 
     Build a dictionary for tracking an algorithm profitability per ticker
@@ -319,6 +320,8 @@ def build_trade_history_entry(
         spread to determine specific performance metrics
         (work in progress)
     :param version: optional - version tracking order history
+    :param verbose: optional - bool log each history node
+        (default is ``False``)
     """
     status = ae_consts.NOT_RUN
     algo_status = ae_consts.NOT_RUN
@@ -487,11 +490,12 @@ def build_trade_history_entry(
     if not use_date:
         use_date = date
 
-    log.debug(
-        f'{ticker} ds_id={ds_id} {use_date} '
-        f'algo={ae_consts.get_status(status=history_dict["algo_status"])} '
-        f'trade={ae_consts.get_status(status=history_dict["status"])} '
-        f'history={ae_consts.ppj(history_dict)}')
+    if verbose:
+        log.debug(
+            f'{ticker} ds_id={ds_id} {use_date} '
+            f'algo={ae_consts.get_status(status=history_dict["algo_status"])} '
+            f'trade={ae_consts.get_status(status=history_dict["status"])} '
+            f'history={ae_consts.ppj(history_dict)}')
 
     return history_dict
 # end of build_trade_history_entry

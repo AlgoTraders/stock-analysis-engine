@@ -26,3 +26,4 @@ trading_calendars
 unittest2
 urllib3<=1.23
 ujson
+vprof

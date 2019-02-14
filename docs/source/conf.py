@@ -45,6 +45,7 @@ source_code_dirs = [
     'analysis_engine/indicators/',
     'analysis_engine/finviz/',
     'analysis_engine/mocks/',
+    'analysis_engine/perf/',
     'analysis_engine/scripts/',
     'analysis_engine/td/',
     'analysis_engine/work_tasks/',

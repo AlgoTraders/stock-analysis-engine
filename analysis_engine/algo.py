@@ -143,7 +143,6 @@ Indicator buy and sell records in ``self.latest_buys`` and
 
 import os
 import json
-import copy
 import datetime
 import pandas as pd
 import analysis_engine.consts as ae_consts
@@ -1001,8 +1000,6 @@ class BaseAlgo:
         self.intraday_events = {}
 
         self.ignore_history_keys = [
-            'total_buys',
-            'total_sells'
         ]
         self.ind_conf_ignore_keys = [
             'buys',
@@ -1989,7 +1986,12 @@ class BaseAlgo:
         for org_node in self.order_history:
             status = org_node.get('status', ae_consts.INVALID)
             if status != ae_consts.INVALID:
-                node = copy.deepcopy(org_node)
+                # trade history dictionaries
+                # will be permanently changed
+                # unless an expensive deep copy is
+                # used by a derived class with:
+                # node = copy.deepcopy(org_node)
+                node = org_node
                 is_valid = True
                 for i in ignore_keys:
                     node.pop(i, None)
