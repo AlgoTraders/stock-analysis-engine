@@ -68,7 +68,7 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.8.2',
+    version='1.8.3',
     description=(
         'Backtest 1000s of minute-by-minute '
         'trading algorithms. Automated '

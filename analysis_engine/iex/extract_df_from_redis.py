@@ -24,11 +24,24 @@ Supported environment variables:
 """
 
 import copy
+import analysis_engine.consts as ae_consts
 import analysis_engine.iex.consts as iex_consts
 import analysis_engine.extract_utils as extract_utils
 import spylunking.log.setup_logging as log_utils
 
 log = log_utils.build_colorized_logger(name=__name__)
+keys = {
+    'company': iex_consts.DATAFEED_COMPANY,
+    'daily': iex_consts.DATAFEED_DAILY,
+    'dividends': iex_consts.DATAFEED_DIVIDENDS,
+    'earnings': iex_consts.DATAFEED_EARNINGS,
+    'financials': iex_consts.DATAFEED_FINANCIALS,
+    'minute': iex_consts.DATAFEED_MINUTE,
+    'news1': iex_consts.DATAFEED_NEWS,
+    'peers': iex_consts.DATAFEED_PEERS,
+    'quote': iex_consts.DATAFEED_QUOTE,
+    'stats': iex_consts.DATAFEED_STATS
+}
 
 
 def extract_daily_dataset(
@@ -42,25 +55,7 @@ def extract_daily_dataset(
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    label = work_dict.get('label', 'extract')
-    df_type = iex_consts.DATAFEED_DAILY
-    df_str = iex_consts.get_datafeed_str(df_type=df_type)
-    req = copy.deepcopy(work_dict)
-
-    if 'redis_key' not in work_dict:
-        # see if it's get dataset dictionary
-        if 'daily' in req:
-            req['redis_key'] = req['daily']
-            req['s3_key'] = req['daily']
-    # end of support for the get dataset dictionary
-
-    log.debug(f'{label} - {df_str} - start')
-
-    return extract_utils.perform_extract(
-        df_type=df_type,
-        df_str=df_str,
-        work_dict=req,
-        scrub_mode=scrub_mode)
+    return extract_dataset('daily', work_dict, scrub_mode=scrub_mode)
 # end of extract_daily_dataset
 
 
@@ -75,26 +70,7 @@ def extract_minute_dataset(
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    label = work_dict.get('label', 'extract')
-    df_type = iex_consts.DATAFEED_MINUTE
-    df_str = iex_consts.get_datafeed_str(df_type=df_type)
-    req = copy.deepcopy(work_dict)
-
-    if 'redis_key' not in work_dict:
-        # see if it's get dataset dictionary
-        if 'minute' in work_dict:
-            req['redis_key'] = req['minute']
-            req['s3_key'] = req['minute']
-    # end of support for the get dataset dictionary
-
-    log.debug(
-        f'{label} - {df_str} - start')
-
-    return extract_utils.perform_extract(
-        df_type=df_type,
-        df_str=df_str,
-        work_dict=req,
-        scrub_mode=scrub_mode)
+    return extract_dataset('minute', work_dict, scrub_mode=scrub_mode)
 # end of extract_minute_dataset
 
 
@@ -109,25 +85,7 @@ def extract_quote_dataset(
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    label = work_dict.get('label', 'extract')
-    df_type = iex_consts.DATAFEED_QUOTE
-    df_str = iex_consts.get_datafeed_str(df_type=df_type)
-    req = copy.deepcopy(work_dict)
-
-    if 'redis_key' not in work_dict:
-        # see if it's get dataset dictionary
-        if 'quote' in work_dict:
-            req['redis_key'] = req['quote']
-            req['s3_key'] = req['quote']
-    # end of support for the get dataset dictionary
-
-    log.debug(f'{label} - {df_str} - start')
-
-    return extract_utils.perform_extract(
-        df_type=df_type,
-        df_str=df_str,
-        work_dict=req,
-        scrub_mode=scrub_mode)
+    return extract_dataset('quote', work_dict, scrub_mode=scrub_mode)
 # end of extract_quote_dataset
 
 
@@ -142,25 +100,7 @@ def extract_stats_dataset(
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    label = work_dict.get('label', 'extract')
-    df_type = iex_consts.DATAFEED_STATS
-    df_str = iex_consts.get_datafeed_str(df_type=df_type)
-    req = copy.deepcopy(work_dict)
-
-    if 'redis_key' not in work_dict:
-        # see if it's get dataset dictionary
-        if 'stats' in work_dict:
-            req['redis_key'] = req['stats']
-            req['s3_key'] = req['stats']
-    # end of support for the get dataset dictionary
-
-    log.debug(f'{label} - {df_str} - start')
-
-    return extract_utils.perform_extract(
-        df_type=df_type,
-        df_str=df_str,
-        work_dict=req,
-        scrub_mode=scrub_mode)
+    return extract_dataset('stats', work_dict, scrub_mode=scrub_mode)
 # end of extract_stats_dataset
 
 
@@ -175,25 +115,7 @@ def extract_peers_dataset(
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    label = work_dict.get('label', 'extract')
-    df_type = iex_consts.DATAFEED_PEERS
-    df_str = iex_consts.get_datafeed_str(df_type=df_type)
-    req = copy.deepcopy(work_dict)
-
-    if 'redis_key' not in work_dict:
-        # see if it's get dataset dictionary
-        if 'peers' in work_dict:
-            req['redis_key'] = req['peers']
-            req['s3_key'] = req['peers']
-    # end of support for the get dataset dictionary
-
-    log.debug(f'{label} - {df_str} - start')
-
-    return extract_utils.perform_extract(
-        df_type=df_type,
-        df_str=df_str,
-        work_dict=req,
-        scrub_mode=scrub_mode)
+    return extract_dataset('peers', work_dict, scrub_mode=scrub_mode)
 # end of extract_peers_dataset
 
 
@@ -208,25 +130,7 @@ def extract_news_dataset(
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    label = work_dict.get('label', 'extract')
-    df_type = iex_consts.DATAFEED_NEWS
-    df_str = iex_consts.get_datafeed_str(df_type=df_type)
-    req = copy.deepcopy(work_dict)
-
-    if 'redis_key' not in work_dict:
-        # see if it's get dataset dictionary
-        if 'news1' in work_dict:
-            req['redis_key'] = req['news1']
-            req['s3_key'] = req['news1']
-    # end of support for the get dataset dictionary
-
-    log.debug(f'{label} - {df_str} - start')
-
-    return extract_utils.perform_extract(
-        df_type=df_type,
-        df_str=df_str,
-        work_dict=req,
-        scrub_mode=scrub_mode)
+    return extract_dataset('news1', work_dict, scrub_mode=scrub_mode)
 # end of extract_news_dataset
 
 
@@ -241,25 +145,7 @@ def extract_financials_dataset(
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    label = work_dict.get('label', 'extract')
-    df_type = iex_consts.DATAFEED_FINANCIALS
-    df_str = iex_consts.get_datafeed_str(df_type=df_type)
-    req = copy.deepcopy(work_dict)
-
-    if 'redis_key' not in work_dict:
-        # see if it's get dataset dictionary
-        if 'financials' in work_dict:
-            req['redis_key'] = req['financials']
-            req['s3_key'] = req['financials']
-    # end of support for the get dataset dictionary
-
-    log.debug(f'{label} - {df_str} - start')
-
-    return extract_utils.perform_extract(
-        df_type=df_type,
-        df_str=df_str,
-        work_dict=req,
-        scrub_mode=scrub_mode)
+    return extract_dataset('financials', work_dict, scrub_mode=scrub_mode)
 # end of extract_financials_dataset
 
 
@@ -274,25 +160,7 @@ def extract_earnings_dataset(
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    label = work_dict.get('label', 'extract')
-    df_type = iex_consts.DATAFEED_EARNINGS
-    df_str = iex_consts.get_datafeed_str(df_type=df_type)
-    req = copy.deepcopy(work_dict)
-
-    if 'redis_key' not in work_dict:
-        # see if it's get dataset dictionary
-        if 'earnings' in work_dict:
-            req['redis_key'] = req['earnings']
-            req['s3_key'] = req['earnings']
-    # end of support for the get dataset dictionary
-
-    log.debug(f'{label} - {df_str} - start')
-
-    return extract_utils.perform_extract(
-        df_type=df_type,
-        df_str=df_str,
-        work_dict=req,
-        scrub_mode=scrub_mode)
+    return extract_dataset('earnings', work_dict, scrub_mode=scrub_mode)
 # end of extract_earnings_dataset
 
 
@@ -307,25 +175,7 @@ def extract_dividends_dataset(
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
-    label = work_dict.get('label', 'extract')
-    df_type = iex_consts.DATAFEED_DIVIDENDS
-    df_str = iex_consts.get_datafeed_str(df_type=df_type)
-    req = copy.deepcopy(work_dict)
-
-    if 'redis_key' not in work_dict:
-        # see if it's get dataset dictionary
-        if 'dividends' in work_dict:
-            req['redis_key'] = req['dividends']
-            req['s3_key'] = req['dividends']
-    # end of support for the get dataset dictionary
-
-    log.debug(f'{label} - {df_str} - start')
-
-    return extract_utils.perform_extract(
-        df_type=df_type,
-        df_str=df_str,
-        work_dict=req,
-        scrub_mode=scrub_mode)
+    return extract_dataset('dividends', work_dict, scrub_mode=scrub_mode)
 # end of extract_dividends_dataset
 
 
@@ -340,16 +190,35 @@ def extract_company_dataset(
     :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     """
+    return extract_dataset('company', work_dict, scrub_mode=scrub_mode)
+# end of extract_company_dataset
+
+
+def extract_dataset(
+        key,
+        work_dict,
+        scrub_mode='NO_SORT'):
+    """extract_dataset
+
+    Fetch the IEX key data for a ticker and
+    return it as a pandas Dataframe
+
+    :param key: IEX dataset key
+    :param work_dict: dictionary of args
+    :param scrub_mode: type of scrubbing handler to run
+    """
+    if not key or key not in keys:
+        return ae_consts.NOT_RUN, None
     label = work_dict.get('label', 'extract')
-    df_type = iex_consts.DATAFEED_COMPANY
+    df_type = keys[key]
     df_str = iex_consts.get_datafeed_str(df_type=df_type)
     req = copy.deepcopy(work_dict)
 
     if 'redis_key' not in work_dict:
         # see if it's get dataset dictionary
-        if 'company' in work_dict:
-            req['redis_key'] = req['company']
-            req['s3_key'] = req['company']
+        if f'{key}' in work_dict:
+            req['redis_key'] = req[f'{key}']
+            req['s3_key'] = req[f'{key}']
     # end of support for the get dataset dictionary
 
     log.debug(f'{label} - {df_str} - start')
@@ -359,4 +228,4 @@ def extract_company_dataset(
         df_str=df_str,
         work_dict=req,
         scrub_mode=scrub_mode)
-# end of extract_company_dataset
+# end of extract_dataset

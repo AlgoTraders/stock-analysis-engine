@@ -277,16 +277,6 @@ class AlgoRunner:
             self.config_dict['run_this_date'] = self.run_this_date
 
         if self.backtest_loc:
-            if ('file:/' not in self.backtest_loc and
-                    's3://' not in self.backtest_loc and
-                    'redis://' not in self.backtest_loc):
-                log.error(
-                    f'invalid -b <backtest dataset file> specified. '
-                    f'{self.backtest_loc} '
-                    f'please use either: '
-                    f'-b file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
-                    f'-b s3://algoready/SPY-latest.json or '
-                    f'-b redis://SPY-latest')
             if 's3://' in self.backtest_loc:
                 self.load_from_s3_bucket = self.backtest_loc.split('/')[-2]
                 self.load_from_s3_key = self.backtest_loc.split('/')[-1]
@@ -294,20 +284,17 @@ class AlgoRunner:
                 self.load_from_redis_key = self.backtest_loc.split('/')[-1]
             elif 'file:/' in self.backtest_loc:
                 self.load_from_file = self.backtest_loc.split(':')[-1]
+            else:
+                log.error(
+                    'invalid -b <backtest dataset file> specified. '
+                    f'{self.backtest_loc} '
+                    'please use either: '
+                    '-b file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
+                    '-b s3://algoready/SPY-latest.json or '
+                    '-b redis://SPY-latest')
             self.load_publish = True
 
         if self.algo_history_loc:
-            if (
-                    'file:/' not in self.algo_history_loc and
-                    's3://' not in self.algo_history_loc and
-                    'redis://' not in self.algo_history_loc):
-                log.error(
-                    f'invalid -p <backtest dataset file> specified. '
-                    f'{self.algo_history_loc} '
-                    f'please use either: '
-                    f'-p file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
-                    f'-p s3://algoready/SPY-latest.json or '
-                    f'-p redis://SPY-latest')
             if 's3://' in self.algo_history_loc:
                 self.history_s3_bucket = self.algo_history_loc.split('/')[-2]
                 self.history_s3_key = self.algo_history_loc.split('/')[-1]
@@ -315,20 +302,17 @@ class AlgoRunner:
                 self.history_redis_key = self.algo_history_loc.split('/')[-1]
             elif 'file:/' in self.algo_history_loc:
                 self.history_file = self.algo_history_loc.split(':')[-1]
+            else:
+                log.error(
+                    'invalid -p <backtest dataset file> specified. '
+                    f'{self.algo_history_loc} '
+                    'please use either: '
+                    '-p file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
+                    '-p s3://algoready/SPY-latest.json or '
+                    '-p redis://SPY-latest')
             self.history_publish = True
 
         if self.algo_report_loc:
-            if (
-                    'file:/' not in self.algo_report_loc and
-                    's3://' not in self.algo_report_loc and
-                    'redis://' not in self.algo_report_loc):
-                log.error(
-                    f'invalid -o <backtest dataset file> specified. '
-                    f'{self.algo_report_loc} '
-                    f'please use either: '
-                    f'-o file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
-                    f'-o s3://algoready/SPY-latest.json or '
-                    f'-o redis://SPY-latest')
             if 's3://' in self.algo_report_loc:
                 self.report_s3_bucket = self.algo_report_loc.split('/')[-2]
                 self.report_s3_key = self.algo_report_loc.split('/')[-1]
@@ -336,19 +320,17 @@ class AlgoRunner:
                 self.report_redis_key = self.algo_report_loc.split('/')[-1]
             elif 'file:/' in self.algo_report_loc:
                 self.report_file = self.algo_report_loc.split(':')[-1]
+            else:
+                log.error(
+                    'invalid -o <backtest dataset file> specified. '
+                    f'{self.algo_report_loc} '
+                    'please use either: '
+                    '-o file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
+                    '-o s3://algoready/SPY-latest.json or '
+                    '-o redis://SPY-latest')
             self.report_publish = True
 
         if self.algo_extract_loc:
-            if ('file:/' not in self.algo_extract_loc and
-                    's3://' not in self.algo_extract_loc and
-                    'redis://' not in self.algo_extract_loc):
-                log.error(
-                    'invalid -e <backtest dataset file> specified. '
-                    '{self.algo_extract_loc} '
-                    'please use either: '
-                    '-e file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
-                    '-e s3://algoready/SPY-latest.json or '
-                    '-e redis://SPY-latest')
             if 's3://' in self.algo_extract_loc:
                 self.extract_s3_bucket = self.algo_extract_loc.split('/')[-2]
                 self.extract_s3_key = self.algo_extract_loc.split('/')[-1]
@@ -356,6 +338,14 @@ class AlgoRunner:
                 self.extract_redis_key = self.algo_extract_loc.split('/')[-1]
             elif 'file:/' in self.algo_extract_loc:
                 self.extract_file = self.algo_extract_loc.split(':')[-1]
+            else:
+                log.error(
+                    'invalid -e <backtest dataset file> specified. '
+                    f'{self.algo_extract_loc} '
+                    'please use either: '
+                    '-e file:/opt/sa/tests/datasets/algo/SPY-latest.json or '
+                    '-e s3://algoready/SPY-latest.json or '
+                    '-e redis://SPY-latest')
             self.extract_publish = True
 
         self.use_name = self.config_dict.get(
@@ -403,7 +393,7 @@ class AlgoRunner:
         """
 
         log.info(
-            f'starting algo '
+            'starting algo '
             f's3://{self.history_s3_bucket}/{self.history_s3_key}')
 
         self.algo_res = run_custom_algo.run_custom_algo(
@@ -618,7 +608,7 @@ class AlgoRunner:
 
         if self.ticker not in load_res:
             log.critical(
-                f'failed to load history: '
+                'failed to load history: '
                 f's3://{self.s3_bucket}/{self.s3_key}')
             self.history_df = None
             return
@@ -940,12 +930,10 @@ class AlgoRunner:
                 f'encountered exception in handle_data tickers={ticker} '
                 f'from ex={e} '
                 f'and failed during operation: {a_debug_msg}')
-            log.critical(
-                f'{msg}')
+            log.critical(f'{msg}')
         # end try/ex
 
-        log.info(
-            f'run latest - create history')
+        log.info('run latest - create history')
 
         history_ds = self.algo_obj.create_history_dataset()
         self.history_df = pd.DataFrame(history_ds[ticker])

@@ -19,6 +19,13 @@ import analysis_engine.consts as ae_consts
 import spylunking.log.setup_logging as log_utils
 
 log = log_utils.build_colorized_logger(name=__name__)
+publish_msg_error = (
+    'please add a SLACK_WEBHOOK environment variable to publish messages')
+message_types = {
+    'success': [{"color": "good", "title": "SUCCESS"}],
+    'failure': [{"color": "danger", "title": "FAILED"}],
+    'message': [{"title": "MESSAGE"}]
+}
 
 
 def post_success(msg,
@@ -29,23 +36,11 @@ def post_success(msg,
 
     :param msg: A string, list, or dict to send to slack
     """
-    result = {'status': ae_consts.FAILED}
-    if not os.getenv('SLACK_WEBHOOK', False):
-        log.info(
-            'post_success - please add a SLACK_WEBHOOK environment '
-            'variable to publish messages')
-        return result
-    if msg:
-        attachments = [{"attachments":
-                       [{"color": "good", "title": "SUCCESS"}]}]
-        fields = parse_msg(msg, block=block)
-        if fields:
-            if full_width:
-                attachments.append({"text": fields[0].pop("value")})
-            else:
-                attachments[0]["attachments"][0]["fields"] = fields
-            result = post(attachments, jupyter=jupyter)
-    return result
+    return get_response('success',
+                        msg,
+                        jupyter=jupyter,
+                        block=block,
+                        full_width=full_width)
 
 
 def post_failure(msg,
@@ -56,23 +51,11 @@ def post_failure(msg,
 
     :param msg: A string, list, or dict to send to slack
     """
-    result = {'status': ae_consts.FAILED}
-    if not os.getenv('SLACK_WEBHOOK', False):
-        log.info(
-            'post_failure - please add a SLACK_WEBHOOK environment '
-            'variable to publish messages')
-        return result
-    if msg:
-        attachments = [{"attachments":
-                       [{"color": "danger", "title": "FAILED"}]}]
-        fields = parse_msg(msg, block=block)
-        if fields:
-            if full_width:
-                attachments.append({"text": fields[0].pop("value")})
-            else:
-                attachments[0]["attachments"][0]["fields"] = fields
-            result = post(attachments, jupyter=jupyter)
-    return result
+    return get_response('failure',
+                        msg,
+                        jupyter=jupyter,
+                        block=block,
+                        full_width=full_width)
 
 
 def post_message(msg,
@@ -83,27 +66,38 @@ def post_message(msg,
 
     :param msg: A string, list, or dict to send to slack
     """
-    result = {'status': ae_consts.FAILED}
-    if not os.getenv('SLACK_WEBHOOK', False):
-        log.info(
-            'post_message - please add a SLACK_WEBHOOK environment '
-            'variable to publish messages')
-        return result
-    if not os.getenv('SLACK_WEBHOOK', False):
-        log.info(
-            'post_message - please add a SLACK_WEBHOOK environment '
-            'variable for to work')
-        return result
-    if msg:
-        attachments = [{"attachments": [{"title": "MESSAGE"}]}]
-        fields = parse_msg(msg, block=block)
-        if fields:
-            if full_width:
-                attachments.append({"text": fields[0].pop("value")})
-            else:
-                attachments[0]["attachments"][0]["fields"] = fields
-            result = post(attachments, jupyter=jupyter)
-    return result
+    return get_response('message',
+                        msg,
+                        jupyter=jupyter,
+                        block=block,
+                        full_width=full_width)
+
+
+def get_response(msg_type,
+                 msg,
+                 jupyter=False,
+                 block=False,
+                 full_width=False):
+    """Attempt to create and send any message type to slack
+
+    :param msg_type: A string of either 'success', 'failure', or 'message'
+    :param msg: A string, list, or dict to send to slack
+    """
+    response = {'status': ae_consts.FAILED}
+    if msg_type in message_types:
+        if not os.getenv('SLACK_WEBHOOK', False):
+            log.info(f'post_{msg_type} - {publish_msg_error}')
+            return response
+        if msg:
+            attachments = [{"attachments": message_types[msg_type]}]
+            fields = parse_msg(msg, block=block)
+            if fields:
+                if full_width:
+                    attachments.append({"text": fields[0].pop("value")})
+                else:
+                    attachments[0]["attachments"][0]["fields"] = fields
+                response = post(attachments, jupyter=jupyter)
+    return response
 
 
 def parse_msg(msg, block=False):
@@ -137,9 +131,7 @@ def post(attachments, jupyter=False):
     SLACK_WEBHOOK = ae_consts.ev('SLACK_WEBHOOK', None)
     result = {'status': ae_consts.FAILED}
     if not os.getenv('SLACK_WEBHOOK', False):
-        log.info(
-            'post - please add a SLACK_WEBHOOK environment '
-            'variable to publish messages')
+        log.info(f'post - {publish_msg_error}')
         return result
     if attachments and SLACK_WEBHOOK:
         try:
@@ -210,9 +202,7 @@ def post_df(
     """
 
     if not os.getenv('SLACK_WEBHOOK', False):
-        log.info(
-            'post_df - please add a SLACK_WEBHOOK environment '
-            'variable to publish messages')
+        log.info(f'post_df - {publish_msg_error}')
         return
     if not hasattr(df, 'index'):
         log.debug('post_df - no df ')
@@ -240,49 +230,6 @@ def post_df(
         jupyter=jupyter,
         full_width=full_width)
 # end of post_df
-
-
-def post_cb(
-        msg,
-        block=True,
-        jupyter=True,
-        full_width=True,
-        tablefmt='github'):
-    """post_cb
-
-    Post a text messsage as a code block to Slack
-
-    :param msg: text message (pre-formatting is not necessary)
-    :param block: bool for
-                  post as a Slack-formatted block ```like this```
-                  (``True`` by default)
-    :param jupyter: bool for
-                    jupyter attachment handling
-                    (``True`` by default)
-    :param full_width: bool to ensure the width is preserved
-                       the Slack message  (``True`` by default)
-    :param tablefmt: string for table format (``github`` by default).
-                     Additional format values can be found on:
-                     https://bitbucket.org/astanin/python-tabulate
-    """
-
-    if not os.getenv('SLACK_WEBHOOK', False):
-        log.info(
-            'post_cb - please add a SLACK_WEBHOOK environment '
-            'variable to publish messages')
-        return
-    if not msg:
-        log.debug('post_cb - no msg')
-        return
-
-    log.debug(f'post_cb - msg={len(msg)} fmt={tablefmt}')
-
-    post_success(
-        msg=msg,
-        block=block,
-        jupyter=jupyter,
-        full_width=full_width)
-# end of post_cb
 
 
 def post_plot(plot,

@@ -156,40 +156,32 @@ def show_dataset(
 
     if dataset_type == ae_consts.SA_DATASET_TYPE_ALGO_READY:
         print('-----------------------------------')
-        print('dates found in dataset')
-        root_keys = []
         for root_key in use_ds:
             print(root_key)
-            root_keys.append(root_key)
         all_dates = []
         all_ids = []
-        for root_key in root_keys:
+        first_node = None
+        last_node = None
+        end_nodes = []
+        for root_key in use_ds:
             second_layer = use_ds[root_key]
             for ds in second_layer:
                 if 'date' in ds:
                     if len(all_dates) == 0:
-                        print('')
-                        print('dates found in dataset')
+                        print('\ndates found in dataset')
                     cur_date = ds.get(
                         'date',
                         None)
                     if cur_date:
                         print(cur_date)
                         all_dates.append(cur_date)
-        first_node = None
-        last_node = None
-        end_nodes = []
-        for root_key in root_keys:
-            second_layer = use_ds[root_key]
-            for ds in second_layer:
                 if not first_node:
                     first_node = ds
                 end_nodes.append(ds)
                 last_node = ds
                 if 'id' in ds:
                     if len(all_ids) == 0:
-                        print('')
-                        print('ids in the file')
+                        print('\nids in the file')
                     cur_id = ds.get(
                         'id',
                         None)
@@ -212,11 +204,8 @@ def show_dataset(
                                 f'{len(first_node[ds_key][ds_name].index)}')
                 else:
                     show_first[ds_key] = first_node[ds_key]
-            print('')
-            print('first node:')
-            print(ae_consts.ppj(show_first))
+            print(f'\nfirst node:\n{ae_consts.ppj(show_first)}\n')
 
-            print('')
             num_records = len(all_ids)
             cur_cell = num_records - 4
             for cur_node in end_nodes[-5:]:
@@ -235,9 +224,9 @@ def show_dataset(
                     else:
                         show_node[ds_key] = cur_node[ds_key]
                 # end of show cur_node
-                print(f'node={cur_cell}/{num_records} values:')
-                print(ae_consts.ppj(show_node))
-                print('')
+                print(
+                    f'node={cur_cell}/{num_records} values:'
+                    f'\n{ae_consts.ppj(show_node)}\n')
                 cur_cell += 1
             # end of end_nodes
         else:
@@ -247,10 +236,10 @@ def show_dataset(
                 print('missing last node in dataset')
         if len(all_dates) > 0:
             print(
-                f'root_keys={root_keys} from {all_dates[0]} '
+                f'root_keys={use_ds} from {all_dates[0]} '
                 f'to {all_dates[-1]}')
         else:
-            print(f'root_keys={root_keys} missing dates')
+            print(f'root_keys={use_ds} missing dates')
 
         print('-----------------------------------')
 
