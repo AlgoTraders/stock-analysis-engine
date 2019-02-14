@@ -1069,9 +1069,8 @@ class BaseAlgo:
             if not hasattr(self.iproc, 'process'):
                 err = (
                     f'{self.name} - Please implement a process() method '
-                    f'in the IndicatorProcessor - the current object='
-                    f'{self.iproc} '
-                    f'is missing one.')
+                    'in the IndicatorProcessor - the current object='
+                    f'{self.iproc} is missing one.')
                 log.critical(err)
                 raise Exception(err)
             self.iproc_label = self.iproc.get_label()
@@ -1136,22 +1135,18 @@ class BaseAlgo:
             dataset=node)
         if self.timeseries == 'minute':
             if len(self.df_minute.index) <= 1:
-                log.error(
-                    'EMPTY minute dataset')
+                log.error('EMPTY minute dataset')
                 if self.raise_on_err:
-                    raise Exception(
-                        'EMPTY minute dataset')
+                    raise Exception('EMPTY minute dataset')
                 return
             for i, row in self.df_minute.iterrows():
                 log.info(f'minute={i} date={row["date"]} close={row["close"]}')
             log.info(f'minute df len={len(self.df_minute.index)}')
         elif self.timeseries == 'day':
             if len(self.df_daily.index) == 0:
-                log.error(
-                    'EMPTY daily dataset')
+                log.error('EMPTY daily dataset')
                 if self.raise_on_err:
-                    raise Exception(
-                        'EMPTY minute dataset')
+                    raise Exception('EMPTY daily dataset')
                 return
             if hasattr(self.daily, 'to_json'):
                 for i, row in self.df_daily.iterrows():
@@ -1226,8 +1221,7 @@ class BaseAlgo:
         """
         log.info('--------------')
         log.info(
-            f'process(algo_id={algo_id}, ticker={ticker}, '
-            'data:')
+            f'process(algo_id={algo_id}, ticker={ticker}, data:')
         for k in dataset:
             log.info(f'main keys={k}')
         for k in dataset['data']:
@@ -2520,8 +2514,8 @@ class BaseAlgo:
         order_details = row
         if hasattr(row, 'to_json'):
             order_details = row.to_json(
-                orient='records',
-                date_format='iso'),
+                orient=orient,
+                date_format=date_format),
 
         try:
             num_owned = self.get_owned_shares(

@@ -9,4 +9,4 @@ Send Celery Task Details to Slack Utilities
 ===========================================
 
 .. automodule:: analysis_engine.send_to_slack
-   :members: post_df,post_cb,post_success,post_failure,post_message,parse_msg,post
+   :members: post_df,post_success,post_failure,post_message,parse_msg,post

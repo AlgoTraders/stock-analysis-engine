@@ -102,8 +102,7 @@ def set_data_in_redis_key(
                     password=password,
                     db=db)
             else:
-                log.debug(
-                    f'{log_id} set key={key} client')
+                log.debug(f'{log_id} set key={key} client')
             # create Redis client if not set
 
             use_client.set(
@@ -119,8 +118,7 @@ def set_data_in_redis_key(
                 rec=rec)
             return res
         else:
-            err = (
-                f'{log_id} no data for key={key}')
+            err = f'{log_id} no data for key={key}'
             log.error(err)
             res = build_result.build_result(
                 status=ae_consts.ERR,
