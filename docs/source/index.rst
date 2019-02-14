@@ -679,6 +679,7 @@ Table of Contents
    task_run_algo
    run_custom_algo
    run_algo
+   perf_testing
    tradier
    example_algos
    indicators_examples

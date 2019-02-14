@@ -94,7 +94,9 @@ if on_rtd:
         'tensorflow.include',
         'tensorflow.python',
         'tensorflow.python.training',
-        'tensorflow.tools'
+        'tensorflow.tools',
+        'vprof',
+        'vprof.runner'
     ]
     sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
