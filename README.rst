@@ -300,7 +300,11 @@ Run Algo with Extraction and History Publishing
 Profile Your Algorithm's Code Performance with vprof
 ====================================================
 
-The pip includes `vprof for profiling algorithm code performance <https://github.com/nvdv/vprof>`__
+.. image:: https://i.imgur.com/1cwDUBC.png
+
+The pip includes `vprof for profiling an algorithm's performance (cpu, memory, profiler and heat map - not money-related) <https://github.com/nvdv/vprof>`__ which was used to generate the cpu flame graph seen above.
+
+Profile your algorithm's code performance with the following steps:
 
 #.  Start vprof in remote mode in a first terminal
 
