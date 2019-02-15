@@ -45,6 +45,7 @@ source_code_dirs = [
     'analysis_engine/indicators/',
     'analysis_engine/finviz/',
     'analysis_engine/mocks/',
+    'analysis_engine/perf/',
     'analysis_engine/scripts/',
     'analysis_engine/td/',
     'analysis_engine/work_tasks/',
@@ -93,7 +94,9 @@ if on_rtd:
         'tensorflow.include',
         'tensorflow.python',
         'tensorflow.python.training',
-        'tensorflow.tools'
+        'tensorflow.tools',
+        'vprof',
+        'vprof.runner'
     ]
     sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
