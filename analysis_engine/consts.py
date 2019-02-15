@@ -416,6 +416,21 @@ FETCH_MODE_DAILY = 30005
 FETCH_MODE_WEEKLY = 30006
 FETCH_MODE_INITIAL = 30007
 
+# GMT: Monday, January 19, 1970 12:26:40 PM
+EPOCH_MINIMUM_DATE = 1600000
+
+OPTIONS_UPPER_STRIKE = float(os.getenv(
+    'OPTIONS_UPPER_STRIKE',
+    '10.0'))
+OPTIONS_LOWER_STRIKE = float(os.getenv(
+    'OPTIONS_UPPER_STRIKE',
+    '10.0'))
+MAX_OPTIONS_UPPER_STRIKE = float(os.getenv(
+    'MAX_OPTIONS_UPPER_STRIKE',
+    '200'))
+MAX_OPTIONS_LOWER_STRIKE = float(os.getenv(
+    'MAX_OPTIONS_LOWER_STRIKE',
+    '200'))
 TRADIER_CONVERT_TO_DATETIME = [
     'date',
     'created',
@@ -1251,3 +1266,36 @@ def is_df(
     return (
         hasattr(df, 'to_json'))
 # end of is_df
+
+
+def get_redis_host_and_port(
+        addr=None,
+        req=None):
+    """get_redis_host_and_port
+
+    parse the env ``REDIS_ADDRESS`` or ``addr`` string
+    or a dictionary ``req`` and
+    return a tuple for (host (str), port (int))
+
+    :param addr: optional - string redis address to parse
+        format is ``host:port``
+    :param req: optional - dictionary where the host and port
+        are under the keys ``redis_host`` and ``redis_port``
+    """
+    use_addr = REDIS_ADDRESS
+    redis_host = None
+    redis_port = None
+    if addr:
+        use_addr = addr
+    split_arr = use_addr.split(':')
+    redis_host = split_arr[0]
+    redis_port = int(split_arr[1])
+    if req:
+        redis_host = req.get(
+            'redis_host',
+            redis_host)
+        redis_port = int(req.get(
+            'redis_port',
+            redis_port))
+    return redis_host, redis_port
+# end of get_redis_host_and_port
