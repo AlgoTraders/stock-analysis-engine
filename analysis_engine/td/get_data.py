@@ -84,6 +84,7 @@ def get_data_from_td(
         # if supported fetch request type
 
         clone_keys = [
+            'latest_pricing',
             'ticker',
             's3_address',
             's3_bucket',
@@ -95,9 +96,10 @@ def get_data_from_td(
         ]
 
         for k in clone_keys:
-            td_req[k] = work_dict.get(
-                k,
-                f'{k}-missing-in-{label}')
+            if k in work_dict:
+                td_req[k] = work_dict.get(
+                    k,
+                    f'{k}-missing-in-{label}')
         # end of cloning keys
 
         if not td_req:

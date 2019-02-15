@@ -26,32 +26,54 @@ log = log_utils.build_colorized_logger(name=__name__)
 
 
 def fetch_calls(
-        work_dict,
-        scrub_mode='sort-by-date'):
+        work_dict=None,
+        ticker=None,
+        scrub_mode='sort-by-date',
+        verbose=False):
     """fetch_calls
 
     Fetch Tradier option calls for a ticker and
-    return it as a ``pandas.DataFrame``.
+    return a tuple: (status, ``pandas.DataFrame``)
 
-    :param work_dict: dictionary of args
-    :param scrub_mode: type of scrubbing handler to run
+    .. code-block:: python
+
+        import analysis_engine.td.fetch_api as td_fetch
+
+        # Please set the TD_TOKEN environment variable to your token
+        calls_status, calls_df = td_fetch.fetch_calls(
+            ticker='SPY')
+
+        print(f'Fetched SPY Option Calls from Tradier status={calls_status}:')
+        print(calls_df)
+
+    :param work_dict: optional - dictionary of args
+    :param ticker: optional - string ticker
+    :param scrub_mode: optional - string type of
+        scrubbing handler to run
+    :param verbose: optional - bool for debugging
     """
+    label = 'fetch_calls'
     datafeed_type = td_consts.DATAFEED_TD_CALLS
-    ticker = work_dict.get(
-        'ticker',
-        None)
-    label = work_dict.get(
-        'label',
-        None)
-    exp_date = work_dict.get(
-        'exp_date',
-        None)
-    latest_pricing = work_dict.get(
-        'latest_pricing',
-        {})
-    latest_close = latest_pricing.get(
-        'close',
-        None)
+    exp_date = None
+    latest_pricing = {}
+    latest_close = None
+
+    if work_dict:
+        ticker = work_dict.get(
+            'ticker',
+            ticker)
+        label = work_dict.get(
+            'label',
+            label)
+        exp_date = work_dict.get(
+            'exp_date',
+            exp_date)
+        latest_pricing = work_dict.get(
+            'latest_pricing',
+            latest_pricing)
+        latest_close = latest_pricing.get(
+            'close',
+            latest_close)
 
     log.debug(
         f'{label} - calls - close={latest_close} '
@@ -72,9 +94,9 @@ def fetch_calls(
     if res.status_code != requests.codes.OK:
         if res.status_code in [401, 403]:
             log.critical(
-                f'Please check the TD_TOKEN is correct '
+                'Please check the TD_TOKEN is correct '
                 f'received {res.status_code} during '
-                f'fetch for: calls')
+                'fetch for: calls')
         else:
             log.info(
                 f'failed to get call with response={res} '
@@ -162,9 +184,9 @@ def fetch_calls(
     if latest_close:
         df_filter = (
             (full_df['strike'] >=
-                (latest_close - 10.0)) &
+                (latest_close - ae_consts.OPTIONS_LOWER_STRIKE)) &
             (full_df['strike'] <=
-                (latest_close + 10.0)))
+                (latest_close + ae_consts.OPTIONS_UPPER_STRIKE)))
         df = full_df[df_filter].copy().sort_values(
             by=[
                 'date',
@@ -173,9 +195,9 @@ def fetch_calls(
     else:
         mid_chain_idx = int(num_chains / 2)
         low_idx = int(
-            mid_chain_idx - 200)
+            mid_chain_idx - ae_consts.MAX_OPTIONS_LOWER_STRIKE)
         high_idx = int(
-            mid_chain_idx + 200)
+            mid_chain_idx + ae_consts.MAX_OPTIONS_UPPER_STRIKE)
         if low_idx < 0:
             low_idx = 0
         if high_idx > num_chains:
@@ -200,36 +222,58 @@ def fetch_calls(
 
 
 def fetch_puts(
-        work_dict,
-        scrub_mode='sort-by-date'):
+        work_dict=None,
+        ticker=None,
+        scrub_mode='sort-by-date',
+        verbose=False):
     """fetch_puts
 
     Fetch Tradier option puts for a ticker and
-    return it as a ``pandas.DataFrame``.
+    return a tuple: (status, ``pandas.DataFrame``)
 
-    :param work_dict: dictionary of args
-    :param scrub_mode: type of scrubbing handler to run
+    .. code-block:: python
+
+        import analysis_engine.td.fetch_api as td_fetch
+
+        puts_status, puts_df = td_fetch.fetch_puts(
+            ticker='SPY')
+
+        print(f'Fetched SPY Option Puts from Tradier status={puts_status}:')
+        print(puts_df)
+
+    :param work_dict: optional - dictionary of args
+    :param ticker: optional - string ticker
+    :param scrub_mode: optional - string type of
+        scrubbing handler to run
+    :param verbose: optional - bool for debugging
     """
+    label = 'fetch_calls'
     datafeed_type = td_consts.DATAFEED_TD_PUTS
-    ticker = work_dict.get(
-        'ticker',
-        None)
-    label = work_dict.get(
-        'label',
-        None)
-    exp_date = work_dict.get(
-        'exp_date',
-        None)
-    latest_pricing = work_dict.get(
-        'latest_pricing',
-        {})
-    latest_close = latest_pricing.get(
-        'close',
-        None)
+    exp_date = None
+    latest_pricing = {}
+    latest_close = None
 
-    log.debug(
-        f'{label} - puts - close={latest_close} '
-        f'ticker={ticker}')
+    if work_dict:
+        ticker = work_dict.get(
+            'ticker',
+            ticker)
+        label = work_dict.get(
+            'label',
+            label)
+        exp_date = work_dict.get(
+            'exp_date',
+            exp_date)
+        latest_pricing = work_dict.get(
+            'latest_pricing',
+            latest_pricing)
+        latest_close = latest_pricing.get(
+            'close',
+            latest_close)
+
+    if verbose:
+        log.info(
+            f'{label} - puts - close={latest_close} '
+            f'ticker={ticker}')
 
     exp_date = opt_dates.option_expiration().strftime(
         ae_consts.COMMON_DATE_FORMAT)
@@ -246,9 +290,9 @@ def fetch_puts(
     if res.status_code != requests.codes.OK:
         if res.status_code in [401, 403]:
             log.critical(
-                f'Please check the TD_TOKEN is correct '
+                'Please check the TD_TOKEN is correct '
                 f'received {res.status_code} during '
-                f'fetch for: puts')
+                'fetch for: puts')
         else:
             log.info(
                 f'failed to get put with response={res} '
@@ -336,9 +380,9 @@ def fetch_puts(
     if latest_close:
         df_filter = (
             (full_df['strike'] >=
-                (latest_close - 10.0)) &
+                (latest_close - ae_consts.OPTIONS_LOWER_STRIKE)) &
             (full_df['strike'] <=
-                (latest_close + 10.0)))
+                (latest_close + ae_consts.OPTIONS_UPPER_STRIKE)))
         df = full_df[df_filter].copy().sort_values(
             by=[
                 'date',
@@ -347,9 +391,9 @@ def fetch_puts(
     else:
         mid_chain_idx = int(num_chains / 2)
         low_idx = int(
-            mid_chain_idx - 200)
+            mid_chain_idx - ae_consts.MAX_OPTIONS_LOWER_STRIKE)
         high_idx = int(
-            mid_chain_idx + 200)
+            mid_chain_idx + ae_consts.MAX_OPTIONS_UPPER_STRIKE)
         if low_idx < 0:
             low_idx = 0
         if high_idx > num_chains:
