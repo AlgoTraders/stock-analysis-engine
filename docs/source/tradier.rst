@@ -52,7 +52,7 @@ Please use the command line tool to store the data in redis correctly for the ex
     fetch -t TICKER -g td
     # fetch -t SPY -g td
 
-Here is how to use the fetch_api:
+Here is how to use the fetch api:
 
 .. code-block:: python
 
