@@ -75,4 +75,4 @@ def start():
 
 
 if __name__ == '__main__':
-    perf_runner.run(start, 'cmhp', args=(), host='0.0.0.0', port=3434)
+    perf_runner.run(start, 'cm', args=(), host='0.0.0.0', port=3434)
