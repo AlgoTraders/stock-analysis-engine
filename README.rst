@@ -649,6 +649,18 @@ Once collected and cached, you can extract datasets:
     for k in d['SPY']:
         print(f'dataset key: {k}\nvalue {d["SPY"][k]}\n')
 
+Extract Latest Minute Pricing for Stocks and Options
+----------------------------------------------------
+
+.. code-block:: python
+
+    import analysis_engine.extract as ae_extract
+    print(ae_extract.extract(
+        ticker='SPY',
+        date='2019-02-14',
+        datasets=['minute', 'tdcalls', 'tdputs'],
+        verbose=True))
+
 Backfill Historical Minute Data from IEX Cloud
 ==============================================
 

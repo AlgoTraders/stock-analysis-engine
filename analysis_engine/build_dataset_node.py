@@ -127,23 +127,33 @@ def build_dataset_node(
 
     if not service_dict:
         base_req['redis_enabled'] = redis_enabled
-        base_req['redis_address'] = redis_address
-        base_req['redis_password'] = redis_password
-        base_req['redis_db'] = redis_db
-        base_req['redis_key'] = date_key
-        base_req['redis_expire'] = redis_expire
+        base_req['redis_address'] = (
+            redis_address if redis_address else ae_consts.REDIS_ADDRESS)
+        base_req['redis_password'] = (
+            redis_password if redis_password else ae_consts.REDIS_PASSWORD)
+        base_req['redis_db'] = (
+            redis_db if redis_db else ae_consts.REDIS_DB)
+        base_req['redis_expire'] = (
+            redis_expire if redis_expire else ae_consts.REDIS_EXPIRE)
         base_req['s3_enabled'] = s3_enabled
-        base_req['s3_bucket'] = s3_bucket
-        base_req['s3_address'] = s3_address
-        base_req['s3_secure'] = s3_secure
-        base_req['s3_region_name'] = s3_region_name
-        base_req['s3_access_key'] = s3_access_key
-        base_req['s3_secret_key'] = s3_secret_key
+        base_req['s3_bucket'] = (
+            s3_bucket if s3_bucket else ae_consts.S3_BUCKET)
+        base_req['s3_address'] = (
+            s3_address if s3_address else ae_consts.S3_ADDRESS)
+        base_req['s3_secure'] = (
+            s3_secure if s3_secure else ae_consts.S3_SECURE)
+        base_req['s3_region_name'] = (
+            s3_region_name if s3_region_name else ae_consts.S3_REGION_NAME)
+        base_req['s3_access_key'] = (
+            s3_access_key if s3_access_key else ae_consts.S3_ACCESS_KEY)
+        base_req['s3_secret_key'] = (
+            s3_secret_key if s3_secret_key else ae_consts.S3_SECRET_KEY)
+        base_req['redis_key'] = date_key
         base_req['s3_key'] = date_key
 
     if verbose:
         log.info(
-            f'extracting {date_key}')
+            f'extracting {date_key} req: {base_req}')
         """
         for showing connectivity args in the logs
         log.debug(
@@ -179,70 +189,100 @@ def build_dataset_node(
     if 'daily' in datasets:
         iex_daily_status, iex_daily_df = \
             iex_extract_utils.extract_daily_dataset(
-                base_req)
+                ticker=ticker,
+                date=date,
+                work_dict=base_req,
+                verbose=verbose)
         if iex_daily_status != ae_consts.SUCCESS:
             if verbose:
                 log.warn(f'unable to extract iex_daily={ticker}')
     if 'minute' in datasets:
         iex_minute_status, iex_minute_df = \
             iex_extract_utils.extract_minute_dataset(
-                base_req)
+                ticker=ticker,
+                date=date,
+                work_dict=base_req,
+                verbose=verbose)
         if iex_minute_status != ae_consts.SUCCESS:
             if verbose:
                 log.warn(f'unable to extract iex_minute={ticker}')
     if 'quote' in datasets:
         iex_quote_status, iex_quote_df = \
             iex_extract_utils.extract_quote_dataset(
-                base_req)
+                ticker=ticker,
+                date=date,
+                work_dict=base_req,
+                verbose=verbose)
         if iex_quote_status != ae_consts.SUCCESS:
             if verbose:
                 log.warn(f'unable to extract iex_quote={ticker}')
     if 'stats' in datasets:
         iex_stats_df, iex_stats_df = \
             iex_extract_utils.extract_stats_dataset(
-                base_req)
+                ticker=ticker,
+                date=date,
+                work_dict=base_req,
+                verbose=verbose)
         if iex_stats_status != ae_consts.SUCCESS:
             if verbose:
                 log.warn(f'unable to extract iex_stats={ticker}')
     if 'peers' in datasets:
         iex_peers_df, iex_peers_df = \
             iex_extract_utils.extract_peers_dataset(
-                base_req)
+                ticker=ticker,
+                date=date,
+                work_dict=base_req,
+                verbose=verbose)
         if iex_peers_status != ae_consts.SUCCESS:
             if verbose:
                 log.warn(f'unable to extract iex_peers={ticker}')
     if 'news' in datasets:
         iex_news_status, iex_news_df = \
             iex_extract_utils.extract_news_dataset(
-                base_req)
+                ticker=ticker,
+                date=date,
+                work_dict=base_req,
+                verbose=verbose)
         if iex_news_status != ae_consts.SUCCESS:
             if verbose:
                 log.warn(f'unable to extract iex_news={ticker}')
     if 'financials' in datasets:
         iex_financials_status, iex_financials_df = \
             iex_extract_utils.extract_financials_dataset(
-                base_req)
+                ticker=ticker,
+                date=date,
+                work_dict=base_req,
+                verbose=verbose)
         if iex_financials_status != ae_consts.SUCCESS:
             if verbose:
                 log.warn(f'unable to extract iex_financials={ticker}')
     if 'earnings' in datasets:
         iex_earnings_status, iex_earnings_df = \
             iex_extract_utils.extract_earnings_dataset(
-                base_req)
+                ticker=ticker,
+                date=date,
+                work_dict=base_req,
+                verbose=verbose)
         if iex_earnings_status != ae_consts.SUCCESS:
             if verbose:
                 log.warn(f'unable to extract iex_earnings={ticker}')
     if 'dividends' in datasets:
         iex_dividends_status, iex_dividends_df = \
             iex_extract_utils.extract_dividends_dataset(
-                base_req)
+                ticker=ticker,
+                date=date,
+                work_dict=base_req,
+                verbose=verbose)
         if iex_dividends_status != ae_consts.SUCCESS:
             if verbose:
                 log.warn(f'unable to extract iex_dividends={ticker}')
     if 'company' in datasets:
         iex_company_status, iex_company_df = \
             iex_extract_utils.extract_company_dataset(
-                base_req)
+                ticker=ticker,
+                date=date,
+                work_dict=base_req,
+                verbose=verbose)
         if iex_company_status != ae_consts.SUCCESS:
             if verbose:
                 log.warn(f'unable to extract iex_company={ticker}')
@@ -297,7 +337,10 @@ def build_dataset_node(
             'tdcalls' in datasets):
         td_calls_status, td_calls_df = \
             td_extract_utils.extract_option_calls_dataset(
-                base_req)
+                ticker=ticker,
+                date=date,
+                work_dict=base_req,
+                verbose=verbose)
         if td_calls_status != ae_consts.SUCCESS:
             if verbose:
                 log.warn(f'unable to extract tdcalls={ticker}')
@@ -321,7 +364,10 @@ def build_dataset_node(
             'tdputs' in datasets):
         td_puts_status, td_puts_df = \
             td_extract_utils.extract_option_puts_dataset(
-                base_req)
+                ticker=ticker,
+                date=date,
+                work_dict=base_req,
+                verbose=verbose)
         if td_puts_status != ae_consts.SUCCESS:
             if verbose:
                 log.warn(f'unable to extract tdputs={ticker}')
