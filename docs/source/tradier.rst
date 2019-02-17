@@ -1,5 +1,8 @@
-How to Setup Tradier Authentication
-===================================
+Tradier API
+===========
+
+Tradier - Account Set Up
+========================
 
 #.  Sign up for a develop account and get a token.
 
@@ -14,11 +17,8 @@ How to Setup Tradier Authentication
 .. automodule:: analysis_engine.td.consts
    :members: get_auth_headers
 
-Tradier API Documentation
-=========================
-
-Tradier API - Extraction
-========================
+Tradier - Extraction API Reference
+==================================
 
 Once fetched you can extract the options data with:
 
@@ -42,8 +42,8 @@ Once fetched you can extract the options data with:
 .. automodule:: analysis_engine.td.extract_df_from_redis
    :members: extract_option_calls_dataset,extract_option_puts_dataset
 
-Tradier API - Fetch
-===================
+Tradier - Fetch API Reference
+=============================
 
 Please use the command line tool to store the data in redis correctly for the extraction tools.
 
@@ -70,11 +70,14 @@ Here is how to use the fetch api:
     print(f'Fetched SPY Option Puts from Tradier status={puts_status}:')
     print(puts_df)
 
-.. automodule:: analysis_engine.td.fetch_data
-   :members: fetch_data
-
 .. automodule:: analysis_engine.td.fetch_api
    :members: fetch_calls,fetch_puts
+
+Distributed Automation API
+--------------------------
+
+.. automodule:: analysis_engine.td.fetch_data
+   :members: fetch_data
 
 Tradier API - Get Data Helper
 =============================

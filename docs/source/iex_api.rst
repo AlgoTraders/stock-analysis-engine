@@ -12,6 +12,24 @@ IEX - Account Set Up
 
         export IEX_TOKEN=PUBLISHABLE_TOKEN
 
+IEX - Fetch API Reference
+=========================
+
+.. automodule:: analysis_engine.iex.fetch_api
+   :members: fetch_daily,fetch_minute,fetch_quote,fetch_stats,fetch_stats,fetch_news,fetch_financials,fetch_earnings,fetch_dividends,fetch_company
+
+IEX - HTTP Fetch Functions
+--------------------------
+
+.. automodule:: analysis_engine.iex.helpers_for_iex_api
+   :members: get_from_iex,handle_get_from_iex,get_from_iex_cloud,get_from_iex_v1,convert_datetime_columns
+
+IEX - Build Auth URL Using Publishable Token
+--------------------------------------------
+
+.. automodule:: analysis_engine.iex.build_auth_url
+   :members: build_auth_url
+
 IEX - Get Data
 ==============
 
@@ -20,8 +38,8 @@ Use this function to pull data from IEX with a shared API for supported fetch ro
 .. automodule:: analysis_engine.iex.get_data
    :members: get_data_from_iex
 
-IEX - Fetch Data
-================
+Distributed Automation API
+--------------------------
 
 This is a helper for the parent method:
 
@@ -30,32 +48,14 @@ This is a helper for the parent method:
 .. automodule:: analysis_engine.iex.fetch_data
    :members: fetch_data
 
-IEX - HTTP Fetch Functions
-==========================
-
-.. automodule:: analysis_engine.iex.helpers_for_iex_api
-   :members: get_from_iex,handle_get_from_iex,get_from_iex_cloud,get_from_iex_v1,convert_datetime_columns
-
-IEX - Build Auth URL Using Publishable Token
-============================================
-
-.. automodule:: analysis_engine.iex.build_auth_url
-   :members: build_auth_url
-
-IEX - Fetch Common Utilities
-============================
-
-.. automodule:: analysis_engine.iex.fetch_api
-   :members: fetch_daily,fetch_minute,fetch_quote,fetch_stats,fetch_stats,fetch_news,fetch_financials,fetch_earnings,fetch_dividends,fetch_company
-
 Default Fields
 --------------
 
 .. automodule:: analysis_engine.iex.get_default_fields
    :members: get_default_fields
 
-IEX - Dataset Extraction API
-============================
+IEX - Extraction API Reference
+==============================
 
 Here is the extraction API for returning a ``pandas.DataFrame`` from cached or archived IEX datasets.
 

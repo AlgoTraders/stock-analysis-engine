@@ -37,7 +37,7 @@ def extract_daily_dataset(
     Fetch the IEX daily data for a ticker and
     return a tuple (status, ``pandas.Dataframe``)
 
-    .. code-block::
+    .. code-block:: python
 
         import analysis_engine.iex.extract_df_from_redis as iex_extract
 
@@ -75,7 +75,7 @@ def extract_minute_dataset(
     Fetch the IEX minute intraday data for a ticker and
     return a tuple (status, ``pandas.Dataframe``)
 
-    .. code-block::
+    .. code-block:: python
 
         import analysis_engine.iex.extract_df_from_redis as iex_extract
 
@@ -113,7 +113,7 @@ def extract_quote_dataset(
     Fetch the IEX quote data for a ticker and
     return a tuple (status, ``pandas.Dataframe``)
 
-    .. code-block::
+    .. code-block:: python
 
         import analysis_engine.iex.extract_df_from_redis as iex_extract
 
@@ -151,7 +151,7 @@ def extract_stats_dataset(
     Fetch the IEX statistics data for a ticker and
     return a tuple (status, ``pandas.Dataframe``)
 
-    .. code-block::
+    .. code-block:: python
 
         import analysis_engine.iex.extract_df_from_redis as iex_extract
 
@@ -189,7 +189,7 @@ def extract_peers_dataset(
     Fetch the IEX peers data for a ticker and
     return a tuple (status, ``pandas.Dataframe``)
 
-    .. code-block::
+    .. code-block:: python
 
         import analysis_engine.iex.extract_df_from_redis as iex_extract
 
@@ -227,7 +227,7 @@ def extract_news_dataset(
     Fetch the IEX news data for a ticker and
     return a tuple (status, ``pandas.Dataframe``)
 
-    .. code-block::
+    .. code-block:: python
 
         import analysis_engine.iex.extract_df_from_redis as iex_extract
 
@@ -265,7 +265,7 @@ def extract_financials_dataset(
     Fetch the IEX financial data for a ticker and
     return a tuple (status, ``pandas.Dataframe``)
 
-    .. code-block::
+    .. code-block:: python
 
         import analysis_engine.iex.extract_df_from_redis as iex_extract
 
@@ -303,7 +303,7 @@ def extract_earnings_dataset(
     Fetch the IEX earnings data for a ticker and
     return a tuple (status, ``pandas.Dataframe``)
 
-    .. code-block::
+    .. code-block:: python
 
         import analysis_engine.iex.extract_df_from_redis as iex_extract
 
@@ -341,7 +341,7 @@ def extract_dividends_dataset(
     Fetch the IEX dividends data for a ticker and
     return a tuple (status, ``pandas.Dataframe``)
 
-    .. code-block::
+    .. code-block:: python
 
         import analysis_engine.iex.extract_df_from_redis as iex_extract
 
@@ -379,7 +379,7 @@ def extract_company_dataset(
     Fetch the IEX company data for a ticker and
     return a tuple (status, ``pandas.Dataframe``)
 
-    .. code-block::
+    .. code-block:: python
 
         import analysis_engine.iex.extract_df_from_redis as iex_extract
 

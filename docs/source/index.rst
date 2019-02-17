@@ -16,6 +16,8 @@ Fetch the Latest Pricing Data
 Supported fetch methods for getting pricing data:
 
 - Command line using ``fetch`` command
+- `IEX Cloud Fetch API <https://stock-analysis-engine.readthedocs.io/en/latest/iex_api.html#iex-fetch-api-reference>`__
+- `Tradier Fetch API <https://stock-analysis-engine.readthedocs.io/en/latest/tradier.html#tradier-fetch-api-reference>`__
 - Docker-compose using ``./compose/start.sh -c``
 - Kubernetes jobs: `Fetch Intraday <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/k8/datasets/pull_intraday_per_minute.yml>`__, `Fetch Daily <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/k8/datasets/pull_daily.yml>`__, `Fetch Weekly <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/k8/datasets/pull_weekly.yml>`__, or `Fetch from only Tradier <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/k8/datasets/pull_tradier_per_minute.yml>`__
 
@@ -115,6 +117,12 @@ Run a backtest with the latest pricing data:
     # runner.start()
 
 Check out the `backtest_with_runner.py script <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/backtest_with_runner.py>`__ for a command line example of using the `Algorithm Runner API <https://stock-analysis-engine.readthedocs.io/en/latest/algo_runner.html>`__ to run and plot from an `Algorithm backtest config file <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/cfg/default_algo.json>`__.
+
+Supported Extraction APIs
+=========================
+
+- `IEX Cloud Extraction API Reference <https://stock-analysis-engine.readthedocs.io/en/latest/tradier.html#iex-extraction-api-reference>`__
+- `Tradier Extraction API Reference <https://stock-analysis-engine.readthedocs.io/en/latest/iex_api.html#tradier-extraction-api-ference>`__
 
 Using Cached IEX Pricing Data on a Date
 =======================================
