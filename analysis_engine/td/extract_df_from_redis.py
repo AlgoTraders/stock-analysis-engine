@@ -129,9 +129,10 @@ def extract_option_calls_dataset(
                 if len(calls_df.index) == 0:
                     return ae_consts.SUCCESS, pd.DataFrame([])
                 if 'date' not in calls_df:
-                    log.error(
-                        'failed to find date column in TD calls '
-                        f'df={calls_df} from lens={len(calls_df.index)}')
+                    if verbose:
+                        log.error(
+                            'failed to find date column in TD calls '
+                            f'df={calls_df} from lens={len(calls_df.index)}')
                     return ae_consts.SUCCESS, pd.DataFrame([])
                 calls_df.sort_values(
                         by=[
