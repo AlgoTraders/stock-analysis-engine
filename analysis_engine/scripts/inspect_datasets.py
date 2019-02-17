@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 """
-Tool for inspecting datsets to find common errors. This tool uses the
+Tool for inspecting cached pricing data to find common errors.
+This tool uses the
 `Extraction API <https://stock-analysis-engine.
 readthedocs.io/en/latest/extract.html>`__ to look for dates
 that are not in sync with the redis cached date.
