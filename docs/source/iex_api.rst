@@ -30,30 +30,6 @@ IEX - Build Auth URL Using Publishable Token
 .. automodule:: analysis_engine.iex.build_auth_url
    :members: build_auth_url
 
-IEX - Get Data
-==============
-
-Use this function to pull data from IEX with a shared API for supported fetch routines over the IEX HTTP Rest API.
-
-.. automodule:: analysis_engine.iex.get_data
-   :members: get_data_from_iex
-
-Distributed Automation API
---------------------------
-
-This is a helper for the parent method:
-
-``analysis_engine.iex.get_data.py``
-
-.. automodule:: analysis_engine.iex.fetch_data
-   :members: fetch_data
-
-Default Fields
---------------
-
-.. automodule:: analysis_engine.iex.get_default_fields
-   :members: get_default_fields
-
 IEX - Extraction API Reference
 ==============================
 
@@ -99,3 +75,28 @@ IEX API Example - Get Minute Data from IEX (calls fetch and cache)
         'ticker': 'SPY',
         'ft_type': 'minute'})
     print(df)
+
+IEX - Get Data
+==============
+
+Use this function to pull data from IEX with a shared API for supported fetch routines over the IEX HTTP Rest API.
+
+.. automodule:: analysis_engine.iex.get_data
+   :members: get_data_from_iex
+
+Distributed Automation API
+--------------------------
+
+This is a helper for the parent method:
+
+``analysis_engine.iex.get_data.py``
+
+.. automodule:: analysis_engine.iex.fetch_data
+   :members: fetch_data
+
+Default Fields
+--------------
+
+.. automodule:: analysis_engine.iex.get_default_fields
+   :members: get_default_fields
+

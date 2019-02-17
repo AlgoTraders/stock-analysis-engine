@@ -39,8 +39,8 @@ def extract_daily_dataset(
         verbose=False):
     """extract_daily_dataset
 
-    Fetch the IEX daily data for a ticker and
-    return a tuple (status, ``pandas.Dataframe``)
+    Extract the IEX daily data for a ticker from Redis and
+    return it as a tuple (status, ``pandas.Dataframe``)
 
     .. code-block:: python
 
@@ -77,8 +77,8 @@ def extract_minute_dataset(
         verbose=False):
     """extract_minute_dataset
 
-    Fetch the IEX minute intraday data for a ticker and
-    return a tuple (status, ``pandas.Dataframe``)
+    Extract the IEX minute intraday data for a ticker from Redis and
+    return it as a tuple (status, ``pandas.Dataframe``)
 
     .. code-block:: python
 
@@ -115,8 +115,8 @@ def extract_quote_dataset(
         verbose=False):
     """extract_quote_dataset
 
-    Fetch the IEX quote data for a ticker and
-    return a tuple (status, ``pandas.Dataframe``)
+    Extract the IEX quote data for a ticker from Redis and
+    return it as a tuple (status, ``pandas.Dataframe``)
 
     .. code-block:: python
 
@@ -153,8 +153,8 @@ def extract_stats_dataset(
         verbose=False):
     """extract_stats_dataset
 
-    Fetch the IEX statistics data for a ticker and
-    return a tuple (status, ``pandas.Dataframe``)
+    Extract the IEX statistics data for a ticker from Redis and
+    return it as a tuple (status, ``pandas.Dataframe``)
 
     .. code-block:: python
 
@@ -191,8 +191,8 @@ def extract_peers_dataset(
         verbose=False):
     """extract_peers_dataset
 
-    Fetch the IEX peers data for a ticker and
-    return a tuple (status, ``pandas.Dataframe``)
+    Extract the IEX peers data for a ticker from Redis and
+    return it as a tuple (status, ``pandas.Dataframe``)
 
     .. code-block:: python
 
@@ -229,8 +229,8 @@ def extract_news_dataset(
         verbose=False):
     """extract_news_dataset
 
-    Fetch the IEX news data for a ticker and
-    return a tuple (status, ``pandas.Dataframe``)
+    Extract the IEX news data for a ticker from Redis and
+    return it as a tuple (status, ``pandas.Dataframe``)
 
     .. code-block:: python
 
@@ -267,8 +267,8 @@ def extract_financials_dataset(
         verbose=False):
     """extract_financials_dataset
 
-    Fetch the IEX financial data for a ticker and
-    return a tuple (status, ``pandas.Dataframe``)
+    Extract the IEX financial data for a ticker from Redis and
+    return it as a tuple (status, ``pandas.Dataframe``)
 
     .. code-block:: python
 
@@ -305,8 +305,8 @@ def extract_earnings_dataset(
         verbose=False):
     """extract_earnings_dataset
 
-    Fetch the IEX earnings data for a ticker and
-    return a tuple (status, ``pandas.Dataframe``)
+    Extract the IEX earnings data for a ticker from Redis and
+    return it as a tuple (status, ``pandas.Dataframe``)
 
     .. code-block:: python
 
@@ -343,8 +343,8 @@ def extract_dividends_dataset(
         verbose=False):
     """extract_dividends_dataset
 
-    Fetch the IEX dividends data for a ticker and
-    return a tuple (status, ``pandas.Dataframe``)
+    Extract the IEX dividends data for a ticker from Redis and
+    return it as a tuple (status, ``pandas.Dataframe``)
 
     .. code-block:: python
 
@@ -381,8 +381,8 @@ def extract_company_dataset(
         verbose=False):
     """extract_company_dataset
 
-    Fetch the IEX company data for a ticker and
-    return a tuple (status, ``pandas.Dataframe``)
+    Extract the IEX company data for a ticker from Redis and
+    return it as a tuple (status, ``pandas.Dataframe``)
 
     .. code-block:: python
 
@@ -420,8 +420,8 @@ def extract_dataset(
         verbose=False):
     """extract_dataset
 
-    Fetch the IEX key data for a ticker and
-    return a tuple (status, ``pandas.Dataframe``)
+    Extract the IEX key data for a ticker from Redis and
+    return it as a tuple (status, ``pandas.Dataframe``)
 
     :param key: IEX dataset key
     :param ticker: optional - string ticker to extract
