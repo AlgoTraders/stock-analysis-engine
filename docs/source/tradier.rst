@@ -17,31 +17,6 @@ Tradier - Account Set Up
 .. automodule:: analysis_engine.td.consts
    :members: get_auth_headers
 
-Tradier - Extraction API Reference
-==================================
-
-Once fetched you can extract the options data with:
-
-.. code-block:: python
-
-    import analysis_engine.td.extract_df_from_redis as td_extract
-
-    # extract by historical date is also supported:
-    # date='2019-02-15'
-    calls_status, calls_df = td_extract.extract_option_calls_dataset(
-        ticker='SPY')
-    puts_status, puts_df = td_extract.extract_option_puts_dataset(
-        ticker='SPY')
-
-    print(f'SPY Option Calls from Tradier extract status={calls_status}:')
-    print(calls_df)
-
-    print(f'SPY Option Puts from Tradier extract status={puts_status}:')
-    print(puts_df)
-
-.. automodule:: analysis_engine.td.extract_df_from_redis
-   :members: extract_option_calls_dataset,extract_option_puts_dataset
-
 Tradier - Fetch API Reference
 =============================
 
@@ -73,6 +48,31 @@ Here is how to use the fetch api:
 .. automodule:: analysis_engine.td.fetch_api
    :members: fetch_calls,fetch_puts
 
+Tradier - Extraction API Reference
+==================================
+
+Once fetched you can extract the options data with:
+
+.. code-block:: python
+
+    import analysis_engine.td.extract_df_from_redis as td_extract
+
+    # extract by historical date is also supported:
+    # date='2019-02-15'
+    calls_status, calls_df = td_extract.extract_option_calls_dataset(
+        ticker='SPY')
+    puts_status, puts_df = td_extract.extract_option_puts_dataset(
+        ticker='SPY')
+
+    print(f'SPY Option Calls from Tradier extract status={calls_status}:')
+    print(calls_df)
+
+    print(f'SPY Option Puts from Tradier extract status={puts_status}:')
+    print(puts_df)
+
+.. automodule:: analysis_engine.td.extract_df_from_redis
+   :members: extract_option_calls_dataset,extract_option_puts_dataset
+
 Distributed Automation API
 --------------------------
 
@@ -80,7 +80,7 @@ Distributed Automation API
    :members: fetch_data
 
 Tradier API - Get Data Helper
-=============================
+-----------------------------
 
 .. automodule:: analysis_engine.td.get_data
    :members: get_data_from_td
