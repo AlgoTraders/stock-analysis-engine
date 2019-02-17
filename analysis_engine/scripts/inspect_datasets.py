@@ -255,7 +255,7 @@ if __name__ == '__main__':
                 else:
                     datasets.append(key)
     if args.start_date:
-        start_date = datetime.strptime(
+        start_date = datetime.datetime.strptime(
             args.start_date,
             '%Y-%m-%d')
 
