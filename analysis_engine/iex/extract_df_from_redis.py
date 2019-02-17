@@ -455,6 +455,7 @@ def extract_dataset(
     if verbose:
         log.info(
             f'{label} - {df_str} - '
+            f'date={date} '
             f'redis_key={req["redis_key"]} '
             f's3_key={req["s3_key"]} '
             f'{ae_consts.ppj(req)}')

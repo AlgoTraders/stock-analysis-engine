@@ -117,10 +117,14 @@ def extract_option_calls_dataset(
 
         if status == ae_consts.SUCCESS:
             calls_json = None
-            if 'calls' in redis_rec['rec']['data']:
+            if 'tdcalls' in redis_rec['rec']['data']:
+                calls_json = redis_rec['rec']['data']['tdcalls']
+            elif 'calls' in redis_rec['rec']['data']:
                 calls_json = redis_rec['rec']['data']['calls']
             else:
                 calls_json = redis_rec['rec']['data']
+            if not calls_json:
+                return ae_consts.SUCCESS, pd.DataFrame([])
             if verbose:
                 log.info(f'{label} - {df_str} redis convert calls to df')
             exp_date_str = None
@@ -131,10 +135,10 @@ def extract_option_calls_dataset(
                 if len(calls_df.index) == 0:
                     return ae_consts.SUCCESS, pd.DataFrame([])
                 if 'date' not in calls_df:
-                    log.debug(
+                    log.error(
                         'failed to find date column in TD calls '
                         f'df={calls_df} from lens={len(calls_df.index)}')
-                    return ae_consts.EMPTY, pd.DataFrame([])
+                    return ae_consts.SUCCESS, pd.DataFrame([])
                 calls_df.sort_values(
                         by=[
                             'date',
@@ -187,20 +191,20 @@ def extract_option_calls_dataset(
                         log.critical(
                             f'failed to parse date column {calls_df["date"]} '
                             f'with dt.strftime ex={f} and EPOCH EX={g}')
-                        return ae_consts.EMPTY, pd.DataFrame([])
+                        return ae_consts.SUCCESS, pd.DataFrame([])
                 # if able to fix error or not
 
                 if not_fixed:
-                    log.error(
+                    log.debug(
                         f'{label} - {df_str} redis_key={redis_key} '
                         f'no calls df found or ex={f}')
-                    return ae_consts.EMPTY, pd.DataFrame([])
+                    return ae_consts.SUCCESS, pd.DataFrame([])
                 # if unable to fix - return out
 
                 log.error(
                     f'{label} - {df_str} redis_key={redis_key} '
                     f'no calls df found or ex={f}')
-                return ae_consts.EMPTY, pd.DataFrame([])
+                return ae_consts.SUCCESS, pd.DataFrame([])
             # end of try/ex to convert to df
             if verbose:
                 log.info(
@@ -330,10 +334,14 @@ def extract_option_puts_dataset(
 
         if status == ae_consts.SUCCESS:
             puts_json = None
+            if 'tdputs' in redis_rec['rec']['data']:
+                puts_json = redis_rec['rec']['data']['tdputs']
             if 'puts' in redis_rec['rec']['data']:
                 puts_json = redis_rec['rec']['data']['puts']
             else:
                 puts_json = redis_rec['rec']['data']
+            if not puts_json:
+                return ae_consts.SUCCESS, pd.DataFrame([])
             if verbose:
                 log.info(f'{label} - {df_str} redis convert puts to df')
             try:
@@ -346,7 +354,7 @@ def extract_option_puts_dataset(
                     log.debug(
                         'failed to find date column in TD puts '
                         f'df={puts_df} len={len(puts_df.index)}')
-                    return ae_consts.EMPTY, pd.DataFrame([])
+                    return ae_consts.SUCCESS, pd.DataFrame([])
                 puts_df.sort_values(
                         by=[
                             'date',
@@ -380,7 +388,7 @@ def extract_option_puts_dataset(
                 log.debug(
                     f'{label} - {df_str} redis_key={redis_key} '
                     'no puts df found')
-                return ae_consts.EMPTY, pd.DataFrame([])
+                return ae_consts.SUCCESS, pd.DataFrame([])
             # end of try/ex to convert to df
             if verbose:
                 log.info(
