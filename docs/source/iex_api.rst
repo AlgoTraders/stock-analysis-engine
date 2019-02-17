@@ -4,6 +4,8 @@ IEX API
 IEX - Account Set Up
 ====================
 
+#.  `Install the Analysis Engine <https://github.com/AlgoTraders/stock-analysis-engine#getting-started>`__
+
 #.  `Register for an Account <https://iexcloud.io/cloud-login/#/register>`__
 
 #.  Set ``IEX_TOKEN`` the Environment Variable

@@ -1,5 +1,5 @@
 """
-Dataset Extraction API
+Extraction API
 
 **Extract All Data for a Ticker**
 
