@@ -607,6 +607,18 @@ IEX_INITIAL_DATASETS = [
     'company'
 ]
 
+BACKUP_DATASETS = [
+    'tdcalls',
+    'tdputs',
+    'pricing',
+    'options',
+    'calls',
+    'puts',
+    'news1'
+] + IEX_DATASETS_DEFAULT
+if os.getenv('BACKUP_DATASETS', False):
+    BACKUP_DATASETS = os.getenv('BACKUP_DATASETS', '').split(',')
+
 COMMON_DATE_FORMAT = '%Y-%m-%d'
 COMMON_TICK_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 CACHE_DICT_VERSION = 1
