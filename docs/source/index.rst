@@ -49,7 +49,7 @@ Here is a video showing how to fetch the latest pricing data for a ticker using 
 
     #.  `Run through the Getting Started section <https://github.com/AlgoTraders/stock-analysis-engine#getting-started>`__
 
-    #.  Fetch pricing data from `IEX Cloud (requires an account and uses on-demand usage pricing) <https://iexcloud.io/cloud-login#/register/>`__ and `Tradier (requires an account) <https://developer.tradier.com/getting_started>`__):
+    #.  Fetch pricing data from `IEX Cloud (requires an account and uses on-demand usage pricing) <https://iexcloud.io/cloud-login#/register/>`__ and `Tradier (requires an account) <https://developer.tradier.com/getting_started>`__:
 
         - Set the **IEX_TOKEN** environment variable to fetch from the IEX Cloud datafeeds:
 
