@@ -395,6 +395,11 @@ def run_algo(
         algo.raise_on_err = True
 
     indicator_datasets = algo.get_indicator_datasets()
+    if len(indicator_datasets) == 0:
+        indicator_datasets = ae_consts.BACKUP_DATASETS
+        log.info(
+            f'using all datasets={indicator_datasets}')
+
     verbose_extract = False
     if config_dict:
         verbose_extract = config_dict.get('verbose_extract', False)
