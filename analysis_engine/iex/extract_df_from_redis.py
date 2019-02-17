@@ -32,9 +32,9 @@ keys = {
 
 
 def extract_daily_dataset(
-        work_dict=None,
         ticker=None,
         date=None,
+        work_dict=None,
         scrub_mode='sort-by-date',
         verbose=False):
     """extract_daily_dataset
@@ -52,10 +52,10 @@ def extract_daily_dataset(
             ticker='SPY')
         print(daily_df)
 
-    :param work_dict: dictionary of args
     :param ticker: optional - string ticker to extract
     :param date: optional - string date to extract
         formatted ``YYYY-MM-DD``
+    :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     :param verbose: optional - boolean for turning on logging
     """
@@ -70,9 +70,9 @@ def extract_daily_dataset(
 
 
 def extract_minute_dataset(
-        work_dict=None,
         ticker=None,
         date=None,
+        work_dict=None,
         scrub_mode='sort-by-date',
         verbose=False):
     """extract_minute_dataset
@@ -90,11 +90,11 @@ def extract_minute_dataset(
             ticker='SPY')
         print(minute_df)
 
-    :param work_dict: dictionary of args
     :param ticker: optional - string ticker to extract
     :param date: optional - string date to extract
         formatted ``YYYY-MM-DD``
     :param scrub_mode: type of scrubbing handler to run
+    :param work_dict: dictionary of args
     :param verbose: optional - boolean for turning on logging
     """
     return extract_dataset(
@@ -108,9 +108,9 @@ def extract_minute_dataset(
 
 
 def extract_quote_dataset(
-        work_dict=None,
         ticker=None,
         date=None,
+        work_dict=None,
         scrub_mode='sort-by-date',
         verbose=False):
     """extract_quote_dataset
@@ -128,10 +128,10 @@ def extract_quote_dataset(
             ticker='SPY')
         print(quote_df)
 
-    :param work_dict: dictionary of args
     :param ticker: optional - string ticker to extract
     :param date: optional - string date to extract
         formatted ``YYYY-MM-DD``
+    :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     :param verbose: optional - boolean for turning on logging
     """
@@ -146,9 +146,9 @@ def extract_quote_dataset(
 
 
 def extract_stats_dataset(
-        work_dict=None,
         ticker=None,
         date=None,
+        work_dict=None,
         scrub_mode='sort-by-date',
         verbose=False):
     """extract_stats_dataset
@@ -166,10 +166,10 @@ def extract_stats_dataset(
             ticker='SPY')
         print(stats_df)
 
-    :param work_dict: dictionary of args
     :param ticker: optional - string ticker to extract
     :param date: optional - string date to extract
         formatted ``YYYY-MM-DD``
+    :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     :param verbose: optional - boolean for turning on logging
     """
@@ -184,9 +184,9 @@ def extract_stats_dataset(
 
 
 def extract_peers_dataset(
-        work_dict=None,
         ticker=None,
         date=None,
+        work_dict=None,
         scrub_mode='sort-by-date',
         verbose=False):
     """extract_peers_dataset
@@ -204,10 +204,10 @@ def extract_peers_dataset(
             ticker='SPY')
         print(peers_df)
 
-    :param work_dict: dictionary of args
     :param ticker: optional - string ticker to extract
     :param date: optional - string date to extract
         formatted ``YYYY-MM-DD``
+    :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     :param verbose: optional - boolean for turning on logging
     """
@@ -222,9 +222,9 @@ def extract_peers_dataset(
 
 
 def extract_news_dataset(
-        work_dict=None,
         ticker=None,
         date=None,
+        work_dict=None,
         scrub_mode='sort-by-date',
         verbose=False):
     """extract_news_dataset
@@ -242,10 +242,10 @@ def extract_news_dataset(
             ticker='SPY')
         print(news_df)
 
-    :param work_dict: dictionary of args
     :param ticker: optional - string ticker to extract
     :param date: optional - string date to extract
         formatted ``YYYY-MM-DD``
+    :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     :param verbose: optional - boolean for turning on logging
     """
@@ -260,9 +260,9 @@ def extract_news_dataset(
 
 
 def extract_financials_dataset(
-        work_dict=None,
         ticker=None,
         date=None,
+        work_dict=None,
         scrub_mode='sort-by-date',
         verbose=False):
     """extract_financials_dataset
@@ -280,10 +280,10 @@ def extract_financials_dataset(
             ticker='SPY')
         print(fin_df)
 
-    :param work_dict: dictionary of args
     :param ticker: optional - string ticker to extract
     :param date: optional - string date to extract
         formatted ``YYYY-MM-DD``
+    :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     :param verbose: optional - boolean for turning on logging
     """
@@ -298,9 +298,9 @@ def extract_financials_dataset(
 
 
 def extract_earnings_dataset(
-        work_dict=None,
         ticker=None,
         date=None,
+        work_dict=None,
         scrub_mode='sort-by-date',
         verbose=False):
     """extract_earnings_dataset
@@ -318,10 +318,10 @@ def extract_earnings_dataset(
             ticker='SPY')
         print(earn_df)
 
-    :param work_dict: dictionary of args
     :param ticker: optional - string ticker to extract
     :param date: optional - string date to extract
         formatted ``YYYY-MM-DD``
+    :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     :param verbose: optional - boolean for turning on logging
     """
@@ -336,9 +336,9 @@ def extract_earnings_dataset(
 
 
 def extract_dividends_dataset(
-        work_dict=None,
         ticker=None,
         date=None,
+        work_dict=None,
         scrub_mode='sort-by-date',
         verbose=False):
     """extract_dividends_dataset
@@ -356,10 +356,10 @@ def extract_dividends_dataset(
             ticker='SPY')
         print(div_df)
 
-    :param work_dict: dictionary of args
     :param ticker: optional - string ticker to extract
     :param date: optional - string date to extract
         formatted ``YYYY-MM-DD``
+    :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     :param verbose: optional - boolean for turning on logging
     """
@@ -374,9 +374,9 @@ def extract_dividends_dataset(
 
 
 def extract_company_dataset(
-        work_dict=None,
         ticker=None,
         date=None,
+        work_dict=None,
         scrub_mode='NO_SORT',
         verbose=False):
     """extract_company_dataset
@@ -394,10 +394,10 @@ def extract_company_dataset(
             ticker='SPY')
         print(comp_df)
 
-    :param work_dict: dictionary of args
     :param ticker: optional - string ticker to extract
     :param date: optional - string date to extract
         formatted ``YYYY-MM-DD``
+    :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     :param verbose: optional - boolean for turning on logging
     """
@@ -413,9 +413,9 @@ def extract_company_dataset(
 
 def extract_dataset(
         key,
-        work_dict=None,
         ticker=None,
         date=None,
+        work_dict=None,
         scrub_mode='NO_SORT',
         verbose=False):
     """extract_dataset
@@ -424,10 +424,10 @@ def extract_dataset(
     return a tuple (status, ``pandas.Dataframe``)
 
     :param key: IEX dataset key
-    :param work_dict: dictionary of args
     :param ticker: optional - string ticker to extract
     :param date: optional - string date to extract
         formatted ``YYYY-MM-DD``
+    :param work_dict: dictionary of args
     :param scrub_mode: type of scrubbing handler to run
     :param verbose: optional - boolean for turning on logging
     """
