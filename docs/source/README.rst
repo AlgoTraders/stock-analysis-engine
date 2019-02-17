@@ -116,8 +116,8 @@ Check out the `backtest_with_runner.py script <https://github.com/AlgoTraders/st
 Supported Extraction APIs
 =========================
 
-- `IEX Cloud Extraction API Reference <https://stock-analysis-engine.readthedocs.io/en/latest/tradier.html#iex-extraction-api-reference>`__
-- `Tradier Extraction API Reference <https://stock-analysis-engine.readthedocs.io/en/latest/iex_api.html#tradier-extraction-api-ference>`__
+- `IEX Cloud Extraction API Reference <https://stock-analysis-engine.readthedocs.io/en/latest/iex_api.html#iex-extraction-api-reference>`__
+- `Tradier Extraction API Reference <https://stock-analysis-engine.readthedocs.io/en/latest/tradier.html#tradier-extraction-api-reference>`__
 
 Using Cached IEX Pricing Data on a Date
 =======================================
