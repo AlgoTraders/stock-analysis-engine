@@ -30,9 +30,16 @@ def inspect_datasets(
         datasets=None):
     """inspect_datasets
 
-    Loop over all cached date per data and examine
-    the latest ``date`` value in the cache to
-    check if it matches the redis key's date
+    Loop over all cached data in redis by going sequentially per date
+    and examine the latest ``date`` value in the cache to
+    check if it matches the redis key's date.
+
+    For IEX Cloud minute data errors, running this function will print out
+    commands to fix any issues (if possible):
+
+    ::
+
+        fetch -t TICKER -g iex_min -F DATE_TO_FIX
 
     :param ticker: optional - string ticker
     :param start_date: optional - datetime
