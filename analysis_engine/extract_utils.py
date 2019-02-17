@@ -1,7 +1,6 @@
 """
 
-Dataset Extraction Utilities
-============================
+**Dataset Extraction Utilities**
 
 Helper for extracting a dataset from Redis or S3 and
 load it into a ``pandas.DataFrame``. This was designed
@@ -43,7 +42,8 @@ def perform_extract(
         df_str,
         work_dict,
         dataset_id_key='ticker',
-        scrub_mode='sort-by-date'):
+        scrub_mode='sort-by-date',
+        verbose=False):
     """perform_extract
 
     Helper for extracting from Redis or S3
@@ -56,6 +56,7 @@ def perform_extract(
                            debugging errors
     :param scrub_mode: scrubbing mode on extraction for
                        one-off cleanup before analysis
+    :param verbose: optional - boolean for turning on logging
     """
     status = ae_consts.FAILED
     ds_id = work_dict.get(
@@ -104,18 +105,20 @@ def perform_extract(
         'redis_expire',
         ae_consts.REDIS_EXPIRE)
 
-    log.debug(
-        f'{label} - {df_str} - START - ds_id={ds_id} scrub_mode={scrub_mode} '
-        f'redis_address={redis_address}@{redis_db} redis_key={redis_key} '
-        f's3={s3_enabled} s3_address={s3_address} s3_bucket={s3_bucket} '
-        f's3_key={s3_key}')
+    if verbose:
+        log.info(
+            f'{label} - {df_str} - START - '
+            f'ds_id={ds_id} scrub_mode={scrub_mode} '
+            f'redis_address={redis_address}@{redis_db} redis_key={redis_key} '
+            f's3={s3_enabled} s3_address={s3_address} s3_bucket={s3_bucket} '
+            f's3_key={s3_key}')
 
-    if ae_consts.ev('DEBUG_REDIS_EXTRACT', '0') == '1':
+    if verbose or ae_consts.ev('DEBUG_REDIS_EXTRACT', '0') == '1':
         log.info(
             f'{label} - {df_str} - ds_id={ds_id} redis '
             f'pw={redis_password} expire={redis_expire}')
 
-    if ae_consts.ev('DEBUG_S3_EXTRACT', '0') == '1':
+    if verbose or ae_consts.ev('DEBUG_S3_EXTRACT', '0') == '1':
         log.info(
             f'{label} - {df_str} - ds_id={ds_id} s3 '
             f'ak={s3_access_key} sk={s3_secret_key} '
@@ -127,7 +130,8 @@ def perform_extract(
             label=label,
             address=redis_address,
             db=redis_db,
-            key=redis_key)
+            key=redis_key,
+            verbose=verbose)
     except Exception as e:
         extract_res = None
         log.error(
@@ -143,7 +147,7 @@ def perform_extract(
         and extract_res['rec']['valid_df'])
 
     if not valid_df:
-        if ae_consts.ev('DEBUG_S3_EXTRACT', '0') == '1':
+        if verbose or ae_consts.ev('DEBUG_S3_EXTRACT', '0') == '1':
             log.error(
                 f'{label} - {df_str} ds_id={ds_id} invalid df '
                 f'status={ae_consts.get_status(status=extract_res["status"])} '
@@ -152,8 +156,9 @@ def perform_extract(
 
     extract_df = extract_res['rec']['data']
 
-    log.debug(
-        f'{label} - {df_str} ds_id={ds_id} extract scrub={scrub_mode}')
+    if verbose:
+        log.info(
+            f'{label} - {df_str} ds_id={ds_id} extract scrub={scrub_mode}')
 
     scrubbed_df = scrub_utils.extract_scrub_dataset(
         label=label,

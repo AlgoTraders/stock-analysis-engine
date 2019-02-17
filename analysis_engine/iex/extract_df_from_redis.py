@@ -1,6 +1,11 @@
 """
 Extract an IEX dataset from Redis and
 return it as a ``pandas.DataFrame`` or None
+
+Please refer to the `Extraction API reference
+for additional support <https://stock-analysis-engine.readthedocs.io/
+en/latest/extract.html>`__
+
 """
 
 import copy
@@ -464,5 +469,6 @@ def extract_dataset(
         df_type=df_type,
         df_str=df_str,
         work_dict=req,
-        scrub_mode=scrub_mode)
+        scrub_mode=scrub_mode,
+        verbose=verbose)
 # end of extract_dataset
