@@ -31,10 +31,11 @@ Extract historical data with the ``date`` argument formatted ``YYYY-MM-DD``:
 
 **Additional Extraction APIs**
 
-- `IEX Cloud Extraction API Reference <https://stock-analysis-engine.
-    readthedocs.io/en/latest/iex_api.html#iex-extraction-api-reference>`__
-- `Tradier Extraction API Reference <https://stock-analysis-engine.
-    readthedocs.io/en/latest/tradier.html#tradier-extraction-api-reference>`__
+`IEX Cloud Extraction API Reference <https://stock-analysis-engine.
+readthedocs.io/en/latest/iex_api.html#iex-extraction-api-reference>`__
+
+`Tradier Extraction API Reference <https://stock-analysis-engine.
+readthedocs.io/en/latest/tradier.html#tradier-extraction-api-reference>`__
 
 """
 
