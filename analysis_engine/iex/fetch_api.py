@@ -44,8 +44,7 @@ def fetch_daily(
         daily_df = iex_fetch.fetch_daily(ticker='SPY')
         print(daily_df)
 
-    :param ticker: optional - ticker string used for
-        mostly testing
+    :param ticker: string ticker to fetch
     :param work_dict: dictionary of args
         used by the automation
     :param scrub_mode: optional - string
@@ -118,8 +117,7 @@ def fetch_minute(
         minute_df = iex_fetch.fetch_minute(ticker='SPY')
         print(minute_df)
 
-    :param ticker: optional - ticker string used for
-        mostly testing
+    :param ticker: string ticker to fetch
     :param backfill_date: optional - date string formatted
         ``YYYY-MM-DD`` for filling in missing minute data
     :param work_dict: dictionary of args
@@ -222,8 +220,7 @@ def fetch_quote(
         quote_df = iex_fetch.fetch_quote(ticker='SPY')
         print(quote_df)
 
-    :param ticker: optional - ticker string used for
-        mostly testing
+    :param ticker: string ticker to fetch
     :param work_dict: dictionary of args
         used by the automation
     :param scrub_mode: optional - string
@@ -288,8 +285,7 @@ def fetch_stats(
         stats_df = iex_fetch.fetch_stats(ticker='SPY')
         print(stats_df)
 
-    :param ticker: optional - ticker string used for
-        mostly testing
+    :param ticker: string ticker to fetch
     :param work_dict: dictionary of args
         used by the automation
     :param scrub_mode: optional - string
@@ -354,8 +350,7 @@ def fetch_peers(
         peers_df = iex_fetch.fetch_peers(ticker='SPY')
         print(peers_df)
 
-    :param ticker: optional - ticker string used for
-        mostly testing
+    :param ticker: string ticker to fetch
     :param work_dict: dictionary of args
         used by the automation
     :param scrub_mode: optional - string
@@ -421,10 +416,10 @@ def fetch_news(
         news_df = iex_fetch.fetch_news(ticker='SPY')
         print(news_df)
 
-    :param ticker: optional - ticker string used for
-        mostly testing
+    :param ticker: string ticker to fetch
     :param num_news: optional - int number of news
-        articles to fetch used for mostly testing
+        articles to fetch
+        (default is ``5`` articles)
     :param work_dict: dictionary of args
         used by the automation
     :param scrub_mode: optional - string
@@ -492,8 +487,7 @@ def fetch_financials(
         fin_df = iex_fetch.fetch_financials(ticker='SPY')
         print(fin_df)
 
-    :param ticker: optional - ticker string used for
-        mostly testing
+    :param ticker: string ticker to fetch
     :param work_dict: dictionary of args
         used by the automation
     :param scrub_mode: optional - string
@@ -558,8 +552,7 @@ def fetch_earnings(
         earn_df = iex_fetch.fetch_earnings(ticker='SPY')
         print(earn_df)
 
-    :param ticker: optional - ticker string used for
-        mostly testing
+    :param ticker: string ticker to fetch
     :param work_dict: dictionary of args
         used by the automation
     :param scrub_mode: optional - string
@@ -625,11 +618,10 @@ def fetch_dividends(
         div_df = iex_fetch.fetch_dividends(ticker='SPY')
         print(div_df)
 
-    :param ticker: optional - ticker string used for
-        mostly testing
+    :param ticker: string ticker to fetch
     :param timeframe: optional - string for setting
         dividend lookback period used for
-        mostly testing
+        (default is ``3m`` for three months)
     :param work_dict: dictionary of args
         used by the automation
     :param scrub_mode: optional - string
@@ -696,8 +688,7 @@ def fetch_company(
         comp_df = iex_fetch.fetch_company(ticker='SPY')
         print(comp_df)
 
-    :param ticker: optional - ticker string used for
-        mostly testing
+    :param ticker: string ticker to fetch
     :param work_dict: dictionary of args
         used by the automation
     :param scrub_mode: optional - string

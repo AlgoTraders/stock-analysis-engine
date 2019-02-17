@@ -26,8 +26,8 @@ log = log_utils.build_colorized_logger(name=__name__)
 
 
 def fetch_calls(
-        work_dict=None,
         ticker=None,
+        work_dict=None,
         scrub_mode='sort-by-date',
         verbose=False):
     """fetch_calls
@@ -46,8 +46,9 @@ def fetch_calls(
         print(f'Fetched SPY Option Calls from Tradier status={calls_status}:')
         print(calls_df)
 
-    :param work_dict: optional - dictionary of args
-    :param ticker: optional - string ticker
+    :param ticker: string ticker to fetch
+    :param work_dict: dictionary of args
+        used by the automation
     :param scrub_mode: optional - string type of
         scrubbing handler to run
     :param verbose: optional - bool for debugging
@@ -222,8 +223,8 @@ def fetch_calls(
 
 
 def fetch_puts(
-        work_dict=None,
         ticker=None,
+        work_dict=None,
         scrub_mode='sort-by-date',
         verbose=False):
     """fetch_puts
@@ -241,8 +242,9 @@ def fetch_puts(
         print(f'Fetched SPY Option Puts from Tradier status={puts_status}:')
         print(puts_df)
 
-    :param work_dict: optional - dictionary of args
-    :param ticker: optional - string ticker
+    :param ticker: string ticker to fetch
+    :param work_dict: dictionary of args
+        used by the automation
     :param scrub_mode: optional - string type of
         scrubbing handler to run
     :param verbose: optional - bool for debugging

@@ -46,7 +46,7 @@ def extract_option_calls_dataset(
             ticker='SPY')
         print(calls_df)
 
-    :param ticker: optional - string ticker to extract
+    :param ticker: string ticker to extract
     :param date: optional - string date to extract
         formatted ``YYYY-MM-DD``
     :param work_dict: dictionary of args
@@ -259,7 +259,7 @@ def extract_option_puts_dataset(
             ticker='SPY')
         print(puts_df)
 
-    :param ticker: optional - string ticker to extract
+    :param ticker: string ticker to extract
     :param date: optional - string date to extract
         formatted ``YYYY-MM-DD``
     :param work_dict: dictionary of args

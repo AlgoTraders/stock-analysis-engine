@@ -52,7 +52,7 @@ def extract_daily_dataset(
             ticker='SPY')
         print(daily_df)
 
-    :param ticker: optional - string ticker to extract
+    :param ticker: string ticker to extract
     :param date: optional - string date to extract
         formatted ``YYYY-MM-DD``
     :param work_dict: dictionary of args
@@ -90,7 +90,7 @@ def extract_minute_dataset(
             ticker='SPY')
         print(minute_df)
 
-    :param ticker: optional - string ticker to extract
+    :param ticker: string ticker to extract
     :param date: optional - string date to extract
         formatted ``YYYY-MM-DD``
     :param scrub_mode: type of scrubbing handler to run
@@ -128,7 +128,7 @@ def extract_quote_dataset(
             ticker='SPY')
         print(quote_df)
 
-    :param ticker: optional - string ticker to extract
+    :param ticker: string ticker to extract
     :param date: optional - string date to extract
         formatted ``YYYY-MM-DD``
     :param work_dict: dictionary of args
@@ -166,7 +166,7 @@ def extract_stats_dataset(
             ticker='SPY')
         print(stats_df)
 
-    :param ticker: optional - string ticker to extract
+    :param ticker: string ticker to extract
     :param date: optional - string date to extract
         formatted ``YYYY-MM-DD``
     :param work_dict: dictionary of args
@@ -204,7 +204,7 @@ def extract_peers_dataset(
             ticker='SPY')
         print(peers_df)
 
-    :param ticker: optional - string ticker to extract
+    :param ticker: string ticker to extract
     :param date: optional - string date to extract
         formatted ``YYYY-MM-DD``
     :param work_dict: dictionary of args
@@ -242,7 +242,7 @@ def extract_news_dataset(
             ticker='SPY')
         print(news_df)
 
-    :param ticker: optional - string ticker to extract
+    :param ticker: string ticker to extract
     :param date: optional - string date to extract
         formatted ``YYYY-MM-DD``
     :param work_dict: dictionary of args
@@ -280,7 +280,7 @@ def extract_financials_dataset(
             ticker='SPY')
         print(fin_df)
 
-    :param ticker: optional - string ticker to extract
+    :param ticker: string ticker to extract
     :param date: optional - string date to extract
         formatted ``YYYY-MM-DD``
     :param work_dict: dictionary of args
@@ -318,7 +318,7 @@ def extract_earnings_dataset(
             ticker='SPY')
         print(earn_df)
 
-    :param ticker: optional - string ticker to extract
+    :param ticker: string ticker to extract
     :param date: optional - string date to extract
         formatted ``YYYY-MM-DD``
     :param work_dict: dictionary of args
@@ -356,7 +356,7 @@ def extract_dividends_dataset(
             ticker='SPY')
         print(div_df)
 
-    :param ticker: optional - string ticker to extract
+    :param ticker: string ticker to extract
     :param date: optional - string date to extract
         formatted ``YYYY-MM-DD``
     :param work_dict: dictionary of args
@@ -394,7 +394,7 @@ def extract_company_dataset(
             ticker='SPY')
         print(comp_df)
 
-    :param ticker: optional - string ticker to extract
+    :param ticker: string ticker to extract
     :param date: optional - string date to extract
         formatted ``YYYY-MM-DD``
     :param work_dict: dictionary of args
@@ -424,7 +424,7 @@ def extract_dataset(
     return it as a tuple (status, ``pandas.Dataframe``)
 
     :param key: IEX dataset key
-    :param ticker: optional - string ticker to extract
+    :param ticker: string ticker to extract
     :param date: optional - string date to extract
         formatted ``YYYY-MM-DD``
     :param work_dict: dictionary of args
