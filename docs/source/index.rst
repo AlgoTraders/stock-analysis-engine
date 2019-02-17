@@ -118,22 +118,45 @@ Run a backtest with the latest pricing data:
 
 Check out the `backtest_with_runner.py script <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/analysis_engine/scripts/backtest_with_runner.py>`__ for a command line example of using the `Algorithm Runner API <https://stock-analysis-engine.readthedocs.io/en/latest/algo_runner.html>`__ to run and plot from an `Algorithm backtest config file <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/cfg/default_algo.json>`__.
 
-Supported Extraction APIs
-=========================
+Extract from Redis API
+======================
 
-- `IEX Cloud Extraction API Reference <https://stock-analysis-engine.readthedocs.io/en/latest/iex_api.html#iex-extraction-api-reference>`__
-- `Tradier Extraction API Reference <https://stock-analysis-engine.readthedocs.io/en/latest/tradier.html#tradier-extraction-api-reference>`__
-
-Using Cached IEX Pricing Data on a Date
-=======================================
-
-Extract cached minute or daily pricing data with the code:
+Once fetched, you can extract datasets from the redis cache with:
 
 .. code-block:: python
 
-    import analysis_engine.iex.get_pricing_on_date as iex_cache
-    print(iex_cache.get_pricing_on_date('SPY'))
-    print(iex_cache.get_pricing_on_date('SPY', date_str='2019-02-07'))
+    import analysis_engine.extract as ae_extract
+    print(ae_extract.extract('SPY'))
+
+Extract Latest Minute Pricing for Stocks and Options
+====================================================
+
+.. code-block:: python
+
+    import analysis_engine.extract as ae_extract
+    print(ae_extract.extract(
+        'SPY',
+        datasets=['minute', 'tdcalls', 'tdputs']))
+
+Extract Historical Data
+-----------------------
+
+Extract historical data with the ``date`` argument formatted ``YYYY-MM-DD``:
+
+.. code-block:: python
+
+    import analysis_engine.extract as ae_extract
+    print(ae_extract.extract(
+        'AAPL',
+        datasets=['minute', 'daily', 'financials', 'earnings', 'dividends'],
+        date='2019-02-15'))
+
+Additional Extraction APIs
+==========================
+
+- `Extraction API Reference <https://stock-analysis-engine.readthedocs.io/en/latest/extract.html>`__
+- `IEX Cloud Extraction API Reference <https://stock-analysis-engine.readthedocs.io/en/latest/iex_api.html#iex-extraction-api-reference>`__
+- `Tradier Extraction API Reference <https://stock-analysis-engine.readthedocs.io/en/latest/tradier.html#tradier-extraction-api-reference>`__
 
 Backups
 =======
@@ -641,30 +664,6 @@ With redis and minio running (``./compose/start.sh``), you can fetch, cache, arc
     d = fetch(ticker='SPY')
     for k in d['SPY']:
         print(f'dataset key: {k}\nvalue {d["SPY"][k]}\n')
-
-Extract
--------
-
-Once collected and cached, you can extract datasets:
-
-.. code-block:: python
-
-    from analysis_engine.extract import extract
-    d = extract(ticker='SPY')
-    for k in d['SPY']:
-        print(f'dataset key: {k}\nvalue {d["SPY"][k]}\n')
-
-Extract Latest Minute Pricing for Stocks and Options
-----------------------------------------------------
-
-.. code-block:: python
-
-    import analysis_engine.extract as ae_extract
-    print(ae_extract.extract(
-        ticker='SPY',
-        date='2019-02-14',
-        datasets=['minute', 'tdcalls', 'tdputs'],
-        verbose=True))
 
 Backfill Historical Minute Data from IEX Cloud
 ==============================================

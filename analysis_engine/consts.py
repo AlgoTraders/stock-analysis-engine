@@ -585,10 +585,12 @@ IEX_INTRADAY_DATASETS = [
     'news'
 ]
 IEX_DAILY_DATASETS = [
+    'minute',
     'daily',
     'news'
 ]
 IEX_WEEKLY_DATASETS = [
+    'minute',
     'financials',
     'earnings',
     'dividends',

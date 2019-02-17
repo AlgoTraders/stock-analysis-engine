@@ -26,9 +26,9 @@ log = log_utils.build_colorized_logger(name=__name__)
 
 
 def extract_option_calls_dataset(
-        work_dict=None,
         ticker=None,
         date=None,
+        work_dict=None,
         scrub_mode='sort-by-date',
         verbose=False):
     """extract_option_calls_dataset
@@ -46,10 +46,10 @@ def extract_option_calls_dataset(
             ticker='SPY')
         print(calls_df)
 
-    :param work_dict: dictionary of args
     :param ticker: optional - string ticker to extract
     :param date: optional - string date to extract
         formatted ``YYYY-MM-DD``
+    :param work_dict: dictionary of args
     :param scrub_mode: optional - string type of
         scrubbing handler to run
     :param verbose: optional - boolean for turning on logging
@@ -75,18 +75,12 @@ def extract_option_calls_dataset(
     s3_key = redis_key
 
     if work_dict:
-        redis_key = work_dict.get(
-            'redis_key',
-            redis_key)
         redis_db = work_dict.get(
             'redis_db',
             redis_db)
         redis_password = work_dict.get(
             'redis_password',
             redis_password)
-        s3_key = work_dict.get(
-            's3_key',
-            s3_key)
         verbose = work_dict.get(
             'verbose_td',
             verbose)
@@ -245,9 +239,9 @@ def extract_option_calls_dataset(
 
 
 def extract_option_puts_dataset(
-        work_dict=None,
         ticker=None,
         date=None,
+        work_dict=None,
         scrub_mode='sort-by-date',
         verbose=False):
     """extract_option_puts_dataset
@@ -265,11 +259,10 @@ def extract_option_puts_dataset(
             ticker='SPY')
         print(puts_df)
 
-    :param work_dict: dictionary of args
-    :param work_dict: dictionary of args
     :param ticker: optional - string ticker to extract
     :param date: optional - string date to extract
         formatted ``YYYY-MM-DD``
+    :param work_dict: dictionary of args
     :param scrub_mode: optional - string type of
         scrubbing handler to run
     :param verbose: optional - boolean for turning on logging
@@ -301,9 +294,6 @@ def extract_option_puts_dataset(
         redis_password = work_dict.get(
             'redis_password',
             redis_password)
-        s3_key = work_dict.get(
-            's3_key',
-            s3_key)
         verbose = work_dict.get(
             'verbose_td',
             verbose)

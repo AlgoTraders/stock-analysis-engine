@@ -1,5 +1,43 @@
 """
 Dataset Extraction API
+
+**Extract All Data for a Ticker**
+
+.. code-block:: python
+
+    import analysis_engine.extract as ae_extract
+    print(ae_extract.extract('SPY'))
+
+**Extract Latest Minute Pricing for Stocks and Options**
+
+.. code-block:: python
+
+    import analysis_engine.extract as ae_extract
+    print(ae_extract.extract(
+        'SPY',
+        datasets=['minute', 'tdcalls', 'tdputs']))
+
+**Extract Historical Data**
+
+Extract historical data with the ``date`` argument formatted ``YYYY-MM-DD``:
+
+.. code-block:: python
+
+    import analysis_engine.extract as ae_extract
+    print(ae_extract.extract(
+        'AAPL',
+        datasets=['minute', 'daily', 'financials', 'earnings', 'dividends'],
+        date='2019-02-15'))
+
+**Additional Extraction APIs**
+
+- `IEX Cloud Extraction API Reference <https://stock-
+analysis-engine.readthedocs.io/en/latest/
+iex_api.html#iex-extraction-api-reference>`__
+- `Tradier Extraction API Reference <https://stock-
+analysis-engine.readthedocs.io/en/latest/
+tradier.html#tradier-extraction-api-reference>`__
+
 """
 
 import os
@@ -14,12 +52,12 @@ log = log_utils.build_colorized_logger(name=__name__)
 
 def extract(
         ticker=None,
+        datasets=None,
         tickers=None,
         use_key=None,
         extract_mode='all',
         iex_datasets=None,
         date=None,
-        datasets=None,
         redis_enabled=True,
         redis_address=None,
         redis_db=None,
@@ -66,9 +104,7 @@ def extract(
         import analysis_engine.extract as ae_extract
         print(ae_extract.extract(
             ticker='SPY',
-            date='2019-02-14',
-            datasets=['minute', 'tdcalls', 'tdputs'],
-            verbose=True))
+            datasets=['minute', 'tdcalls', 'tdputs'])
 
     This was created for reducing the amount of typying in
     Jupyter notebooks. It can be set up for use with a

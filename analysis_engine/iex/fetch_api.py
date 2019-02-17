@@ -77,11 +77,6 @@ def fetch_daily(
         df=df)
 
     cols_to_drop = [
-        'uHigh',
-        'uLow',
-        'uOpen',
-        'uClose',
-        'uVolume'
     ]
 
     remove_these = None
@@ -180,7 +175,8 @@ def fetch_minute(
     if 'date' not in df:
         log.error(
             f'unable to download IEX Cloud minute '
-            f'data for {ticker} on backfill_date={use_date}')
+            f'data for {ticker} on backfill_date={use_date} '
+            f'df: {df} from url: {use_url} with response: {resp_json}')
         return df
 
     iex_helpers.convert_datetime_columns(

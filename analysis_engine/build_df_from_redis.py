@@ -39,7 +39,8 @@ def build_df_from_redis(
         is_compressed=True,
         serializer='json',
         encoding='utf-8',
-        orient='records'):
+        orient='records',
+        verbose=False):
     """build_df_from_redis
 
     :param label: log tracking label
@@ -60,6 +61,7 @@ def build_df_from_redis(
     :param orient: use the same orient value as
         the ``to_json(orient='records')`` used
         to deserialize the DataFrame correctly.
+    :param verbose: optional - boolean for turning on logging
     """
 
     data = None
@@ -78,7 +80,8 @@ def build_df_from_redis(
     log_id = label if label else 'build-df'
 
     try:
-        log.debug(f'{log_id} calling get redis key={key}')
+        if verbose:
+            log.info(f'{log_id} calling get redis key={key}')
 
         use_host = host
         use_port = port
@@ -89,8 +92,9 @@ def build_df_from_redis(
 
         use_client = client
         if not use_client:
-            log.debug(
-                f'{log_id} connecting to redis={use_host}:{use_port}@{db}')
+            if verbose:
+                log.debug(
+                    f'{log_id} connecting to redis={use_host}:{use_port}@{db}')
             use_client = redis.Redis(
                 host=use_host,
                 port=use_port,
@@ -117,18 +121,20 @@ def build_df_from_redis(
                 None)
             if data:
                 if ae_consts.ev('DEBUG_REDIS', '0') == '1':
-                    log.info(
+                    log.debug(
                         f'{log_id} - found key={key} '
                         f'data={ae_consts.ppj(data)}')
                 else:
-                    log.debug(
-                        f'{log_id} - loading df from key={key}')
+                    if verbose:
+                        log.info(
+                            f'{log_id} - loading df from key={key}')
                     df = pd.read_json(
                         data,
                         orient='records')
                     valid_df = True
             else:
-                log.debug(f'{log_id} key={key} no data')
+                if verbose:
+                    log.info(f'{log_id} key={key} no data')
             # if data
 
             rec['data'] = df
@@ -140,7 +146,8 @@ def build_df_from_redis(
                 rec=rec)
             return res
         else:
-            log.debug(f'{log_id} no data key={key}')
+            if verbose:
+                log.info(f'{log_id} no data key={key}')
             res = build_result.build_result(
                 status=ae_consts.SUCCESS,
                 err=None,
