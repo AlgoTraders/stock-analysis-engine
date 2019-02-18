@@ -143,10 +143,11 @@ def inspect_datasets(
                                     f'-F {cur_date_str}')
                     else:
                         log.error(
-                            f'{ds_name} df does not have a date column')
+                            f'{ds_name} df does not have a date column '
+                            f'on {cur_date_str}')
                 else:
                     log.error(
-                        f'no {ds_name} df on {cur_date_str}')
+                        f'Missing {ds_name} df on {cur_date_str}')
             # end of inspecting datasets
 
             if cur_date > last_close:
