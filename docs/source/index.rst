@@ -157,6 +157,7 @@ Additional Extraction APIs
 - `Extraction API Reference <https://stock-analysis-engine.readthedocs.io/en/latest/extract.html>`__
 - `IEX Cloud Extraction API Reference <https://stock-analysis-engine.readthedocs.io/en/latest/iex_api.html#iex-extraction-api-reference>`__
 - `Tradier Extraction API Reference <https://stock-analysis-engine.readthedocs.io/en/latest/tradier.html#tradier-extraction-api-reference>`__
+- `Inspect Cached Datasets in Redis for Errors <https://stock-analysis-engine.readthedocs.io/en/latest/inspect_datasets.html#module-analysis_engine.scripts.inspect_datasets>`__
 
 Backups
 =======
@@ -696,6 +697,7 @@ Table of Contents
    README
    algo_runner
    get_pricing_on_date
+   inspect_datasets
    scripts
    example_algo_minute
    plot_trading_history

@@ -10,6 +10,52 @@ that are not in sync with the redis cached date.
 .. note:: This tool requires redis to be running with
     fetched datasets already stored in supported
     keys
+
+**Examples**
+
+**Inspect Minute Datasets for a Ticker**
+
+::
+
+    inspect_datasets.py -t SPY
+
+**Inspect Daily Datasets for a Ticker**
+
+::
+
+    inspect_datasets.py -t AAPL -g daily
+    # or
+    # inspect_datasets.py -t AAPL -g day
+
+**Usage**
+
+::
+
+    inspect_datasets.py -h
+    usage: inspect_datasets.py [-h] [-t TICKER] [-g DATASETS] [-s START_DATE]
+
+    Inspect datasets looking for dates in redis that look incorrect
+
+    optional arguments:
+    -h, --help     show this help message and exit
+    -t TICKER      ticker
+    -g DATASETS    optional - datasets: minute or min = examine IEX Cloud
+                    intraday minute data, daily or day = examine IEX Cloud
+                    daily
+                    data, quote = examine IEX Cloud quotes data, stats =
+                    examine
+                    IEX Cloud key stats data, peers = examine IEX Cloud
+                    peers
+                    data, news = examine IEX Cloud news data, fin = examine
+                    IEX
+                    Cloud financials data, earn = examine IEX Cloud earnings
+                    data, div = examine IEX Cloud dividendsdata, comp =
+                    examine
+                    IEX Cloud company data, calls = examine Tradier calls
+                    data,
+                    puts = examine Tradier puts data, and comma delimited is
+                    supported as well
+    -s START_DATE  start date format YYYY-MM-DD (default is 2019-01-01)
 """
 
 import datetime
