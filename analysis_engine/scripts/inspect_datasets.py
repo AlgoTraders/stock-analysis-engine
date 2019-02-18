@@ -142,10 +142,10 @@ def inspect_datasets(
                                     f'fetch -t {ticker} -g iex_min '
                                     f'-F {cur_date_str}')
                     else:
-                        log.info(
+                        log.error(
                             f'{ds_name} df does not have a date column')
                 else:
-                    log.info(
+                    log.error(
                         f'no {ds_name} df on {cur_date_str}')
             # end of inspecting datasets
 
