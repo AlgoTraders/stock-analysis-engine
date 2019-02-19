@@ -13,6 +13,72 @@ More steps can be found on the docs in the
 `IEX API <https://stock-analysis-engine.readth
 edocs.io/en/latest/iex_api.html#iex-api>`__
 
+**Command Line Tool Fetching Examples**
+
+With the Analysis Engine stack running you can use
+the pip's included ``fetch``command line tool with the
+following arguments to pull data (and automate it).
+
+**Fetch Minute Data**
+
+::
+
+    fetch -t AAPL -g min
+
+**Fetch Daily Data**
+
+::
+
+    fetch -t AAPL -g day
+
+**Fetch Quote Data**
+
+::
+
+    fetch -t AAPL -g quote
+
+**Fetch Stats Data**
+
+::
+
+    fetch -t AAPL -g stats
+
+**Fetch Peers Data**
+
+::
+
+    fetch -t AAPL -g peers
+
+**Fetch News Data**
+
+::
+
+    fetch -t AAPL -g news
+
+**Fetch Financials Data**
+
+::
+
+    fetch -t AAPL -g fin
+
+**Fetch Earnings Data**
+
+::
+
+    fetch -t AAPL -g earn
+
+**Fetch Dividends Data**
+
+::
+
+    fetch -t AAPL -g div
+
+**Fetch Company Data**
+
+::
+
+    fetch -t AAPL -g comp
+
 **Command Line Fetch Debugging**
 
 Add the ``-d`` flag to the ``fetch`` command to enable
@@ -20,7 +86,8 @@ verbose logging. Here is an example:
 
 ::
 
-    fetch -t QQQ -g iex_news -d
+    fetch -t AAPL -g news -d
+
 """
 
 import pandas as pd
