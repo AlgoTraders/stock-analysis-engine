@@ -12,6 +12,15 @@ your account token before running these calls.
 More steps can be found on the docs in the
 `IEX API <https://stock-analysis-engine.readth
 edocs.io/en/latest/iex_api.html#iex-api>`__
+
+**Command Line Fetch Debugging**
+
+Add the ``-d`` flag to the ``fetch`` command to enable
+verbose logging. Here is an example:
+
+::
+
+    fetch -t QQQ -g iex_news -d
 """
 
 import pandas as pd
@@ -68,9 +77,19 @@ def fetch_daily(
 
     resp_json = iex_helpers.get_from_iex(
         url=use_url,
-        token=iex_consts.IEX_TOKEN)
+        token=iex_consts.IEX_TOKEN,
+        verbose=verbose)
 
     df = pd.DataFrame(resp_json)
+
+    if verbose:
+        log.info(
+            f'{label} - daily - url={use_url} '
+            f'ticker={ticker} response '
+            f'df={df.tail(5)}')
+
+    if len(df.index) == 0:
+        return df
 
     iex_helpers.convert_datetime_columns(
         df=df)
@@ -166,15 +185,25 @@ def fetch_minute(
 
     resp_json = iex_helpers.get_from_iex(
         url=use_url,
-        token=iex_consts.IEX_TOKEN)
+        token=iex_consts.IEX_TOKEN,
+        verbose=verbose)
 
     df = pd.DataFrame(resp_json)
+
+    if verbose:
+        log.info(
+            f'{label} - minute - url={use_url} '
+            f'ticker={ticker} response '
+            f'df={df.tail(5)}')
 
     if 'date' not in df:
         log.error(
             f'unable to download IEX Cloud minute '
             f'data for {ticker} on backfill_date={use_date} '
             f'df: {df} from url: {use_url} with response: {resp_json}')
+        return df
+
+    if len(df.index) == 0:
         return df
 
     iex_helpers.convert_datetime_columns(
@@ -243,9 +272,19 @@ def fetch_quote(
 
     resp_json = iex_helpers.get_from_iex(
         url=use_url,
-        token=iex_consts.IEX_TOKEN)
+        token=iex_consts.IEX_TOKEN,
+        verbose=verbose)
 
     df = pd.DataFrame([resp_json])
+
+    if verbose:
+        log.info(
+            f'{label} - quote - url={use_url} '
+            f'ticker={ticker} response '
+            f'df={df.tail(5)}')
+
+    if len(df.index) == 0:
+        return df
 
     iex_helpers.convert_datetime_columns(
         df=df)
@@ -308,9 +347,19 @@ def fetch_stats(
 
     resp_json = iex_helpers.get_from_iex(
         url=use_url,
-        token=iex_consts.IEX_TOKEN)
+        token=iex_consts.IEX_TOKEN,
+        verbose=verbose)
 
     df = pd.DataFrame([resp_json])
+
+    if verbose:
+        log.info(
+            f'{label} - stats - url={use_url} '
+            f'ticker={ticker} response '
+            f'df={df.tail(5)}')
+
+    if len(df.index) == 0:
+        return df
 
     iex_helpers.convert_datetime_columns(
         df=df)
@@ -373,9 +422,19 @@ def fetch_peers(
 
     resp_json = iex_helpers.get_from_iex(
         url=use_url,
-        token=iex_consts.IEX_TOKEN)
+        token=iex_consts.IEX_TOKEN,
+        verbose=verbose)
 
     df = pd.DataFrame(resp_json)
+
+    if verbose:
+        log.info(
+            f'{label} - peers - url={use_url} '
+            f'ticker={ticker} response '
+            f'df={df.tail(5)}')
+
+    if len(df.index) == 0:
+        return df
 
     iex_helpers.convert_datetime_columns(
         df=df)
@@ -444,9 +503,27 @@ def fetch_news(
 
     resp_json = iex_helpers.get_from_iex(
         url=use_url,
-        token=iex_consts.IEX_TOKEN)
+        token=iex_consts.IEX_TOKEN,
+        verbose=verbose)
 
     df = pd.DataFrame(resp_json)
+
+    if verbose:
+        log.info(
+            f'{label} - news - url={use_url} '
+            f'ticker={ticker} response '
+            f'df={df.tail(5)}')
+
+    if len(df.index) == 0:
+        return df
+
+    if 'datetime' not in df:
+        log.error(
+            f'unable to download IEX Cloud news '
+            f'data for {ticker} '
+            f'df: {df} from url: {use_url} with response: {resp_json}')
+        return df
+
     df['datetime'] = pd.to_datetime(
         df['datetime'],
         unit='ms',
@@ -510,9 +587,19 @@ def fetch_financials(
 
     resp_json = iex_helpers.get_from_iex(
         url=use_url,
-        token=iex_consts.IEX_TOKEN)
+        token=iex_consts.IEX_TOKEN,
+        verbose=verbose)
 
     df = pd.DataFrame(resp_json.get('financials', []))
+
+    if verbose:
+        log.info(
+            f'{label} - fins - url={use_url} '
+            f'ticker={ticker} response '
+            f'df={df.tail(5)}')
+
+    if len(df.index) == 0:
+        return df
 
     iex_helpers.convert_datetime_columns(
         df=df)
@@ -575,9 +662,19 @@ def fetch_earnings(
 
     resp_json = iex_helpers.get_from_iex(
         url=use_url,
-        token=iex_consts.IEX_TOKEN)
+        token=iex_consts.IEX_TOKEN,
+        verbose=verbose)
 
     df = pd.DataFrame(resp_json.get('earnings', []))
+
+    if verbose:
+        log.info(
+            f'{label} - earns - url={use_url} '
+            f'ticker={ticker} response '
+            f'df={df.tail(5)}')
+
+    if len(df.index) == 0:
+        return df
 
     iex_helpers.convert_datetime_columns(
         df=df)
@@ -646,9 +743,19 @@ def fetch_dividends(
 
     resp_json = iex_helpers.get_from_iex(
         url=use_url,
-        token=iex_consts.IEX_TOKEN)
+        token=iex_consts.IEX_TOKEN,
+        verbose=verbose)
 
     df = pd.DataFrame(resp_json)
+
+    if verbose:
+        log.info(
+            f'{label} - divs - url={use_url} '
+            f'ticker={ticker} response '
+            f'df={df.tail(5)}')
+
+    if len(df.index) == 0:
+        return df
 
     iex_helpers.convert_datetime_columns(
         df=df)
@@ -711,9 +818,19 @@ def fetch_company(
 
     resp_json = iex_helpers.get_from_iex(
         url=use_url,
-        token=iex_consts.IEX_TOKEN)
+        token=iex_consts.IEX_TOKEN,
+        verbose=verbose)
 
     df = pd.DataFrame([resp_json])
+
+    if verbose:
+        log.info(
+            f'{label} - comp - url={use_url} '
+            f'ticker={ticker} response '
+            f'df={df}')
+
+    if len(df.index) == 0:
+        return df
 
     iex_helpers.convert_datetime_columns(
         df=df)

@@ -13,7 +13,8 @@ log = log_utils.build_colorized_logger(name=__name__)
 
 def fetch_data(
         work_dict,
-        fetch_type=None):
+        fetch_type=None,
+        verbose=False):
     """fetch_data
 
     Factory method for fetching data from
@@ -55,6 +56,7 @@ def fetch_data(
     :param fetch_type: optional - name or enum of the fetcher to create
                        can also be a lower case string
                        in work_dict['ft_type']
+    :param verbose: optional - boolean enable debug logging
     """
     use_fetch_name = None
     if not fetch_type:
@@ -72,52 +74,62 @@ def fetch_data(
             use_fetch_name == 'daily' or
             fetch_type == iex_consts.FETCH_DAILY):
         return fetch_api.fetch_daily(
-            work_dict=work_dict)
+            work_dict=work_dict,
+            verbose=verbose)
     elif (
             use_fetch_name == 'minute' or
             fetch_type == iex_consts.FETCH_MINUTE):
         return fetch_api.fetch_minute(
-            work_dict=work_dict)
+            work_dict=work_dict,
+            verbose=verbose)
     elif (
             use_fetch_name == 'quote' or
             fetch_type == iex_consts.FETCH_QUOTE):
         return fetch_api.fetch_quote(
-            work_dict=work_dict)
+            work_dict=work_dict,
+            verbose=verbose)
     elif (
             use_fetch_name == 'stats' or
             fetch_type == iex_consts.FETCH_STATS):
         return fetch_api.fetch_stats(
-            work_dict=work_dict)
+            work_dict=work_dict,
+            verbose=verbose)
     elif (
             use_fetch_name == 'peers' or
             fetch_type == iex_consts.FETCH_PEERS):
         return fetch_api.fetch_peers(
-            work_dict=work_dict)
+            work_dict=work_dict,
+            verbose=verbose)
     elif (
             use_fetch_name == 'news' or
             fetch_type == iex_consts.FETCH_NEWS):
         return fetch_api.fetch_news(
-            work_dict=work_dict)
+            work_dict=work_dict,
+            verbose=verbose)
     elif (
             use_fetch_name == 'financials' or
             fetch_type == iex_consts.FETCH_FINANCIALS):
         return fetch_api.fetch_financials(
-            work_dict=work_dict)
+            work_dict=work_dict,
+            verbose=verbose)
     elif (
             use_fetch_name == 'earnings' or
             fetch_type == iex_consts.FETCH_EARNINGS):
         return fetch_api.fetch_earnings(
-            work_dict=work_dict)
+            work_dict=work_dict,
+            verbose=verbose)
     elif (
             use_fetch_name == 'dividends' or
             fetch_type == iex_consts.FETCH_DIVIDENDS):
         return fetch_api.fetch_dividends(
-            work_dict=work_dict)
+            work_dict=work_dict,
+            verbose=verbose)
     elif (
             use_fetch_name == 'company' or
             fetch_type == iex_consts.FETCH_COMPANY):
         return fetch_api.fetch_company(
-            work_dict=work_dict)
+            work_dict=work_dict,
+            verbose=verbose)
     else:
         log.error(
             f'label={work_dict.get("label", None)} - '

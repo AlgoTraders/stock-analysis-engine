@@ -9,6 +9,34 @@ Tradier (https://tradier.com/) and FinViz (https://finviz.com/)
 1) Fetch pricing data
 2) Publish pricing data to Redis and Minio
 
+**Examples**
+
+**Fetch Intraday Minute Pricing Data**
+
+::
+
+    fetch -t QQQ -g min
+
+**Fetch Intraday Option Chains for Calls and Puts**
+
+::
+
+    fetch -t QQQ -g td
+
+**Fetch Intraday News, Minute and Options**
+
+::
+
+    fetch -t QQQ -g news,min,td
+
+**Debugging**
+
+Turn on verbose debugging with the ``-d`` argument:
+
+::
+
+    fetch -t QQQ -g min -d
+
 """
 
 import os
@@ -212,29 +240,30 @@ def fetch_new_stock_datasets():
             'initial = default fetch from initial data feeds '
             '(IEX and Tradier), '
             'intra = fetch intraday from IEX and Tradier, '
-            'daily = fetch daily from IEX, '
+            'daily or day = fetch daily from IEX, '
             'weekly = fetch weekly from IEX, '
             'all = fetch from all data feeds, '
             'td = fetch from Tradier feeds only, '
             'iex = fetch from IEX Cloud feeds only, '
-            'iex_min = fetch IEX Cloud intraday per-minute feed '
-            'https://iexcloud.io/docs/api/#historical-prices '
+            'min or minute or iex_min = fetch IEX Cloud intraday '
+            'per-minute feed '
+            'https://iexcloud.io/docs/api/#historical-prices, '
             'iex_day = fetch IEX Cloud daily feed '
-            'https://iexcloud.io/docs/api/#historical-prices '
+            'https://iexcloud.io/docs/api/#historical-prices, '
             'iex_quote = fetch IEX Cloud quotes feed '
-            'https://iexcloud.io/docs/api/#quote '
+            'https://iexcloud.io/docs/api/#quote, '
             'iex_stats = fetch IEX Cloud key stats feed '
-            'https://iexcloud.io/docs/api/#key-stats '
+            'https://iexcloud.io/docs/api/#key-stats, '
             'iex_peers = fetch from just IEX Cloud peers feed '
-            'https://iexcloud.io/docs/api/#peers '
+            'https://iexcloud.io/docs/api/#peers, '
             'iex_news = fetch IEX Cloud news feed '
-            'https://iexcloud.io/docs/api/#news '
+            'https://iexcloud.io/docs/api/#news, '
             'iex_fin = fetch IEX Cloud financials feed'
-            'https://iexcloud.io/docs/api/#financials '
+            'https://iexcloud.io/docs/api/#financials, '
             'iex_earn = fetch from just IEX Cloud earnings feeed '
-            'https://iexcloud.io/docs/api/#earnings '
+            'https://iexcloud.io/docs/api/#earnings, '
             'iex_div = fetch from just IEX Cloud dividends feed'
-            'https://iexcloud.io/docs/api/#dividends '
+            'https://iexcloud.io/docs/api/#dividends, '
             'iex_comp = fetch from just IEX Cloud company feed '
             'https://iexcloud.io/docs/api/#company'),
         required=False,
@@ -572,6 +601,7 @@ def fetch_new_stock_datasets():
         task_res = None
         if ae_consts.is_celery_disabled() or run_offline:
             work['celery_disabled'] = True
+            work['verbose'] = debug
             log.debug(
                 f'starting without celery work={ae_consts.ppj(work)} '
                 f'offline={run_offline}')

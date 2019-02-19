@@ -61,6 +61,7 @@ def get_data_from_iex(
         label = work_dict.get('label', label)
         orient = work_dict.get('orient', 'records')
         backfill_date = work_dict.get('backfill_date', None)
+        verbose = work_dict.get('verbose', False)
 
         iex_req = None
         if ft_type == iex_consts.FETCH_DAILY or ft_str == 'daily':
@@ -167,7 +168,8 @@ def get_data_from_iex(
 
             df = iex_fetch_data.fetch_data(
                 work_dict=iex_req,
-                fetch_type=ft_type)
+                fetch_type=ft_type,
+                verbose=verbose)
             rec['data'] = df.to_json(
                 orient=orient,
                 date_format='iso')
