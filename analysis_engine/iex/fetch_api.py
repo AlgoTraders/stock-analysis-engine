@@ -16,7 +16,7 @@ edocs.io/en/latest/iex_api.html#iex-api>`__
 **Command Line Tool Fetching Examples**
 
 With the Analysis Engine stack running you can use
-the pip's included ``fetch``command line tool with the
+the pip's included ``fetch`` command line tool with the
 following arguments to pull data (and automate it).
 
 **Fetch Minute Data**
