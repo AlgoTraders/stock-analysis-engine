@@ -8,7 +8,8 @@ import datetime
 def mock_daily(
         url,
         token=None,
-        version=None):
+        version=None,
+        verbose=False):
     """mock_daily
 
     mock minute history for a chart
@@ -17,6 +18,7 @@ def mock_daily(
     :param token: optional - string token for your user's
         account
     :param version: optional - version string
+    :param verbose: optional - boolean debug logging
     """
 
     val = {
@@ -34,7 +36,8 @@ def mock_daily(
 def mock_minute(
         url,
         token=None,
-        version=None):
+        version=None,
+        verbose=False):
     """mock_minute
 
     mock minute history for a chart
@@ -43,6 +46,7 @@ def mock_minute(
     :param token: optional - string token for your user's
         account
     :param version: optional - version string
+    :param verbose: optional - boolean debug logging
     """
 
     now = datetime.datetime.now()
@@ -63,7 +67,8 @@ def mock_minute(
 def mock_quote(
         url,
         token=None,
-        version=None):
+        version=None,
+        verbose=False):
     """mock_quote
 
     mock quote
@@ -72,6 +77,7 @@ def mock_quote(
     :param token: optional - string token for your user's
         account
     :param version: optional - version string
+    :param verbose: optional - boolean debug logging
     """
 
     val = {
@@ -87,7 +93,8 @@ def mock_quote(
 def mock_stats(
         url,
         token=None,
-        version=None):
+        version=None,
+        verbose=False):
     """mock_stats
 
     mock stats
@@ -96,6 +103,7 @@ def mock_stats(
     :param token: optional - string token for your user's
         account
     :param version: optional - version string
+    :param verbose: optional - boolean debug logging
     """
 
     val = {
@@ -111,7 +119,8 @@ def mock_stats(
 def mock_peers(
         url,
         token=None,
-        version=None):
+        version=None,
+        verbose=False):
     """mock_peers
 
     mock peers
@@ -120,6 +129,7 @@ def mock_peers(
     :param token: optional - string token for your user's
         account
     :param version: optional - version string
+    :param verbose: optional - boolean debug logging
     """
 
     val = {
@@ -135,7 +145,8 @@ def mock_peers(
 def mock_news(
         url,
         token=None,
-        version=None):
+        version=None,
+        verbose=False):
     """mock_news
 
     mock news
@@ -144,6 +155,7 @@ def mock_news(
     :param token: optional - string token for your user's
         account
     :param version: optional - version string
+    :param verbose: optional - boolean debug logging
     """
     now = datetime.datetime.now()
     epoch = datetime.datetime.utcfromtimestamp(0)
@@ -164,7 +176,8 @@ def mock_news(
 def mock_financials(
         url,
         token=None,
-        version=None):
+        version=None,
+        verbose=False):
     """mock_financials
 
     mock financials
@@ -173,6 +186,7 @@ def mock_financials(
     :param token: optional - string token for your user's
         account
     :param version: optional - version string
+    :param verbose: optional - boolean debug logging
     """
 
     val = {
@@ -190,7 +204,8 @@ def mock_financials(
 def mock_earnings(
         url,
         token=None,
-        version=None):
+        version=None,
+        verbose=False):
     """mock_earnings
 
     mock earnings
@@ -199,6 +214,7 @@ def mock_earnings(
     :param token: optional - string token for your user's
         account
     :param version: optional - version string
+    :param verbose: optional - boolean debug logging
     """
 
     val = {
@@ -216,7 +232,8 @@ def mock_earnings(
 def mock_dividends(
         url,
         token=None,
-        version=None):
+        version=None,
+        verbose=False):
     """mock_dividends
 
     mock dividends
@@ -225,6 +242,7 @@ def mock_dividends(
     :param token: optional - string token for your user's
         account
     :param version: optional - version string
+    :param verbose: optional - boolean debug logging
     """
 
     val = {
@@ -240,7 +258,8 @@ def mock_dividends(
 def mock_company(
         url,
         token=None,
-        version=None):
+        version=None,
+        verbose=False):
     """mock_company
 
     mock company
@@ -249,6 +268,7 @@ def mock_company(
     :param token: optional - string token for your user's
         account
     :param version: optional - version string
+    :param verbose: optional - boolean debug logging
     """
 
     val = {

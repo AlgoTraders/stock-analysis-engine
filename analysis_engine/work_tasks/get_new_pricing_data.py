@@ -194,6 +194,9 @@ def get_new_pricing_data(
         backfill_date = work_dict.get(
             'backfill_date',
             None)
+        verbose = work_dict.get(
+            'verbose',
+            False)
 
         # control flags to deal with feed issues:
         get_iex_data = True
@@ -262,22 +265,46 @@ def get_new_pricing_data(
                 if fetch_name not in iex_datasets:
                     if fetch_name == 'iex_min':
                         iex_datasets.append('minute')
+                    elif fetch_name == 'min':
+                        iex_datasets.append('minute')
+                    elif fetch_name == 'minute':
+                        iex_datasets.append('minute')
+                    elif fetch_name == 'day':
+                        iex_datasets.append('daily')
+                    elif fetch_name == 'daily':
+                        iex_datasets.append('daily')
                     elif fetch_name == 'iex_day':
                         iex_datasets.append('daily')
+                    elif fetch_name == 'quote':
+                        iex_datasets.append('quote')
                     elif fetch_name == 'iex_quote':
                         iex_datasets.append('quote')
                     elif fetch_name == 'iex_stats':
                         iex_datasets.append('stats')
+                    elif fetch_name == 'stats':
+                        iex_datasets.append('stats')
+                    elif fetch_name == 'peers':
+                        iex_datasets.append('peers')
                     elif fetch_name == 'iex_peers':
                         iex_datasets.append('peers')
+                    elif fetch_name == 'news':
+                        iex_datasets.append('news')
                     elif fetch_name == 'iex_news':
                         iex_datasets.append('news')
+                    elif fetch_name == 'fin':
+                        iex_datasets.append('financials')
                     elif fetch_name == 'iex_fin':
                         iex_datasets.append('financials')
+                    elif fetch_name == 'earn':
+                        iex_datasets.append('earnings')
                     elif fetch_name == 'iex_earn':
                         iex_datasets.append('earnings')
+                    elif fetch_name == 'div':
+                        iex_datasets.append('dividends')
                     elif fetch_name == 'iex_div':
                         iex_datasets.append('dividends')
+                    elif fetch_name == 'comp':
+                        iex_datasets.append('company')
                     elif fetch_name == 'iex_comp':
                         iex_datasets.append('company')
                     elif fetch_name == 'td':
@@ -448,6 +475,7 @@ def get_new_pricing_data(
                 iex_req['field'] = dataset_field
                 iex_req['ticker'] = ticker
                 iex_req['backfill_date'] = backfill_date
+                iex_req['verbose'] = verbose
 
                 iex_res = iex_data.get_data_from_iex(
                     work_dict=iex_req)

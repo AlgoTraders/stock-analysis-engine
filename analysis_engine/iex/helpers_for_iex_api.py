@@ -1,5 +1,10 @@
 """
 Functions for getting data from IEX using HTTP
+
+**Debugging**
+
+Please set the ``verbose`` argument to ``True``
+to enable debug logging with these calls
 """
 
 try:
@@ -8,6 +13,7 @@ except ImportError:
     import urlparse as urlparse
 import requests
 import pandas as pd
+import analysis_engine.consts as ae_consts
 import analysis_engine.iex.consts as iex_consts
 import analysis_engine.iex.build_auth_url as iex_auth
 import spylunking.log.setup_logging as log_utils
@@ -72,13 +78,15 @@ def convert_datetime_columns(
 
 
 def get_from_iex_v1(
-        url):
+        url,
+        verbose=False):
     """get_from_iex_v1
 
     Get data from the IEX Trading API (v1)
     https//api.iextrading.com/1.0/
 
     :param url: IEX V1 Resource URL
+    :param verbose: optional - bool turn on logging
     """
     url = (
         f'{iex_consts.IEX_URL_BASE_V1}{url}')
@@ -86,7 +94,18 @@ def get_from_iex_v1(
         urlparse(url).geturl(),
         proxies=iex_consts.IEX_PROXIES)
     if resp.status_code == 200:
-        return resp.json()
+        res_data = resp.json()
+        if verbose:
+            proxy_str = ''
+            if iex_consts.IEX_PROXIES:
+                proxy_str = (
+                    f'proxies={iex_consts.IEX_PROXIES} ')
+            log.info(
+                f'IEXAPI_V1 - url={url} '
+                f'{proxy_str}'
+                f'status_code={resp.status_code} '
+                f'data={ae_consts.ppj(res_data)}')
+        return res_data
     raise Exception(
         f'Failed to get data from IEX V1 API with '
         f'function=get_from_iex_v1 '
@@ -97,7 +116,8 @@ def get_from_iex_v1(
 
 def get_from_iex_cloud(
         url,
-        token=None):
+        token=None,
+        verbose=False):
     """get_from_iex_cloud
 
     Get data from IEX Cloud API (v2)
@@ -106,6 +126,7 @@ def get_from_iex_cloud(
     :param url: IEX resource url
     :param token: optional - string token for your user's
         account
+    :param verbose: optional - bool turn on logging
     """
     url = (
         f'{iex_consts.IEX_URL_BASE}{url}')
@@ -113,7 +134,19 @@ def get_from_iex_cloud(
         url,
         proxies=iex_consts.IEX_PROXIES)
     if resp.status_code == requests.codes.OK:
-        return resp.json()
+        res_data = resp.json()
+        if verbose:
+            proxy_str = ''
+            if iex_consts.IEX_PROXIES:
+                proxy_str = (
+                    f'proxies={iex_consts.IEX_PROXIES} ')
+            log.info(
+                f'IEXAPI - response data for '
+                f'url={url.replace(token, "REDACTED")} '
+                f'{proxy_str}'
+                f'status_code={resp.status_code} '
+                f'data={ae_consts.ppj(res_data)}')
+        return res_data
     raise Exception(
         f'Failed to get data from IEX Cloud with '
         f'function=get_from_iex_cloud '
@@ -125,7 +158,8 @@ def get_from_iex_cloud(
 def handle_get_from_iex(
         url,
         token=None,
-        version=None):
+        version=None,
+        verbose=False):
     """handle_get_from_iex
 
     Implementation for getting data from the IEX
@@ -140,20 +174,24 @@ def handle_get_from_iex(
         account
     :version: optional - string version for the IEX Cloud
         (default is ``beta``)
+    :param verbose: optional - bool turn on logging
     """
     if token:
         return get_from_iex_cloud(
             url=url,
-            token=token)
+            token=token,
+            verbose=verbose)
     return get_from_iex_v1(
-        url=url)
+        url=url,
+        verbose=verbose)
 # handle_get_from_iex
 
 
 def get_from_iex(
         url,
         token=None,
-        version=None):
+        version=None,
+        verbose=False):
     """get_from_iex
 
     Helper for getting data from an IEX
@@ -164,6 +202,7 @@ def get_from_iex(
     :param token: optional - string token for your user's
         account
     :param version: optional - version string
+    :param verbose: optional - bool turn on logging
     """
 
     full_url = iex_auth.build_auth_url(
@@ -172,5 +211,6 @@ def get_from_iex(
     return handle_get_from_iex(
         url=full_url,
         token=token,
-        version=version)
+        version=version,
+        verbose=verbose)
 # end of get_from_iex
