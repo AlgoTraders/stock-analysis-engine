@@ -1,0 +1,155 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: backup
+  labels:
+    app: backup
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    layer: backend
+    messaging: redis
+    cache: redis
+    pubsub: publisher
+  annotations:
+    description: The Dataset Backup to S3 job (AWS by default, Minio supported as well)
+    runtime: python3
+spec:
+  template:
+    metadata:
+      {{ if and .Values.metrics .Values.metrics.enabled }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.metrics.port }}"
+        prometheus.io/path: {{ .Values.metrics.endpoint }}
+      {{ end }}
+      labels:
+        app.kubernetes.io/name: backup
+        app.kubernetes.io/version: {{ .Release.Version }}
+        release: {{ .Release.Name }}
+      initializers:
+        pending: []
+    spec:
+      hostname: backup
+      restartPolicy: Never
+      {{- if .Values.backupToAWS.image.private }}
+      imagePullSecrets:
+      - name: {{ .Values.registry.imagePullSecrets }}
+      {{- end }}
+      containers:
+      - name: backup
+        image: "{{ .Values.registry.address }}/{{ .Values.backupToAWS.image.name }}:{{ .Values.backupToAWS.image.tag }}"
+        imagePullPolicy: {{ .Values.backupToAWS.image.pullPolicy }}
+        {{- if .Values.metrics.enabled }}
+        ports:
+          - containerPort: {{ .Values.metrics.port }}
+        {{- end }}
+        resources: {}
+        command:
+        - /bin/bash
+        - -c
+        - cd /opt/sa/ &&
+          . /opt/venv/bin/activate &&
+          /opt/sa/tools/archive-tickers-to-s3.sh -q ${S3_BUCKET}
+        env:
+        # Which tickers to backup
+        - name: DEFAULT_TICKERS
+          value: {{ .Values.backupToAWS.tickers }}
+        # Archive data to this s3 bucket
+        - name: S3_BUCKET
+          value: {{ .Values.backupToAWS.backupBucket }}
+        {{- if and .Values.backupToAWS.s3.enabled (eq .Values.backupToAWS.s3.name "minio") }}
+        - name: S3_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_minio.secretName }}
+              key: accessKey
+        - name: S3_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_minio.secretName }}
+              key: secretKey
+        - name: S3_ADDRESS
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_minio.secretName }}
+              key: address
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_minio.secretName }}
+              key: accessKey
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_minio.secretName }}
+              key: secretKey
+        - name: S3_REGION_NAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_minio.secretName }}
+              key: region
+        {{- end }}
+        {{- if and .Values.backupToAWS.s3.enabled (eq .Values.backupToAWS.s3.name "aws") }}
+        - name: S3_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_aws.secretName }}
+              key: accessKey
+        - name: S3_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_aws.secretName }}
+              key: secretKey
+        - name: S3_ADDRESS
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_aws.secretName }}
+              key: address
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_aws.secretName }}
+              key: accessKey
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_aws.secretName }}
+              key: secretKey
+        - name: S3_REGION_NAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_aws.secretName }}
+              key: region
+        {{- end }}
+        {{- if and .Values.backupToAWS.slack .Values.backupToAWS.slack.enabled }}
+        # set to your Slack webhook url:
+        - name: SLACK_WEBHOOK
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.slack.secretName }}
+              key: webhook
+        # set to "1" to enable publishing to slack when
+        # each ticker's job completes
+        - name: DATASET_COLLECTION_SLACK_ALERTS
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.slack.secretName }}
+              key: dataAlerts
+        # set to "1" to enable publishing to slack when
+        # set to "1" to publish Celery task failures to Slack
+        - name: PROD_SLACK_ALERTS
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.slack.secretName }}
+              key: prodAlerts
+        # set to "1" to enable publishing to slack when
+        {{- end }}
+        - name: WORKER_BROKER_URL
+          value: "redis://{{ .Values.redis.address }}/{{ .Values.redis.engineTaskDB }}"
+        - name: WORKER_BACKEND_URL
+          value: "redis://{{ .Values.redis.address }}/{{ .Values.redis.engineResultDB }}"
+        - name: REDIS_ADDRESS
+          value: {{ .Values.redis.address }}
+        - name: REDIS_DB
+          value: "{{ .Values.redis.pricingDB }}" 

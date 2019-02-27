@@ -1,0 +1,33 @@
+{{- if .Values.s3_minio }}
+{{- if .Values.s3_minio.ingressEnabled }}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: minio-ingress
+  labels:
+    app: {{ template "ae.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+  annotations:
+    {{- if and .Values.s3_minio .Values.s3_minio.ingressNginx }}
+    nginx.org/proxy-connect-timeout: "60s"
+    nginx.org/proxy-read-timeout: "60s"
+    nginx.org/client-max-body-size: "5000m"
+    nginx.org/redirect-to-https: "True"
+    {{- end }}
+spec:
+  tls:
+  - hosts:
+    - {{ .Values.s3_minio.ingressFQDN }}
+    secretName: {{ .Values.s3_minio.ingressSecretName }}
+  rules:
+  - host: {{ .Values.s3_minio.ingressFQDN }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: ae-minio
+          servicePort: 9000
+{{- end }}
+{{- end }}

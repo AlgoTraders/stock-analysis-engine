@@ -1,0 +1,155 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: daily
+  labels:
+    app: daily
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    layer: backend
+    messaging: redis
+    cache: redis
+    pubsub: publisher
+  annotations:
+    description: Job for collecting Ticker data each day after the trading session closes from IEX Cloud and Tradier
+    runtime: python3
+spec:
+  template:
+    metadata:
+      {{ if and .Values.metrics .Values.metrics.enabled }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.metrics.port }}"
+        prometheus.io/path: {{ .Values.metrics.endpoint }}
+      {{ end }}
+      labels:
+        app.kubernetes.io/name: daily
+        app.kubernetes.io/version: {{ .Release.Version }}
+        release: {{ .Release.Name }}
+      initializers:
+        pending: []
+    spec:
+      hostname: daily
+      restartPolicy: Never
+      {{- if .Values.daily.image.private }}
+      imagePullSecrets:
+      - name: {{ .Values.registry.imagePullSecrets }}
+      {{- end }}
+      containers:
+      - name: daily
+        image: "{{ .Values.registry.address }}/{{ .Values.daily.image.name }}:{{ .Values.daily.image.tag }}"
+        imagePullPolicy: {{ .Values.daily.image.pullPolicy }}
+        {{- if .Values.metrics.enabled }}
+        ports:
+          - containerPort: {{ .Values.metrics.port }}
+        {{- end }}
+        resources: {}
+        command:
+        - /bin/bash
+        - -c
+        - cd /opt/sa/ &&
+          . /opt/venv/bin/activate &&
+          /opt/sa/tools/start-dataset-collection.sh
+        env:
+        # Which tickers to pull pricing data per minute
+        - name: DEFAULT_TICKERS
+          value: {{ .Values.daily.tickers }}
+        # What data feeds?
+        - name: DATASET_SOURCES
+          value: daily
+        {{- if and .Values.daily.s3.enabled (eq .Values.daily.s3.name "minio") }}
+        - name: S3_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_minio.secretName }}
+              key: accessKey
+        - name: S3_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_minio.secretName }}
+              key: secretKey
+        - name: S3_ADDRESS
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_minio.secretName }}
+              key: address
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_minio.secretName }}
+              key: accessKey
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_minio.secretName }}
+              key: secretKey
+        - name: S3_REGION_NAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_minio.secretName }}
+              key: region
+        {{- end }}
+        {{- if and .Values.daily.s3.enabled (eq .Values.daily.s3.name "aws") }}
+        - name: S3_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_aws.secretName }}
+              key: accessKey
+        - name: S3_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_aws.secretName }}
+              key: secretKey
+        - name: S3_ADDRESS
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_aws.secretName }}
+              key: address
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_aws.secretName }}
+              key: accessKey
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_aws.secretName }}
+              key: secretKey
+        - name: S3_REGION_NAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_aws.secretName }}
+              key: region
+        {{- end }}
+        {{- if and .Values.daily.slack .Values.daily.slack.enabled }}
+        # set to your Slack webhook url:
+        - name: SLACK_WEBHOOK
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.slack.secretName }}
+              key: webhook
+        # set to "1" to enable publishing to slack when
+        # each ticker's job completes
+        - name: DATASET_COLLECTION_SLACK_ALERTS
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.slack.secretName }}
+              key: dataAlerts
+        # set to "1" to enable publishing to slack when
+        # set to "1" to publish Celery task failures to Slack
+        - name: PROD_SLACK_ALERTS
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.slack.secretName }}
+              key: prodAlerts
+        # set to "1" to enable publishing to slack when
+        {{- end }}
+        - name: WORKER_BROKER_URL
+          value: "redis://{{ .Values.redis.address }}/{{ .Values.redis.engineTaskDB }}"
+        - name: WORKER_BACKEND_URL
+          value: "redis://{{ .Values.redis.address }}/{{ .Values.redis.engineResultDB }}"
+        - name: REDIS_ADDRESS
+          value: {{ .Values.redis.address }}
+        - name: REDIS_DB
+          value: "{{ .Values.redis.pricingDB }}" 
