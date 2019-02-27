@@ -1,0 +1,186 @@
+####################################
+#
+# Analysis Engine and Backtesting
+#
+####################################
+
+####################################
+#
+# Prometheus
+#
+####################################
+
+# Optional - Store Images on a Private Docker Registry
+# Prometheus
+metrics:
+  enabled: false
+  port: ""
+  endpoint: ""
+
+####################################
+#
+# Private Docker Registry
+#
+####################################
+
+# Optional - Store Images on a Private Docker Registry
+registry:
+  addToSecrets: false
+  # user on docker hub:
+  # https://cloud.docker.com/u/jayjohnson/repository/docker/jayjohnson/stock-analysis-engine
+  address: jayjohnson
+  # private docker registry set these:
+  # addToSecrets: true
+  # address: FQDN:PORT
+  # imagePullSecrets: ae.docker.creds.core
+  # dockerConfigJSON: '{"auths":{"FQDN:PORT":{"Username":"username","Password":"password","Email":""}}}'
+
+####################################
+#
+# Secrets
+#
+####################################
+
+# Minio or AWS
+s3_minio:
+  addToSecrets: true
+  secretName: ae.k8.minio.s3.core
+  address: ae-minio:9000
+  region: us-east-1
+  accessKey: trexaccesskey
+  secretKey: trex123321
+  ingressNginx: true
+  ingressEnabled: true
+  ingressFQDN: aeminio.example.com
+  ingressSecretName: tls.minio.core
+  ingressTLSCert: "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUd2VENDQktXZ0F3SUJBZ0lKQU90cXRXS1BNb2o0TUEwR0NTcUdTSWIzRFFFQkN3VUFNR014Q3pBSkJnTlYKQkFZVEFsVlRNUXN3Q1FZRFZRUUlEQUpEUVRFTk1Bc0dBMVVFQnd3RVEybDBlVEVRTUE0R0ExVUVDZ3dIUlhoaApiWEJzWlRFUU1BNEdBMVVFQ3d3SFJYaGhiWEJzWlRFVU1CSUdBMVVFQXd3TFpYaGhiWEJzWlM1amIyMHdIaGNOCk1UZ3hNakU0TWpJeE56STNXaGNOTVRreE1qRTRNakl4TnpJM1dqQmxNUXN3Q1FZRFZRUUdFd0pWVXpFTE1Ba0cKQTFVRUNBd0NRMEV4RFRBTEJnTlZCQWNNQkVOcGRIa3hFREFPQmdOVkJBb01CMFY0WVcxd2JHVXhFREFPQmdOVgpCQXNNQjBWNFlXMXdiR1V4RmpBVUJnTlZCQU1NRFNvdVpYaGhiWEJzWlM1amIyMHdnZ0lpTUEwR0NTcUdTSWIzCkRRRUJBUVVBQTRJQ0R3QXdnZ0lLQW9JQ0FRQ3EzM3o5aytXK1BGNlVCamZiSWkzeXp1L2xjQjVBb1ZiZHNKZk4KVytBTnFKR05lZ3BKZmtUaUFVc3lBaWdiUTgzYjZQQTYxTC93UUVoZkZVR1hoMmlnTmdJK0ZuT0pocy95TjRuRgpYUUZ1cGZVMjgrTzIxVERJY1ZZODBSZ05PWCs0MkszOWZuWUpMeDY2N1lxZ0hSWThpMHlQMG5LSHEvaW1lWjZDClllRmNGeVpVN1oxNkI3Y2h2MVg2Q2dMUlh6OE9UeGVIai8rMzg3MGtmdWdzTVVNYWRvTDFwVUd2WFRnK0RNaUgKWkQxamloeDJ4bHdjc040NmVidkQrVVlWN2p4dmNldm0vRWVWMjhUNzdidVh1VmQ4L2VueVIydGg5TkxhWURHdApsNXlQSWlyalFneGNiTnVlb25mRkxCYmtER1ZQL3BqWGY4ZWVUOXladEZlaUFyTlVEVnFTb0Y0YXR5b201S0pzCnJkMUdjdmwzdXB6L05tbE5lYXVHYjM1ajlBTVZUUXBWS0gxK1Jsa1VDWWVVUlU1b3A2aWdjQ0NPNTAzaS9uRm0KK3VHQ2VaNjJuK1JMWVJ6MnF0ZDhweXZzeVBibG44azUrYUdEcU5qTjQ4eUVFUTQxQjRnTkZxaVl6eFlzekNJRQpqOWxOU2pDV3NINUpHT0piWXp2MFAxQ0cyYURLcU9qZGs2MGUvMGtMcUJONGFyaWVBc2NONjRZeG1sWnhuNWM2Cm9rVWIxYVpSNHpmVDlSZmNsV1JFaGRiL2laUlFjRUhka0dGL2dHMTFRanB0M3lLK1NTeTUwKzI5RUhYRFdIOHEKNWZHU1BVb3MzSit5TUUrdXJkWDZ0UXg3Rk9OMzZsWGxkWG1iZit1M04wRFJJejB6akdYMG9LdmpIc2dDZGVpcgozS1JERFFJREFRQUJvNElCY0RDQ0FXd3dnZ0ZUQmdOVkhSRUVnZ0ZLTUlJQlJvSU5LaTVsZUdGdGNHeGxMbU52CmJZSVVjbUZpWW1sMGJYRXVaWGhoYlhCc1pTNWpiMjJDRVhKbFpHbHpMbVY0WVcxd2JHVXVZMjl0Z2hOcWRYQjUKZEdWeUxtVjRZVzF3YkdVdVkyOXRnaE5xWlc1cmFXNXpMbVY0WVcxd2JHVXVZMjl0Z2c5M2QzY3VaWGhoYlhCcwpaUzVqYjIyQ0QyRndhUzVsZUdGdGNHeGxMbU52YllJT1pHSXVaWGhoYlhCc1pTNWpiMjJDRTNCbllXUnRhVzR1ClpYaGhiWEJzWlM1amIyMkNGbkJvY0cxNVlXUnRhVzR1WlhoaGJYQnNaUzVqYjIyQ0VtdHBZbUZ1WVM1bGVHRnQKY0d4bExtTnZiWUlPYkdJdVpYaGhiWEJzWlM1amIyMkNFbVJ2WTJ0bGNpNWxlR0Z0Y0d4bExtTnZiWUlPYXpndQpaWGhoYlhCc1pTNWpiMjJDRW5Od2JIVnVheTVsZUdGdGNHeGxMbU52YllJUmEyRm1hMkV1WlhoaGJYQnNaUzVqCmIyMkNEbk16TG1WNFlXMXdiR1V1WTI5dGh3Ui9BQUFCTUJNR0ExVWRKUVFNTUFvR0NDc0dBUVVGQndNQk1BMEcKQ1NxR1NJYjNEUUVCQ3dVQUE0SUNBUUNWVlMrNTJFTmVoL2tLT1JTU0ZCczU0YmltSmx1aXNTOXdyT0ZRWnpweAo3SVZuR3owdU9Hd0VEdUVCaVovdm1FZlZBQXROa1IvbllqQUY0dU9FRnRDa0plZzZLYjNBVUFnaTZiaDlHa0VHCm1tTFJmWUdXQ2s5U0c0VnhYWldFTVh2NlA1a01JeEtVbUhEb012WXVTd3d3eENiTkFxaE9DV3JkQ3lNUTZGRzEKMHVucmlHLzBxVEFIRG9ySGlZN2N1akF1d3h0NGhnRngvdHkrYmozdFpiamhBRy81c3RFSG1PVGcwUmVTVzl4QQpOVkl3ZitUZUJ0NXJoRTRCUVZ3VFZLTlgrSkkyeFYxR3hZa2pqWk55WFladEZBMndOQ2hTN0FZcVhOWGlkWnlGCmhTRlVmSEpCUnRmNXk3SXNsZFNZUlI2Mlp1Zm5RTFl6UlloQ2JzVVZRakRCK1pOQXdDZzhUajdMYXkvK2F4R3EKVkVaMG5lVUd5eU1vaThzcXEvYlg2aSs2QStDSWdScGFMNWJ4cy9XTkJ5SUVDV3luOVp6YmtqVFU0d21CdkhQYwo4YVRZU1ZaR1U5bDBTaWIreVNwK1ExQVhGNlpSWmNrNDdmUkI3UDNobHZocXhtV0xQbThRUmZCZCt3aGVzVk9OCmV6b0R6djd2SGhNckQydFY0bXFSdFB5MDRmRUgvV1ZGa1hmRm5WMEZJK3FScGtkdnBwM2VoVFd4dVpZU3gyYWUKNDg4enpBbVF5VVFBbEtZYnZ2MGJVNUozZTgwVVRRNTk1dkg1ZmFqS0ZjZ0dHSGdSSnZVR25obS9sM3J2UlErMApkN0JWeEIwRDVhOW9OdHkrRWJCd2ZXNHg0NXp4a1EwN3VwT2FoRVhQUjdGb3htL2V4TEZjakJUMkhrb2JyQkZ6CkNRPT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo="
+  ingressTLSKey: "LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlKS2dJQkFBS0NBZ0VBcXQ5OC9aUGx2anhlbEFZMzJ5SXQ4czd2NVhBZVFLRlczYkNYelZ2Z0RhaVJqWG9LClNYNUU0Z0ZMTWdJb0cwUE4yK2p3T3RTLzhFQklYeFZCbDRkb29EWUNQaFp6aVliUDhqZUp4VjBCYnFYMU52UGoKdHRVd3lIRldQTkVZRFRsL3VOaXQvWDUyQ1M4ZXV1MktvQjBXUEl0TWo5SnloNnY0cG5tZWdtSGhYQmNtVk8yZAplZ2UzSWI5Vitnb0MwVjgvRGs4WGg0Ly90L085Skg3b0xERkRHbmFDOWFWQnIxMDRQZ3pJaDJROVk0b2Nkc1pjCkhMRGVPbm03dy9sR0ZlNDhiM0hyNXZ4SGxkdkUrKzI3bDdsWGZQM3A4a2RyWWZUUzJtQXhyWmVjanlJcTQwSU0KWEd6Ym5xSjN4U3dXNUF4bFQvNlkxMy9IbmsvY21iUlhvZ0t6VkExYWtxQmVHcmNxSnVTaWJLM2RSbkw1ZDdxYwovelpwVFhtcmhtOStZL1FERlUwS1ZTaDlma1paRkFtSGxFVk9hS2Vvb0hBZ2p1ZE40djV4WnZyaGdubWV0cC9rClMyRWM5cXJYZktjcjdNajI1Wi9KT2ZtaGc2all6ZVBNaEJFT05RZUlEUmFvbU04V0xNd2lCSS9aVFVvd2xyQisKU1JqaVcyTTc5RDlRaHRtZ3lxam8zWk90SHY5SkM2Z1RlR3E0bmdMSERldUdNWnBXY1orWE9xSkZHOVdtVWVNMwowL1VYM0pWa1JJWFcvNG1VVUhCQjNaQmhmNEJ0ZFVJNmJkOGl2a2tzdWRQdHZSQjF3MWgvS3VYeGtqMUtMTnlmCnNqQlBycTNWK3JVTWV4VGpkK3BWNVhWNW0zL3J0emRBMFNNOU00eGw5S0NyNHg3SUFuWG9xOXlrUXcwQ0F3RUEKQVFLQ0FnQlZ1NEJJOHBYSTF4MVZBN0d1dnYxeTRDVTVad0dteDh4L3VvVFB3cE11QnkvUVhqVWZIcjJNNzcwOAp3QnhEWWNlOTJLZi92Skw1QmlmSm5TNmx5b2pTS1ljQ2c5MUFXV1dvVC9sT0R4WVM0QzJpZnNmNENndEo1cU93CksvRDNZYXdWb0pIYnFFR3M1Zmx6TEkvck9lellQOFFRUFRTOW9hbEdUYXNjRytRb2dtejNHNmx4ZXNHRnF5eUcKSWRPOEhSL1VIQmJnSzMzUVcvakFnUFFZaURiMDVoVmJEcWxnUlZOY3ZxazJWVEwvNkdIVHJqNjFIb0RCc2labApjNEtZcWtta1dQSlZtS3FLSkJRM210WU9rQzIzUnViRWF0VVQ5dlI4SU51TUQ0Kzd1UmJ2bzBuMGJhSGJmQVMvCjV4a3RIcE1PaWQxQjhwakRjNnBwYkRTejBzc0tST2hZMnArc1NTam5NZVA4Sk1XOC8ybWxwTDlhU3V3eEJHUkEKNkxUMERtaUJ6UEh2WGk5TUU5K3Jrc2hTcURJUklQc0QvT0JjekZ3Z01Nc2pVU1pBQmRYcy9WRk55MVk4ZjkzeQowb0I0empTK01iTHB0Ykc4WDAyS0xVTmZqL2JEbi9kbGNGaUNqNVd3S1IvZEcwUWYvNU5MQi81NkZuYm5ydkgwCmEyQUZKZmZGZjN4QXpvZDNRTlRvNVpxV2RIa3RqcXhIUXRZNnlvNjV0M1Y0TkptdGNXQ1NXQ2FCcFlaQTB2VU0KenRUQ0VQbWo3bjF3eGJzMy93bUtNWDAwNm1xbk9mSVUwdDg4WHU4SGV6ekhFSi9oc01lNVhFRklHYmpMM1RlNgpwVjFtZ1Exd3A4WnNTRGJzcmRCS3R1SmRWOHdmcGdBVDNBZ3MrSlJyNTY5U1loZ3VlUUtDQVFFQTNFU1NibWNwCitTb1pEaC9HNFJFV2tCR1FLLzVJeFFCVWhmM2xxbEVUc1JlMjJTNDU2SW1UNzdidjhielBWeldHblBVeFlCUi8KY01ySzllenFWUTV5YlFKVm52bXhLNXBNMUZOSmp3OEl0Z1dRK1dYVDVTeitYOXFaUE9yQ3RjL3A5NVBydE00RgpyaVdYUTNqcGNTb2FWNWJJc0J2MC9oZDFjcGJMLzhJUkZXL0hiYlpFU2xaWGJNc29HM1lRUEdzK01McUFlRTVNCkVRSVg4Z1FiWmZnNlN3ZXRXOHd6SGZ3SUIrZWxvM1Q0NXhQUjJsYzlvNzNlemhEdmtrTmRnbHhhdkxOcGtjRWsKQWltdWlUclZtZ0ZQUWluS1ZLRytkTTUvZjRHWHRWWFBzdTJrcHkyWXJlZ20wa2RZSDRhQWZaZEhaRVU4ZmtCdQo1K3JsZVQ4em9ES0FQd0tDQVFFQXhwZWRQQ2pPZ3RKaHppTytRWUI3eFFVN1V6bWVaa1hzU2Nwa2pPTzRSNDRkCkZ5c3dNUS9ZNzhvOWZFVjh3VmRMem1qWGp6SWVOK3o4bnhlNVN6eWJ0QTlZOVpnWmR1UmZKTldOUXVnd1paeWIKVHBOa2hLRzQ1UE43UG1lMGFCb3dDbzdrdkdJTXFJTlhWbTNMZTFvMEhpaHR3NFdFbWJmZWwzMUpCN05UNG1SRwpwS1V1cHI4TEpiWnh1UGJ3VXUxOUtEZ2l4QUQzTkFWTGljeWN0R29qWmR0YkEzTjJSUFl4WUdVSVhLMzVNd0JpCjNsZGdpcjdWQTBGbllPYXVKUURzSWFIYW5RdU1BWlNiWXVCWnZTMkR6Qk4xd3VneVphL1NlTjdQL0hWNXRVdTMKV1pZcTBJc01tTnp2cUo4Y2E5WjZCWWdVWEJBTG5vSUZKYTU3b3BXcHN3S0NBUUVBa3V5K2pCd09XR0JuVkErSQpObXFTbFVqUjFUYUp6Ylo1cXVNQUJncU15d3paYjZheEE5WjVNbVhoU1dzN0ZwM2lpK0hWckpRZnFkbnJaZjFCCkZibE1SRUJSWW5pRllHTk5LamZnRWlmaUZLQkQ0c2UwZnVMelRuYmV6azU5MEk2K0x1R2hVUG8zdWNEalZDTmIKKzVzczlRM2tFZXlrRDdVUUozNUUxdlhaTldaWkxXcHR4UFF3M3FYb3UrQ1YxZWRuRlZQaUM5MldTYVlPMk9VNgpiVnNWYnlUUTB6R3pTeVhwS1hTdi9RY3lXOWpSbXdXa1hRdHlpaHVyNGZGRGQ0Z3BFa1BPZ0dYSG9oV3hrV0lJClJ2RG1zR2gxeU53VzBZMUlhSUhGOHpRcEZkNEVmV3NoczZidDlrZVdsWGkvVG9iUkhTWTl3cTB5RFVxWEJMaE8KdEdYYk93S0NBUUVBbzUxQjg5Q0M0NUZFOXpySGd0dkNIUDVFZERyaVg4eDM4Z3VIYi9RbFhQNmV4UG5XQ0hYUAoreThhSFFwNjBDZUYweGJaa2FadTh4Q1N5TmdZMXYybUltRUtuN3lpTGl2VW4xbzV1Y2ZtSjdFdzJ6bmY5TTN3CnNPQlF4NGRWUVBkaVlUQjlEeCtRNGp6amRkZWJiNU5Qb1JFWjdaNVJNdndqclplUTFZRlBPUlA0aDZsM2wvV0oKejVaU2Qxc3JnSWNkT0VlWGpQaG1zanN5a3VNNnNBRktESjcraXdkVGgxbDJNTDdNZHQ3MmtxaGN6R1ljcWZLegpPSzFuNkpQbElhTnk1L3FiVEF1NVc0djl3U2FwaUl5NUt5ZFZQREZsWkJYSlI3LzZoenFaL1YzV1B6N1RJMkdNCkRWenBMbmw0UnZnN0s5ZURQcDRSbEpQMmZhY1ZRVXdndFFLQ0FRRUFtR0o3SitqaXJJamE0Y2RuVWVOTTAzQUsKRzV6U1VCK3hTM1ZzQmt1bFd6dG1BWXh5Mi9aSnhaNGJuR25IaHNZY0cxZU9SNTFWRHdsRDRtaW9nN3RVZytGZwpvVjFDRDVsc214ZFNRYjVaSHlXR0VncGlGeXlZUzEzeGJQYlNtb3ZEZm9UM3ZWWWJGMWU0WHZaenBKMnh6QW14CmNMR3hrSk1MME45bk9BbEtHVkhEaEVLTmkwYStGOWw1REN6VDVSQ3NDb0pGbW8vNVhveUU2d1FsV0JFdjk4R00KNm9nOW5EZ1U3L3RRZUUrWXBQZ2V3emNkY3V1cWN5Yzc3MHZ5dE5rbmJ1NmVGMlVzaG9DcUlyOExJaXJPODZxZApkMWRUOUN4cEhaYmlnTzN3emdtYkNLcVRVUDkxL25XYzhtYjJyelYrRHhPSlFQZWlIM041ZDdRVzkwLzFMUT09Ci0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0tCg=="
+
+# AWS S3 East
+s3_aws:
+  addToSecrets: true
+  secretName: ae.k8.aws.s3.core
+  address: s3.us-west-2.amazonaws.com
+  region: us-west-2
+  accessKey: ""
+  secretKey: ""
+
+# Redis
+redis:
+  addToSecrets: true
+  secretName: ae.k8.redis.core
+  address: ae-redis-master:6379
+  pricingDB: 0
+  backtesterTaskDB: 11
+  backtesterResultDB: 12
+  engineTaskDB: 13
+  engineResultDB: 14
+
+####################################
+#
+# Pricing Data Integration
+#
+####################################
+
+# IEX Cloud
+# https://iexcloud.io/docs/api/
+iex:
+  addToSecrets: true
+  secretName: ae.k8.iex.core
+  # Publishable Token:
+  token: ""
+  # Secret Token:
+  secretToken: ""
+  apiVersion: beta
+
+# Tradier
+# https://developer.tradier.com/documentation
+tradier:
+  addToSecrets: true
+  secretName: ae.k8.tradier.core
+  token: ""
+  apiFQDN: api.tradier.com
+  dataFQDN: sandbox.tradier.com
+  streamFQDN: sandbox.tradier.com
+
+####################################
+#
+# Slack Integration
+#
+####################################
+
+# Publish Alerts or Notifications to Slack
+slack:
+  addToSecrets: true
+  secretName: ae.k8.slack.core
+  webhook: "https://hooks.slack.com/services/YOUR_WEBHOOK_HERE"
+  token: ""
+  channels: ""
+  prodAlerts: "0"
+  dataAlerts: "0"
+
+####################################
+#
+# Analysis Engine Components
+#
+####################################
+
+# Backtester
+backtester:
+  # comma-delimited list supported for all of these:
+  tickers: SPY,AMZN,TSLA
+  name: ae-backtester
+  namespace: ae
+  image:
+    private: false
+    name: stock-analysis-engine
+    tag: latest
+    pullPolicy: Always
+  label: ""
+  s3:
+    enabled: true
+    name: "minio"
+    secretName: ae.k8.minio.s3.core
+  redis:
+    enabled: true
+    secretName: ae.k8.redis.core
+  iex:
+    enabled: true
+    secretName: ae.k8.iex.core
+  tradier:
+    enabled: true
+    secretName: ae.k8.tradier.core
+  slack:
+    enabled: false
+    secretName: ae.k8.slack.core
+
+# Engine Workers
+engine:
+  # comma-delimited list supported for all of these:
+  tickers: SPY
+  name: ae-engine
+  namespace: ae
+  numWorkers: 4
+  image:
+    private: false
+    name: stock-analysis-engine
+    tag: latest
+    pullPolicy: Always
+  label: ""
+  s3:
+    enabled: true
+    name: "minio"
+    secretName: ae.k8.minio.s3.core
+  redis:
+    enabled: true
+    secretName: ae.k8.redis.core
+  iex:
+    enabled: true
+    secretName: ae.k8.iex.core
+  tradier:
+    enabled: true
+    secretName: ae.k8.tradier.core
+  slack:
+    enabled: false
+    secretName: ae.k8.slack.core
+

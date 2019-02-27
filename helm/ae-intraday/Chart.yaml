@@ -1,0 +1,14 @@
+name: ae-intraday
+apiVersion: v1
+appVersion: "0.0.1"
+version: 0.0.1
+description: Stock Analysis Engine - Job for pulling pricing data from IEX Cloud and Tradier every minute and storing the compressed data in the Redis cluster running on kubernetes
+home: https://stock-analysis-engine.readthedocs.io/en/latest/
+icon: https://i.imgur.com/tw2wJ6t.png
+sources:
+- https://github.com/AlgoTraders/stock-analysis-engine
+- https://github.com/AlgoTraders/stock-analysis-engine/tree/master/helm
+- https://github.com/jay-johnson/deploy-to-kubernetes/tree/master/ceph
+maintainers:
+- name: jayjohnson
+  email: jay.p.h.johnson@gmail.com

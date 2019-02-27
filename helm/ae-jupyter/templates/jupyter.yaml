@@ -1,0 +1,167 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jupyter
+  labels:
+    app: jupyter
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    layer: backend
+    messaging: redis
+    cache: redis
+    pubsub: publisher
+  annotations:
+    description: Stock Analysis Jupyter Application
+    runtime: python3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: jupyter
+      app.kubernetes.io/version: {{ .Values.operatorVersion }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      {{- if and .Values.metrics .Values.metrics.enabled }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.metrics.port }}"
+        prometheus.io/path: {{ .Values.metrics.endpoint }}
+      {{- end }}
+      labels:
+        app: jupyter
+        app.kubernetes.io/name: jupyter
+        app.kubernetes.io/version: {{ .Release.Version }}
+        release: {{ .Release.Name }}
+      initializers:
+        pending: []
+    spec:
+      {{- if and .Values.jupyter.label (ne .Values.jupyter.label "") }}
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: jupyter
+                operator: In
+                values:
+                - enabled
+      {{- end }}
+      {{- if .Values.jupyter.image.private }}
+      imagePullSecrets:
+      - name: {{ .Values.registry.imagePullSecrets }}
+      {{- end }}
+      containers:
+      - name: jupyter
+        image: "{{ .Values.registry.address }}/{{ .Values.jupyter.image.name }}:{{ .Values.jupyter.image.tag }}"
+        imagePullPolicy: {{ .Values.jupyter.image.pullPolicy }}
+        {{- if .Values.metrics.enabled }}
+        ports:
+          - containerPort: {{ .Values.metrics.port }}
+        {{- end }}
+        restartPolicy: Always
+        resources: {}
+        command:
+        - /bin/bash
+        - -c
+        - cd /opt/sa/ &&
+          . /opt/venv/bin/activate &&
+          /opt/sa/docker/jupyter/start-container.sh
+        env:
+        {{- if and .Values.jupyter.s3.enabled (eq .Values.jupyter.s3.name "minio") }}
+        - name: S3_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_minio.secretName }}
+              key: accessKey
+        - name: S3_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_minio.secretName }}
+              key: secretKey
+        - name: S3_ADDRESS
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_minio.secretName }}
+              key: address
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_minio.secretName }}
+              key: accessKey
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_minio.secretName }}
+              key: secretKey
+        - name: S3_REGION_NAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_minio.secretName }}
+              key: region
+        {{- end }}
+        {{- if and .Values.jupyter.s3.enabled (eq .Values.jupyter.s3.name "aws") }}
+        - name: S3_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_aws.secretName }}
+              key: accessKey
+        - name: S3_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_aws.secretName }}
+              key: secretKey
+        - name: S3_ADDRESS
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_aws.secretName }}
+              key: address
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_aws.secretName }}
+              key: accessKey
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_aws.secretName }}
+              key: secretKey
+        - name: S3_REGION_NAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.s3_aws.secretName }}
+              key: region
+        {{- end }}
+        {{ if and .Values.jupyter.slack .Values.jupyter.slack.enabled }}
+        # set to your Slack webhook url:
+        - name: SLACK_WEBHOOK
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.slack.secretName }}
+              key: webhook
+        # set to "1" to enable publishing to slack when
+        # each ticker's job completes
+        - name: DATASET_COLLECTION_SLACK_ALERTS
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.slack.secretName }}
+              key: dataAlerts
+        # set to "1" to enable publishing to slack when
+        # set to "1" to publish Celery task failures to Slack
+        - name: PROD_SLACK_ALERTS
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.slack.secretName }}
+              key: prodAlerts
+        # set to "1" to enable publishing to slack when
+        {{ end }}
+        - name: WORKER_BROKER_URL
+          value: "redis://{{ .Values.redis.address }}/{{ .Values.redis.backtesterTaskDB }}"
+        - name: WORKER_BACKEND_URL
+          value: "redis://{{ .Values.redis.address }}/{{ .Values.redis.backtesterResultDB }}"
+        - name: REDIS_ADDRESS
+          value: {{ .Values.redis.address }}
+        - name: REDIS_DB
+          value: "{{ .Values.redis.pricingDB }}" 

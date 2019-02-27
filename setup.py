@@ -68,7 +68,7 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.8.19',
+    version='1.9.0',
     description=(
         'Backtest 1000s of minute-by-minute '
         'trading algorithms. Automated '
@@ -79,7 +79,7 @@ setup(
         'performance automatically compressed and published '
         'to S3 for building AI training datasets '
         'for teaching DNNs how to trade. '
-        'Runs on Kubernetes and docker-compose. '
+        'Runs on Kubernetes with Helm and docker-compose. '
         '>150 million trading history rows generated from +5000 algorithms'
         ''),
     long_description=long_description,

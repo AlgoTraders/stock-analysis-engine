@@ -1,0 +1,33 @@
+{{- if .Values.jupyter }}
+{{- if .Values.jupyter.ingressEnabled }}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: jupyter-ingress
+  labels:
+    app: {{ template "ae-jupyter.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+  annotations:
+    {{- if .Values.jupyter.ingressNginx }}
+    nginx.org/proxy-connect-timeout: "60s"
+    nginx.org/proxy-read-timeout: "60s"
+    nginx.org/client-max-body-size: "5000m"
+    nginx.org/redirect-to-https: "True"
+    {{- end }}
+spec:
+  tls:
+  - hosts:
+    - {{ .Values.jupyter.ingressFQDN }}
+    secretName: {{ .Values.jupyter.ingressSecretName }}
+  rules:
+  - host: {{ .Values.jupyter.ingressFQDN }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: ae-jupyter
+          servicePort: 8888
+{{- end }}
+{{- end }}

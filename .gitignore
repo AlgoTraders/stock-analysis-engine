@@ -139,3 +139,5 @@ compose/docker/notebooks/.gitignore
 compose/envs/*.env
 compose/envs/*.env*
 .vscode/*
+requirements.lock
+index.yaml

@@ -1,0 +1,24 @@
+{{- if .Values.jupyter }}
+{{- if .Values.jupyter.ingressEnabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: ae-jupyter
+  labels:
+    app: jupyter
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  ports:
+  - port: 8888
+    targetPort: 8888
+    protocol: TCP
+    name: http
+  selector:
+    app: jupyter
+    app.kubernetes.io/name: jupyter
+    app.kubernetes.io/version: {{ .Release.Version }}
+    release: {{ .Release.Name }}
+{{- end }}
+{{- end }}

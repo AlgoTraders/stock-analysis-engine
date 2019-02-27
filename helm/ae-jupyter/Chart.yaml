@@ -1,0 +1,17 @@
+name: ae-jupyter
+apiVersion: v1
+appVersion: "0.0.1"
+version: 0.0.1
+description: Stock Analysis Engine - Jupyter pod for analyzing and hosting ipython notebooks. Use these notebooks to analyze pricing data and make predictions using trained AI assets with keras and tensorflow.
+home: https://stock-analysis-engine.readthedocs.io/en/latest/
+icon: https://i.imgur.com/tw2wJ6t.png
+sources:
+- https://github.com/AlgoTraders/stock-analysis-engine
+- https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Comparing-3-Deep-Neural-Networks-Trained-to-Predict-a-Stocks-Closing-Price-Using-The-Analysis-Engine.ipynb
+- https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Run-a-Custom-Trading-Algorithm-Backtest-with-Minute-Timeseries-Pricing-Data.ipynb
+- https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Analyze%20Compressed%20Algorithm%20Trading%20Histories%20Stored%20in%20S3.ipynb
+- https://github.com/AlgoTraders/stock-analysis-engine/tree/master/helm
+- https://github.com/jay-johnson/deploy-to-kubernetes/tree/master/ceph
+maintainers:
+- name: jayjohnson
+  email: jay.p.h.johnson@gmail.com
