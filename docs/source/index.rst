@@ -535,9 +535,7 @@ This command runs Jupyter on an `AntiNex Kubernetes cluster <https://deploy-to-k
 Kubernetes - Analyze and Tune Algorithms from a Trading History
 ===============================================================
 
-With the Analysis Engine's Jupyter instance deployed you can tune algorithms from a trading history using this notebook:
-
-https://aejupyter.example.com/notebooks/Analyze%20Compressed%20Algorithm%20Trading%20Histories%20Stored%20in%20S3.ipynb
+With the Analysis Engine's Jupyter instance deployed you can `tune algorithms from a trading history using this notebook <https://aejupyter.example.com/notebooks/Analyze%20Compressed%20Algorithm%20Trading%20Histories%20Stored%20in%20S3.ipynb>`__.
 
 Kubernetes Job - Export SPY Datasets and Publish to Minio
 =========================================================

@@ -3,10 +3,12 @@ FROM jayjohnson/stock-analysis-engine:base-1.9.3
 RUN echo "installing source" \
   && echo "activating venv" \
   && . /opt/venv/bin/activate \
-  && pip install --upgrade pip \
-  && echo "removing and recloning" \
   && cd /opt \
+  && echo "uninstalling previous builds from the base image" \
+  && pip uninstall -y stock-analysis-engine spylunking \
+  && echo "removing /opt/sa /opt/spylunking repository directories" \
   && rm -rf /opt/sa /opt/spylunking \
+  && echo "cloning" \
   && git clone https://github.com/AlgoTraders/stock-analysis-engine.git /opt/sa \
   && git clone https://github.com/jay-johnson/spylunking.git /opt/spylunking \
   && echo "updating logging" \
@@ -18,7 +20,8 @@ RUN echo "installing source" \
   && echo "updating repo" \
   && ls -l /opt/sa \
   && echo "installing notebooks from: /opt/sa/compose/docker/notebooks/ to /opt/notebooks" \
-  && cp -r /opt/sa/compose/docker/notebooks/* /opt/notebooks/
+  && cp -r /opt/sa/compose/docker/notebooks/* /opt/notebooks/ \
+  && /opt/sa/tools/prepare_for_k8.sh
 
 ENV PROJECT_NAME="sa" \
     TICKER="SPY" \
@@ -48,13 +51,6 @@ ENV PROJECT_NAME="sa" \
     USE_VENV="/opt/venv"
 
 WORKDIR /opt/sa
-
-# set for anonymous user access in the container
-RUN find /opt/spylunking -type d -exec chmod 777 {} \;
-RUN find /opt/venv -type d -exec chmod 777 {} \;
-RUN find /opt/sa -type d -exec chmod 777 {} \;
-RUN find /var/log -type d -exec chmod 777 {} \;
-RUN find /opt/notebooks -type d -exec chmod 777 {} \;
 
 ENTRYPOINT . /opt/venv/bin/activate \
   && /opt/sa/start-workers.sh
