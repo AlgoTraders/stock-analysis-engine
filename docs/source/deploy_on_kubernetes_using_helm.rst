@@ -199,7 +199,7 @@ Each of the AE charts `values.yaml <https://github.com/AlgoTraders/stock-analysi
     - `ae-weekly <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/ae-weekly/values.yaml#L32-L36>`__
     - `ae-jupyter <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/ae-jupyter/values.yaml#L32-L36>`__
 
-    .. note:: ``imagePullSecrets`` is included in each the AE chart with a naming convention with a format of: ``<base key>.<component name>``. Specifically, the base ``ae.docker.creds.`` and the approach allows different docker images for each component (like for testing) like intraday data collection vs running a backup job or say hosting jupyter.
+    .. note:: The ``imagePullSecrets`` attribute uses a naming convention format: ``<base key>.<component name>``. The base is ``ae.docker.creds.`` and the approach allows different docker images for each component (for testing) like intraday data collection vs running a backup job or even hosting jupyter.
 
     **Supported Private Docker Registry Authentication Attributes**
 
