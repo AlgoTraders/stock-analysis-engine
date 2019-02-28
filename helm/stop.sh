@@ -39,7 +39,7 @@ for p in ${pods}; do
     not_done=$(/usr/bin/kubectl get po -n ${namespace} | grep ${pod_name} | wc -l)
     while [[ "${not_done}" != "0" ]]; do
         date -u +"%Y-%m-%d %H:%M:%S"
-        echo "sleeping while waiting for ${pod_name} to stop"
+        echo "sleeping while waiting for the pod: ${pod_name} to stop"
         sleep 5
         /usr/bin/kubectl get po -n ${namespace} | grep ${pod_name}
         not_done=$(/usr/bin/kubectl get po -n ${namespace} | grep ${pod_name} | wc -l)
