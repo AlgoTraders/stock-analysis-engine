@@ -90,9 +90,8 @@ RUN echo "installing source" \
   && cd /opt/spylunking \
   && echo "installing spylunking" \
   && pip install --upgrade -e . \
-  && cd /opt/deploy-to-kubernetes \
-  && echo "installing deploy-to-kubernetes" \
-  && pip install --upgrade -e . \
+  && echo "installing ta-lib dependencies" \
+  && pip install --upgrade numpy \
   && cd /opt/sa \
   && echo "installing ta-lib with: /opt/sa/tools/linux-install-talib.sh" \
   && /opt/sa/tools/linux-install-talib.sh \

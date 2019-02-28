@@ -206,10 +206,10 @@ Each of the AE charts `values.yaml <https://github.com/AlgoTraders/stock-analysi
     ::
 
         registry:
-        addToSecrets: true
-        address: <FQDN to docker registry>:<PORT registry uses a default port 5000>
-        imagePullSecrets: ae.docker.creds.<core|backtester|backup|intraday|daily|weekly|jupyter>
-        dockerConfigJSON: '{"auths":{"<FQDN>:<PORT>":{"Username":"username","Password":"password","Email":""}}}'
+          addToSecrets: true
+          address: <FQDN to docker registry>:<PORT registry uses a default port 5000>
+          imagePullSecrets: ae.docker.creds.<core|backtester|backup|intraday|daily|weekly|jupyter>
+          dockerConfigJSON: '{"auths":{"<FQDN>:<PORT>":{"Username":"username","Password":"password","Email":""}}}'
 
 #.  Set the AE Component's docker image name, tag, pullPolicy and private flag
 
@@ -228,10 +228,10 @@ Each of the AE charts `values.yaml <https://github.com/AlgoTraders/stock-analysi
     ::
 
         image:
-        private: true
-        name: YOUR_IMAGE_NAME_HERE
-        tag: latest
-        pullPolicy: Always
+          private: true
+          name: YOUR_IMAGE_NAME_HERE
+          tag: latest
+          pullPolicy: Always
 
 Start Stack
 ===========
