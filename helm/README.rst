@@ -1,8 +1,8 @@
 Use Helm to Run the Analysis Engine on Kubernetes
 =================================================
 
-.. image:: https://asciinema.org/a/230411.png
-    :target: https://asciinema.org/a/230411?autoplay=1
+.. image:: https://asciinema.org/a/230665.png
+    :target: https://asciinema.org/a/230665?autoplay=1
     :alt: Use Helm to Run the Analysis Engine on Kubernetes
 
 This guide outlines how to use helm to deploy and manage the Analysis Engine (AE) on kubernetes (tested on ``1.13.3``).
