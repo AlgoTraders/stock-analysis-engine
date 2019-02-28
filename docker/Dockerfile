@@ -1,133 +1,24 @@
-FROM python:3.6-slim
-
-RUN apt-get update \
-  && apt-get install -y \
-    autoconf \
-    build-essential \
-    cmake \
-    curl \
-    gcc \
-    git \
-    libcurl4-openssl-dev \
-    libssl-dev \
-    libffi6 \
-    libffi-dev \
-    lsof \
-    make \
-    mlocate \
-    netcat \
-    net-tools \
-    openssl \
-    pandoc \
-    python3 \
-    python3-dev \
-    python3-pip \
-    python3-tk \
-    python-setuptools \
-    python-virtualenv \
-    python-pip \
-    redis-tools \
-    s3cmd \
-    software-properties-common \
-    strace \
-    telnet \
-    unzip \
-    uuid-runtime \
-    vim \
-    wget
-
-RUN echo "preparing virtualenv" \
-  && pip install --upgrade virtualenvwrapper pip \
-  && echo "creating virtualenv" \
-  && virtualenv -p python3 /opt/venv \
-  && chmod 777 /opt/venv \
-  && echo "setting up virtualenv" \
-  && . /opt/venv/bin/activate \
-  && pip install --upgrade setuptools pip
-
-RUN echo "" >> /root/.bashrc \
-  && echo "if [[ -e /opt/venv/bin/activate ]]; then" >> /root/.bashrc \
-  && echo "    . /opt/venv/bin/activate" >> /root/.bashrc \
-  && echo "fi" >> /root/.bashrc \
-  && echo "" >> /root/.bashrc \
-  && echo "if [[ -e /opt/sa/analysis_engine/scripts/common_bash.sh ]]; then" >> /root/.bashrc \
-  && echo "    . /opt/sa/analysis_engine/scripts/common_bash.sh" >> /root/.bashrc \
-  && echo "fi" >> /root/.bashrc \
-  && echo "" >> /root/.bashrc \
-  && echo "alias dev='cd /opt/sa'" >> /root/.bashrc \
-  && echo "alias sp='cd /opt/spylunking'" >> /root/.bashrc \
-  && echo "alias vi='/usr/bin/vim'" >> /root/.bashrc
-
-RUN echo "setting up /etc/pip.conf" \
-  && echo "" >> /etc/pip.conf \
-  && echo "[list]" >> /etc/pip.conf \
-  && echo "format=columns" >> /etc/pip.conf
+FROM jayjohnson/stock-analysis-engine:base-1.9.3
 
 RUN echo "installing source" \
   && echo "activating venv" \
   && . /opt/venv/bin/activate \
-  && echo "cloning repos" \
+  && pip install --upgrade pip \
+  && echo "removing and recloning" \
+  && cd /opt \
+  && rm -rf /opt/sa /opt/spylunking \
   && git clone https://github.com/AlgoTraders/stock-analysis-engine.git /opt/sa \
-  && git clone https://github.com/jay-johnson/deploy-to-kubernetes.git /opt/deploy-to-kubernetes \
   && git clone https://github.com/jay-johnson/spylunking.git /opt/spylunking \
-  && chmod 775 \
-    /opt/deploy-to-kubernetes \
-    /opt/spylunking \
-  && cp /opt/sa/docker/vimrc /root/.vimrc \
-  && mkdir -p -m 777 /var/log/sa \
-  && mkdir -p -m 777 /opt/notebooks \
-  && chmod 777 /var/log/sa \
-  && touch /var/log/sa/worker.log \
-  && chmod 777 /var/log/sa/worker.log \
-  && touch /var/log/sa/jupyter.log \
-  && chmod 777 /var/log/sa/jupyter.log \
+  && echo "updating logging" \
+  && cd /opt/spylunking \
+  && pip install --upgrade -e . \
+  && echo "updating ae" \
+  && cd /opt/sa \
+  && pip install --upgrade -e . \
   && echo "updating repo" \
   && ls -l /opt/sa \
   && echo "installing notebooks from: /opt/sa/compose/docker/notebooks/ to /opt/notebooks" \
-  && cp -r /opt/sa/compose/docker/notebooks/* /opt/notebooks/ \
-  && echo "upgrading pip" \
-  && pip install --upgrade pip \
-  && cd /opt/spylunking \
-  && echo "installing spylunking" \
-  && pip install --upgrade -e . \
-  && echo "installing ta-lib dependencies" \
-  && pip install --upgrade numpy \
-  && cd /opt/sa \
-  && echo "installing ta-lib with: /opt/sa/tools/linux-install-talib.sh" \
-  && /opt/sa/tools/linux-install-talib.sh \
-  && echo "installing pip upgrades" \
-  && pip install --upgrade -e . \
-  && echo "installing pip fixes for 2018-10-06" \
-  && pip install --upgrade awscli boto3 botocore \
-  && echo "installing jupyter pips" \
-  && pip install --upgrade \
-    requests \
-    seaborn \
-    RISE \
-    vega3 \
-    jupyter \
-  && pip list --format=columns
-
-RUN cp -r /root/.jupyter /root/.bak_jupyter || true
-RUN rm -rf /root/.jupyter || true
-RUN cp -r /root/notebooks /root/.bak_notebooks || true
-RUN rm -rf /root/notebooks || true
-
-RUN echo "Installing Vega" \
-  && . /opt/venv/bin/activate \
-  && /opt/venv/bin/jupyter-nbextension install vega3 --py
-
-RUN echo "Enabling Vega" \
-  && . /opt/venv/bin/activate \
-  && /opt/venv/bin/jupyter-nbextension enable vega3 --py
-
-RUN echo "Installing Rise" \
-  && . /opt/venv/bin/activate \
-  && /opt/venv/bin/jupyter-nbextension install rise --py
-
-RUN echo "Enabling Rise" \
-  && . /opt/venv/bin/activate \
-  && /opt/venv/bin/jupyter-nbextension enable rise --py
+  && cp -r /opt/sa/compose/docker/notebooks/* /opt/notebooks/
 
 ENV PROJECT_NAME="sa" \
     TICKER="SPY" \
@@ -159,7 +50,6 @@ ENV PROJECT_NAME="sa" \
 WORKDIR /opt/sa
 
 # set for anonymous user access in the container
-RUN find /opt/deploy-to-kubernetes -type d -exec chmod 777 {} \;
 RUN find /opt/spylunking -type d -exec chmod 777 {} \;
 RUN find /opt/venv -type d -exec chmod 777 {} \;
 RUN find /opt/sa -type d -exec chmod 777 {} \;
