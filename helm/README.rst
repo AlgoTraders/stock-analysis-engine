@@ -5,13 +5,16 @@ Use Helm to Run the Analysis Engine on Kubernetes
     :target: https://asciinema.org/a/230411?autoplay=1
     :alt: Use Helm to Run the Analysis Engine on Kubernetes
 
-To run the Analysis Engine (AE) on kubernetes using helm please ensure you have:
+This guide outlines how to use helm to deploy and manage the Analysis Engine (AE) on kubernetes (tested on ``1.13.3``).
+
+It requires the following steps are done before getting started:
 
 #.  Access to a running Kubernetes cluster
 #.  `Helm is installed <https://helm.sh/docs/using_helm/>`__
 #.  A valid account for `IEX Cloud <https://iexcloud.io/cloud-login#/register/>`__
 #.  A valid account for `Tradier <https://developer.tradier.com/user/sign_up>`__
 #.  Optional - `Install Ceph Cluster for Persistent Storage Support <https://deploy-to-kubernetes.readthedocs.io/en/latest/ceph.html>`__
+#.  Optional - `Install the Stock Analysis Engine for Local Development Outside of Kubernetes <https://stock-analysis-engine.readthedocs.io/en/latest/README.html#getting-started>`__
 
 Getting Started
 ===============
@@ -27,7 +30,7 @@ Please change to the ``./helm`` directory:
 Build Charts
 ------------
 
-This will build all the AE charts, download ``stable/redis`` and ``stable/minio``, and ensure the local helm server is running:
+This will build all the AE charts, download `stable/redis <https://github.com/helm/charts/tree/master/stable/redis>`__ and `stable/minio <https://github.com/helm/charts/tree/master/stable/minio>`__, and ensure the local helm server is running:
 
 ::
 
@@ -36,43 +39,43 @@ This will build all the AE charts, download ``stable/redis`` and ``stable/minio`
 Configuration
 =============
 
-Each AE chart contains authentication attributes for connecting components to:
+Each AE chart supports attributes for connecting to a:
 
-#.  Private Docker Registry
-#.  Redis
-#.  S3 (Minio or AWS)
-#.  IEX Cloud
-#.  Tradier
-#.  Jupyter
-#.  Nginx Ingress
+#.  `Private Docker Registry <https://docs.docker.com/registry/deploying/>`__
+#.  `Redis <https://github.com/helm/charts/tree/master/stable/redis>`__
+#.  `S3 (Minio or AWS) <https://github.com/helm/charts/tree/master/stable/minio>`__
+#.  `IEX Cloud <https://iexcloud.io/docs/api/#stocks>`__
+#.  `Tradier <https://developer.tradier.com/documentation>`__
+#.  `Jupyter <https://jupyter.org/>`__
+#.  `Nginx Ingress <https://github.com/nginxinc/kubernetes-ingress/>`__
 
-Depending on your environment these services may require you to edit the helm chart ``values.yaml`` files before using the ``start.sh`` script to deploy AE.
+Depending on your environment, these services may require you to edit the associated helm chart's `values.yaml <https://github.com/helm/helm/blob/master/docs/chart_template_guide/values_files.md>`__ file(s) before starting everything with the `start.sh <https://github.com/AlgoTraders/stock-analysis-engine/tree/master/helm/start.sh>`__ script to deploy AE.
 
-Below are some of the common integration questions and how to set them up (hopefully) for your environment:
+Below are some of the common integration questions on how to configure each one (hopefully) for your environment:
 
 Configure Redis
 ---------------
 
-By default the ``start.sh`` script uses the ``stable/redis`` chart with the included ``./redis/values.yaml`` for configuring as needed before the start script boots up the included `Bitnami Redis cluster <https://bitnami.com/stack/redis/helm>`__
+The ``start.sh`` script installs the `stable/redis <//github.com/helm/charts/tree/master/stable/redis>`__ chart with the included `./redis/values.yaml <https://github.com/AlgoTraders/stock-analysis-engine/tree/master/helm/redis/values.yaml>`__ for configuring as needed before the start script boots up the included `Bitnami Redis cluster <https://bitnami.com/stack/redis/helm>`__
 
 Configure Minio
 ---------------
 
-By default the ``start.sh`` script uses the ``stable/redis`` chart with the included ``./redis/values.yaml`` for configuring as needed before the start script boots up the included `Bitnami Redis cluster <https://bitnami.com/stack/redis/helm>`__
+The ``start.sh`` script installs the `stable/minio <https://github.com/helm/charts/tree/master/stable/minio>`__ chart with the included `./minio/values.yaml <https://github.com/AlgoTraders/stock-analysis-engine/tree/master/helm/minio/values.yaml>`__ for configuring as needed before the start script boots up the included `Minio <https://docs.minio.io/docs/deploy-minio-on-kubernetes.html>`__
 
 Configure AE Stack
 ------------------
 
-Each of the AE charts can be configured prior to running the stack's core chart found in:
+Each of the AE charts can be configured prior to running the stack's core AE chart found in:
 
-``./ae/values.yaml``
+`./ae/values.yaml <https://github.com/AlgoTraders/stock-analysis-engine/tree/master/helm/ae/values.yaml>`__
 
 Configure the AE Backup to AWS S3 Job
 -------------------------------------
 
 Please set your AWS credentials (which will be installed as kubernetes secrets) in the file:
 
-``./ae-backup/values.yaml``
+`./ae-backup/values.yaml <https://github.com/AlgoTraders/stock-analysis-engine/tree/master/helm/ae-backup/values.yaml>`__
 
 Configure Data Collection Jobs
 ------------------------------
@@ -81,6 +84,14 @@ Data collection is broken up into three categories of jobs: intraday, daily and 
 
 #.  Set your ``IEX Cloud`` account up in each chart:
     
+    #.  `ae-intraday <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/ae-intraday/values.yaml#L79-L88>`__
+
+    #.  `ae-daily <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/ae-daily/values.yaml#L79-L88>`__
+
+    #.  `ae-weekly <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/ae-weekly/values.yaml#L79-L88>`__
+
+    **Supported IEX Cloud Attributes**
+
     ::
     
         # IEX Cloud
@@ -96,6 +107,14 @@ Data collection is broken up into three categories of jobs: intraday, daily and 
 
 #.  Set your ``Tradier`` account up in each chart:
     
+    #.  `ae-intraday <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/ae-intraday/values.yaml#L90-L98>`__
+
+    #.  `ae-daily <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/ae-daily/values.yaml#L90-L98>`__
+
+    #.  `ae-weekly <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/ae-weekly/values.yaml#L90-L98>`__
+
+    **Supported Tradier Attributes**
+
     ::
 
         # Tradier
@@ -108,27 +127,26 @@ Data collection is broken up into three categories of jobs: intraday, daily and 
           dataFQDN: sandbox.tradier.com
           streamFQDN: sandbox.tradier.com
 
-#.  ``ae-intraday``
+#.  `ae-intraday <https://github.com/AlgoTraders/stock-analysis-engine/tree/master/helm/ae-intraday/values.yaml>`__
 
-    - Set the ``intraday.tickers`` to a comma-delimited list of tickers to pull per minute.
+    - Set the `intraday.tickers <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/ae-intraday/values.yaml#L125>`__ to a comma-delimited list of tickers to pull per minute.
 
-#.  ``ae-daily``
+#.  `ae-daily <https://github.com/AlgoTraders/stock-analysis-engine/tree/master/helm/ae-daily/values.yaml>`__
 
-    Set the ``daily.tickers`` to a comma-delimited list of tickers to pull at the end of each trading day.
+    - Set the `daily.tickers <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/ae-daily/values.yaml#L125>`__ to a comma-delimited list of tickers to pull at the end of each trading day.
 
-#.  ``ae-weekly``
+#.  `ae-weekly <https://github.com/AlgoTraders/stock-analysis-engine/tree/master/helm/ae-weekly/values.yaml>`__
 
-    Set the ``weekly.tickers`` to a comma-delimited list of tickers to pull every week. This is used for pulling "quota-expensive" data that does not change often like ``IEX Financials or Earnings`` data every week.
+    - Set the `weekly.tickers <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/ae-weekly/values.yaml#L125>`__ to a comma-delimited list of tickers to pull every week. This is used for pulling "quota-expensive" data that does not change often like ``IEX Financials or Earnings`` data every week.
 
 Set Jupyter Login Credentials
 -----------------------------
 
-Please set your Jupyter login username and password for logging in with a browser:
+Please set your Jupyter login `password <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/ae-jupyter/values.yaml#L99>`__ that works with a browser:
 
 ::
 
     jupyter:
-      username: trex
       password: admin
 
 View Jupyter
@@ -138,9 +156,8 @@ By default, Jupyter is hosted with `nginx-ingress with TLS encryption <https://g
 
 https://aejupyter.example.com
 
-Default login credentials are:
+Default login password is:
 
-- username: ``trex``
 - password: ``admin``
 
 View Minio
@@ -150,7 +167,7 @@ By default, Minio is hosted with `nginx-ingress with TLS encryption <https://git
 
 https://aeminio.example.com
 
-Default login credentials are:
+Default `login credentials <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/ae/values.yaml#L50-L51>`__ are:
 
 - Access Key: ``trexaccesskey``
 - Secret Key: ``trex123321``
@@ -160,38 +177,61 @@ Optional - Set Default Storage Class
 
 The AE pods are using a `Distributed Ceph Cluster <https://deploy-to-kubernetes.readthedocs.io/en/latest/ceph.html>`__ for persistenting data outside kubernetes with ``~300 GB`` of disk space.
 
-To set your kubernetes cluster StorageClass to use the ``ceph-rbd`` use the script:
+To set your kubernetes cluster StorageClass to use the `ceph-rbd <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/set-storage-class.sh#L13-L16>`__ use the script:
 
-``./set-storage-class.sh ceph-rbd``
+`./set-storage-class.sh ceph-rbd <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/helm/set-storage-class.sh>`__
 
 Optional - Set the Charts to Pull from a Private Docker Registry
 ----------------------------------------------------------------
 
 By default the AE charts use the `Stock Analysis Engine container <https://hub.docker.com/r/jayjohnson/stock-analysis-engine>`__, and here is how to set up each AE component chart to use a private docker image in a private docker registry (for building your own algos in-house).
 
-Each of the AE charts ``values.yaml`` files contain a section for using a private docker registry.
+Each of the AE charts `values.yaml <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/ae/values.yaml#L32-L36>`__ files contain **two** required sections for deploying from a private docker registry.
 
-Please set the registry address, secret name and docker config json for authentication using this format:
+#.  Set the Private Docker Registry Authentication values in each chart
 
-.. note:: ``imagePullSecrets`` is included in each the AE chart with a naming convention. The convention is the base ``ae.docker.creds.`` secret name has the AE component name appended to it. This allows differnt docker images to be used (and for testing) intraday data collection vs running a backup job or say hosting jupyter. The ``<core|backup|intraday|daily|weekly|jupyter>`` below is a placeholder indicating that the component name must be set to the one you are editing like: ``ae.docker.creds.core`` means the engine will use this secret.
+    Please set the registry address, secret name and docker config json for authentication using this format.
 
-::
+    - `ae <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/ae/values.yaml#L32-L36>`__
+    - `ae-backup <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/ae-backup/values.yaml#L32-L36>`__
+    - `ae-intraday <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/ae-intraday/values.yaml#L32-L36>`__
+    - `ae-daily <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/ae-daily/values.yaml#L32-L36>`__
+    - `ae-weekly <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/ae-weekly/values.yaml#L32-L36>`__
+    - `ae-jupyter <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/ae-jupyter/values.yaml#L32-L36>`__
 
-    registry:
-      addToSecrets: true
-      address: <FQDN to docker registry>:<PORT registry uses a default port 5000>
-      imagePullSecrets: ae.docker.creds.<core|backtester|backup|intraday|daily|weekly|jupyter>
-      dockerConfigJSON: '{"auths":{"<FQDN>:<PORT>":{"Username":"username","Password":"password","Email":""}}}'
+    .. note:: ``imagePullSecrets`` is included in each the AE chart with a naming convention with a format of: ``<base key>.<component name>``. Specifically, the base ``ae.docker.creds.`` and the approach allows different docker images for each component (like for testing) like intraday data collection vs running a backup job or say hosting jupyter.
 
-Then in the chart's AE component section at the bottom of the values.yaml file set the following attributes for the using your own docker image name, tag and pullPolicy:
+    **Supported Private Docker Registry Authentication Attributes**
 
-::
+    ::
 
-    image:
-      private: true
-      name: YOUR_IMAGE_NAME_HERE
-      tag: latest
-      pullPolicy: Always
+        registry:
+        addToSecrets: true
+        address: <FQDN to docker registry>:<PORT registry uses a default port 5000>
+        imagePullSecrets: ae.docker.creds.<core|backtester|backup|intraday|daily|weekly|jupyter>
+        dockerConfigJSON: '{"auths":{"<FQDN>:<PORT>":{"Username":"username","Password":"password","Email":""}}}'
+
+#.  Set the AE Component's docker image name, tag, pullPolicy and private flag
+
+    Please set the registry address, secret name and docker config json for authentication using this format.
+
+    - `ae backtester <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/ae/values.yaml#L134-L138>`__
+    - `ae engine <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/ae/values.yaml#L164-L168>`__
+    - `ae-backup <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/ae-backup/values.yaml#L101-L105>`__
+    - `ae-intraday <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/ae-intraday/values.yaml#L128-L132>`__
+    - `ae-daily <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/ae-daily/values.yaml#L128-L132>`__
+    - `ae-weekly <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/ae-weekly/values.yaml#L32-L36>`__
+    - `ae-jupyter <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/ae-jupyter/values.yaml#L100-L104>`__
+
+    **Supported Private Docker Image Attributes per AE Component**
+
+    ::
+
+        image:
+        private: true
+        name: YOUR_IMAGE_NAME_HERE
+        tag: latest
+        pullPolicy: Always
 
 Start Stack
 ===========
@@ -371,6 +411,8 @@ Run Backup Collected Pricing Data to AWS
 ========================================
 
 Once your ``ae-backup/values.yaml`` is ready, you can automate backing up your collected + compressed pricing data from within the redis cluster and publish it to AWS S3 with the helper script:
+
+.. warning:: Please remember AWS S3 has usage costs. Please `set only the tickers you need to backup before running the ae-backup job <https://github.com/AlgoTraders/stock-analysis-engine/blob/f8be749f5cdbc27ee83c66d2d7d4cad39ca949b0/helm/ae-backup/values.yaml#L98>`__.
 
 ::
 
