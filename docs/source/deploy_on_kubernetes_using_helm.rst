@@ -1,6 +1,10 @@
 Use Helm to Run the Analysis Engine on Kubernetes
 =================================================
 
+.. image:: https://asciinema.org/a/230411.png
+    :target: https://asciinema.org/a/230411?autoplay=1
+    :alt: Use Helm to Run the Analysis Engine on Kubernetes
+
 To run the Analysis Engine (AE) on kubernetes using helm please ensure you have:
 
 #.  Access to a running Kubernetes cluster
@@ -73,7 +77,7 @@ Please set your AWS credentials (which will be installed as kubernetes secrets) 
 Configure Data Collection Jobs
 ------------------------------
 
-Data collection is broken up into three categories of jobs: intraday, daily and weekly data to collect. Intraday data collection is built to be fast and pull data that changes often vs weekly data that is mostly static and expensive for ``IEX Cloud`` users. These chart jobs are intended to be used as cron jobs that fire work into the AE workers which compress + cache the pricing data for algorithms and backtesting.
+Data collection is broken up into three categories of jobs: intraday, daily and weekly data to collect. Intraday data collection is built to be fast and pull data that changes often vs weekly data that is mostly static and expensive for ``IEX Cloud`` users. These chart jobs are intended to be used with cron jobs that fire work into the AE workers which compress + cache the pricing data for algorithms and backtesting.
 
 #.  Set your ``IEX Cloud`` account up in each chart:
     
@@ -169,7 +173,7 @@ Each of the AE charts ``values.yaml`` files contain a section for using a privat
 
 Please set the registry address, secret name and docker config json for authentication using this format:
 
-.. note:: ``imagePullSecrets`` is specific to the chart that is being configurated so the base ``ae.docker.creds.`` secret name has the component name appended so differnt images can be built for intraday data collection vs running a backup or hosting jupyter. The ``<core|backup|intraday|daily|weekly|jupyter>`` below is a placeholder indicating that the component name must be set to the one you are editing like: ``ae.docker.creds.core`` means the engine will use this secret.
+.. note:: ``imagePullSecrets`` is included in each the AE chart with a naming convention. The convention is the base ``ae.docker.creds.`` secret name has the AE component name appended to it. This allows differnt docker images to be used (and for testing) intraday data collection vs running a backup job or say hosting jupyter. The ``<core|backup|intraday|daily|weekly|jupyter>`` below is a placeholder indicating that the component name must be set to the one you are editing like: ``ae.docker.creds.core`` means the engine will use this secret.
 
 ::
 
