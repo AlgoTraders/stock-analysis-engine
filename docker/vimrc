@@ -1,0 +1,59 @@
+set pastetoggle=<F10>
+set autoindent " always set autoindenting on"
+set smartindent " use smart indent if there is no indent file"
+set tabstop=4 " <tab> inserts 4 spaces"
+set softtabstop=4 " <BS> over an autoindent deletes 4 spaces."
+set smarttab " Handle tabs more intelligently"
+set expandtab " Use spaces, not tabs, for autoindent/tab key."
+set shiftwidth=4 " an indent level is 4 spaces wide."
+set shiftround " rounds indent to a multiple of shiftwidth"
+set showmode
+set hlsearch
+
+augroup auto_comment
+    au!
+    au FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o
+augroup END
+set encoding=utf-8
+set nocompatible              " required
+filetype off                  " required
+filetype plugin indent on    " required
+
+"split navigations
+nnoremap <C-J> <C-W><C-J>
+nnoremap <C-K> <C-W><C-K>
+nnoremap <C-L> <C-W><C-L>
+nnoremap <C-H> <C-W><C-H>
+
+" Enable folding
+set foldmethod=indent
+set foldlevel=99
+
+au BufNewFile,BufRead "*.py" set tabstop=4 set softtabstop=4 set shiftwidth=4 set textwidth=79 set expandtab set autoindent set fileformat=unix
+au BufNewFile,BufRead "*.js, *.html, *.css" set tabstop=2 set softtabstop=2 set shiftwidth=2
+au BufRead,BufNewFile "*.py,*.pyw,*.c,*.h" match BadWhitespace /\s\+$/
+
+let python_highlight_all=1
+syntax on
+autocmd FileType python setlocal tabstop=4 shiftwidth=4 softtabstop=4 expandtab
+" autocmd BufWritePost *.py call Flake8()
+
+" Yaml file handling
+autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
+filetype plugin indent on
+autocmd FileType yaml setl indentkeys-=<:>
+
+" Copy paste with ctr+c, ctr+v, etc
+:behave mswin
+:set clipboard=unnamedplus
+:smap <Del> <C-g>"_d
+:smap <C-c> <C-g>y
+:smap <C-x> <C-g>x
+:imap <C-v> <Esc>pi
+:smap <C-v> <C-g>p
+:smap <Tab> <C-g>1>
+:smap <S-Tab> <C-g>1<
+
+autocmd BufNewFile,BufRead *.go setlocal noexpandtab tabstop=4 shiftwidth=4 
+let g:go_list_type = "quickfix"
+inoremap jj <ESC>
