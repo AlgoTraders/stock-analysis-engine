@@ -73,7 +73,7 @@ RUN echo "installing source" \
   && chmod 775 \
     /opt/deploy-to-kubernetes \
     /opt/spylunking \
-  && if [[ -e /opt/sa/docker/vimrc ]]; then cp /opt/sa/docker/vimrc /root/.vimrc; fi \
+  && cp /opt/sa/docker/vimrc /root/.vimrc \
   && mkdir -p -m 777 /var/log/sa \
   && mkdir -p -m 777 /opt/notebooks \
   && chmod 777 /var/log/sa \
