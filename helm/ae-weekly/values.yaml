@@ -132,7 +132,7 @@ weekly:
     pullPolicy: Always
   label: ""
   s3:
-    enabled: false
+    enabled: true
     name: minio
     secretName: ae.k8.minio.s3.weekly
   redis:
