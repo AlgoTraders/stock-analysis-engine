@@ -424,8 +424,89 @@ And for a cron job, include the ``-r`` argument to ensure the job is recreated.
 
     ./run-backup-job.sh -r <PATH_TO_VALUES_YAML>
 
-Debugging
-=========
+Cron Automation with Helm
+=========================
+
+Add the lines below to your cron with ``crontab -e`` for automating pricing data collection. All cron jobs using ``run-job.sh`` log to: ``/tmp/cron-ae.log``.
+
+.. note:: This will pull data on holidays or closed trading days, but PR's welcomed!
+
+Minute
+------
+
+Pull pricing data every minute ``M-F`` between 9 AM and 5 PM (assuming system time is ``EST``)
+
+::
+
+    # intraday job:
+    # min hour day  month dayofweek job script path              job    KUBECONFIG
+    *     9-17 *    *     1,2,3,4,5 /opt/sa/helm/cron/run-job.sh intra  /opt/k8/config
+
+Daily
+-----
+
+Pull only on Friday at 6:01 PM (assuming system time is ``EST``)
+
+::
+
+    # daily job:
+    # min hour day  month dayofweek job script path              job   KUBECONFIG
+    1     18   *    *     1,2,3,4,5 /opt/sa/helm/cron/run-job.sh daily /opt/k8/config
+
+Weekly
+------
+
+Pull only on Friday at 7:01 PM (assuming system time is ``EST``)
+
+::
+
+    # weekly job:
+    # min hour day  month dayofweek job script path              job    KUBECONFIG
+    1     19   *    *     5         /opt/sa/helm/cron/run-job.sh weekly /opt/k8/config
+
+Backup
+------
+
+Run Friday at 8:01 PM (assuming system time is ``EST``)
+
+::
+
+    # backup job:
+    # min hour day  month dayofweek job script path              job    KUBECONFIG
+    1     20   *    *     1,2,3,4,5 /opt/sa/helm/cron/run-job.sh backup /opt/k8/config
+
+Restore on Reboot
+-----------------
+
+Restore Latest Backup from S3 to Redis on a server reboot.
+
+::
+
+    # restore job:
+    # on a server reboot (assuming your k8 cluster is running on just 1 host)
+    @reboot /opt/sa/helm/cron/run-job.sh restore /opt/k8/config
+
+Debugging Helm Deployed Components
+==================================
+
+Cron Jobs
+---------
+
+The ``engine`` pods handle pulling pricing data for the cron jobs. Please review ``./logs-engine.sh`` for any authentication errors for missing ``IEX Cloud Token`` and ``Tradier Token`` messages like:
+
+**Missing IEX Token log**
+
+::
+
+    2019-03-01 06:03:58,836 - analysis_engine.work_tasks.get_new_pricing_data - WARNING - ticker=SPY - please set a valid IEX Cloud Account token (https://iexcloud.io/cloud-login/#/register) to fetch data from IEX Cloud. It must be set as an environment variable like: export IEX_TOKEN=<token>
+
+**Missing Tradier Token log**
+
+::
+
+    2019-03-01 06:03:59,721 - analysis_engine.td.fetch_api - CRITICAL - Please check the TD_TOKEN is correct received 401 during fetch for: puts
+
+If there is an ``IEX Cloud`` or ``Tradier`` authentication issue, then please check out the `Configure Data Collection Jobs section <https://stock-analysis-engine.readthedocs.io/en/latest/deploy_on_kubernetes_using_helm.html#configure-data-collection-jobs>`__ and then rerun the job with the updated ``values.yaml`` file.
 
 Engine
 ------

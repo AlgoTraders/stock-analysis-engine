@@ -1,8 +1,8 @@
-name: ae-backup
+name: ae-restore
 apiVersion: v1
 appVersion: "0.0.1"
 version: 0.0.1
-description: Stock Analysis Engine - Backup Job for archiving everything in the kubernetes Redis cluster to S3 (AWS or Minio)
+description: Stock Analysis Engine - Restore Job for deploying the latest backed up pricing data from the ae-backup's S3 bucket back into the kubernetes Redis cluster
 home: https://stock-analysis-engine.readthedocs.io/en/latest/
 icon: https://i.imgur.com/tw2wJ6t.png
 sources:

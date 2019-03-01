@@ -15,7 +15,7 @@
 HELM := helm
 TASK := build
 
-EXCLUDES := minio redis doc tests tools logs
+EXCLUDES := cron doc minio redis tests tools logs
 CHARTS := $(filter-out $(EXCLUDES), $(patsubst %/.,%,$(wildcard */.)))
 
 all: $(CHARTS)
