@@ -132,9 +132,9 @@ intraday:
     pullPolicy: Always
   label: ""
   s3:
-    enabled: true
-    name: "aws"
-    secretName: ae.k8.aws.s3.intraday
+    enabled: false
+    name: minio
+    secretName: ae.k8.minio.s3.intraday
   redis:
     enabled: true
     secretName: ae.k8.redis.intraday
