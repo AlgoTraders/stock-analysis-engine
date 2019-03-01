@@ -132,9 +132,9 @@ daily:
     pullPolicy: Always
   label: ""
   s3:
-    enabled: true
-    name: "aws"
-    secretName: ae.k8.aws.s3.daily
+    enabled: false
+    name: minio
+    secretName: ae.k8.minio.s3.daily
   redis:
     enabled: true
     secretName: ae.k8.redis.daily

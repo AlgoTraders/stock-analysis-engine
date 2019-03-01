@@ -1,6 +1,6 @@
 ####################################
 #
-# Intraday Pricing Data Collection
+# Backtesting and Dataset Collection
 #
 ####################################
 
@@ -32,7 +32,7 @@ registry:
   # private docker registry set these:
   # addToSecrets: true
   # address: FQDN:PORT
-  # imagePullSecrets: ae.docker.creds.intraday
+  # imagePullSecrets: ae.docker.creds.restore
   # dockerConfigJSON: '{"auths":{"FQDN:PORT":{"Username":"username","Password":"password","Email":""}}}'
 
 ####################################
@@ -44,7 +44,7 @@ registry:
 # Minio or AWS
 s3_minio:
   addToSecrets: true
-  secretName: ae.k8.minio.s3.intraday
+  secretName: ae.k8.minio.s3.restore
   address: ae-minio:9000
   region: us-east-1
   accessKey: trexaccesskey
@@ -53,7 +53,7 @@ s3_minio:
 # AWS S3 West
 s3_aws:
   addToSecrets: true
-  secretName: ae.k8.aws.s3.intraday
+  secretName: ae.k8.aws.s3.restore
   address: s3.us-west-2.amazonaws.com
   region: us-west-2
   accessKey: ""
@@ -62,40 +62,13 @@ s3_aws:
 # Redis
 redis:
   addToSecrets: true
-  secretName: ae.k8.redis.intraday
+  secretName: ae.k8.redis.restore
   address: ae-redis-master:6379
   pricingDB: 0
   backtesterTaskDB: 11
   backtesterResultDB: 12
   engineTaskDB: 13
   engineResultDB: 14
-
-####################################
-#
-# Pricing Data Integration
-#
-####################################
-
-# IEX Cloud
-# https://iexcloud.io/docs/api/
-iex:
-  addToSecrets: true
-  secretName: ae.k8.iex.intraday
-  # Publishable Token:
-  token: ""
-  # Secret Token:
-  secretToken: ""
-  apiVersion: beta
-
-# Tradier
-# https://developer.tradier.com/documentation
-tradier:
-  addToSecrets: true
-  secretName: ae.k8.tradier.intraday
-  token: ""
-  apiFQDN: api.tradier.com
-  dataFQDN: sandbox.tradier.com
-  streamFQDN: sandbox.tradier.com
 
 ####################################
 #
@@ -106,7 +79,7 @@ tradier:
 # Publish Alerts or Notifications to Slack
 slack:
   addToSecrets: true
-  secretName: ae.k8.slack.intraday
+  secretName: ae.k8.slack.restore
   webhook: "https://hooks.slack.com/services/YOUR_WEBHOOK_HERE"
   token: ""
   channels: ""
@@ -119,11 +92,11 @@ slack:
 #
 ####################################
 
-# Intraday Job
-intraday:
+# Backup Job
+restoreFromS3:
   # comma-delimited list supported for all of these:
   tickers: SPY,AMZN,TSLA
-  name: ae-intraday
+  name: ae-restore
   namespace: ae
   image:
     private: false
@@ -131,13 +104,14 @@ intraday:
     tag: latest
     pullPolicy: Always
   label: ""
+  backupBucket: ae-stock-datasets
   s3:
-    enabled: false
-    name: minio
-    secretName: ae.k8.minio.s3.intraday
+    enabled: true
+    name: aws
+    secretName: ae.k8.aws.s3.restore
   redis:
     enabled: true
-    secretName: ae.k8.redis.intraday
+    secretName: ae.k8.redis.restore
   slack:
     enabled: false
-    secretName: ae.k8.slack.intraday
+    secretName: ae.k8.slack.restore

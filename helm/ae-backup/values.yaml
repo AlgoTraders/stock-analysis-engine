@@ -93,7 +93,7 @@ slack:
 ####################################
 
 # Backup Job
-backupToAWS:
+backupToS3:
   # comma-delimited list supported for all of these:
   tickers: SPY,AMZN,TSLA
   name: ae-backup
@@ -107,7 +107,7 @@ backupToAWS:
   backupBucket: ae-stock-datasets
   s3:
     enabled: true
-    name: "aws"
+    name: aws
     secretName: ae.k8.aws.s3.backup
   redis:
     enabled: true

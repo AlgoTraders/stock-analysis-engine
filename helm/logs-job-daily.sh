@@ -11,7 +11,7 @@ elif [[ -e /opt/sa/analysis_engine/scripts/common_bash.sh ]]; then
 fi
 
 namespace="ae"
-resource="log"
+resource="logs"
 
 anmt "------------------------------------"
 anmt "getting ${resource} in ${namespace}: "

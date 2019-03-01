@@ -1,9 +1,9 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: backup
+  name: restore
   labels:
-    app: backup
+    app: restore
     chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
@@ -12,7 +12,7 @@ metadata:
     cache: redis
     pubsub: publisher
   annotations:
-    description: The Dataset Backup to S3 job (AWS by default, Minio supported as well)
+    description: The Dataset Restore from S3 to Redis job (AWS by default, Minio supported as well)
     runtime: python3
 spec:
   template:
@@ -24,22 +24,22 @@ spec:
         prometheus.io/path: {{ .Values.metrics.endpoint }}
       {{ end }}
       labels:
-        app.kubernetes.io/name: backup
+        app.kubernetes.io/name: restore
         app.kubernetes.io/version: {{ .Release.Version }}
         release: {{ .Release.Name }}
       initializers:
         pending: []
     spec:
-      hostname: backup
+      hostname: restore
       restartPolicy: Never
-      {{- if .Values.backupToS3.image.private }}
+      {{- if .Values.restoreFromS3.image.private }}
       imagePullSecrets:
       - name: {{ .Values.registry.imagePullSecrets }}
       {{- end }}
       containers:
-      - name: backup
-        image: "{{ .Values.registry.address }}/{{ .Values.backupToS3.image.name }}:{{ .Values.backupToS3.image.tag }}"
-        imagePullPolicy: {{ .Values.backupToS3.image.pullPolicy }}
+      - name: restore
+        image: "{{ .Values.registry.address }}/{{ .Values.restoreFromS3.image.name }}:{{ .Values.restoreFromS3.image.tag }}"
+        imagePullPolicy: {{ .Values.restoreFromS3.image.pullPolicy }}
         {{- if .Values.metrics.enabled }}
         ports:
           - containerPort: {{ .Values.metrics.port }}
@@ -50,15 +50,15 @@ spec:
         - -c
         - cd /opt/sa/ &&
           . /opt/venv/bin/activate &&
-          /opt/sa/tools/archive-tickers-to-s3.sh -q ${S3_BUCKET}
+          /opt/sa/tools/deploy-latest-to-redis-from-aws.sh
         env:
-        # Which tickers to backup
+        # Which tickers to restore
         - name: DEFAULT_TICKERS
-          value: {{ .Values.backupToS3.tickers }}
+          value: {{ .Values.restoreFromS3.tickers }}
         # Archive data to this s3 bucket
         - name: S3_BUCKET
-          value: {{ .Values.backupToS3.backupBucket }}
-        {{- if and .Values.backupToS3.s3.enabled (eq .Values.backupToS3.s3.name "minio") }}
+          value: {{ .Values.restoreFromS3.backupBucket }}
+        {{- if and .Values.restoreFromS3.s3.enabled (eq .Values.restoreFromS3.s3.name "minio") }}
         - name: S3_ACCESS_KEY
           valueFrom:
             secretKeyRef:
@@ -90,7 +90,7 @@ spec:
               name: {{ .Values.s3_minio.secretName }}
               key: region
         {{- end }}
-        {{- if and .Values.backupToS3.s3.enabled (eq .Values.backupToS3.s3.name "aws") }}
+        {{- if and .Values.restoreFromS3.s3.enabled (eq .Values.restoreFromS3.s3.name "aws") }}
         - name: S3_ACCESS_KEY
           valueFrom:
             secretKeyRef:
@@ -122,7 +122,7 @@ spec:
               name: {{ .Values.s3_aws.secretName }}
               key: region
         {{- end }}
-        {{- if and .Values.backupToS3.slack .Values.backupToS3.slack.enabled }}
+        {{- if and .Values.restoreFromS3.slack .Values.restoreFromS3.slack.enabled }}
         # set to your Slack webhook url:
         - name: SLACK_WEBHOOK
           valueFrom:

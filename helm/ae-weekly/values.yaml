@@ -132,9 +132,9 @@ weekly:
     pullPolicy: Always
   label: ""
   s3:
-    enabled: true
-    name: "aws"
-    secretName: ae.k8.aws.s3.weekly
+    enabled: false
+    name: minio
+    secretName: ae.k8.minio.s3.weekly
   redis:
     enabled: true
     secretName: ae.k8.redis.weekly
