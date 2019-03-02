@@ -10,11 +10,13 @@ elif [[ -e /opt/sa/analysis_engine/scripts/common_bash.sh ]]; then
     source /opt/sa/analysis_engine/scripts/common_bash.sh
 fi
 
-use_namespace="ae"
+namespace="ae"
+resource="ingress"
+ing_name="ae-prometheus-server"
 
 anmt "---------------------------------------------------------"
-anmt "Describing redis pod namespace ${use_namespace}"
+anmt "Describing prometheus ${resource} namespace ${namespace}"
 inf ""
-good "kubectl describe pod -n ${use_namespace} ae-redis-master-0"
+good "kubectl describe ${resource} -n ${namespace} ${ing_name}"
 inf ""
-kubectl describe pod -n ${use_namespace} ae-redis-master-0
+kubectl describe ${resource} -n ${namespace} ${ing_name}

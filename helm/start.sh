@@ -24,7 +24,7 @@ if [[ "${1}" != "" ]]; then
     ae=${1}
 fi
 
-test_running=$(helm ls | grep ae | grep -v -E "ae-backup|ae-intraday|ae-daily|ae-weekly|ae-jupyter|ae-redis|ae-minio" | wc -l)
+test_running=$(helm ls | grep ae | grep -v -E "ae-backup|ae-intraday|ae-daily|ae-weekly|ae-jupyter|ae-redis|ae-minio|ae-grafana|ae-prometheus" | wc -l)
 if [[ "${test_running}" == "0" ]]; then
     # install ae first to get the secrets for minio and redis
     anmt "installing ae core"
