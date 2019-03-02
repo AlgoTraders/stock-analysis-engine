@@ -519,12 +519,17 @@ Access `Grafana with this link <https://grafana.example.com/>`__ and the default
 Import Redis Grafana Dashboard
 ------------------------------
 
-Import the dashboard https://grafana.com/dashboards/763 with the Grafana import link: https://grafana.example.com/dashboard/import with the ``Prometheus-AE`` data source.
+Import the dashboard https://grafana.com/dashboards/763 with the Grafana import link: https://grafana.example.com/dashboard/import with the ``Prometheus - AE`` for the ``prometheus-infra`` dropdown.
+
+Import Ceph Grafana Dashboard
+-----------------------------
+
+Import the dashboard https://grafana.com/dashboards/2842 with the Grafana import link: https://grafana.example.com/dashboard/import with the ``Prometheus - AE`` for the ``prometheus-infra`` dropdown.
 
 Coming Soon - Support for Celery Grafana Dashboard
 --------------------------------------------------
 
-Coming soon - import the dashboard https://grafana.com/dashboards/9610 with the Grafana import link: https://grafana.example.com/dashboard/import with the ``Prometheus-AE`` data source.
+Coming soon - import the dashboard https://grafana.com/dashboards/9610 with the Grafana import link: https://grafana.example.com/dashboard/import with the ``Prometheus - AE`` for the ``prometheus-infra`` dropdown.
 
 Debugging Helm Deployed Components
 ==================================
@@ -547,6 +552,23 @@ The ``engine`` pods handle pulling pricing data for the cron jobs. Please review
     2019-03-01 06:03:59,721 - analysis_engine.td.fetch_api - CRITICAL - Please check the TD_TOKEN is correct received 401 during fetch for: puts
 
 If there is an ``IEX Cloud`` or ``Tradier`` authentication issue, then please check out the `Configure Data Collection Jobs section <https://stock-analysis-engine.readthedocs.io/en/latest/deploy_on_kubernetes_using_helm.html#configure-data-collection-jobs>`__ and then rerun the job with the updated ``values.yaml`` file.
+
+Helm - Incompatible Versions Client Error
+-----------------------------------------
+
+If you see an error like this when trying to deploy:
+
+::
+
+    Error: incompatible versions client[v2.13.0] server[v2.12.3]
+
+Then please upgrade your helm with:
+
+.. note:: This will recreate the ``tiller`` pod in the ``kube-system`` namespace and can take about 30 seconds to restart correctly, and you can view the pod with the command: ``kubectl -n kube-system get po | grep tiller``
+
+::
+
+    helm init --upgrade
 
 Engine
 ------
