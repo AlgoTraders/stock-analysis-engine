@@ -486,6 +486,46 @@ Restore Latest Backup from S3 to Redis on a server reboot.
     # on a server reboot (assuming your k8 cluster is running on just 1 host)
     @reboot /opt/sa/helm/cron/run-job.sh restore /opt/k8/config
 
+Monitoring Kubernetes with Prometheus and Grafana using Helm
+============================================================
+
+Deploy Prometheus and Grafana to monitor your kubernetes cluster with support for granular monitoring like for total Redis keys with the command:
+
+::
+
+    ./monitor-start.sh
+
+Recreate Prometheus and Grafana:
+
+::
+
+    ./monitor-start.sh -r
+
+Prometheus
+==========
+
+Access `Prometheus with this link <https://aeprometheus.example.com/>`__
+
+`Monitor Redis Keys in the pricing Redis database 0 with this link <https://aeprometheus.example.com/graph?g0.range_input=1h&g0.expr=redis_db_keys&g0.tab=0>`__
+
+Grafana
+=======
+
+Access `Grafana with this link <https://grafana.example.com/>`__ and the default credentials are:
+
+- username: ``trex``
+- password: ``123321``
+
+Import Redis Grafana Dashboard
+------------------------------
+
+Import the dashboard https://grafana.com/dashboards/763 with the Grafana import link: https://grafana.example.com/dashboard/import with the ``Prometheus-AE`` data source.
+
+Coming Soon - Support for Celery Grafana Dashboard
+--------------------------------------------------
+
+Coming soon - import the dashboard https://grafana.com/dashboards/9610 with the Grafana import link: https://grafana.example.com/dashboard/import`` with the ``Prometheus-AE`` data source.
+
 Debugging Helm Deployed Components
 ==================================
 
