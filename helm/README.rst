@@ -556,13 +556,13 @@ If there is an ``IEX Cloud`` or ``Tradier`` authentication issue, then please ch
 Helm - Incompatible Versions Client Error
 -----------------------------------------
 
-If you see this error when trying to deploy:
+If you see an error like this when trying to deploy:
 
 ::
 
     Error: incompatible versions client[v2.13.0] server[v2.12.3]
 
-Please upgrade your helm with:
+Then please upgrade your helm with:
 
 .. note:: This will recreate the ``tiller`` pod in the ``kube-system`` namespace and can take about 30 seconds to restart correctly, and you can view the pod with the command: ``kubectl -n kube-system get po | grep tiller``
 
