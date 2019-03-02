@@ -524,7 +524,7 @@ Import the dashboard https://grafana.com/dashboards/763 with the Grafana import 
 Coming Soon - Support for Celery Grafana Dashboard
 --------------------------------------------------
 
-Coming soon - import the dashboard https://grafana.com/dashboards/9610 with the Grafana import link: https://grafana.example.com/dashboard/import`` with the ``Prometheus-AE`` data source.
+Coming soon - import the dashboard https://grafana.com/dashboards/9610 with the Grafana import link: https://grafana.example.com/dashboard/import with the ``Prometheus-AE`` data source.
 
 Debugging Helm Deployed Components
 ==================================
