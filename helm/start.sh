@@ -40,11 +40,18 @@ fi
 
 test_minio=$(helm ls | grep ae-minio | wc -l)
 if [[ "${test_minio}" == "0" ]]; then
+    test_minio_tls=$(kubectl get --ignore-not-found -n ${namespace} secret | grep tls.minio | wc -l)
+    if [[ "${test_minio_tls}" == "0" ]]; then
+        anmt "installing minio secret: tls.minio"
+        ./install-tls.sh tls.minio ./minio/ssl/aeminio_server_key.pem ./minio/ssl/aeminio_server_cert.pem
+    else
+        good "tls secret: tls.minio already exists"
+    fi
     anmt "installing minio"
-    good "helm install --name=ae-minio stable/minio --namespace=${namespace} -f ${minio}"
+    good "helm install --name=ae-minio local/minio --namespace=${namespace} -f ${minio}"
     helm install \
         --name=ae-minio \
-        stable/minio \
+        local/minio \
         --namespace=${namespace} \
         -f ${minio}
 else

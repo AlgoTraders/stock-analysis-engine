@@ -516,20 +516,40 @@ Access `Grafana with this link <https://grafana.example.com/>`__ and the default
 - username: ``trex``
 - password: ``123321``
 
-Import Redis Grafana Dashboard
-------------------------------
+Included Grafana Dashboards
+===========================
 
-Import the dashboard https://grafana.com/dashboards/763 with the Grafana import link: https://grafana.example.com/dashboard/import with the ``Prometheus - AE`` for the ``prometheus-infra`` dropdown.
+The `./grafana/values.yaml <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/helm/grafana/values.yaml>`__ uses the ``dashboards`` section to install multiple dashboards from https://grafana.com by default on startup.
 
-Import Ceph Grafana Dashboard
+These dashboards can be found on the ``ae-grafana`` pod's ingress url:
+
+https://grafana.example.com/dashboards
+
+Redis Grafana Dashboard
+-----------------------
+
+`Redis Dashboard on grafana.com <https://grafana.com/dashboards/763>`__
+
+Ceph Grafana Dashboard
+----------------------
+
+`Ceph Dashboard on grafana.com <https://grafana.com/dashboards/2842/>`__
+
+Minio Grafana Dashboard
+-----------------------
+
+`Minio Dashboard on grafana.com <https://grafana.com/dashboards/6248>`__
+
+Kubernetes Grafana Dashboards
 -----------------------------
 
-Import the dashboard https://grafana.com/dashboards/2842 with the Grafana import link: https://grafana.example.com/dashboard/import with the ``Prometheus - AE`` for the ``prometheus-infra`` dropdown.
-
-Coming Soon - Support for Celery Grafana Dashboard
---------------------------------------------------
-
-Coming soon - import the dashboard https://grafana.com/dashboards/9610 with the Grafana import link: https://grafana.example.com/dashboard/import with the ``Prometheus - AE`` for the ``prometheus-infra`` dropdown.
+- `Kubernetes Cluster Monitoring on grafana.com <https://grafana.com/dashboards/1621>`__
+- `Kubernetes Pods on grafana.com <https://grafana.com/dashboards/6336>`__
+- `Kubernetes Capacity Planning on grafana.com <https://grafana.com/dashboards/5309>`__
+- `Kubernetes Capacity on grafana.com <https://grafana.com/dashboards/6912>`__
+- `Kubernetes Deployment Statefulset Daemonset Metrics on grafana.com <https://grafana.com/dashboards/8588>`__
+- `Kubernetes Cluster Monitoring 2 on grafana.com <https://grafana.com/dashboards/6417>`__
+- `Kubernetes Cluster Monitoring 3 on grafana.com <https://grafana.com/dashboards/6663>`__
 
 Debugging Helm Deployed Components
 ==================================

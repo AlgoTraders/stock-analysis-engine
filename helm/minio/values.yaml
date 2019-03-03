@@ -55,9 +55,9 @@ replicas: 4
 tls:
   enabled: false
   ## Create a secret with private.key and public.crt files and pass that here. Ref: https://github.com/minio/minio/tree/master/docs/tls/kubernetes#2-create-kubernetes-secret
-  certSecret: ""
-  publicCrt: public.crt
-  privateKey: private.key
+  certSecret: "tls.minio"
+  publicCrt: ./ssl/aeminio_server_cert.pem
+  privateKey: ./ssl/aeminio_server_key.pem
 
 ## Enable persistence using Persistent Volume Claims
 ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
@@ -68,7 +68,7 @@ persistence:
   ## A manually managed Persistent Volume and Claim
   ## Requires persistence.enabled: true
   ## If defined, PVC must be created manually before volume will be bound
-  # existingClaim:
+  # existingClaim: ae-minio-data
 
   ## minio data Persistent Volume Storage Class
   ## If defined, storageClassName: <storageClass>
@@ -100,23 +100,27 @@ service:
   # nodePort: 31311
   # externalIPs:
   #   - externalIp1
-  annotations: {}
-    # prometheus.io/scrape: 'true'
-    # prometheus.io/path:   '/minio/prometheus/metrics'
-    # prometheus.io/port:   '9000'
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/path:   '/minio/prometheus/metrics'
+    prometheus.io/port:   '9000'
 
 ingress:
-  enabled: false
-  annotations: {}
+  enabled: true
+  annotations:
+    nginx.org/proxy-connect-timeout: "60s"
+    nginx.org/proxy-read-timeout: "60s"
+    nginx.org/client-max-body-size: "5000m"
+    nginx.org/redirect-to-https: "True"
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   path: /
   hosts:
-    - chart-example.local
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
+    - aeminio.example.com
+  tls:
+    - secretName: tls.minio
+      hosts:
+        - aeminio.example.com
 
 ## Node labels for pod assignment
 ## Ref: https://kubernetes.io/docs/user-guide/node-selection/
@@ -124,6 +128,8 @@ ingress:
 nodeSelector: {}
 tolerations: []
 affinity: {}
+podLabels:
+  prometheus: enabled
 
 # Additational pod annotations
 podAnnotations: {}
