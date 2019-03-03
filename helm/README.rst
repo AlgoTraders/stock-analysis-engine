@@ -519,9 +519,9 @@ Access `Grafana with this link <https://grafana.example.com/>`__ and the default
 Included Grafana Dashboards
 ===========================
 
-The `./grafana/values.yaml <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/helm/grafana/values.yaml>`__ uses the ``dashboards`` section to install multiple dashboards from https://grafana.com by default on startup.
+The `./grafana/values.yaml <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/helm/grafana/values.yaml>`__ defines many dashboards to automatically import on startup using the `dashboards.default section <https://github.com/AlgoTraders/stock-analysis-engine/blob/432c6188a66b1ad4ea7e9c3104870d9804df7719/helm/grafana/values.yaml#L259-L304>`__.
 
-These dashboards can be found on the ``ae-grafana`` pod's ingress url:
+Quickly change between dashboards with this url:
 
 https://grafana.example.com/dashboards
 
@@ -543,8 +543,8 @@ Minio Grafana Dashboard
 Kubernetes Grafana Dashboards
 -----------------------------
 
-- `Kubernetes Cluster Monitoring on grafana.com <https://grafana.com/dashboards/1621>`__
 - `Kubernetes Pods on grafana.com <https://grafana.com/dashboards/6336>`__
+- `Kubernetes Cluster Monitoring on grafana.com <https://grafana.com/dashboards/1621>`__
 - `Kubernetes Capacity Planning on grafana.com <https://grafana.com/dashboards/5309>`__
 - `Kubernetes Capacity on grafana.com <https://grafana.com/dashboards/6912>`__
 - `Kubernetes Deployment Statefulset Daemonset Metrics on grafana.com <https://grafana.com/dashboards/8588>`__
