@@ -89,11 +89,30 @@ kubectl get nodes -o wide
 anmt "getting kubernetes default pods:"
 kubectl get pods
 
+anmt "checking for namespace: ${namespace}"
+test_ns=$(kubectl get --ignore-not-found namespace ae | wc -l)
+if [[ "${test_ns}" == "0" ]]; then
+    kubectl create namespace ${namespace}
+fi
+
+anmt "getting kubernetes ae pods:"
+kubectl get pods -n ${namespace}
+
 anmt "getting kubernetes ae pods:"
 kubectl get pods -n ${namespace}
 
 if [[ "${use_ceph}" == "1" ]]; then
+    anmt "sleeping for 2 minutes before deploying"
+    sleep 120
     cd /opt/deploy-to-kubernetes >> /dev/null
+    anmt "adding ceph to helm"
+    ./ceph/add-ceph-to-helm.sh
+    anmt "deploying ceph cluster pods and ceph-rbd storage pods"
+    ./ceph/run.sh
+    anmt "deploying ceph cluster pods and ceph-rbd storage pods"
+    ./ceph/_uninstall.sh
+    anmt "sleeping for 2 minutes before deploying"
+    sleep 120
     anmt "deploying ceph cluster pods and ceph-rbd storage pods"
     ./ceph/run.sh
 else
@@ -116,6 +135,9 @@ anmt "installing ceph as storageClass"
 
 anmt "sleeping for 10 seconds before deploying"
 sleep 10
+
+anmt "installing building charts"
+./build.sh
 
 anmt "starting ae with helm"
 ./start.sh
