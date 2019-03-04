@@ -146,7 +146,7 @@ anmt "sleeping for 2 minutes before running restore job"
 sleep 120
 
 anmt "restoring latest pricing data from S3 to Redis with helm ae-restore chart"
-./run-job.sh restore /opt/k8/config ${repo}
+./cron/run-job.sh restore /opt/k8/config ${repo}
 
 anmt "sleeping for 10 seconds before checking ae-restore job"
 sleep 10
