@@ -141,3 +141,4 @@ compose/envs/*.env*
 .vscode/*
 requirements.lock
 index.yaml
+s3_keys
