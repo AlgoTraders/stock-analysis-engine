@@ -77,12 +77,12 @@ k8_restart_pod() {
         fi
     fi
     
-    echo "Deleting ${ae_pod_name} with ${ae_k8_file}"
+    echo "deleting ${ae_pod_name} with ${ae_k8_file}"
 
     test_exists=$(/usr/bin/kubectl get po | grep "${ae_pod_name}" | awk '{print $1}')
     if [[ "${test_exists}" != "" ]]; then
         echo ""
-        echo "deleting previous: ${ae_pod_name}"
+        echo "deleting previous AE pod: ${ae_pod_name}"
         echo "/usr/bin/kubectl delete -f ${ae_k8_file}"
         /usr/bin/kubectl delete -f ${ae_k8_file}
     fi
@@ -97,7 +97,7 @@ k8_restart_pod() {
     done
 
     echo ""
-    echo "Starting dataset collector: ${ae_k8_file} with ${ae_k8_file}"
+    echo "starting AE pod: ${ae_k8_file} with ${ae_k8_file}"
     echo "/usr/bin/kubectl apply -f ${ae_k8_file}"
     /usr/bin/kubectl apply -f ${ae_k8_file}
 
