@@ -3,7 +3,7 @@ Stock Analysis Engine
 
 Build and tune investment algorithms for use with `artificial intelligence (deep neural networks) <https://github.com/AlgoTraders/stock-analysis-engine/blob/master/compose/docker/notebooks/Comparing-3-Deep-Neural-Networks-Trained-to-Predict-a-Stocks-Closing-Price-Using-The-Analysis-Engine.ipynb>`__ with a distributed stack for running backtests using live pricing data on publicly traded companies with automated datafeeds from: `IEX Cloud <https://iexcloud.io/>`__, `Tradier <https://tradier.com/>`__ and `FinViz <https://finviz.com>`__ (includes: pricing, options, news, dividends, daily, intraday, screeners, statistics, financials, earnings, and more).
 
-Kubernetes users please refer to `the Helm guide to get started <https://stock-analysis-engine.readthedocs.io/en/latest/deploy_on_kubernetes_using_helm.html>`__
+Kubernetes users please refer to `the Helm guide to get started <https://stock-analysis-engine.readthedocs.io/en/latest/deploy_on_kubernetes_using_helm.html>`__ and `Metalnetes for running multiple Analysis Engines at the same time on a bare-metal server <https://metalnetes.readthedocs.io/en/latest/#>`__
 
 .. image:: https://i.imgur.com/tw2wJ6t.png
 

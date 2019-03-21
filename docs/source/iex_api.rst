@@ -4,7 +4,12 @@ IEX API
 IEX - Account Set Up
 ====================
 
-#.  `Install the Analysis Engine <https://github.com/AlgoTraders/stock-analysis-engine#getting-started>`__
+#.  Install the Stock Analysis Engine
+
+    - If you want to use python pip: ``pip install stock-analysis-engine``
+    - If you want to use a Kubernetes cloud service (EKS, AKS, or GCP) use `the Helm guide to get started <https://stock-analysis-engine.readthedocs.io/en/latest/deploy_on_kubernetes_using_helm.html>`__
+    - If you want to `run on your own bare-metal servers you can use Metalnetes to run multiple Analysis Engines at the same time <https://metalnetes.readthedocs.io/en/latest/#>`__
+    - If you want to develop your own algorithms or integrate your applications using python, you can `set up a Development Environment <https://github.com/AlgoTraders/stock-analysis-engine#getting-started>`__
 
 #.  `Register for an Account <https://iexcloud.io/cloud-login/#/register>`__
 
