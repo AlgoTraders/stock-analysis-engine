@@ -17,6 +17,16 @@ fi
 
 source ${use_repo_path}/analysis_engine/scripts/common_bash.sh
 source ${use_repo_path}/analysis_engine/scripts/k8_env.sh
+source ${use_venv}/bin/activate
+
+test_aws_pip_installed=$(which aws | wc -l)
+if [[ "${test_aws_pip_installed}" == "0" ]]; then
+    err "Please install the awscli pip into the virtualenv ${use_venv} which should be something similar to the command:"
+    echo ""
+    err "source ${use_venv}/bin/activate && pip install --upgrade awscli"
+    echo ""
+    exit 1
+fi
 
 s3_bucket="YOUR_BACKUP_BUCKET_NAME"
 engine_container="ae-workers"
