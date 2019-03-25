@@ -6,6 +6,9 @@ elif [[ -e ./analysis_engine/scripts/common_bash.sh ]]; then
     source ./analysis_engine/scripts/common_bash.sh
 fi
 
+# exports for docker-compose pathing depending on the os
+export PATH=${PATH}:/usr/bin:/usr/local/bin
+
 # probably not ideal but needed for working on MacOS
 # will also need to manually add:
 # /data to Docker -> Preferences -> File Sharing
@@ -91,8 +94,8 @@ do
             pushd compose >> /dev/null
             down_dir="1"
         fi
-        anmt "starting dataset collection with: /usr/local/bin/docker-compose -f ./${compose} start ae-dataset-collection"
-        /usr/local/bin/docker-compose -f ./${compose} start ae-dataset-collection
+        anmt "starting dataset collection with: docker-compose -f ./${compose} start ae-dataset-collection"
+        docker-compose -f ./${compose} start ae-dataset-collection
         if [[ "${down_dir}" == "1" ]]; then
             popd >> /dev/null
         fi
@@ -148,8 +151,8 @@ if [[ ! -e ./${compose} ]]; then
     down_dir="1"
 fi
 
-anmt "starting with: /usr/local/bin/docker-compose -f ./${compose} up -d"
-/usr/local/bin/docker-compose -f ./${compose} up -d
+anmt "starting with: docker-compose -f ./${compose} up -d"
+docker-compose -f ./${compose} up -d
 
 if [[ "${down_dir}" == "1" ]]; then
     popd >> /dev/null
