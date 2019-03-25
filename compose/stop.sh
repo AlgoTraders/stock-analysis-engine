@@ -6,6 +6,9 @@ elif [[ -e ./analysis_engine/scripts/common_bash.sh ]]; then
     source ./analysis_engine/scripts/common_bash.sh
 fi
 
+# exports for docker-compose pathing depending on the os
+export PATH=${PATH}:/usr/bin:/usr/local/bin
+
 os_type=`uname -s`
 case "$os_type" in
     Linux*)
@@ -112,7 +115,7 @@ if [[ ! -e ./${compose} ]]; then
     down_dir="1"
 fi
 
-/usr/local/bin/docker-compose -f ./${compose} down >> /dev/null 2>&1
+docker-compose -f ./${compose} down >> /dev/null 2>&1
 
 for c in ${containers}; do
     test_exists=$(docker ps -a | grep ${c} | wc -l)
