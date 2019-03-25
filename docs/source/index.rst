@@ -738,6 +738,7 @@ Table of Contents
    finviz_api
    scrub_utils
    options_utils
+   holidays
    charts
    tasks
    mock_api

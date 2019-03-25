@@ -18,6 +18,7 @@ and for calculating historical option expiration dates.
 
 import datetime
 import pandas.tseries.offsets as pd_bday
+import analysis_engine.holidays as hdays
 import spylunking.log.setup_logging as log_utils
 
 log = log_utils.build_colorized_logger(name=__name__)
@@ -224,6 +225,21 @@ def option_expiration(
         cur_date = datetime.datetime.now()
     while (not (cur_date.weekday() == 4 and 14 < cur_date.day < 22)):
         cur_date = cur_date + datetime.timedelta(days=1)
+
+    if hdays.is_holiday(
+            date=cur_date):
+        test_date = cur_date - datetime.timedelta(days=1)
+        if cur_date.weekday() == 0:
+            test_date = cur_date - datetime.timedelta(days=3)
+        if hdays.is_holiday(
+                date=test_date):
+            test_date = cur_date - datetime.timedelta(days=4)
+            if hdays.is_holiday(
+                    date=test_date):
+                test_date = cur_date - datetime.timedelta(days=5)
+        cur_date = test_date
+    # end of if this date is a holiday and go back
+
     return cur_date
 # end of option_expiration
 
