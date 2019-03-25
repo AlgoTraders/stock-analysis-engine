@@ -62,7 +62,7 @@ def is_holiday(
         fmt='%Y-%m-%d'):
     """is_holiday
 
-    Determine if the ``date`` is a holiday, if not set determine
+    Determine if the ``date`` is a holiday, if not then determine
     if today is a holiday. Returns ``True`` if it is a holiday and
     ``False`` if it is not a holiday in the US Markets.
 
