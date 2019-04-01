@@ -68,7 +68,7 @@ sys.path.insert(
 setup(
     name='stock-analysis-engine',
     cmdclass={'build_py': build_py},
-    version='1.9.10',
+    version='1.9.11',
     description=(
         'Backtest 1000s of minute-by-minute '
         'trading algorithms. Automated '
@@ -83,6 +83,7 @@ setup(
         '>150 million trading history rows generated from +5000 algorithms'
         ''),
     long_description=long_description,
+    long_description_content_type='text/x-rst',
     author='Jay Johnson',
     author_email='jay.p.h.johnson@gmail.com',
     url='https://github.com/AlgoTraders/stock-analysis-engine',
