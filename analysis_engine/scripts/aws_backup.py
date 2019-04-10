@@ -496,7 +496,7 @@ def run_aws_backup():
     use_balance = 5000.0
     use_commission = 6.0
     auto_fill = True
-    use_start_date = None
+    use_start_date = '2018-11-01 00:00:00'
     use_end_date = None
     use_config_file = None
     use_name = 'myalgo'
