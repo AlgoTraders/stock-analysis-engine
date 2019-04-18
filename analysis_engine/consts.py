@@ -315,6 +315,10 @@ ALGO_TIMESERIES_MINUTE = 44  # evaluate trade performance on minute-units
 ALGO_TRADE_INDICATOR_COUNTS = 45  # trade off num indicators said buy/sell
 MISSING_TOKEN = 46
 
+# Assuming the engine is running in UTC timezones
+EST_OFFSET_HOURS = int(
+    os.getenv('EST_OFFSET_HOURS', '5'))
+
 INDICATOR_CATEGORY_MOMENTUM = 60
 INDICATOR_CATEGORY_OVERLAP = 61
 INDICATOR_CATEGORY_PRICE = 62
