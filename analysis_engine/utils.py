@@ -214,7 +214,10 @@ def epoch_to_dt(
         convert_to_est=True):
     """epoch_to_dt
 
-    Convert epoch milliseconds to datetime
+    Convert epoch milliseconds to datetime with configurable
+    offset hour calculations using the environment variable:
+    ``export EST_OFFSET_HOURS=<NUMBER_OF_HOURS>`` with
+    default ``5`` assuming running in UTC
 
     :param epoch: integer milliseconds
     :param use_utc: boolean to convert from ``UTC``
@@ -234,7 +237,8 @@ def epoch_to_dt(
 
     if convert_to_est:
         converted_time = (
-            converted_time - datetime.timedelta(hours=5))
+            converted_time - datetime.timedelta(
+                hours=ae_consts.EST_OFFSET_HOURS))
 
     return converted_time
 # end of epoch_to_dt
