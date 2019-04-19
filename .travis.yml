@@ -18,7 +18,7 @@ before_install:
       echo "Building Docker with tag=${USE_VERSION}";
       echo "";
       echo "Testing Docker Hub credentials username=${DOCKER_USERNAME}";
-      docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}";
+      echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
       if [[ "$?" != "0" ]]; then
         echo "Docker login failed for user: ${DOCKER_USERNAME}";
       fi
@@ -43,7 +43,7 @@ after_success:
   - >
     if [[ "${TRAVIS_PULL_REQUEST}" == "false" ]]; then
       echo "Logging into Docker Hub: ${DOCKER_USERNAME}";
-      docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}";
+      echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
       if [[ "$?" != "0" ]]; then
         echo "Docker login failed for user: ${DOCKER_USERNAME}";
       fi
