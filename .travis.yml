@@ -18,7 +18,10 @@ before_install:
       echo "Building Docker with tag=${USE_VERSION}";
       echo "";
       echo "Testing Docker Hub credentials username=${DOCKER_USERNAME}";
-      echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin;
+      docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}";
+      if [[ "$?" != "0" ]]; then
+        echo "Docker login failed for user: ${DOCKER_USERNAME}";
+      fi
       echo "Docker Hub credentials are working";
     else
       echo "Done before_install";
@@ -40,7 +43,10 @@ after_success:
   - >
     if [[ "${TRAVIS_PULL_REQUEST}" == "false" ]]; then
       echo "Logging into Docker Hub: ${DOCKER_USERNAME}";
-      echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin;
+      docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}";
+      if [[ "$?" != "0" ]]; then
+        echo "Docker login failed for user: ${DOCKER_USERNAME}";
+      fi
       export TAG=`if [ "${TRAVIS_BRANCH}" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`;
       echo "starting: cd docker && docker build -f Dockerfile -t ${REPO} .";
       cd docker && docker build -f Dockerfile -t $REPO .;
