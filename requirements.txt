@@ -24,6 +24,6 @@ spylunking
 tabulate
 trading_calendars
 unittest2
-urllib3<=1.23
+urllib3
 ujson
 vprof

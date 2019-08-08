@@ -60,7 +60,7 @@ def build_regression_dnn(
             else:
                 if layer_type == 'dropout':
                     model.add(
-                        keras_models.Dropout(
+                        keras_layers.Dropout(
                             float(node['rate'])))
             # end of supported model types
             num_layers += 1
