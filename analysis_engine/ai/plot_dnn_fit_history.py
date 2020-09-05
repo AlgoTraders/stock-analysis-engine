@@ -139,7 +139,7 @@ def plot_dnn_fit_history(
 
     if verbose:
         log.info(
-            f'plot_dnn_fit_history - start')
+            'plot_dnn_fit_history - start')
 
     use_red = red_color
     use_blue = blue_color
@@ -280,7 +280,7 @@ def plot_dnn_fit_history(
 
     ax.legend(
         lines,
-        [l.get_label() for l in lines],
+        [use_line.get_label() for use_line in lines],
         loc='best',
         shadow=True)
 

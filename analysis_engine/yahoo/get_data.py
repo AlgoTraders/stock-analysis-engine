@@ -4,7 +4,6 @@ Parse data from yahoo
 
 import copy
 import datetime
-import pinance
 import analysis_engine.options_dates as opt_dates
 import analysis_engine.get_pricing as yahoo_get_pricing
 import analysis_engine.build_result as build_result
@@ -63,6 +62,11 @@ def get_data_from_yahoo(
         'err': None,
         'rec': rec
     }
+    log.error(
+        'sorry - yahoo is disabled and '
+        'pinance is no longer supported '
+        'https://github.com/neberej/pinance')
+    return res
 
     try:
 
@@ -94,7 +98,7 @@ def get_data_from_yahoo(
             'label',
             label)
 
-        ticker_results = pinance.Pinance(ticker)
+        ticker_results = None
         num_news_rec = 0
 
         use_date = exp_date

@@ -51,7 +51,7 @@ def start():
         f'{ticker}_{start_date}')
 
     algo_config = (
-        f'./cfg/default_algo.json')
+        './cfg/default_algo.json')
     history_loc = (
         f's3://{s3_bucket}/{s3_key}')
 

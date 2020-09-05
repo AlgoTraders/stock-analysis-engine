@@ -139,8 +139,8 @@ class AlgoRunner:
                     '/opt/sa/cfg/default_algo.json')
             else:
                 log.critical(
-                    f'Failed: missing algo_config argument pointing to a '
-                    f'config file')
+                    'Failed: missing algo_config argument pointing to a '
+                    'config file')
                 return
         self.config_dict = json.loads(open(self.use_config_file, 'r').read())
         self.algo_mod_path = self.config_dict.get(
@@ -798,7 +798,7 @@ class AlgoRunner:
             use_date_str = ae_utils.get_last_close_str()
 
         log.info(
-            f'creating algo')
+            'creating algo')
         self.algo_obj = base_algo.BaseAlgo(
             ticker=self.config_dict['ticker'],
             balance=self.config_dict['balance'],
@@ -879,7 +879,7 @@ class AlgoRunner:
             raise_on_err=self.raise_on_err)
 
         log.info(
-            f'run latest - start')
+            'run latest - start')
 
         ticker = self.config_dict['ticker']
         dataset_id = f'{ticker}_{use_date_str}'

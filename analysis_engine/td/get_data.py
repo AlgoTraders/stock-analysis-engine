@@ -137,7 +137,7 @@ def get_data_from_td(
                 res = build_result.build_result(
                     status=ae_consts.ERR,
                     err=(
-                        f'did not fetch any data'),
+                        'did not fetch any data'),
                     rec=rec)
                 return res
             else:

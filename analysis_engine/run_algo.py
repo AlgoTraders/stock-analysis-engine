@@ -609,15 +609,15 @@ def run_algo(
                                     f'dataset={ind_obj.use_df.head(5)} '
                                     f'name_of_dataset={ind_obj.uses_data}')
                                 log.critical(
-                                    f'--------------------------------------'
-                                    f'--------------------------------------')
+                                    '--------------------------------------'
+                                    '--------------------------------------')
                                 log.critical(
-                                    f'Please check if this indicator: '
+                                    'Please check if this indicator: '
                                     f'{ind_obj_path} '
-                                    f'supports Empty Dataframes')
+                                    'supports Empty Dataframes')
                                 log.critical(
-                                    f'--------------------------------------'
-                                    f'--------------------------------------')
+                                    '--------------------------------------'
+                                    '--------------------------------------')
                                 found_error_hint = True
                         # indicator error hints
 

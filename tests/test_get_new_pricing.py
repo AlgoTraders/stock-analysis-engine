@@ -5,8 +5,6 @@ update prices
 
 import mock
 import analysis_engine.consts as ae_consts
-import analysis_engine.mocks.mock_pinance
-import analysis_engine.mocks.mock_iex
 import analysis_engine.mocks.base_test as base_test
 import analysis_engine.work_tasks.get_new_pricing_data as run_get
 import analysis_engine.api_requests as api_requests
@@ -98,9 +96,6 @@ class TestGetNewPricing(base_test.BaseTestCase):
     """TestGetNewPricing"""
 
     @mock.patch(
-        'pinance.Pinance',
-        new=analysis_engine.mocks.mock_pinance.MockPinance)
-    @mock.patch(
         ('analysis_engine.iex.get_data.'
          'get_data_from_iex'),
         new=mock_success_iex_fetch)
@@ -108,10 +103,6 @@ class TestGetNewPricing(base_test.BaseTestCase):
         ('analysis_engine.td.get_data.'
          'get_data_from_td'),
         new=mock_success_td_fetch)
-    @mock.patch(
-        ('analysis_engine.get_pricing.'
-         'get_options'),
-        new=analysis_engine.mocks.mock_pinance.mock_get_options)
     @mock.patch(
         ('analysis_engine.get_task_results.'
          'get_task_results'),
@@ -138,9 +129,6 @@ class TestGetNewPricing(base_test.BaseTestCase):
             len(res['rec']['options']) >= 1)
     # end of test_success_get_new_pricing
 
-    @mock.patch(
-        'pinance.Pinance',
-        new=analysis_engine.mocks.mock_pinance.MockPinance)
     @mock.patch(
         ('analysis_engine.iex.get_data.'
          'get_data_from_iex'),
@@ -172,13 +160,6 @@ class TestGetNewPricing(base_test.BaseTestCase):
         ('analysis_engine.td.get_data.'
          'get_data_from_td'),
         new=mock_success_td_fetch)
-    @mock.patch(
-        'pinance.Pinance',
-        new=analysis_engine.mocks.mock_pinance.MockPinance)
-    @mock.patch(
-        ('analysis_engine.get_pricing.'
-         'get_options'),
-        new=analysis_engine.mocks.mock_pinance.mock_get_options)
     @mock.patch(
         ('analysis_engine.get_task_results.'
          'get_task_results'),

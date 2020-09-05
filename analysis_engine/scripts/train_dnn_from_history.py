@@ -113,9 +113,9 @@ def train_and_predict_from_history_in_s3():
     compress = True
 
     s3_bucket = (
-        f'algohistory')
+        'algohistory')
     s3_key = (
-        f'algo_training_SPY.json')
+        'algo_training_SPY.json')
     predict_features = ['close']
     number_of_dnns = 1
     send_plots_to_slack = False
@@ -332,7 +332,7 @@ def create_column_dnn(
     ] + all_features
 
     log.info(
-        f'converting columns to floats')
+        'converting columns to floats')
 
     timeseries_df = df[df_filter][features_and_minute].fillna(-10000.0)
     converted_df = timeseries_df[all_features].astype('float32')
@@ -360,7 +360,7 @@ def create_column_dnn(
         scaler_predictions = scaler_res['scaler_test']
     else:
         log.info(
-            f'building train and test dfs from subset of features')
+            'building train and test dfs from subset of features')
         train_df = converted_df[train_features]
         test_df = converted_df[[predict_feature]]
 

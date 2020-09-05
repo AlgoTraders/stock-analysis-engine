@@ -363,7 +363,7 @@ def plot_trading_history(
 
     ax.legend(
         lines,
-        [l.get_label() for l in lines],
+        [use_line.get_label() for use_line in lines],
         loc='best',
         shadow=True)
 

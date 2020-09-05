@@ -19,7 +19,7 @@ class TestRunnerForAlgos(base_test.BaseTestCase):
         """setUp"""
         self.ticker = ae_consts.TICKER
         self.algo_config = (
-            f'./cfg/default_algo.json')
+            './cfg/default_algo.json')
         self.algo_history_loc = (
             f's3://ztestalgos/test_history_{self.ticker}')
     # end of setUp
