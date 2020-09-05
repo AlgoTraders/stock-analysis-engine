@@ -312,7 +312,7 @@ def plot_overlay_pricing_and_volume(
         lines = ax.get_lines() + ax2.get_lines() + newHandles
         ax.legend(
             lines,
-            [l.get_label() for l in lines],
+            [use_line.get_label() for use_line in lines],
             loc='best',
             shadow=True)
 

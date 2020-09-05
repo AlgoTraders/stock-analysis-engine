@@ -87,13 +87,13 @@ def backtest_with_runner():
 
     ticker = 'SPY'
     s3_bucket = (
-        f'algohistory')
+        'algohistory')
     s3_key = (
-        f'trade_history_{ticker}')
+        'trade_history_{ticker}')
     start_date = (
-        f'2019-01-01')
+        '2019-01-01')
     algo_config = (
-        f'/opt/sa/cfg/default_algo.json')
+        '/opt/sa/cfg/default_algo.json')
     latest = False
     show_plot = True
     debug = False
@@ -139,7 +139,7 @@ def backtest_with_runner():
             f'{ticker} latest:')
         print(trading_history_df[['minute', 'close']].tail(5))
         log.info(
-            f'Other available columns to plot:')
+            'Other available columns to plot:')
         print(trading_history_df.columns.values)
         if show_plot:
             plot.plot_trading_history(

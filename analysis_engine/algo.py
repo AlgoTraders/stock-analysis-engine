@@ -3658,7 +3658,7 @@ class BaseAlgo:
             building indicators to analyze and train AI from
             a previous algorithm ``Trading History``.
         """
-        label = f'load_custom_ds'
+        label = 'load_custom_ds'
         ticker = self.tickers[0]
         ds_list = self.config_dict.get(
             'custom_datasets',

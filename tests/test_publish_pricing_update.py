@@ -16,7 +16,6 @@ Please ensure ``redis`` and ``minio`` are running and export this:
 
 import os
 import mock
-import analysis_engine.mocks.mock_pinance
 import analysis_engine.mocks.mock_boto3_s3
 import analysis_engine.mocks.mock_redis
 from analysis_engine.mocks.base_test import BaseTestCase
@@ -70,13 +69,6 @@ class TestPublishPricingData(BaseTestCase):
     """TestPublishPricingData"""
 
     @mock.patch(
-        'pinance.Pinance',
-        new=analysis_engine.mocks.mock_pinance.MockPinance)
-    @mock.patch(
-        ('analysis_engine.get_pricing.'
-         'get_options'),
-        new=analysis_engine.mocks.mock_pinance.mock_get_options)
-    @mock.patch(
         ('analysis_engine.get_task_results.'
          'get_task_results'),
         new=mock_success_task_result)
@@ -125,13 +117,6 @@ class TestPublishPricingData(BaseTestCase):
     # end of test_err_publish_pricing_data
 
     @mock.patch(
-        'pinance.Pinance',
-        new=analysis_engine.mocks.mock_pinance.MockPinance)
-    @mock.patch(
-        ('analysis_engine.get_pricing.'
-         'get_options'),
-        new=analysis_engine.mocks.mock_pinance.mock_get_options)
-    @mock.patch(
         ('analysis_engine.get_task_results.'
          'get_task_results'),
         new=mock_success_task_result)
@@ -154,13 +139,6 @@ class TestPublishPricingData(BaseTestCase):
             res['status'] == SUCCESS)
     # end of test_success_s3_upload
 
-    @mock.patch(
-        'pinance.Pinance',
-        new=analysis_engine.mocks.mock_pinance.MockPinance)
-    @mock.patch(
-        ('analysis_engine.get_pricing.'
-         'get_options'),
-        new=analysis_engine.mocks.mock_pinance.mock_get_options)
     @mock.patch(
         ('analysis_engine.get_task_results.'
          'get_task_results'),
@@ -196,13 +174,6 @@ class TestPublishPricingData(BaseTestCase):
     """
 
     @mock.patch(
-        'pinance.Pinance',
-        new=analysis_engine.mocks.mock_pinance.MockPinance)
-    @mock.patch(
-        ('analysis_engine.get_pricing.'
-         'get_options'),
-        new=analysis_engine.mocks.mock_pinance.mock_get_options)
-    @mock.patch(
         ('analysis_engine.get_task_results.'
          'get_task_results'),
         new=mock_success_task_result)
@@ -227,13 +198,6 @@ class TestPublishPricingData(BaseTestCase):
                 res['status'] == SUCCESS)
     # end of test_integration_s3_upload
 
-    @mock.patch(
-        'pinance.Pinance',
-        new=analysis_engine.mocks.mock_pinance.MockPinance)
-    @mock.patch(
-        ('analysis_engine.get_pricing.'
-         'get_options'),
-        new=analysis_engine.mocks.mock_pinance.mock_get_options)
     @mock.patch(
         ('analysis_engine.get_task_results.'
          'get_task_results'),

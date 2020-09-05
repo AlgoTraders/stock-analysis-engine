@@ -112,14 +112,14 @@ def build_datasets_using_scalers(
         test_df = df[[test_feature]]
 
         log.info(
-            f'building scaled train df')
+            'building scaled train df')
         scaled_train_res = scaler_utils.build_scaler_dataset_from_df(
             df=train_df,
             min_feature=min_feature,
             max_feature=max_feature)
 
         log.info(
-            f'building scaled test df')
+            'building scaled test df')
         scaled_test_res = scaler_utils.build_scaler_dataset_from_df(
             df=test_df,
             min_feature=min_feature,

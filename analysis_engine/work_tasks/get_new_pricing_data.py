@@ -378,15 +378,15 @@ def get_new_pricing_data(
             if num_tokens == 0:
                 res['status'] = ae_consts.MISSING_TOKEN
                 err = (
-                    f'Please set a valid IEX_TOKEN or TD_TOKEN '
-                    f'environment variable')
+                    'Please set a valid IEX_TOKEN or TD_TOKEN '
+                    'environment variable')
             else:
                 err = (
-                    f'Please set at least one supported datafeed from '
-                    f'either: '
-                    f'IEX Cloud (fetch -t TICKER -g iex) or '
-                    f'Tradier (fetch -t TICKER -g td) '
-                    f'for '
+                    'Please set at least one supported datafeed from '
+                    'either: '
+                    'IEX Cloud (fetch -t TICKER -g iex) or '
+                    'Tradier (fetch -t TICKER -g td) '
+                    'for '
                     f'ticker={ticker} '
                     f'cur_date={cur_date} '
                     f'IEX enabled={get_iex_data} '
